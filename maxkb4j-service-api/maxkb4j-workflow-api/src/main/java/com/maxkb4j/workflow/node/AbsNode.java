@@ -67,12 +67,16 @@ public abstract class AbsNode {
 
     /**
      * 保存节点上下文
-     * 子类需要实现具体逻辑
+     * <p>
+     * 默认空实现，遵循"默认实现原则"——子类无需为不需要持久化上下文的节点强行 override。
+     * 需要将上下文持久化到 detail 中的节点（如 AiChat、Question 等）应 override 此方法。
      *
      * @param workflow 工作流实例
      * @param detail   节点详情
      */
-    public abstract void saveContext(Workflow workflow, Map<String, Object> detail);
+    public void saveContext(Workflow workflow, Map<String, Object> detail) {
+        // 默认空实现，子类按需 override
+    }
 
     /**
      * 生成运行时节点ID
@@ -85,13 +89,17 @@ public abstract class AbsNode {
     }
 
     public List<Answer> getAnswerList(String chatRecordId) {
-        if (StringUtils.isNotBlank(answerText)){
-            String reasoningContent="";
-            Object value=context.get("reasoningContent");
-            if (value!=null){
-                reasoningContent=String.valueOf(value);
-            }
-            return List.of(Answer.builder().content(answerText).reasoningContent(reasoningContent).chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(viewType).build());
+        if (StringUtils.isNotBlank(answerText)) {
+            Object value = context.get("reasoningContent");
+            String reasoningContent = value != null ? String.valueOf(value) : "";
+            return List.of(Answer.builder()
+                    .content(answerText)
+                    .reasoningContent(reasoningContent)
+                    .chatRecordId(chatRecordId)
+                    .runtimeNodeId(runtimeNodeId)
+                    .realNodeId(runtimeNodeId)
+                    .viewType(viewType)
+                    .build());
         }
         return List.of();
     }

@@ -156,7 +156,10 @@ public class NodeResult {
         // ==================== 快捷方法 ====================
 
         /**
-         * 快速创建成功结果（非流式）
+         * 设置节点的回答文本（非流式）
+         * <p>
+         * 注意：方法名 {@code success} 仅表示"成功返回的答案"，与 {@link NodeResultFuture#getStatus()}
+         * 的成功状态无关。{@code NodeResult} 本身不携带 status 概念。
          *
          * @param answer 答案内容
          * @return this builder
@@ -168,7 +171,10 @@ public class NodeResult {
         }
 
         /**
-         * 快速创建空结果
+         * 清空已添加的所有变量，并将流式输出重置为非流式
+         * <p>
+         * 注意：本方法会丢弃此前通过 {@link #variable(String, Object)} 添加的变量，
+         * 通常用于需要重新开始的场景。如需创建全新的 Builder，建议直接 {@link NodeResult#builder()}。
          *
          * @return this builder
          */

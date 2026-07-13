@@ -152,14 +152,18 @@ public class WorkflowExecutionAccessor {
         if (CollectionUtils.isEmpty(upNodeIdList)) {
             return true;
         }
-        Set<String> upNodeIdSet=upNodeIdList.stream().filter(id->!id.equals(excludeNodeId)).collect(Collectors.toSet());
-        // 多个上游节点时，检查是否所有上游节点都是 SKIP（排除这种情况）
-        if (!upNodeIdList.isEmpty()) {
-            return configuration.getNodes().stream()
-                    .filter(n -> upNodeIdSet.contains(n.getId()))
-                    .allMatch(n -> NodeStatus.SKIP.getStatus() == n.getStatus());
+        // 排除当前节点后剩余的上游节点集合
+        Set<String> upNodeIdSet = upNodeIdList.stream()
+                .filter(id -> !id.equals(excludeNodeId))
+                .collect(Collectors.toSet());
+        // 排除后无其他上游依赖，视为可跳过
+        if (upNodeIdSet.isEmpty()) {
+            return true;
         }
-        return true;
+        // 检查剩余上游节点是否全部处于 SKIP 状态
+        return configuration.getNodes().stream()
+                .filter(n -> upNodeIdSet.contains(n.getId()))
+                .allMatch(n -> NodeStatus.SKIP.getStatus() == n.getStatus());
     }
 
 
@@ -192,7 +196,7 @@ public class WorkflowExecutionAccessor {
             List<String> upNodeIdList = (List<String>) nodeDetail.get("upNodeIdList");
             String runtimeNodeId = (String) nodeDetail.get("runtimeNodeId");
             Integer nodeStatus = (Integer) nodeDetail.get("status");
-            if (runtimeNodeId.equals(currentNodeId)) {
+            if (Objects.equals(runtimeNodeId, currentNodeId)) {
                 // 处理当前节点
                 this.currentNode = getNodeInstance(nodeId, upNodeIdList, n -> {
                     JSONObject nodeProperties = n.getProperties();

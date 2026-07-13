@@ -48,13 +48,15 @@ public class LoopWorkFlow extends Workflow {
         // 2. 复用父工作流的上下文（关键：共享上下文）
         this.workflowContext = workflow.workflowContext;
         this.historyManager = workflow.historyManager;
-        // 5. 初始化执行控制器（覆盖 getStartNode 以返回 LoopStart 节点）
+
+        // 3. 初始化执行控制器（覆盖 startNode 以返回 LoopStart 节点）
         this.executionAccessor = new LoopExecutionAccessor(this.configuration, this.workflowContext, new EdgeNavigator(edges));
         if (details!=null&&!details.isEmpty()) {
             this.executionAccessor.loadNodeState(this, details,
                     workflow.getChatParams().getRuntimeNodeId(), workflow.getChatParams().getNodeData());
         }
-        // 6. 初始化输出管理器
+
+        // 4. 初始化输出管理器
         this.outputManager = new WorkflowOutputManager(this.configuration, this.workflowContext, sink);
 
     }

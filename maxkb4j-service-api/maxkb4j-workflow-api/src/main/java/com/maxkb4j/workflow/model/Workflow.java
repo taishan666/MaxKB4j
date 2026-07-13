@@ -208,9 +208,10 @@ public class Workflow {
     }
 
     /**
-     * 获取节点执行超时时间（秒）
+     * 获取节点执行超时时间（分钟）
+     * 返回值与 TimeUnit.MINUTES 配合使用
      *
-     * @return 超时时间
+     * @return 超时时间（分钟）
      */
     public long getNodeExecutionTimeoutMinutes() {
         return configuration.getNodeExecutionTimeoutMinutes();

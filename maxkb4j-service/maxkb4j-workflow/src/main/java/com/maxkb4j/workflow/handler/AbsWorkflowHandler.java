@@ -182,7 +182,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             // 调用调度层成功钩子（用于后续调度逻辑）
             onNodeSuccess(workflow, node, result);
 
-            return new NodeResultFuture(result, null, NodeStatus.SUCCESS.getStatus());
+            return new NodeResultFuture(NodeStatus.SUCCESS.getStatus(), result, null);
 
         } catch (CompletionException ex) {
             Throwable cause = ex.getCause();
@@ -229,7 +229,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         // 使用统一的异常解析器链处理异常
         exceptionResolverChain.resolve(workflow, node, ex);
         NodeResult errorResult = new NodeResult(Map.of());
-        return new NodeResultFuture(errorResult, ex, NodeStatus.ERROR.getStatus());
+        return new NodeResultFuture(NodeStatus.ERROR.getStatus(), errorResult, ex);
     }
 
 

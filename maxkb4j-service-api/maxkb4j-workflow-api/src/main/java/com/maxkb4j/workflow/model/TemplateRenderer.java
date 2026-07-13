@@ -33,7 +33,7 @@ public record TemplateRenderer(VariableResolver variableResolver) {
      * 将模板中的变量占位符替换为实际值，并合并额外的变量
      *
      * @param prompt       模板字符串
-     * @param addVariables 额外的变量映射，会覆盖同名的上下文变量
+     * @param addVariables 额外的变量映射，会覆盖同名的上下文变量；为 null 时不合并额外变量
      * @return 渲染后的字符串
      */
     public String render(String prompt, Map<String, Object> addVariables) {
@@ -42,7 +42,9 @@ public record TemplateRenderer(VariableResolver variableResolver) {
         }
         try {
             Map<String, Object> variables = new HashMap<>(variableResolver.getPromptVariables());
-            variables.putAll(addVariables);
+            if (addVariables != null) {
+                variables.putAll(addVariables);
+            }
             PromptTemplate promptTemplate = PromptTemplate.from(prompt);
             return promptTemplate.apply(variables).text();
         } catch (Exception e) {

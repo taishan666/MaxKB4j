@@ -37,12 +37,25 @@ public class KnowledgeWorkflow extends Workflow {
         // 3. 初始化历史管理器
         this.historyManager = new HistoryManager(Collections.emptyList());
 
-        // 5. 初始化执行控制器
+        // 4. 初始化执行控制器
         this.executionAccessor = new WorkflowExecutionAccessor(this.configuration, this.workflowContext, new EdgeNavigator(edges));
-        // 6. 初始化输出管理器
+
+        // 5. 初始化输出管理器
         this.outputManager = new WorkflowOutputManager(this.configuration, this.workflowContext, null);
     }
 
+    /**
+     * 获取知识库工作流的起始节点列表
+     * <p>
+     * <b>副作用警告</b>：本方法违反 CQS（命令查询分离）原则，会修改返回节点列表中的状态——
+     * 除 {@code knowledgeParams.dataSource.nodeId} 指定的数据源节点外，
+     * 其余起始节点会被设置为 {@link NodeStatus#SKIP} 状态。
+     * <p>
+     * 多次调用是幂等的（重复设置 SKIP 状态不会累积副作用），
+     * 但调用方仍需在确认副作用后才可调用，避免在执行过程中意外重置节点状态。
+     *
+     * @return 起始节点列表（非 KNOWLEDGE_BASE 类型且无入边的节点）
+     */
     public List<AbsNode> getStartNodes() {
         String nodeId = knowledgeParams.getDataSource().getNodeId();
         List<AbsNode> workflowNodes=this.configuration.getNodes();

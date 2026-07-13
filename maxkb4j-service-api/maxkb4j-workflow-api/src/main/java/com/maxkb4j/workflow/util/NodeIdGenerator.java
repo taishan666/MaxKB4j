@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,14 +30,15 @@ public class NodeIdGenerator {
      * 基于节点ID和上游节点ID列表生成 SHA-1 哈希值作为运行时ID
      *
      * @param nodeId         节点ID
-     * @param upNodeIdList   上游节点ID列表
+     * @param upNodeIdList   上游节点ID列表，为 null 时按空列表处理
      * @return 运行时节点ID（SHA-1哈希值的十六进制字符串）
      * @throws RuntimeException 如果 SHA-1 算法不可用
      */
     public static String generateRuntimeNodeId(String nodeId, List<String> upNodeIdList) {
         try {
             MessageDigest digest = MessageDigest.getInstance(SHA_1_ALGORITHM);
-            String input = Arrays.toString(upNodeIdList.toArray()) + nodeId;
+            List<String> safeList = upNodeIdList != null ? upNodeIdList : Collections.emptyList();
+            String input = Arrays.toString(safeList.toArray()) + nodeId;
             byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
 
             return bytesToHex(hashBytes);

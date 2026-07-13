@@ -7,6 +7,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -28,11 +29,13 @@ public class WorkflowConfiguration {
 
     /**
      * 节点列表（不可变）
+     * 注：使用副本 + unmodifiableList 双重保护，避免外部修改底层列表
      */
     private final List<AbsNode> nodes;
 
     /**
      * 边列表（不可变）
+     * 注：使用副本 + unmodifiableList 双重保护，避免外部修改底层列表
      */
     private final List<LfEdge> edges;
 
@@ -51,8 +54,9 @@ public class WorkflowConfiguration {
     private ChatParams chatParams;
 
     /**
-     * 节点执行超时时间（秒）
-     * 默认 5 分钟
+     * 节点执行超时时间（分钟）
+     * 默认 10 分钟
+     * 注意：字段名以 Minutes 结尾，单位为分钟，调用方需使用 TimeUnit.MINUTES
      */
     private final long nodeExecutionTimeoutMinutes = 10;
 
@@ -65,9 +69,12 @@ public class WorkflowConfiguration {
      */
     public WorkflowConfiguration(WorkflowMode workflowMode, List<AbsNode> nodes, List<LfEdge> edges) {
         this.workflowMode = workflowMode;
-        this.nodes = nodes != null ? Collections.unmodifiableList(nodes) : Collections.emptyList();
-        this.edges = edges != null ? Collections.unmodifiableList(edges) : Collections.emptyList();
-        this.nodeMap = buildNodeMap(nodes);
+        // 防御性复制：避免外部传入的可变列表影响配置不可变性
+        List<AbsNode> nodesCopy = nodes != null ? new ArrayList<>(nodes) : new ArrayList<>();
+        List<LfEdge> edgesCopy = edges != null ? new ArrayList<>(edges) : new ArrayList<>();
+        this.nodes = Collections.unmodifiableList(nodesCopy);
+        this.edges = Collections.unmodifiableList(edgesCopy);
+        this.nodeMap = buildNodeMap(nodesCopy);
     }
 
     /**
