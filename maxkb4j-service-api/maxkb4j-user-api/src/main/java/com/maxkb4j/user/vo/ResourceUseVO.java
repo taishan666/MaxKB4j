@@ -12,4 +12,6 @@ public class ResourceUseVO {
     private String type;
     private String folderId;
     private String username;
+    private String sourceType;
+    private String targetType;
 }
