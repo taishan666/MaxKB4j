@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * 作为编排器，将不同工具类型（MCP/HTTP/SKILL/CUSTOM）的分发委托给专门的子服务：
  * <ul>
  *   <li>{@link SkillToolService} — Skill 工具的文件管理与执行</li>
- *   <li>{@link ApplicationToolService} — 智能体应用工具构建</li>
+ *   <li>{@link IAgentToolService} — 智能体应用工具构建</li>
  *   <li>{@link ToolSpecificationBuilder} — 工具规范（参数 schema）构建</li>
  * </ul>
  */
@@ -42,7 +42,7 @@ public class ToolProviderService implements IToolProviderService {
 
     private final IToolService toolService;
     private final SkillToolService skillToolService;
-    private final ApplicationToolService applicationToolService;
+    private final IAgentToolService agentToolService;
     private final ToolSpecificationBuilder toolSpecificationBuilder;
 
 
@@ -56,7 +56,7 @@ public class ToolProviderService implements IToolProviderService {
             tools.addAll(buildAiServiceTools(toolIds, tool -> skillToolService.getSkillsTools(userMessage, tool)));
         }
         if (!CollectionUtils.isEmpty(applicationIds)) {
-            tools.addAll(applicationToolService.buildTools(applicationIds));
+            tools.addAll(agentToolService.buildTools(applicationIds));
         }
         return tools;
     }
@@ -71,7 +71,7 @@ public class ToolProviderService implements IToolProviderService {
             toolProviders.addAll(buildToolProviders(toolIds));
         }
         if (!CollectionUtils.isEmpty(applicationIds)) {
-            ToolProvider toolProvider =applicationToolService.buildToolProvider(applicationIds);
+            ToolProvider toolProvider =agentToolService.buildToolProvider(applicationIds);
             if (toolProvider != null){
                 toolProviders.add(toolProvider);
             }

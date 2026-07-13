@@ -1,15 +1,16 @@
 package com.maxkb4j.tool.service;
 
-import com.maxkb4j.application.entity.ApplicationEntity;
-import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.util.ToolNaming;
+import com.maxkb4j.tool.vo.ToolRenderMeta;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.service.tool.BeforeToolExecution;
 import dev.langchain4j.service.tool.ToolExecution;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 /**
  * 工具调用格式化服务实现，将工具执行过程渲染为前端展示文本
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Service;
 public class ToolFormatterService implements IToolFormatterService {
 
     private final IToolService toolService;
-    private final IApplicationService applicationService;
+    private final Optional<IAgentToolMetaResolver> agentMetaResolver;
 
     @Override
     public String format(ToolExecution toolExecute) {
@@ -63,11 +64,10 @@ public class ToolFormatterService implements IToolFormatterService {
     }
 
     private RenderMeta resolveAgentMeta(String id) {
-        ApplicationEntity app = applicationService.lambdaQuery()
-                .select(ApplicationEntity::getIcon, ApplicationEntity::getName)
-                .eq(ApplicationEntity::getId, id)
-                .one();
-        return app == null ? null : new RenderMeta(app.getIcon(), app.getName(), "");
+        return agentMetaResolver
+                .map(resolver -> resolver.resolve(id))
+                .map(meta -> new RenderMeta(meta.icon(), meta.name(), ""))
+                .orElse(null);
     }
 
     /**

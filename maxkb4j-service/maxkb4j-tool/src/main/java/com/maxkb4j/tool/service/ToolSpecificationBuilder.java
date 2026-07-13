@@ -1,6 +1,5 @@
 package com.maxkb4j.tool.service;
 
-import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.common.mp.entity.ToolInputField;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.util.ToolNaming;
@@ -52,21 +51,6 @@ public class ToolSpecificationBuilder {
                 .name(ToolNaming.buildToolName(tool.getId()))
                 .description("**" + tool.getName() + "**" + ":" + tool.getDesc())
                 .parameters(parametersBuilder.build())
-                .build();
-    }
-
-    /**
-     * 根据应用实体构建 ToolSpecification（应用作为工具时的规范）
-     */
-    public ToolSpecification build(ApplicationEntity app) {
-        JsonObjectSchema parameters = JsonObjectSchema.builder()
-                .addStringProperty("message")
-                .required("message")
-                .build();
-        return ToolSpecification.builder()
-                .name(ToolNaming.buildAgentName(app.getId()))
-                .description("**" + app.getName() + "**" + ":" + app.getDesc())
-                .parameters(parameters)
                 .build();
     }
 }
