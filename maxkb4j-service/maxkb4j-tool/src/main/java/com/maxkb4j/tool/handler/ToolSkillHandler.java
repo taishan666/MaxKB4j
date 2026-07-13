@@ -2,13 +2,14 @@ package com.maxkb4j.tool.handler;
 
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.util.SkillsToolUtil;
+import com.maxkb4j.tool.vo.ToolFileVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -62,12 +63,14 @@ public class ToolSkillHandler {
     }
 
     /** 组装 VO 时获取 Skill 关联文件列表（非 SKILL 返回空列表，避免前端 NPE）。 */
-    public List<OssFile> resolveFileList(ToolEntity entity) {
+    public List<ToolFileVO> resolveFileList(ToolEntity entity) {
         if (isNotSkill(entity)) {
             return List.of();
         }
         OssFile file = ossService.getFile(entity.getCode());
-        return file == null ? List.of() : List.of(file);
+        ToolFileVO vo = BeanUtil.copy(file, ToolFileVO.class);
+        vo.setId(file.getFileId());
+        return List.of(vo);
     }
 
     private boolean isNotSkill(ToolEntity entity) {

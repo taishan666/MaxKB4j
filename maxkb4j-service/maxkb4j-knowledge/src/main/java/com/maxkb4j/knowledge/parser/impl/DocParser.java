@@ -1,7 +1,6 @@
 package com.maxkb4j.knowledge.parser.impl;
 
 import com.maxkb4j.knowledge.parser.DocumentParser;
-import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.oss.service.IOssService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.StringEscapeUtils;
@@ -176,8 +175,8 @@ public class DocParser implements DocumentParser {
                             String resourceName = src.split(":")[1];
                             byte[] imageData = embeddedImages.get(resourceName);
                             if (imageData != null && imageData.length > 0) {
-                                OssFile uploadedImage = ossService.uploadFile(resourceName, imageData);
-                                md.append("![](").append(uploadedImage.getUrl()).append(")");
+                                String imageUrl = ossService.uploadAndGetFileUrl(resourceName, imageData);
+                                md.append("![](").append(imageUrl).append(")");
                             } else {
                                 md.append("![Embedded image not found](").append(src).append(")");
                             }

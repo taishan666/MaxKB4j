@@ -1,17 +1,14 @@
-package com.maxkb4j.common.domain.dto;
+package com.maxkb4j.tool.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@Schema(description = "对话文件对象")
 @Data
-public class OssFile {
+public class ToolFileVO {
     @Schema(description = "文件ID")
-    private String fileId;
+    private String id;
     @Schema(description = "文件名称")
     private String name;
-    @Schema(description = "文件URL")
-    private String url;
     @Schema(description = "文件大小")
     private Long size;
 }

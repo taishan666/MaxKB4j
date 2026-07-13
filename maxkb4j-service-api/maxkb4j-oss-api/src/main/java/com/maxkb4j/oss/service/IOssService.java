@@ -9,7 +9,11 @@ import java.io.InputStream;
 
 public interface IOssService {
 
-    OssFile uploadFile(MultipartFile file) throws IOException;
+    String uploadAndGetFileUrl(MultipartFile file) throws IOException;
+
+    default String uploadAndGetFileUrl(String fileName, byte[] fileBytes){
+        return uploadFile(fileName, fileBytes).getUrl();
+    }
 
     OssFile uploadFile(String fileName, byte[] fileBytes);
 

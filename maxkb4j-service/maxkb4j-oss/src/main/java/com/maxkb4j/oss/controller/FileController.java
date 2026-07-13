@@ -1,7 +1,6 @@
 package com.maxkb4j.oss.controller;
 
 import com.maxkb4j.common.api.R;
-import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.oss.service.IOssService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +28,7 @@ public class FileController {
             "/chat/api/oss/file"
     })
     public R<String> uploadFile(MultipartFile file) throws IOException {
-        OssFile ossFile = ossService.uploadFile(file);
-        return R.data(ossFile.getUrl());
+        return R.data(ossService.uploadAndGetFileUrl(file));
     }
 
     @GetMapping({

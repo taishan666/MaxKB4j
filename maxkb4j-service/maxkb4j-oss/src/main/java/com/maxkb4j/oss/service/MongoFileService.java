@@ -26,7 +26,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
 
 @Slf4j
 @Service
@@ -35,20 +34,10 @@ public class MongoFileService implements IOssService{
 
     private final GridFsTemplate gridFsTemplate;
 
-    public OssFile uploadFile(MultipartFile file) throws IOException {
-        OssFile fileVO = new OssFile();
-        // 新文件名
-        fileVO.setName(file.getOriginalFilename());
-        fileVO.setSize(file.getSize());
-        // 获得文件类型
-        fileVO.setType(file.getContentType());
+    public String uploadAndGetFileUrl(MultipartFile file) throws IOException {
         String fileId = storeFile(file);
-        fileVO.setFileId(fileId);
-        fileVO.setUploadTime(new Date());
-        fileVO.setUrl("./oss/file/" + fileId);
-        return fileVO;
+        return "./oss/file/" + fileId;
     }
-
 
     public OssFile uploadFile(String fileName, byte[] fileBytes)  {
         OssFile fileVO = new OssFile();
@@ -57,15 +46,13 @@ public class MongoFileService implements IOssService{
         fileVO.setName(fileName);
         fileVO.setSize((long) fileBytes.length);
         String contentType = new MimetypesFileTypeMap().getContentType(fileName);
-        // 获得文件类型
-        fileVO.setType(contentType);
         DBObject metadata = new BasicDBObject();
         ObjectId objectId = gridFsTemplate.store(ins, fileName, contentType, metadata);
         fileVO.setFileId(objectId.toString());
-        fileVO.setUploadTime(new Date());
         fileVO.setUrl("./oss/file/" + objectId);
         return fileVO;
     }
+
 
     public String storeFile(MultipartFile file) throws IOException {
         // 新文件名
@@ -87,14 +74,12 @@ public class MongoFileService implements IOssService{
             return null;
         }
         OssFile fileVO = new OssFile();
+        String fileId = file.getId().toString();
         // 新文件名
+        fileVO.setFileId(fileId);
         fileVO.setName(file.getFilename());
         fileVO.setSize(file.getLength());
-        // 获得文件类型
-        assert file.getMetadata() != null;
-        fileVO.setType(file.getMetadata().getString("contentType"));
-        fileVO.setUploadTime(file.getUploadDate());
-        fileVO.setUrl("./oss/file/" + file.getId());
+        fileVO.setUrl("./oss/file/" + fileId);
         return fileVO;
     }
 

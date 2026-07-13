@@ -2,7 +2,6 @@ package com.maxkb4j.knowledge.parser.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.benjaminwan.ocrlibrary.OcrResult;
-import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.knowledge.parser.DocumentParser;
 import com.maxkb4j.oss.service.IOssService;
 import io.github.mymonstercat.Model;
@@ -33,11 +32,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -183,8 +182,8 @@ public class PdfParser extends PDFTextStripper implements DocumentParser {
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (ImageData img : pendingImages) {
                 futures.add(CompletableFuture.runAsync(() -> {
-                    OssFile ossFile = ossService.uploadFile(img.fileName(), img.bytes());
-                    urlMap.put(img.fileName(), ossFile.getUrl());
+                    String imageUrl = ossService.uploadAndGetFileUrl(img.fileName(), img.bytes());
+                    urlMap.put(img.fileName(), imageUrl);
                 }, executor));
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
