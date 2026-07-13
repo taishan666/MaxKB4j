@@ -110,7 +110,6 @@ public class ApplicationLongTermMemoryService extends ServiceImpl<ApplicationLon
         if (count % pageSize==0){
             int page= (int) ((count-1)/pageSize);
             int offset = page * pageSize;
-            System.out.println("page:"+page+ " offset:"+offset);
             List<ApplicationChatRecordEntity> chatRecords = chatRecordService.listByAppIdAndChatUserId(applicationId, chatUserId,pageSize,offset);
             List<String> lines = new ArrayList<>();
             for (ApplicationChatRecordEntity chatRecord : chatRecords) {
@@ -138,13 +137,6 @@ public class ApplicationLongTermMemoryService extends ServiceImpl<ApplicationLon
             }
         }
     }
-
-/*    public static void main(String[] args) {
-        long count = 11;
-        int limit=10;
-        int page= (int) ((count-1)/limit);
-        System.out.println(page);
-    }*/
 
     @Override
     public String getMemory(String applicationId, String chatUserId) {
