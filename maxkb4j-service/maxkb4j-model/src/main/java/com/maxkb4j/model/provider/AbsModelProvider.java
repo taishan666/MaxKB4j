@@ -157,6 +157,9 @@ public abstract class AbsModelProvider {
             } else if (ModelType.EMBEDDING.getKey().equals(modelType)) {
                 EmbeddingModel model = buildEmbeddingModel(modelName, credential, params);
                 model.embed("hi");
+            }else if (ModelType.RERANKER.getKey().equals(modelType)) {
+                ScoringModel model = buildScoringModel(modelName, credential, params);
+                model.score("hi", "hi");
             }
         }
     }
