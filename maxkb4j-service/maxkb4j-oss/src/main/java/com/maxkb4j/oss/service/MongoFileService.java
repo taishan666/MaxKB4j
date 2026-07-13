@@ -1,8 +1,8 @@
 package com.maxkb4j.oss.service;
 
 
-import cn.hutool.core.io.IoUtil;
 import com.maxkb4j.common.domain.dto.OssFile;
+import com.maxkb4j.oss.support.FileResponseHelper;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.client.gridfs.model.GridFSFile;
@@ -16,40 +16,48 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class MongoFileService implements IOssService{
 
+    /** 文件访问 URL 前缀。 */
+    private static final String FILE_URL_PREFIX = "./oss/file/";
+
+    /** 文件类型解析器（线程安全，复用实例）。 */
+    private static final MimetypesFileTypeMap MIME_TYPES = new MimetypesFileTypeMap();
+
     private final GridFsTemplate gridFsTemplate;
+
+    /**
+     * 根据文件 ID 构造访问 URL。
+     */
+    private static String buildFileUrl(String fileId) {
+        return FILE_URL_PREFIX + fileId;
+    }
 
     public String uploadAndGetFileUrl(MultipartFile file) throws IOException {
         String fileId = storeFile(file);
-        return "./oss/file/" + fileId;
+        return buildFileUrl(fileId);
     }
 
     public OssFile uploadFile(String fileName, byte[] fileBytes)  {
         OssFile fileVO = new OssFile();
         InputStream ins = new ByteArrayInputStream(fileBytes);
-        // 新文件名
         fileVO.setName(fileName);
         fileVO.setSize((long) fileBytes.length);
-        String contentType = new MimetypesFileTypeMap().getContentType(fileName);
+        String contentType = MIME_TYPES.getContentType(fileName);
         DBObject metadata = new BasicDBObject();
         ObjectId objectId = gridFsTemplate.store(ins, fileName, contentType, metadata);
         fileVO.setFileId(objectId.toString());
-        fileVO.setUrl("./oss/file/" + objectId);
+        fileVO.setUrl(buildFileUrl(objectId.toString()));
         return fileVO;
     }
 
@@ -79,7 +87,7 @@ public class MongoFileService implements IOssService{
         fileVO.setFileId(fileId);
         fileVO.setName(file.getFilename());
         fileVO.setSize(file.getLength());
-        fileVO.setUrl("./oss/file/" + fileId);
+        fileVO.setUrl(buildFileUrl(fileId));
         return fileVO;
     }
 
@@ -92,35 +100,17 @@ public class MongoFileService implements IOssService{
             }
 
             Document doc = file.getMetadata();
-            String contentType = (doc != null) ? doc.getString("_contentType") : "application/octet-stream";
-            response.setContentType(contentType);
+            String contentType = (doc != null) ? doc.getString("_contentType") : null;
+            // 响应头（Content-Type / Content-Disposition / Content-Length）必须在获取输出流之前完成
+            FileResponseHelper.configureHeaders(response, file.getFilename(), contentType, file.getLength());
 
-            boolean previewAble = contentType != null &&
-                    (contentType.startsWith("image/") || "application/pdf".equals(contentType));
-
-            if (previewAble) {
-                response.setHeader("Content-Disposition", "inline");
-            } else {
-                String encodedFileName = URLEncoder.encode(file.getFilename(), StandardCharsets.UTF_8)
-                        .replace("+", "%20");
-                response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename*=UTF-8''" + encodedFileName);
-            }
-
-            // ✅ 必须在 getOutputStream() 之前设置！
-            response.setContentLengthLong(file.getLength());
-
-            try (InputStream inputStream = this.getStream(file);
-                 OutputStream outputStream = response.getOutputStream()) {
-
+            try (InputStream inputStream = this.getStream(file)) {
                 if (inputStream == null) {
                     log.warn("Input stream is null for file ID: {}", id);
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     return;
                 }
-
-                IoUtil.copy(inputStream, outputStream);
-                outputStream.flush();
+                FileResponseHelper.writeStream(response, inputStream);
             }
 
         } catch (Exception e) {
