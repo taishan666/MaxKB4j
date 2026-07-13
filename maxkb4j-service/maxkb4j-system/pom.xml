@@ -54,6 +54,27 @@
             <artifactId>maxkb4j-oss-api</artifactId>
             <version>${revision}</version>
         </dependency>
+        <!-- 跨域 Mapper 依赖：UserResourcePermissionServiceImpl 使用 application/knowledge/model/tool 的 Mapper -->
+        <dependency>
+            <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-application</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-knowledge</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-model</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-tool</artifactId>
+            <version>${revision}</version>
+        </dependency>
         <!--验证码-->
         <dependency>
             <groupId>com.github.whvcse</groupId>
