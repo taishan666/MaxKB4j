@@ -148,7 +148,7 @@ public abstract class AbsModelProvider {
 
     public void modelIsValid(String modelType,String modelName, ModelCredential credential, JSONObject params) {
         if (modelType != null) {
-            if (ModelType.LLM.getKey().equals(modelType)) {
+            if (ModelType.LLM.getKey().equals(modelType)||ModelType.VISION.getKey().equals(modelType)) {
                 StreamingChatModel model = buildStreamingChatModel(modelName, credential, params);
                 Assistant assistant = AiServices.create(Assistant.class,model);
                 Flux<String> flux = assistant.chatFlux("hi");
