@@ -14,7 +14,7 @@ import com.maxkb4j.system.entity.SourceResource;
 import com.maxkb4j.system.mapper.ResourceMappingMapper;
 import com.maxkb4j.system.strategy.SourceResourceResolver;
 import com.maxkb4j.user.entity.UserEntity;
-import com.maxkb4j.user.mapper.UserMapper;
+import com.maxkb4j.system.mapper.UserMapper;
 import com.maxkb4j.user.vo.ResourceUseVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;

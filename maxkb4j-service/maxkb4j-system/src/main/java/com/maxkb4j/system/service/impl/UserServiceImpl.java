@@ -27,7 +27,7 @@ import com.maxkb4j.user.dto.PasswordDTO;
 import com.maxkb4j.user.dto.UserDTO;
 import com.maxkb4j.user.dto.UserLoginDTO;
 import com.maxkb4j.user.entity.UserEntity;
-import com.maxkb4j.user.mapper.UserMapper;
+import com.maxkb4j.system.mapper.UserMapper;
 import com.maxkb4j.user.service.IUserService;
 import com.maxkb4j.user.vo.UserVO;
 import jakarta.mail.MessagingException;

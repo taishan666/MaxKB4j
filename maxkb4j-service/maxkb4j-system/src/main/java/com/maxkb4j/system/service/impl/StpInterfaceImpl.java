@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.user.entity.UserEntity;
 import com.maxkb4j.user.entity.UserResourcePermissionEntity;
-import com.maxkb4j.user.mapper.UserMapper;
+import com.maxkb4j.system.mapper.UserMapper;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
