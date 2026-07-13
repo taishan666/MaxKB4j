@@ -13,6 +13,7 @@ public class TencentModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = "https://api.hunyuan.cloud.tencent.com/v1";
     private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo("hy3", "", ModelType.LLM),
             new ModelInfo("hunyuan-pro", "", ModelType.LLM),
             new ModelInfo("hunyuan-standard", "", ModelType.LLM),
             new ModelInfo("hunyuan-lite", "", ModelType.LLM),
