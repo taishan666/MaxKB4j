@@ -83,6 +83,37 @@
             <groupId>org.ofdrw</groupId>
             <artifactId>ofdrw-full</artifactId>
         </dependency>
+        <!-- Groovy 脚本执行器(GroovyScriptExecutor)与运行期沙箱(GroovySandboxInterceptor)依赖 -->
+        <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy-datetime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy-json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy-xml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy-sql</artifactId>
+        </dependency>
+        <!-- Groovy Sandbox 运行期方法拦截 -->
+        <dependency>
+            <groupId>org.craftercms</groupId>
+            <artifactId>groovy-sandbox</artifactId>
+        </dependency>
+        <!-- Groovy 脚本表达式求值 -->
+        <dependency>
+            <groupId>net.objecthunter</groupId>
+            <artifactId>exp4j</artifactId>
+        </dependency>
     </dependencies>
 
 
