@@ -23,6 +23,7 @@ import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.tool.vo.McpToolVO;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -63,7 +64,7 @@ public class ApplicationController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_CREATE)
     @PostMapping("/application")
-    public R<ApplicationEntity> createApp(@RequestBody ApplicationDTO application) {
+    public R<ApplicationEntity> createApp(@Valid @RequestBody ApplicationDTO application) {
         return R.data(applicationService.createApp(application));
     }
 
@@ -152,13 +153,13 @@ public class ApplicationController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_ACCESS_EDIT)
     @PutMapping("/application/{id}/access_token")
-    public R<ApplicationAccessTokenEntity> updateAccessToken(@PathVariable("id") String id, @RequestBody ApplicationAccessTokenDTO dto) {
+    public R<ApplicationAccessTokenEntity> updateAccessToken(@PathVariable("id") String id, @Valid @RequestBody ApplicationAccessTokenDTO dto) {
         return R.data(accessTokenService.updateAccessToken(id, dto));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PostMapping(path = "application/{id}/model/{modelId}/prompt_generate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<Map<String, String>> promptGenerate(@PathVariable String id, @PathVariable String modelId, @RequestBody PromptGenerateDTO dto) {
+    public Flux<Map<String, String>> promptGenerate(@PathVariable String id, @PathVariable String modelId, @Valid @RequestBody PromptGenerateDTO dto) {
         return applicationPromptService.promptGenerate(applicationService.getById(id), modelId, dto);
     }
 

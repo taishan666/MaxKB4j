@@ -13,6 +13,7 @@ import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.service.ParagraphService;
 import com.maxkb4j.knowledge.service.ProblemParagraphService;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public class ParagraphController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PostMapping("/knowledge/{id}/document/{docId}/paragraph")
-    public R<Boolean> createParagraph(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody ParagraphAddDTO paragraph) {
+    public R<Boolean> createParagraph(@PathVariable String id, @PathVariable("docId") String docId, @Valid @RequestBody ParagraphAddDTO paragraph) {
         return R.status(paragraphService.saveParagraphAndProblem(id, docId, paragraph));
     }
 
@@ -63,13 +64,13 @@ public class ParagraphController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{docId}/paragraph/batch_delete")
-    public R<Boolean> deleteBatchParagraphByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody IdListDTO dto) {
+    public R<Boolean> deleteBatchParagraphByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @Valid @RequestBody IdListDTO dto) {
         return R.status(paragraphService.deleteBatchByIds(id, docId, dto.getIdList()));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_GENERATE)
     @PutMapping("/knowledge/{id}/document/{docId}/paragraph/batch_generate_related")
-    public R<Boolean> paragraphBatchGenerateRelated(@PathVariable String id, @PathVariable String docId, @RequestBody GenerateProblemDTO dto) {
+    public R<Boolean> paragraphBatchGenerateRelated(@PathVariable String id, @PathVariable String docId, @Valid @RequestBody GenerateProblemDTO dto) {
         return R.status(paragraphService.batchGenerateRelated(id, docId, dto));
     }
 
@@ -87,7 +88,7 @@ public class ParagraphController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE)
     @PutMapping("/knowledge/{id}/document/{sourceDocId}/paragraph/migrate/knowledge/{targetKnowledgeId}/document/{targetDocId}")
-    public R<Boolean> paragraphMigrate(@PathVariable("id") String sourceKnowledgeId, @PathVariable String sourceDocId, @PathVariable String targetKnowledgeId, @PathVariable String targetDocId, @RequestBody IdListDTO dto) {
+    public R<Boolean> paragraphMigrate(@PathVariable("id") String sourceKnowledgeId, @PathVariable String sourceDocId, @PathVariable String targetKnowledgeId, @PathVariable String targetDocId, @Valid @RequestBody IdListDTO dto) {
         return R.status(paragraphService.paragraphMigrate(sourceKnowledgeId, sourceDocId, targetKnowledgeId, targetDocId, dto.getIdList()));
     }
 

@@ -11,6 +11,7 @@ import com.maxkb4j.trigger.vo.EventTriggerVO;
 import com.maxkb4j.trigger.vo.SourceEventTriggerVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,7 +42,7 @@ public class TriggerController {
      * 新增触发器
      */
     @PostMapping("/trigger")
-    public R<EventTriggerEntity> addTrigger(@RequestBody EventTriggerDTO dto) {
+    public R<EventTriggerEntity> addTrigger(@Valid @RequestBody EventTriggerDTO dto) {
         dto.setIsActive(false);
         eventTriggerService.saveTrigger(dto, false);
         return R.data(dto);
@@ -59,7 +60,7 @@ public class TriggerController {
      * 编辑触发器
      */
     @PutMapping("/trigger/{id}")
-    public R<EventTriggerEntity> updateTrigger(@PathVariable String id, @RequestBody EventTriggerDTO dto) {
+    public R<EventTriggerEntity> updateTrigger(@PathVariable String id, @Valid @RequestBody EventTriggerDTO dto) {
         dto.setId(id);
         eventTriggerService.saveTrigger(dto, true);
         return R.data(dto);
@@ -77,7 +78,7 @@ public class TriggerController {
      * 批量删除触发器
      */
     @PutMapping("/trigger/batch_delete")
-    public R<Boolean> batchDelete(@RequestBody EventTriggerDTO dto) {
+    public R<Boolean> batchDelete(@Valid @RequestBody EventTriggerDTO dto) {
         boolean allSuccess = dto.getIdList().stream()
                 .allMatch(eventTriggerService::deleteTrigger);
         return R.status(allSuccess);
@@ -87,14 +88,14 @@ public class TriggerController {
      * 批量启用/禁用触发器
      */
     @PutMapping("/trigger/batch_activate")
-    public R<Boolean> batchActivate(@RequestBody EventTriggerDTO dto) {
+    public R<Boolean> batchActivate(@Valid @RequestBody EventTriggerDTO dto) {
         boolean allSuccess = dto.getIdList().stream()
                 .allMatch(id -> eventTriggerService.batchActivate(id, dto.getIsActive()));
         return R.status(allSuccess);
     }
 
     @PostMapping("/{sourceType}/{sourceId}/trigger")
-    public R<EventTriggerDTO> addTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @RequestBody EventTriggerDTO dto) {
+    public R<EventTriggerDTO> addTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @Valid @RequestBody EventTriggerDTO dto) {
         dto.setIsActive(true);
         eventTriggerService.saveTrigger(dto, false);
         return R.data(dto);
@@ -106,7 +107,7 @@ public class TriggerController {
     }
 
     @PutMapping("/{sourceType}/{sourceId}/trigger/{id}")
-    public R<EventTriggerDTO> updateTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @PathVariable String id, @RequestBody EventTriggerDTO dto) {
+    public R<EventTriggerDTO> updateTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @PathVariable String id, @Valid @RequestBody EventTriggerDTO dto) {
         eventTriggerService.saveTrigger(dto, true);
         return R.data(dto);
     }

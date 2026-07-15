@@ -1,12 +1,13 @@
 package com.maxkb4j.user.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import lombok.NonNull;
 
 @Data
 public class UserLoginDTO {
-    @NonNull
+    @NotBlank(message = "用户名不能为空")
     private String username;
+    @NotBlank(message = "密码不能为空")
     private String password;
     private String encryptedData;
     private String captcha;

@@ -11,6 +11,7 @@ import com.maxkb4j.knowledge.util.TagUtil;
 import com.maxkb4j.knowledge.vo.TagListVO;
 import com.maxkb4j.knowledge.vo.TagVO;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashSet;
@@ -79,7 +80,7 @@ public class KnowledgeTagsController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DELETE)
     @PutMapping("/knowledge/{id}/tag/{tagId}/docs_delete")
-    public R<Boolean> docsDelete(@PathVariable("id") String id,@PathVariable("tagId") String tagId,  @RequestBody IdListDTO dto) {
+    public R<Boolean> docsDelete(@PathVariable("id") String id,@PathVariable("tagId") String tagId,  @Valid @RequestBody IdListDTO dto) {
         return R.status(tagService.docsDelete(tagId,dto.getIdList()));
     }
 

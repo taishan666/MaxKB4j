@@ -9,6 +9,7 @@ import com.maxkb4j.knowledge.entity.DocumentTagEntity;
 import com.maxkb4j.knowledge.service.IDocumentTagService;
 import com.maxkb4j.knowledge.vo.TagListVO;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -63,7 +64,7 @@ public class DocumentTagController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/batch_add_tag")
-    public R<Boolean> batchAddTags(@PathVariable("id") String id, @RequestBody DocumentTagAddDTO dto) {
+    public R<Boolean> batchAddTags(@PathVariable("id") String id, @Valid @RequestBody DocumentTagAddDTO dto) {
         List<DocumentTagEntity> documentTags=new ArrayList<>();
         List<String> documentIds=dto.getDocumentIds();
         List<String> tagIds=dto.getTagIds();

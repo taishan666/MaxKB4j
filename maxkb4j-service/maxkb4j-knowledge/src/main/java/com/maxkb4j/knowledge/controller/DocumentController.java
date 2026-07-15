@@ -13,6 +13,7 @@ import com.maxkb4j.knowledge.service.DocumentService;
 import com.maxkb4j.knowledge.vo.DocumentVO;
 import com.maxkb4j.knowledge.vo.TextSegmentVO;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,7 +33,7 @@ public class DocumentController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/web")
-    public void web(@PathVariable("id") String id, @RequestBody WebUrlDTO params) throws IOException {
+    public void web(@PathVariable("id") String id, @Valid @RequestBody WebUrlDTO params) throws IOException {
         documentService.createWebDoc(id, params.getSourceUrlList(), params.getSelector());
     }
 
@@ -81,7 +82,7 @@ public class DocumentController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_GENERATE)
     @PutMapping("/knowledge/{id}/document/batch_generate_related")
-    public R<Boolean> batchGenerateRelated(@PathVariable String id, @RequestBody GenerateProblemDTO dto) {
+    public R<Boolean> batchGenerateRelated(@PathVariable String id, @Valid @RequestBody GenerateProblemDTO dto) {
         return R.status(documentService.batchGenerateRelated(id, dto));
     }
 
@@ -93,13 +94,13 @@ public class DocumentController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/batch_hit_handling")
-    public R<Boolean> batchHitHandling(@PathVariable String id, @RequestBody DatasetBatchHitHandlingDTO dto) {
+    public R<Boolean> batchHitHandling(@PathVariable String id, @Valid @RequestBody DatasetBatchHitHandlingDTO dto) {
         return R.status(documentService.batchHitHandling(id, dto));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DELETE)
     @PutMapping("/knowledge/{id}/document/batch_delete")
-    public R<Boolean> deleteBatchDocByDocIds(@PathVariable("id") String id, @RequestBody IdListDTO dto) {
+    public R<Boolean> deleteBatchDocByDocIds(@PathVariable("id") String id, @Valid @RequestBody IdListDTO dto) {
         return R.status(documentService.deleteDocByIds(id, dto.getIdList()));
     }
 
@@ -111,13 +112,13 @@ public class DocumentController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_VECTOR)
     @PutMapping("/knowledge/{id}/document/{docId}/refresh")
-    public R<Boolean> refresh(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEmbedDTO dto) {
+    public R<Boolean> refresh(@PathVariable String id, @PathVariable("docId") String docId, @Valid @RequestBody DocumentEmbedDTO dto) {
         return R.status(documentService.embedByDocIds(id, List.of(docId), dto.getStateList()));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_VECTOR)
     @PutMapping("/knowledge/{id}/document/batch_refresh")
-    public R<Boolean> batchRefresh(@PathVariable String id, @RequestBody DocumentEmbedDTO dto) {
+    public R<Boolean> batchRefresh(@PathVariable String id, @Valid @RequestBody DocumentEmbedDTO dto) {
         return R.status(documentService.embedByDocIds(id, dto.getIdList(), dto.getStateList()));
     }
 

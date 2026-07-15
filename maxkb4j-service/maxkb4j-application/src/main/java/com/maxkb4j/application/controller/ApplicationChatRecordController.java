@@ -12,6 +12,7 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,13 +42,13 @@ public class ApplicationChatRecordController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_CREATE)
     @PostMapping("/application/{id}/add_knowledge")
-    public R<Boolean> addKnowledge(@PathVariable("id") String id, @RequestBody AddChatImproveDTO dto) {
+    public R<Boolean> addKnowledge(@PathVariable("id") String id, @Valid @RequestBody AddChatImproveDTO dto) {
         return R.status(chatRecordService.addChatLogs(id, dto));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/knowledge/{knowledgeId}/document/{docId}/improve")
-    public R<ApplicationChatRecordEntity> improveChatLog(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @PathVariable("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable("docId") String docId, @RequestBody ChatImproveDTO dto) {
+    public R<ApplicationChatRecordEntity> improveChatLog(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @PathVariable("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable("docId") String docId, @Valid @RequestBody ChatImproveDTO dto) {
         return R.data(chatRecordService.improveChatLog(chatId, chatRecordId, knowledgeId, docId, dto));
     }
 

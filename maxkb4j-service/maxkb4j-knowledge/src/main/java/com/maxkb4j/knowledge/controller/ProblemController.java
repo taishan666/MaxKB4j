@@ -12,6 +12,7 @@ import com.maxkb4j.knowledge.service.KnowledgeService;
 import com.maxkb4j.knowledge.service.ProblemService;
 import com.maxkb4j.knowledge.vo.ProblemVO;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public class ProblemController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_PROBLEM_CREATE)
     @PostMapping("/knowledge/{id}/document/{documentId}/paragraph/{paragraphId}/problem")
-    public R<Boolean> createProblemsByParagraphId(@PathVariable String id, @PathVariable String documentId, @PathVariable String paragraphId, @RequestBody ProblemDTO dto) {
+    public R<Boolean> createProblemsByParagraphId(@PathVariable String id, @PathVariable String documentId, @PathVariable String paragraphId, @Valid @RequestBody ProblemDTO dto) {
         return R.status(problemService.createProblemsByParagraphId(id, documentId, paragraphId, dto));
     }
 

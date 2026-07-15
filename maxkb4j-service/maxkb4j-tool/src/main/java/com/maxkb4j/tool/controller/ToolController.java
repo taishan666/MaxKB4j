@@ -18,6 +18,7 @@ import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.ToolService;
 import com.maxkb4j.tool.vo.ToolVO;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -93,7 +94,7 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_DEBUG)
     @PostMapping("/tool/debug")
-    public R<Object> debug(@RequestBody ToolDTO dto) {
+    public R<Object> debug(@Valid @RequestBody ToolDTO dto) {
         Map<String, Object> params = new HashMap<>(5);
         if (!CollectionUtils.isEmpty(dto.getDebugFieldList())) {
             for (ToolInputField inputField : dto.getDebugFieldList()) {

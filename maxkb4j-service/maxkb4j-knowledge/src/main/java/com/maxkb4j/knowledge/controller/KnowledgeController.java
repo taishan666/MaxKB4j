@@ -27,6 +27,7 @@ import com.maxkb4j.knowledge.vo.KnowledgeVO;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import com.maxkb4j.workflow.model.KnowledgeParams;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -92,7 +93,7 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_HIT_TEST_READ)
     @PutMapping("/knowledge/{id}/hit_test")
-    public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, @RequestBody DataSearchDTO dto) {
+    public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, @Valid @RequestBody DataSearchDTO dto) {
         return R.data(retrieveService.paragraphSearch(List.of(id), dto));
     }
 
@@ -113,7 +114,7 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_PROBLEM_RELATE)
     @PutMapping("/knowledge/{id}/generate_related")
-    public R<Boolean> generateRelated(@PathVariable String id, @RequestBody GenerateProblemDTO dto) {
+    public R<Boolean> generateRelated(@PathVariable String id, @Valid @RequestBody GenerateProblemDTO dto) {
         return R.status(knowledgeWorkflowService.generateRelated(id, dto));
     }
 

@@ -16,8 +16,8 @@ import com.maxkb4j.user.entity.UserEntity;
 import com.maxkb4j.user.service.IUserService;
 import com.maxkb4j.user.vo.UserVO;
 import jakarta.mail.MessagingException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -81,10 +81,7 @@ public class UserController {
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
     @PutMapping("/user_manage/{id}/re_password")
-    public R<Boolean> updatePassword(@PathVariable("id") String id, @RequestBody PasswordDTO dto) {
-        if (StringUtils.isBlank(dto.getPassword()) || StringUtils.isBlank(dto.getRePassword())) {
-            return R.fail(I18nUtil.get("user.password.empty"));
-        }
+    public R<Boolean> updatePassword(@PathVariable("id") String id, @Valid @RequestBody PasswordDTO dto) {
         if (!dto.getPassword().equals(dto.getRePassword())) {
             return R.fail(I18nUtil.get("user.password.not.match"));
         }
@@ -100,7 +97,7 @@ public class UserController {
 
     @SaCheckRole(type = LoginType.ADMIN, value = {RoleType.ADMIN, RoleType.USER}, mode = SaMode.OR)
     @PostMapping("/user/current/reset_password")
-    public R<Boolean> resetPassword(@RequestBody PasswordDTO dto) {
+    public R<Boolean> resetPassword(@Valid @RequestBody PasswordDTO dto) {
         return R.status(userService.resetPassword(dto));
     }
 

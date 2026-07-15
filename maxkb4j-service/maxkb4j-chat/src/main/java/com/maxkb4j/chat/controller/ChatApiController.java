@@ -26,6 +26,7 @@ import com.maxkb4j.common.util.WebUtil;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -208,7 +209,7 @@ public class ChatApiController {
 
     @Hidden
     @PostMapping("/{id}/chat/{chatId}/share_chat")
-    public R<Map<String, String>> shareChat(@PathVariable String id, @PathVariable String chatId, @RequestBody ShareChatDTO dto) {
+    public R<Map<String, String>> shareChat(@PathVariable String id, @PathVariable String chatId, @Valid @RequestBody ShareChatDTO dto) {
         return R.data(chatService.shareChat(id, chatId, dto));
     }
 

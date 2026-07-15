@@ -13,6 +13,7 @@ import com.wf.captcha.SpecCaptcha;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +32,7 @@ public class AuthController {
 	private final IUserService userService;
 
 	@PostMapping("/user/login")
-	public R<String> login(@RequestBody UserLoginDTO dto, HttpServletRequest request){
+	public R<String> login(@Valid @RequestBody UserLoginDTO dto, HttpServletRequest request){
 		return R.data(userService.login(dto,request));
 	}
 
@@ -47,18 +48,18 @@ public class AuthController {
 	}
 
 	@PostMapping("/user/send_email")
-	public R<Boolean> sendEmail(@RequestBody ResetPasswordDTO dto) throws MessagingException {
+	public R<Boolean> sendEmail(@Valid @RequestBody ResetPasswordDTO dto) throws MessagingException {
 		return R.status(userService.sendEmailCode(dto.getEmail(), I18nUtil.get("email.subject.forget.password")));
 	}
 
 
 	@PostMapping("/user/check_code")
-	public R<Boolean> checkCode(@RequestBody ResetPasswordDTO dto){
+	public R<Boolean> checkCode(@Valid @RequestBody ResetPasswordDTO dto){
 		return R.status(userService.checkCode(dto.getEmail(),dto.getCode()));
 	}
 
 	@PostMapping("/user/rePassword")
-	public R<Boolean> rePassword(@RequestBody ResetPasswordDTO dto){
+	public R<Boolean> rePassword(@Valid @RequestBody ResetPasswordDTO dto){
 		 String password=dto.getPassword();
 		 String rePassword=dto.getRePassword();
 		if (Objects.equals(password, rePassword)){
