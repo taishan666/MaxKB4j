@@ -99,8 +99,8 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         problemMapper.delete(Wrappers.<ProblemEntity>lambdaQuery().eq(ProblemEntity::getKnowledgeId, id));
         paragraphMapper.delete(Wrappers.<ParagraphEntity>lambdaQuery().eq(ParagraphEntity::getKnowledgeId, id));
         documentService.remove(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
-        knowledgeVersionService.lambdaQuery().eq(KnowledgeVersionEntity::getKnowledgeId, id);
-        knowledgeActionService.lambdaQuery().eq(KnowledgeActionEntity::getKnowledgeId, id);
+        knowledgeVersionService.lambdaUpdate().eq(KnowledgeVersionEntity::getKnowledgeId, id).remove();
+        knowledgeActionService.lambdaUpdate().eq(KnowledgeActionEntity::getKnowledgeId, id).remove();
         userResourcePermissionService.remove(AuthTargetType.KNOWLEDGE, id);
         compositeStore.deleteByKnowledgeId(id);
         resourceMappingService.deleteBySourceId(ResourceType.KNOWLEDGE, id);
