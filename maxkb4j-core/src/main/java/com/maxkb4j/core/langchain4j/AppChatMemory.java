@@ -5,6 +5,7 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.service.memory.ChatMemoryService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
@@ -15,7 +16,7 @@ public class AppChatMemory implements ChatMemory {
 
     private AppChatMemory(Builder builder) {
         this.id = ensureNotNull(builder.id, "id");
-        this.messages=builder.messages;
+        this.messages = builder.messages != null ? builder.messages : new ArrayList<>();
     }
 
     @Override
