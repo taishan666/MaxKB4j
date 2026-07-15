@@ -212,4 +212,15 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         }
         return result;
     }
+
+    /**
+     * 更新知识库并同步保存资源映射关系。
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean updateKnowledge(String id, KnowledgeEntity knowledge) {
+        knowledge.setId(id);
+        this.updateById(knowledge);
+        this.saveResourceMappings(knowledge);
+        return true;
+    }
 }

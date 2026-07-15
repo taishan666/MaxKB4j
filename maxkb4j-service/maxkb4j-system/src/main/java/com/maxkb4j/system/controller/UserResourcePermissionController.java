@@ -6,7 +6,6 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
-import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.user.entity.UserEntity;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
@@ -33,14 +32,13 @@ public class UserResourcePermissionController {
    // @SaCheckRole(type= LoginType.ADMIN,value = {RoleType.ADMIN, RoleType.USER},mode = SaMode.OR)
     @GetMapping("/user_list")
     public R<List<UserNameVO>> userList(){
-        List<UserEntity> userList = userService.lambdaQuery().eq(UserEntity::getIsActive, true).list();
-        return R.data(BeanUtil.copyList(userList, UserNameVO.class));
+        return R.data(userService.listActiveUserNames());
     }
 
     @SaCheckRole(type= LoginType.ADMIN,value = RoleType.ADMIN)
     @GetMapping("/user_member")
     public R<List<UserEntity>> userMembers(){
-        return R.data(userService.lambdaQuery().eq(UserEntity::getRole,RoleType.USER).eq(UserEntity::getIsActive, true).list());
+        return R.data(userService.listActiveMembers());
     }
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)

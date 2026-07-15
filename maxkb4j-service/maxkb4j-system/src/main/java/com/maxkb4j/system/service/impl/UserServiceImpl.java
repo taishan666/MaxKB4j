@@ -29,6 +29,7 @@ import com.maxkb4j.user.dto.UserLoginDTO;
 import com.maxkb4j.user.entity.UserEntity;
 import com.maxkb4j.system.mapper.UserMapper;
 import com.maxkb4j.user.service.IUserService;
+import com.maxkb4j.user.vo.UserNameVO;
 import com.maxkb4j.user.vo.UserVO;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -237,6 +238,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
     public Map<String, String> getNicknameMap() {
         return this.lambdaQuery().select(UserEntity::getId, UserEntity::getNickname).list().stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
+    }
+
+    @Override
+    public List<UserNameVO> listActiveUserNames() {
+        List<UserEntity> userList = this.lambdaQuery().eq(UserEntity::getIsActive, true).list();
+        return BeanUtil.copyList(userList, UserNameVO.class);
+    }
+
+    @Override
+    public List<UserEntity> listActiveMembers() {
+        return this.lambdaQuery()
+                .eq(UserEntity::getRole, RoleType.USER)
+                .eq(UserEntity::getIsActive, true)
+                .list();
     }
 
     @Override

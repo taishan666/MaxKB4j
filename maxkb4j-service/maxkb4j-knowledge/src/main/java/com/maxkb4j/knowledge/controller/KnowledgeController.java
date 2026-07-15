@@ -100,9 +100,7 @@ public class KnowledgeController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_EDIT)
     @PutMapping("/knowledge/{id}")
     public R<KnowledgeEntity> updatedKnowledge(@PathVariable("id") String id, @RequestBody KnowledgeEntity datasetEntity) {
-        datasetEntity.setId(id);
-        knowledgeService.updateById(datasetEntity);
-        knowledgeService.saveResourceMappings(datasetEntity);
+        knowledgeService.updateKnowledge(id, datasetEntity);
         return R.data(datasetEntity);
     }
 

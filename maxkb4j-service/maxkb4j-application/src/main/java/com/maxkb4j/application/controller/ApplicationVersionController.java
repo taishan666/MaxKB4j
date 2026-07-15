@@ -27,8 +27,7 @@ public class ApplicationVersionController {
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}/application_version")
     public R<List<ApplicationVersionEntity>> workFlowVersionList(@PathVariable("id") String id) {
-        List<ApplicationVersionEntity> list = applicationVersionService.lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, id).orderByDesc(ApplicationVersionEntity::getCreateTime).list();
-        return R.data(list);
+        return R.data(applicationVersionService.listByApplicationId(id));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)

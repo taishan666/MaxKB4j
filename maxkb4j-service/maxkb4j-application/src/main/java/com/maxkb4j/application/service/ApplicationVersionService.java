@@ -8,6 +8,8 @@ import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.util.BeanUtil;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * @author tarzan
  * @date 2024-12-28 18:47:27
@@ -28,5 +30,15 @@ public class ApplicationVersionService extends ServiceImpl<ApplicationVersionMap
         vo.setId(entity.getApplicationId());
         vo.setName(entity.getApplicationName());
         return vo;
+    }
+
+    /**
+     * 查询指定应用的版本列表，按创建时间倒序。
+     */
+    public List<ApplicationVersionEntity> listByApplicationId(String appId) {
+        return this.lambdaQuery()
+                .eq(ApplicationVersionEntity::getApplicationId, appId)
+                .orderByDesc(ApplicationVersionEntity::getCreateTime)
+                .list();
     }
 }

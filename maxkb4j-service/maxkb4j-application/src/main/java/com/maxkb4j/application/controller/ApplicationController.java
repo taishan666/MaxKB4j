@@ -18,7 +18,6 @@ import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
-import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.tool.vo.McpToolVO;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,7 +35,6 @@ import reactor.core.publisher.Flux;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author tarzan
@@ -71,11 +69,7 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_IMPORT)
     @PostMapping("/application/folder/{folderId}/import")
     public R<Boolean> appImport(@PathVariable String folderId, MultipartFile file) throws Exception {
-        if (!Objects.requireNonNull(file.getOriginalFilename()).endsWith(".mk")) {
-            return R.fail(I18nUtil.get("application.file.format.error"));
-        }
-        boolean flag = applicationService.appImport(file.getInputStream());
-        return R.status(flag);
+        return R.status(applicationService.appImport(file));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)

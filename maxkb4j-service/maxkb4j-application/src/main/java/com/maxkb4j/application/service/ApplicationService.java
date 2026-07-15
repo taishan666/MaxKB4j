@@ -20,8 +20,10 @@ import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.domain.dto.KnowledgeDTO;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
@@ -37,6 +39,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.util.*;
@@ -166,6 +169,25 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     public boolean appImport(InputStream inputStream) {
         MaxKb4J maxKb4j = ResourceUtil.parseMk(inputStream);
         return saveMk(maxKb4j);
+    }
+
+    /**
+     * 从上传文件导入应用，校验文件格式后委托给 {@link #appImport(InputStream)}。
+     *
+     * @param file 上传的 .mk 文件
+     * @return 是否导入成功
+     */
+    @Transactional
+    public boolean appImport(MultipartFile file) {
+        String filename = file.getOriginalFilename();
+        if (filename == null || !filename.endsWith(".mk")) {
+            throw new ApiException(I18nUtil.get("application.file.format.error"));
+        }
+        try {
+            return appImport(file.getInputStream());
+        } catch (java.io.IOException e) {
+            throw new ApiException(e.getMessage());
+        }
     }
 
     @Transactional

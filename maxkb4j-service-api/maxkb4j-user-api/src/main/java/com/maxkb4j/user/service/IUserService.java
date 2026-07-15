@@ -6,9 +6,11 @@ import com.maxkb4j.user.dto.PasswordDTO;
 import com.maxkb4j.user.dto.UserDTO;
 import com.maxkb4j.user.dto.UserLoginDTO;
 import com.maxkb4j.user.entity.UserEntity;
+import com.maxkb4j.user.vo.UserNameVO;
 import com.maxkb4j.user.vo.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,6 +18,16 @@ public interface IUserService extends IService<UserEntity> {
     Set<String> getRoleById(String id);
 
     Map<String, String> getNicknameMap();
+
+    /**
+     * 查询所有激活用户的 id 与昵号（用于用户列表下拉）。
+     */
+    List<UserNameVO> listActiveUserNames();
+
+    /**
+     * 查询所有激活的普通用户成员。
+     */
+    List<UserEntity> listActiveMembers();
 
     String getUsername(String userId);
 
