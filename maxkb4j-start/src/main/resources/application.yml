@@ -77,6 +77,8 @@ decorator:
 system:
   default-username: admin
   default-password: ${SYSTEM_DEFAULT_PASSWORD:tarzan@123456}
+  default-phone: 18838812345
+  default-email: 1334512682@qq.com
 
 
 

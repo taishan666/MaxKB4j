@@ -45,7 +45,7 @@ public interface IUserService extends IService<UserEntity> {
 
     boolean checkCode(String email, String code);
 
-    void createAdminUser(String defaultUsername, String defaultPassword);
+    void createDefaultAdminUser();
 
     boolean updateLanguage(UserEntity user);
 

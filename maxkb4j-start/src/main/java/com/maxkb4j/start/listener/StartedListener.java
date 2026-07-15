@@ -3,10 +3,9 @@ package com.maxkb4j.start.listener;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.cache.SystemCache;
-import com.maxkb4j.common.props.SystemProperties;
+import com.maxkb4j.common.enums.SettingType;
 import com.maxkb4j.common.util.RSAUtil;
 import com.maxkb4j.system.entity.SystemSettingEntity;
-import com.maxkb4j.common.enums.SettingType;
 import com.maxkb4j.system.service.SystemSettingService;
 import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;
@@ -38,13 +37,12 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
 
     private final SystemSettingService systemSettingService;
     private final IUserService userService;
-    private final SystemProperties systemProperties;
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationStartedEvent event) {
         long userCount=userService.count();
         if (userCount==0){
-            userService.createAdminUser(systemProperties.getDefaultUsername(), systemProperties.getDefaultPassword());
+            userService.createDefaultAdminUser();
         }
         List<SystemSettingEntity> systemSettings=systemSettingService.list();
         if(CollectionUtils.isEmpty(systemSettings)){

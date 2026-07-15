@@ -13,5 +13,7 @@ import org.springframework.stereotype.Component;
 public class SystemProperties {
     private String defaultUsername;
     private String defaultPassword;
+    private String defaultPhone;
+    private String defaultEmail;
 
 }

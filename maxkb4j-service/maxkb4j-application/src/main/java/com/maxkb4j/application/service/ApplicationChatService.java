@@ -167,7 +167,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
             }else {
                 ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().select(ApplicationAccessTokenEntity::getAccessNum).eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
                 if (Objects.nonNull(appAccessToken)) {
-                    return  chatUserStats.getIntraDayAccessNum()>appAccessToken.getAccessNum();
+                    return  chatUserStats.getIntraDayAccessNum()>=appAccessToken.getAccessNum();
                 }
             }
         }

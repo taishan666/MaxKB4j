@@ -144,17 +144,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     }
 
     @Transactional
-    public void createAdminUser(String username, String password) {
+    public void createDefaultAdminUser() {
         UserEntity user = new UserEntity();
         user.setNickname(I18nUtil.get("user.admin.nickname"));
-        user.setUsername(username);
-        user.setPassword(SaSecureUtil.md5(password));
+        user.setUsername(systemProperties.getDefaultUsername());
+        user.setPassword(SaSecureUtil.md5(systemProperties.getDefaultPassword()));
         user.setRole(RoleType.ADMIN);
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
         user.setLanguage(UserLanguage.ZH_CN);
-        user.setPhone("13843838438");
-        user.setEmail("1334512682@qq.com");
+        user.setPhone(systemProperties.getDefaultPhone());
+        user.setEmail(systemProperties.getDefaultEmail());
         save(user);
     }
 
