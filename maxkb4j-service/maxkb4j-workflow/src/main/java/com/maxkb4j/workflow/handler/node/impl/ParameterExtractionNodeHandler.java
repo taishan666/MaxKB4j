@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.core.assistant.ParameterExtractionAssistant;
-import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -43,7 +43,7 @@ public class ParameterExtractionNodeHandler extends AbsNodeHandler {
         ChatModel chatModel = modelFactory.buildChatModel(modelId, modelParamsSetting);
         Object query = workflow.getReferenceField(params.getInputVariable());
 
-        ParameterExtractionAssistant assistant = AssistantServices.builder(ParameterExtractionAssistant.class)
+        ParameterExtractionAssistant assistant = AiServiceFactory.builder(ParameterExtractionAssistant.class)
                 .chatModel(chatModel)
                 .build();
 

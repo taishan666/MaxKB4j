@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.core.assistant.IntentClassifyAssistant;
-import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
@@ -61,7 +61,7 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
         String options = optionsFormat(idToClassification, branches);
         String chatMemory = MessageUtils.format(historyMessages);
 
-        IntentClassifyAssistant assistant = AssistantServices.builder(IntentClassifyAssistant.class)
+        IntentClassifyAssistant assistant = AiServiceFactory.builder(IntentClassifyAssistant.class)
                 .chatModel(chatModel)
                 .build();
 

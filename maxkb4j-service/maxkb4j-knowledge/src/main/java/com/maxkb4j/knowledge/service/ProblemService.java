@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.core.assistant.ProblemGenerateAssistant;
-import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.knowledge.dto.ProblemDTO;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
@@ -66,7 +66,7 @@ public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> im
             return;
         }
         // 构建 Prompt 并调用 AI 服务
-        ProblemGenerateAssistant assistant = AssistantServices.builder(ProblemGenerateAssistant.class)
+        ProblemGenerateAssistant assistant = AiServiceFactory.builder(ProblemGenerateAssistant.class)
                 .chatModel(chatModel)
                 .build();
         Result<List<String>> result = assistant.generate(problemNumber,paragraph.getContent());

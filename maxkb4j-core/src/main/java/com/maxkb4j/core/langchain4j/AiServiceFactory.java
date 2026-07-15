@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 
-public class AssistantServices {
+public class AiServiceFactory {
 
     private static final Collection<AiServiceListener<?>> LISTENERS = Arrays.asList(
             new AssistantStartedListener(),

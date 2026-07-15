@@ -7,7 +7,7 @@ import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.searchdatasetstep.AbsSearchDatasetStep;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.core.assistant.RouterAssistant;
-import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
 import com.maxkb4j.knowledge.service.IRetrieveService;
@@ -19,7 +19,6 @@ import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +45,7 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
                 String modelId = application.getModelId();
                 JSONObject modelParams = application.getModelParamsSetting();
                 ChatModel chatModel = modelFactory.buildChatModel(modelId,modelParams);
-                RouterAssistant assistant = AssistantServices.builder(RouterAssistant.class)
+                RouterAssistant assistant = AiServiceFactory.builder(RouterAssistant.class)
                         .chatModel(chatModel)
                         .build();
                 List<String> options=new ArrayList<>();

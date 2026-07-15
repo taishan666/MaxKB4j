@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AppChatMemory;
-import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.DialogueType;
@@ -52,7 +52,7 @@ public class QuestionNodeHandler extends AbsNodeHandler {
         String question = workflow.renderPrompt(params.getPrompt());
         String systemPrompt = workflow.renderPrompt(params.getSystem());
 
-        Assistant assistant = AssistantServices.builder(Assistant.class)
+        Assistant assistant = AiServiceFactory.builder(Assistant.class)
                 .systemMessage(systemPrompt)
                 .chatMemory(AppChatMemory.withMessages("",historyMessages))
                 .chatModel(chatModel)

@@ -3,7 +3,7 @@ package com.maxkb4j.application.pipeline.step.resetproblemstep.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.pipeline.step.resetproblemstep.AbsResetProblemStep;
 import com.maxkb4j.core.assistant.CompressingQueryAssistant;
-import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.data.message.ChatMessage;
@@ -27,7 +27,7 @@ public class ResetProblemStep extends AbsResetProblemStep {
     protected String execute( String modelId,JSONObject modelParams, String question, List<ChatMessage> chatMemory) {
         long startTime = System.currentTimeMillis();
         ChatModel chatModel = modelFactory.buildChatModel(modelId,modelParams);
-        CompressingQueryAssistant queryAssistant = AssistantServices.builder(CompressingQueryAssistant.class)
+        CompressingQueryAssistant queryAssistant = AiServiceFactory.builder(CompressingQueryAssistant.class)
                 .chatModel(chatModel)
                 .build();
         Result<String> result= queryAssistant.transform(MessageUtils.format(chatMemory),question);

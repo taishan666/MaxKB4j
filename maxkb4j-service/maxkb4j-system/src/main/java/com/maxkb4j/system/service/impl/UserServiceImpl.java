@@ -108,7 +108,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         }
         String password = SaSecureUtil.md5(dto.getPassword());
         UserEntity userEntity = this.lambdaQuery()
-                .select(UserEntity::getId, UserEntity::getIsActive,  UserEntity::getLanguage)
+                .select(UserEntity::getId, UserEntity::getIsActive, UserEntity::getLanguage, UserEntity::getPassword)
                 .eq(UserEntity::getUsername, dto.getUsername())
                 .eq(UserEntity::getPassword, password)
                 .eq(UserEntity::getSource, UserSource.LOCAL)
@@ -159,7 +159,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     }
 
     public UserVO getUserById(String userId) {
-        UserEntity userEntity = this.getById(userId);
+        UserEntity userEntity = this.lambdaQuery()
+                .select(UserEntity::getId, UserEntity::getEmail, UserEntity::getPhone,
+                        UserEntity::getNickname, UserEntity::getUsername, UserEntity::getPassword,
+                        UserEntity::getRole, UserEntity::getIsActive, UserEntity::getSource,
+                        UserEntity::getLanguage, UserEntity::getCreateTime, UserEntity::getUpdateTime)
+                .eq(UserEntity::getId, userId)
+                .one();
         if (Objects.isNull(userEntity)) {
             throw new NotLoginException(I18nUtil.get("login.user.not.found"), "", "");
         }

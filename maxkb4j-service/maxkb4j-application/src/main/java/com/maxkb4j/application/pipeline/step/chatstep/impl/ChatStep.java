@@ -8,7 +8,7 @@ import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AppChatMemory;
-import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.tool.service.IToolFormatterService;
 import com.maxkb4j.tool.service.IToolProviderService;
@@ -49,7 +49,7 @@ public class ChatStep extends AbsChatStep {
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, params);
         List<String> toolIds = Optional.ofNullable(application.getToolIds()).orElse(List.of());
         List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
-        AiServices<Assistant> aiServicesBuilder = AssistantServices.builder(Assistant.class);
+        AiServices<Assistant> aiServicesBuilder = AiServiceFactory.builder(Assistant.class);
         String chatUserId = manage.chatParams.getChatUserId();
         String systemText = application.getModelSetting().getSystem();
         if (StringUtils.isNotBlank(systemText)){

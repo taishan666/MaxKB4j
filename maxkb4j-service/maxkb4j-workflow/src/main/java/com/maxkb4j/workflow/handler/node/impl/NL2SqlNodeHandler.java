@@ -3,7 +3,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.core.assistant.NL2SqlAssistant;
 import com.maxkb4j.core.langchain4j.AppChatMemory;
-import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.core.util.DatabaseUtil;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
@@ -56,7 +56,7 @@ public class NL2SqlNodeHandler extends AbsNodeHandler {
         String databaseStructure = DatabaseUtil.generateDDL(dataSource);
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), params.getDialogueType(), node.getRuntimeNodeId());
 
-        NL2SqlAssistant assistant = AssistantServices.builder(NL2SqlAssistant.class)
+        NL2SqlAssistant assistant = AiServiceFactory.builder(NL2SqlAssistant.class)
                 .chatModel(chatModel)
                 .chatMemory(AppChatMemory.withMessages("",historyMessages))
                 .build();

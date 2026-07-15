@@ -1,5 +1,6 @@
 package com.maxkb4j.user.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.maxkb4j.common.mp.base.BaseEntity;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class UserEntity extends BaseEntity {
 
     private String username;
 
+    @TableField(select = false)
     private String password;
     private String role;
 

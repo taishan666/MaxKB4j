@@ -9,7 +9,7 @@ import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.MimeTypeUtils;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AppChatMemory;
-import com.maxkb4j.core.langchain4j.AssistantServices;
+import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.service.IToolFormatterService;
@@ -98,7 +98,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
     private Assistant buildAiServices(String modelId, JSONObject modelParamsSetting, Workflow workflow,
                                       String systemPrompt, List<ChatMessage> historyMessages,
                                       List<String> toolIds, List<String> applicationIds) {
-        AiServices<Assistant> builder = AssistantServices.builder(Assistant.class);
+        AiServices<Assistant> builder = AiServiceFactory.builder(Assistant.class);
 
         if (StringUtils.isNotBlank(systemPrompt)) {
             builder.systemMessage(systemPrompt);
