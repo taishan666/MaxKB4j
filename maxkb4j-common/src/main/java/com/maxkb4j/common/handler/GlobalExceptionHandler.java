@@ -207,9 +207,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserIdentityException.class)
     @ResponseBody
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public R<String> handleException(UserIdentityException e, HttpServletResponse response) {
-        response.setStatus(460); // 设置HTTP状态码为461
+        response.setStatus(460); // 设置HTTP状态码为460
         return R.fail(1002, e.getMessage());
     }
 
@@ -252,6 +251,7 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(Exception.class)
+    @ResponseBody
     public R<String> handleException(Exception e) {
         log.error("未知异常", e);
         return R.fail(500, I18nUtil.get("common.system.error"));

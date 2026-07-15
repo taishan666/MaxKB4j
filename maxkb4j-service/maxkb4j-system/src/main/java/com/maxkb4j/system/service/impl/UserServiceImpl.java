@@ -103,7 +103,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         if (StringUtils.isBlank(sessionCaptcha)) {
             throw new LoginException("login.captcha.expired");
         }
-        if (Objects.nonNull(dto.getCaptcha()) && !sessionCaptcha.equals(dto.getCaptcha().toLowerCase())) {
+        if (Objects.nonNull(dto.getCaptcha()) && !sessionCaptcha.equalsIgnoreCase(dto.getCaptcha())) {
             throw new LoginException("login.captcha.error");
         }
         String password = SaSecureUtil.md5(dto.getPassword());
