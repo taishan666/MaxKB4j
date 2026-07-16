@@ -25,10 +25,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import java.util.stream.Collectors;
-
 import javax.crypto.BadPaddingException;
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 
 /**
@@ -146,17 +145,16 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public R<String> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining("; "));
         log.warn("参数校验失败: {}", message);
-        return R.fail(400, message);
+        return R.fail(500, message);
     }
 
     /**
-     * 处理 @RequestParam/@PathVariable 参数校验失败异常（@Validated 触发）
+     * 处理 @RequestParam/@PathVariable 约束违反异常（@Validated 触发）
      */
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseBody
@@ -165,8 +163,8 @@ public class GlobalExceptionHandler {
         String message = e.getConstraintViolations().stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.joining("; "));
-        log.warn("参数校验失败: {}", message);
-        return R.fail(400, message);
+        log.warn("约束违反异常: {}", message);
+        return R.fail(500, message);
     }
 
     @ExceptionHandler(ApiException.class)

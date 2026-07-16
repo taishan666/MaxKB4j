@@ -1,5 +1,8 @@
 package com.maxkb4j.common.context;
 
+import com.maxkb4j.common.interceptor.UserIdentityInterceptor;
+import lombok.Getter;
+
 import java.util.Map;
 
 /**
@@ -9,11 +12,8 @@ import java.util.Map;
  *
  * @author tarzan
  */
-public final class UserIdentity {
-
-    private final String userId;
-    private final String loginType;
-    private final Map<String, Object> extras;
+@Getter
+public record UserIdentity(String userId, String loginType, Map<String, Object> extras) {
 
     public UserIdentity(String userId, String loginType, Map<String, Object> extras) {
         this.userId = userId;
@@ -21,15 +21,4 @@ public final class UserIdentity {
         this.extras = extras == null ? Map.of() : extras;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public String getLoginType() {
-        return loginType;
-    }
-
-    public Map<String, Object> getExtras() {
-        return extras;
-    }
 }

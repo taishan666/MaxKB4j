@@ -1,6 +1,7 @@
 package com.maxkb4j.common.context;
 
 import com.maxkb4j.common.exception.UserIdentityException;
+import com.maxkb4j.common.interceptor.UserIdentityInterceptor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -40,7 +41,7 @@ public class ThreadLocalUserContext implements UserContext {
     @Override
     public String getLoginType() {
         UserIdentity identity = HOLDER.get();
-        return identity == null ? null : identity.getLoginType();
+        return identity == null ? null : identity.loginType();
     }
 
     @Override
@@ -49,7 +50,7 @@ public class ThreadLocalUserContext implements UserContext {
         if (identity == null) {
             throw new UserIdentityException("当前线程未解析到登录身份");
         }
-        return identity.getUserId();
+        return identity.userId();
     }
 
     @Override
@@ -58,7 +59,7 @@ public class ThreadLocalUserContext implements UserContext {
         if (identity == null) {
             return null;
         }
-        Map<String, Object> extras = identity.getExtras();
+        Map<String, Object> extras = identity.extras();
         Object value = extras.get(key);
         return value == null ? null : value.toString();
     }
