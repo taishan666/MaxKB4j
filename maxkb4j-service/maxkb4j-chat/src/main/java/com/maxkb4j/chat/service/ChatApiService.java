@@ -20,6 +20,8 @@ import com.maxkb4j.common.domain.dto.McpRequest;
 import com.maxkb4j.common.domain.vo.McpResponse;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.util.StpKit;
+import com.maxkb4j.common.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -51,10 +53,12 @@ public class ChatApiService {
         if (accessTokenEntity == null){
             throw new ApiException("application.app.not.found");
         }
-        String chatUserId = IdWorker.get32UUID();
-        if (userContext.isLogin()) {
-            chatUserId = userContext.getUserId();
+        String tokenValue = WebUtil.getTokenValue();
+        StpKit.USER.setTokenValue(WebUtil.getTokenValue());
+        if (StpKit.USER.isLogin()) {
+            return tokenValue;
         }
+        String chatUserId = IdWorker.get32UUID();
         Map<String, Object> extraData = new HashMap<>();
         extraData.put("applicationId", accessTokenEntity.getApplicationId());
         extraData.put("chatUserType", ChatUserType.ANONYMOUS_USER.name());

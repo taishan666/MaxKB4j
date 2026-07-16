@@ -1,7 +1,6 @@
 package com.maxkb4j.common.context;
 
 import com.maxkb4j.common.interceptor.UserIdentityInterceptor;
-import lombok.Getter;
 
 import java.util.Map;
 
@@ -12,7 +11,6 @@ import java.util.Map;
  *
  * @author tarzan
  */
-@Getter
 public record UserIdentity(String userId, String loginType, Map<String, Object> extras) {
 
     public UserIdentity(String userId, String loginType, Map<String, Object> extras) {
