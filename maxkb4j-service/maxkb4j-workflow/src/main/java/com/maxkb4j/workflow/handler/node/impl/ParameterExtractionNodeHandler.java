@@ -68,7 +68,7 @@ public class ParameterExtractionNodeHandler extends AbsNodeHandler {
         StringBuilder textBuilder = new StringBuilder();
         for (ParameterExtractionNode.Field field : fields) {
             textBuilder.append("\n");
-            textBuilder.append("- ").append(field.getLabel()).append("(").append(field.getField()).append(")");
+            textBuilder.append("- ").append(field.getField()).append("(").append(field.getLabel()).append(")");
         }
         return textBuilder.toString();
     }
