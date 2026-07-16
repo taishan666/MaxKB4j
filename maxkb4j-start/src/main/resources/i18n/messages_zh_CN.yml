@@ -17,6 +17,9 @@ common:
       exceeded: 文件数量超出限制
 
 login:
+  password:
+    decrypt:
+      error: 密码解密错误
   captcha:
     expired: 验证码已过期
     error: 验证码错误

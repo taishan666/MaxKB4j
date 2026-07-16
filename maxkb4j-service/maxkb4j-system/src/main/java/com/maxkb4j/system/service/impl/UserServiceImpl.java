@@ -90,11 +90,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
                 String text = RSAUtil.rsaLongDecrypt(encryptedData, SystemCache.getPrivateKey());
                 dto = JSON.to(UserLoginDTO.class,text);
             } catch (Exception e) {
-                throw new LoginException("密码解密错误");
+                throw new LoginException("login.password.decrypt.error");
             }
         }
         if (StringUtils.isBlank(dto.getPassword())){
-            throw new LoginException("密码不能为空");
+            throw new LoginException("user.password.empty");
         }
         HttpSession session = request.getSession();
         String sessionCaptcha = (String) session.getAttribute("captcha");

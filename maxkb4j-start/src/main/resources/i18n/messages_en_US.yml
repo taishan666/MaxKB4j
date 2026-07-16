@@ -17,6 +17,9 @@ common:
       exceeded: File count exceeds the limit
 
 login:
+  password:
+    decrypt:
+      error: Password decryption error
   captcha:
     expired: Captcha has expired
     error: Captcha is incorrect
