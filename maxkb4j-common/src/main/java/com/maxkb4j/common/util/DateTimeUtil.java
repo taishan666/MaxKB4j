@@ -98,59 +98,74 @@ public class DateTimeUtil {
     }
 
     /**
-     * 获取第二天的指定时间
+     * 获取下一个到达的指定时间点：若今天该时刻尚未过去则返回今天，否则返回明天。
      * @param hour 小时
      * @param minute 分钟
      * @param second 秒
-     * @return 第二天指定时间的LocalDateTime
+     * @return 下一次该时刻的LocalDateTime
      */
     public static LocalDateTime getNextDayAtTime(int hour, int minute, int second) {
-        return getNextDay(LocalTime.of(hour, minute, second));
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime today = now.withHour(hour).withMinute(minute).withSecond(second).withNano(0);
+        if (today.isAfter(now)) {
+            return today;
+        }
+        return today.plusDays(1);
     }
 
     /**
-     * 获取下一周指定时间
+     * 获取下一个到达指定周几的时间点：若本周该周几的指定时刻尚未过去则返回本周，否则返回下周同一周几。
      * @param day 参数为周几 1 2 3 4 5 6 7
      * @param hour 小时
      * @param minute 分钟
      * @param second 秒
-     * @return 下一周指定时间的LocalDateTime对象
+     * @return 下一次该周几该时刻的LocalDateTime对象
      */
     public static LocalDateTime getSameDayNextWeek(int day, int hour, int minute, int second) {
         if (day < 1 || day > 7) {
             throw new IllegalArgumentException("day参数必须在1-7之间");
         }
-        LocalDate now = LocalDate.now();
+        LocalDateTime now = LocalDateTime.now();
         int currentDay = now.getDayOfWeek().getValue();
-        int daysToAdd;
-        if (day > currentDay) {
-            daysToAdd = (day - currentDay) + 7;
-        } else {
-            daysToAdd = 7 - currentDay + day;
+        // 距离下一次该周几的天数（0 表示今天就是目标周几）
+        int daysToAdd = (day - currentDay + 7) % 7;
+        LocalDateTime candidate = now.toLocalDate().plusDays(daysToAdd)
+                .atTime(hour, minute, second);
+        // 若该时刻已过（含恰好为当前时刻），顺延到下周
+        if (!candidate.isAfter(now)) {
+            candidate = candidate.plusWeeks(1);
         }
-        LocalDate targetDate = now.plusDays(daysToAdd);
-        return LocalDateTime.of(targetDate, LocalTime.of(hour, minute, second));
+        return candidate;
     }
 
     /**
-     * 获取下个月指定时间
+     * 获取下一个到达指定日期的时间点：若本月该日的指定时刻尚未过去则返回本月，否则返回下月同一日（下月无该日时取月末）。
      * @param day 天参数为1-31
      * @param hour 小时
      * @param minute 分钟
      * @param second 秒
-     * @return 下一月指定时间的LocalDateTime对象
+     * @return 下一次该日该时刻的LocalDateTime对象
      */
     public static LocalDateTime getSameDayNextMonth(int day, int hour, int minute, int second) {
         if (day < 1 || day > 31) {
             throw new IllegalArgumentException("day参数必须在1-31之间");
         }
-        LocalDate now = LocalDate.now();
-        LocalDate nextMonth = now.plusMonths(1);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = now.toLocalDate();
+        // 先尝试本月
+        int thisMonthLength = today.lengthOfMonth();
+        int targetDayThis = Math.min(day, thisMonthLength);
+        LocalDateTime candidate = today.withDayOfMonth(targetDayThis)
+                .atTime(hour, minute, second);
+        if (candidate.isAfter(now)) {
+            return candidate;
+        }
+        // 本月该时刻已过，顺延到下月
+        LocalDate nextMonth = today.plusMonths(1);
         int nextMonthLength = nextMonth.lengthOfMonth();
         // 处理下个月没有相同天数的情况，取下个月的最后一天
-        int targetDay = Math.min(day, nextMonthLength);
-        LocalDate targetDate = nextMonth.withDayOfMonth(targetDay);
-        return LocalDateTime.of(targetDate, LocalTime.of(hour, minute, second));
+        int targetDayNext = Math.min(day, nextMonthLength);
+        return nextMonth.withDayOfMonth(targetDayNext).atTime(hour, minute, second);
     }
 
     /**
