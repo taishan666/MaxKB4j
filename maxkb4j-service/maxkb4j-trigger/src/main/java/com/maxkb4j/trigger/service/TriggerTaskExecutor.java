@@ -1,5 +1,6 @@
 package com.maxkb4j.trigger.service;
 
+import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -173,7 +174,7 @@ public class TriggerTaskExecutor {
             record.setSourceId(sourceId);
             record.setState(state.name());
             record.setRunTime(runTime);
-            record.setTaskRecordId(null);
+            record.setTaskRecordId(IdUtil.simpleUUID());
             record.setMeta(meta);
             eventTriggerTaskRecordService.save(record);
         } catch (Exception e) {
