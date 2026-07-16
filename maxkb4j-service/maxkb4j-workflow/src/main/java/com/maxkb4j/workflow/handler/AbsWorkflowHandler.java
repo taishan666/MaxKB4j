@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.handler;
 
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
@@ -14,11 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 /**
  * Abstract base class for workflow handlers.
@@ -201,7 +198,14 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * @param node     the node to be executed
      */
     protected void onNodeStart(Workflow workflow, AbsNode node) {
-        // Default: do nothing
+        ChatMessageVO vo = node.toChatMessageVO(
+                workflow.getChatParams().getChatId(),
+                workflow.getChatParams().getChatRecordId(),
+                "",
+                "",
+                null,
+                false);
+        workflow.output().emit(vo);
     }
 
     /**

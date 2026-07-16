@@ -5,7 +5,6 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -66,24 +65,14 @@ public class NodeResult {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
         }
-        if (StringUtils.isNotBlank(node.getAnswerText())) {
-            ChatMessageVO vo = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
-                    streamOutput ? "" : node.getAnswerText(),
-                    "",
-                    null,
-                    false);
-            workflow.output().emit(vo);
-            ChatMessageVO nodeEndVo = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
-                    "",
-                    "",
-                    null,
-                    true);
-            workflow.output().emit(nodeEndVo);
-        }
+        ChatMessageVO nodeEndVo = node.toChatMessageVO(
+                workflow.getChatParams().getChatId(),
+                workflow.getChatParams().getChatRecordId(),
+                streamOutput?"":node.getAnswerText(),
+                "",
+                null,
+                true);
+        workflow.output().emit(nodeEndVo);
         // Sync update to workflow context
         workflow.context().appendNode(node);
     }
