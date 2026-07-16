@@ -60,7 +60,9 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> implemen
         LambdaQueryWrapper<ModelEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.select(ModelEntity::getId,
                 ModelEntity::getName,
+                ModelEntity::getModelName,
                 ModelEntity::getProvider,
+                ModelEntity::getModelParamsForm,
                 ModelEntity::getStatus
         );
         applyCommonFilters(wrapper, name, modelType, provider);
@@ -85,8 +87,7 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> implemen
                 ModelEntity::getProvider,
                 ModelEntity::getUserId,
                 ModelEntity::getStatus,
-                ModelEntity::getCreateTime,
-                ModelEntity::getUpdateTime
+                ModelEntity::getCreateTime
         );
         applyCommonFilters(wrapper, name, modelType, provider);
         if (StringUtils.isNotBlank(createUserId)) {
