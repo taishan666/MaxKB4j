@@ -163,7 +163,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
                 .select(UserEntity::getId, UserEntity::getEmail, UserEntity::getPhone,
                         UserEntity::getNickname, UserEntity::getUsername, UserEntity::getPassword,
                         UserEntity::getRole, UserEntity::getIsActive, UserEntity::getSource,
-                        UserEntity::getLanguage, UserEntity::getCreateTime, UserEntity::getUpdateTime)
+                        UserEntity::getLanguage)
                 .eq(UserEntity::getId, userId)
                 .one();
         if (Objects.isNull(userEntity)) {

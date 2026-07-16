@@ -20,6 +20,7 @@ public class UserVO  {
     private String source;
     private String language;
     private List<String> permissions;
+    // 是否需要编辑密码
     private Boolean isEditPassword;
     private List<Map<String, String>> workspaceList;
 }
