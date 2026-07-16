@@ -82,10 +82,10 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "max_tokens"))
+                .customParameters(params)
                 .sendThinking(true)
                 .returnThinking(true)
+                .strictJsonSchema(true)
                 .build();
     }
 
@@ -99,7 +99,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .customParameters(params)
                 .sendThinking(true)
                 .returnThinking(true)
-                .parallelToolCalls(true)
+                .strictJsonSchema(true)
                 .build();
     }
 
