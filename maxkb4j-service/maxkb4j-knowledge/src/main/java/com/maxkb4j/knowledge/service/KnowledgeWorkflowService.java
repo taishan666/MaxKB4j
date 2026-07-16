@@ -158,7 +158,7 @@ public class KnowledgeWorkflowService {
      * 生成相关问题
      */
     public Boolean generateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getNumber(), dto.getPrompt(), dto.getStateList()));
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(),dto.getModelParamsSetting(), dto.getNumber(), dto.getStateList()));
         return true;
     }
 }
