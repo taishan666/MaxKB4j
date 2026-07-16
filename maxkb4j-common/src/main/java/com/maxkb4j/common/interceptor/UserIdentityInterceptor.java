@@ -1,11 +1,9 @@
 package com.maxkb4j.common.interceptor;
 
-import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.context.ThreadLocalUserContext;
 import com.maxkb4j.common.context.UserIdentity;
 import com.maxkb4j.common.util.StpKit;
-import com.maxkb4j.common.util.WebUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,12 +37,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserIdentityInterceptor implements HandlerInterceptor {
 
-    /**
-     * chat 路径登录时写入的扩展属性键集合(应用与 chat 端点的 JWT extra 契约)。
-     * 解析时一次性快照,避免业务层再触碰 sa-token。
-     */
-    private static final List<String> USER_EXTRA_KEYS = List.of("applicationId", "chatUserType", "accessToken");
-
     private final ThreadLocalUserContext userContext;
 
     @Override
@@ -54,7 +44,7 @@ public class UserIdentityInterceptor implements HandlerInterceptor {
                              HttpServletResponse response,
                              Object handler) {
         try {
-            UserIdentity identity = resolve(request);
+            UserIdentity identity = resolve();
             if (identity != null) {
                 userContext.set(identity);
             }
@@ -74,42 +64,12 @@ public class UserIdentityInterceptor implements HandlerInterceptor {
         userContext.clear();
     }
 
-    private UserIdentity resolve(HttpServletRequest request) {
-        // 1) ADMIN:sa-token 按 token 名自动解析
+    private UserIdentity resolve() {
+        // 2) ADMIN:sa-token 按 token 名自动解析
         if (StpKit.ADMIN.isLogin()) {
-            return new UserIdentity(StpKit.ADMIN.getLoginIdAsString(), LoginType.ADMIN, Map.of());
+            return new UserIdentity(StpKit.ADMIN.getLoginIdAsString(),StpKit.ADMIN.getTokenValue(), LoginType.ADMIN, Map.of());
         }
-        // 2) USER:仅对 chat 路径桥接 Authorization 头中的 token 后解析
-        if (!isChatRequest(request)) {
-            return null;
-        }
-        String token = WebUtil.getTokenValue();
-        if (token == null) {
-            return null;
-        }
-        StpKit.USER.setTokenValue(token);
-        if (!StpKit.USER.isLogin()) {
-            return null;
-        }
-        return new UserIdentity(
-                StpKit.USER.getLoginIdAsString(),
-                LoginType.USER,
-                snapshotUserExtras()
-        );
+        return null;
     }
 
-    private boolean isChatRequest(HttpServletRequest request) {
-        return request.getRequestURI().startsWith("/" + AppConst.CHAT_API);
-    }
-
-    private Map<String, Object> snapshotUserExtras() {
-        Map<String, Object> extras = new LinkedHashMap<>(USER_EXTRA_KEYS.size());
-        for (String key : USER_EXTRA_KEYS) {
-            Object value = StpKit.USER.getExtra(key);
-            if (value != null) {
-                extras.put(key, value);
-            }
-        }
-        return extras;
-    }
 }

@@ -11,10 +11,11 @@ import java.util.Map;
  *
  * @author tarzan
  */
-public record UserIdentity(String userId, String loginType, Map<String, Object> extras) {
+public record UserIdentity(String userId,String tokenValue, String loginType, Map<String, Object> extras) {
 
-    public UserIdentity(String userId, String loginType, Map<String, Object> extras) {
+    public UserIdentity(String userId, String tokenValue, String loginType, Map<String, Object> extras) {
         this.userId = userId;
+        this.tokenValue = tokenValue;
         this.loginType = loginType;
         this.extras = extras == null ? Map.of() : extras;
     }
