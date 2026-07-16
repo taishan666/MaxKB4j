@@ -206,8 +206,11 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     public ShareChatVO shareChat(String id) {
         ShareChatVO shareChatVO = new ShareChatVO();
         ApplicationChatShareLinkEntity chatShareLink = chatShareLinkMapper.selectById(id);
+        if (chatShareLink == null) {
+            throw new ApiException("common.record.not.exists");
+        }
         ApplicationChatEntity chatEntity = this.lambdaQuery().select(ApplicationChatEntity::getSummary).eq(ApplicationChatEntity::getId, chatShareLink.getChatId()).one();
-        shareChatVO.setSummary(chatEntity.getSummary());
+        shareChatVO.setSummary(chatEntity != null ? chatEntity.getSummary() : null);
         List<ApplicationChatRecordEntity> chatRecordList = chatRecordService.lambdaQuery()
                 .select(ApplicationChatRecordEntity::getId,
                         ApplicationChatRecordEntity::getProblemText,

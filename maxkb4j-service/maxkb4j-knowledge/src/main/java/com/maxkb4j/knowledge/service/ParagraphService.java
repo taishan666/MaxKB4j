@@ -103,14 +103,12 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
         // Collect all embedding entities for batch processing
         List<EmbeddingEntity> allEmbeddingEntities = new ArrayList<>();
-        List<String> paragraphIds = new ArrayList<>();
 
         for (ParagraphEntity paragraph : paragraphs) {
             if (paragraph == null) continue;
 
             // Clear previous vectors
             compositeStore.deleteByParagraphId(paragraph.getKnowledgeId(), paragraph.getId());
-            paragraphIds.add(paragraph.getId());
 
             String title = paragraph.getTitle() != null ? paragraph.getTitle() : "";
             String content = paragraph.getContent() != null ? paragraph.getContent() : "";
@@ -342,6 +340,9 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
     @Transactional
     public boolean adjustPosition(String knowledgeId, String documentId, String paragraphId, Integer newPosition) {
         ParagraphEntity paragraph = this.getById(paragraphId);
+        if (paragraph == null) {
+            return false;
+        }
         int oldPosition = paragraph.getPosition();
         this.lambdaUpdate().set(ParagraphEntity::getPosition, oldPosition).eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, documentId).eq(ParagraphEntity::getPosition, newPosition).update();
         paragraph.setPosition(newPosition);

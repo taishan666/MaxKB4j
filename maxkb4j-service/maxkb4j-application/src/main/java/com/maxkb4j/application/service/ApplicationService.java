@@ -246,12 +246,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                         JSONObject properties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
                         if (properties != null) {
                             JSONObject nodeData = properties.getJSONObject("nodeData");
-                            JSONArray knowledgeIdListJson = nodeData.getJSONArray("knowledgeIds");
-                            nodeData.put("knowledgeList", List.of());
-                            if (knowledgeIdListJson != null) {
-                                List<String> nodeKnowledgeIds = knowledgeIdListJson.toJavaList(String.class);
-                                if (!CollectionUtils.isEmpty(nodeKnowledgeIds)) {
-                                    nodeData.put("knowledgeList", knowledgeService.listByIds(nodeKnowledgeIds));
+                            if (nodeData != null) {
+                                JSONArray knowledgeIdListJson = nodeData.getJSONArray("knowledgeIds");
+                                nodeData.put("knowledgeList", List.of());
+                                if (knowledgeIdListJson != null) {
+                                    List<String> nodeKnowledgeIds = knowledgeIdListJson.toJavaList(String.class);
+                                    if (!CollectionUtils.isEmpty(nodeKnowledgeIds)) {
+                                        nodeData.put("knowledgeList", knowledgeService.listByIds(nodeKnowledgeIds));
+                                    }
                                 }
                             }
                         }
@@ -355,6 +357,9 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                 return Collections.emptyList();
             }
             list = this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).orderByDesc(ApplicationEntity::getCreateTime).list();
+        }
+        if (StringUtils.isBlank(folderId)) {
+            return Collections.emptyList();
         }
         return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> BeanUtil.copy(e, ApplicationListVO.class)).toList();
     }

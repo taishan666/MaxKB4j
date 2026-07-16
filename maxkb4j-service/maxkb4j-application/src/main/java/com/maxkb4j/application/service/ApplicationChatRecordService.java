@@ -93,7 +93,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         ApplicationChatRecordVO chatRecordVO = BeanUtil.copy(chatRecord, ApplicationChatRecordVO.class);
         chatRecordVO.setParagraphList(new ArrayList<>());
         JSONObject details = chatRecord.getDetails();
-        if (!details.isEmpty()) {
+        if (details != null && !details.isEmpty()) {
             JSONObject searchStep = details.getJSONObject("search_step");
             if (searchStep != null && !searchStep.isEmpty()) {
                 JSONArray paragraphList = searchStep.getJSONArray("paragraphList");
@@ -109,6 +109,9 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
             List<JSONObject> executionDetails = new ArrayList<>();
             for (String key : details.keySet()) {
                 JSONObject detail=details.getJSONObject(key);
+                if (detail == null) {
+                    continue;
+                }
                 if (SEARCH_KNOWLEDGE.getKey().equals(detail.getString("type"))) {
                     boolean showKnowledge = detail.getBooleanValue("showKnowledge");
                     if (showKnowledge) {
@@ -159,7 +162,8 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
         ApplicationChatEntity updateChatEntity=new ApplicationChatEntity();
         updateChatEntity.setId(chatId);
-        updateChatEntity.setMarkSum(chatEntity.getMarkSum()+1);
+        int currentMarkSum = chatEntity != null && chatEntity.getMarkSum() != null ? chatEntity.getMarkSum() : 0;
+        updateChatEntity.setMarkSum(currentMarkSum + 1);
         chatMapper.updateById(updateChatEntity);
         return this.getById(chatRecordId);
     }
@@ -173,7 +177,8 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
         ApplicationChatEntity updateChatEntity=new ApplicationChatEntity();
         updateChatEntity.setId(chatId);
-        updateChatEntity.setMarkSum(chatEntity.getMarkSum()-1);
+        int currentMarkSum2 = chatEntity != null && chatEntity.getMarkSum() != null ? chatEntity.getMarkSum() : 0;
+        updateChatEntity.setMarkSum(Math.max(currentMarkSum2 - 1, 0));
         chatMapper.updateById(updateChatEntity);
         return paragraphService.deleteById(knowledgeId,paragraphId);
     }
