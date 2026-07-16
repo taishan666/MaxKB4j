@@ -243,7 +243,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     }
 
     public Map<String, String> getNicknameMap() {
-        return this.lambdaQuery().select(UserEntity::getId, UserEntity::getNickname).list().stream().collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
+        return this.lambdaQuery().select(UserEntity::getId, UserEntity::getNickname).list().stream()
+                .collect(HashMap::new, (m, e) -> m.put(e.getId(), e.getNickname()), HashMap::putAll);
     }
 
     @Override

@@ -79,7 +79,7 @@ public class BatchUtil {
             }
             return end;
         }
-        return bach.apply(list);
+        return Optional.ofNullable(bach.apply(list)).orElse(Collections.emptyList());
     }
 
     private static <T> boolean isEmpty(Collection<T> collection) {

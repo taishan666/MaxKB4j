@@ -250,9 +250,13 @@ public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEnti
 
     @Transactional
     public void saveBatch(List<ParagraphEntity> paragraphs) {
-        Map<String,List<ParagraphEntity>> knowledgeGroup = paragraphs.stream().collect(Collectors.groupingBy(ParagraphEntity::getKnowledgeId));
+        Map<String,List<ParagraphEntity>> knowledgeGroup = paragraphs.stream()
+                .filter(e -> e.getKnowledgeId() != null)
+                .collect(Collectors.groupingBy(ParagraphEntity::getKnowledgeId));
         knowledgeGroup.forEach((knowledgeId,knowledgeParagraphs)->{
-            Map<String,List<ParagraphEntity>> docGroup = knowledgeParagraphs.stream().collect(Collectors.groupingBy(ParagraphEntity::getDocumentId));
+            Map<String,List<ParagraphEntity>> docGroup = knowledgeParagraphs.stream()
+                    .filter(e -> e.getDocumentId() != null)
+                    .collect(Collectors.groupingBy(ParagraphEntity::getDocumentId));
             docGroup.forEach((docId,docParagraphs)->{
                 long count = this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, docId).count();
                 int position= (int) (count+1);
