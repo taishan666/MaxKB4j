@@ -1,6 +1,5 @@
 package com.maxkb4j.workflow.handler;
 
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
@@ -198,14 +197,6 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * @param node     the node to be executed
      */
     protected void onNodeStart(Workflow workflow, AbsNode node) {
-        ChatMessageVO vo = node.toChatMessageVO(
-                workflow.getChatParams().getChatId(),
-                workflow.getChatParams().getChatRecordId(),
-                "",
-                "",
-                null,
-                false);
-        workflow.output().emit(vo);
     }
 
     /**

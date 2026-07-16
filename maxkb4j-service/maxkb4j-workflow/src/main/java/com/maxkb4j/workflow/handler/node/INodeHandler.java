@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.handler.node;
 
 
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -43,7 +44,14 @@ public interface INodeHandler {
      * @param node     节点实例
      */
     default void preExecute(Workflow workflow, AbsNode node) {
-        // 默认空实现
+        ChatMessageVO vo = node.toChatMessageVO(
+                workflow.getChatParams().getChatId(),
+                workflow.getChatParams().getChatRecordId(),
+                "",
+                "",
+                null,
+                false);
+        workflow.output().emit(vo);
     }
 
     /**
