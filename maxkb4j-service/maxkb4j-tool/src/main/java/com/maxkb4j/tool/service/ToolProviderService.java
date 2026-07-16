@@ -170,10 +170,7 @@ public class ToolProviderService implements IToolProviderService {
                     }
                 }
             }else if (ToolConstants.ToolType.SKILL.equals(toolType)) {
-                ShellSkills skillsTools = skillToolService.getShellSkills(toolList);
-                if (skillsTools!= null) {
-                    toolProviders.add(skillsTools.toolProvider());
-                }
+                toolProviders.addAll(skillToolService.getShellSkillsToolProviders(toolList));
             }else if (ToolConstants.ToolType.HTTP.equals(toolType)) {
                 toolProviders.add(wrapAsToolProvider(toolList, tool -> new HttpRequestExecutor(tool.getCode())));
             } else if (ToolConstants.ToolType.CUSTOM.equals(toolType)) {

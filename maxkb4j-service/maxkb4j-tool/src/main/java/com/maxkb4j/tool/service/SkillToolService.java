@@ -9,6 +9,7 @@ import com.maxkb4j.tool.util.SkillsToolUtil;
 import com.maxkb4j.tool.util.ToolNaming;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.service.tool.AiServiceTool;
+import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.service.tool.ToolProviderRequest;
 import dev.langchain4j.service.tool.ToolProviderResult;
 import dev.langchain4j.skills.FileSystemSkill;
@@ -25,6 +26,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -64,6 +66,25 @@ public class SkillToolService {
                 .skills(fileSystemSkills)
                 .runShellCommandToolConfig(config)
                 .build();
+    }
+
+    public List<ToolProvider> getShellSkillsToolProviders(List<ToolEntity> toolSkills) throws ApiException {
+        if (toolSkills.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<ToolProvider> toolProviders = new ArrayList<>();
+        for (ToolEntity skill : toolSkills) {
+            FileSystemSkill fileSystemSkill = getFileSystemSkill(skill.getId(), skill.getCode());
+            RunShellCommandToolConfig config = RunShellCommandToolConfig.builder()
+                    .name(ToolNaming.buildToolName(skill.getId()))
+                    .build();
+            ShellSkills skills = ShellSkills.builder()
+                    .skills(fileSystemSkill)
+                    .runShellCommandToolConfig(config)
+                    .build();
+            toolProviders.add(skills.toolProvider());
+        }
+        return toolProviders;
     }
 
     /**
