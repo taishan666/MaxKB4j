@@ -8,12 +8,17 @@ import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.util.SkillsToolUtil;
 import com.maxkb4j.tool.vo.ToolFileVO;
+import dev.langchain4j.skills.FileSystemSkill;
+import dev.langchain4j.skills.FileSystemSkillLoader;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,15 +40,11 @@ public class ToolSkillHandler {
         if (isNotSkill(entity)) {
             return;
         }
-        try (InputStream is = ossService.getStream(entity.getCode())) {
-            SkillsToolUtil.unzipSkill(is, entity.getId());
-        } catch (IOException e) {
-            throw new ApiException("tool.skill.file.extract.failed");
-        }
+        extractSkill(entity.getId(), entity.getCode());
     }
 
     /** 工具更新时：若为 SKILL 且文件 code 变更，先删旧目录再解压新文件。 */
-    public void onUpdate(ToolEntity oldEntity, ToolEntity newEntity) throws IOException {
+    public void onUpdate(ToolEntity oldEntity, ToolEntity newEntity) {
         if (isNotSkill(newEntity)) {
             return;
         }
@@ -51,7 +52,34 @@ public class ToolSkillHandler {
             return;
         }
         SkillsToolUtil.deleteDirectory(oldEntity.getId());
-        SkillsToolUtil.unzipSkill(ossService.getStream(newEntity.getCode()), newEntity.getId());
+        extractSkill(newEntity.getId(), newEntity.getCode());
+    }
+
+    /**
+     * 加载 Skill 的 FileSystemSkill，若本地目录不存在则从 OSS 懒加载解压。
+     *
+     * @param toolId  工具 ID
+     * @param fileId  OSS 文件 ID（Skill 压缩包）
+     * @return 加载好的 FileSystemSkill
+     */
+    public FileSystemSkill loadSkill(String toolId, String fileId) throws ApiException {
+        Path skillFolder = SkillsToolUtil.getSkillFolder(toolId);
+        if (!Files.exists(skillFolder)) {
+            extractSkill(toolId, fileId);
+        }
+        return FileSystemSkillLoader.loadSkill(skillFolder);
+    }
+
+    /** 从 OSS 下载并解压 Skill 压缩包到工具目录。 */
+    private void extractSkill(String toolId, String fileId) throws ApiException {
+        if (StringUtils.isEmpty(toolId) || StringUtils.isEmpty(fileId)) {
+            return;
+        }
+        try (InputStream is = ossService.getStream(fileId)) {
+            SkillsToolUtil.unzipSkill(is, toolId);
+        } catch (IOException e) {
+            throw new ApiException("tool.skill.file.extract.failed");
+        }
     }
 
     /** 工具删除时：若为 SKILL，移除工具目录。 */

@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * <p>
  * 作为编排器，将不同工具类型（MCP/HTTP/SKILL/CUSTOM）的分发委托给专门的子服务：
  * <ul>
- *   <li>{@link SkillToolService} — Skill 工具的文件管理与执行</li>
+ *   <li>{@link SkillToolService} — Skill 工具的加载与执行</li>
  *   <li>{@link IAgentToolService} — 智能体应用工具构建</li>
  *   <li>{@link ToolSpecificationBuilder} — 工具规范（参数 schema）构建</li>
  * </ul>
@@ -82,7 +82,8 @@ public class ToolProviderService implements IToolProviderService {
 
     @Override
     public ShellSkills getShellSkills(List<String> toolIds) throws ApiException {
-        return skillToolService.getShellSkillsByToolIds(toolIds);
+        List<ToolEntity> tools = queryActiveTools(toolIds, ToolConstants.ToolType.SKILL);
+        return skillToolService.getShellSkills(tools);
     }
 
     // ===== 私有方法：查询 =====
