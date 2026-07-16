@@ -33,28 +33,6 @@ public class FormNode extends AbsNode {
         context.put("form_content_format", detail.get("form_content_format"));
     }
 
-/*    @Override
-    @SuppressWarnings("unchecked")
-    public List<Answer> getAnswerList(String chatRecordId)  {
-        Map<String, Object> formData = (Map<String, Object>) context.getOrDefault("form_data",Map.of());
-        boolean isSubmit = (boolean) context.getOrDefault("is_submit",false);
-        String runtimeNodeId=this.getRuntimeNodeId();
-        JSONArray formFieldList =(JSONArray)context.getOrDefault("form_field_list", new JSONArray());
-        String formContentFormat = (String) context.getOrDefault("form_content_format","");
-        JSONObject formSetting = new JSONObject();
-        formSetting.put("form_field_list", formFieldList);
-        formSetting.put("is_submit", isSubmit);
-        formSetting.put("form_data", formData);
-        formSetting.put("chatRecordId", chatRecordId);
-        formSetting.put("runtimeNodeId", runtimeNodeId);
-        String formRender = "<form_render>" + formSetting + "</form_render>";
-        String answerText="";
-        //todo
-     //   String answerText = super.getTemplateRenderer().render(formContentFormat,Map.of("form", formRender));
-        return List.of(Answer.builder().content(answerText).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
-    }*/
-
-
     @Data
     public static class NodeParams {
         private JSONArray formFieldList;

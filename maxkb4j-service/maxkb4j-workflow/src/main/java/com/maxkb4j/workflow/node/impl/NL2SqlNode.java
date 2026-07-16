@@ -1,12 +1,10 @@
 package com.maxkb4j.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 import static com.maxkb4j.workflow.enums.NodeType.NL2SQL;
 
@@ -15,11 +13,6 @@ public class NL2SqlNode extends AbsNode {
     public NL2SqlNode(String id,JSONObject properties) {
         super(id,properties);
         this.setType(NL2SQL.getKey());
-    }
-
-    @Override
-    public void saveContext(Workflow workflow, Map<String, Object> detail) {
-
     }
 
     @Data
