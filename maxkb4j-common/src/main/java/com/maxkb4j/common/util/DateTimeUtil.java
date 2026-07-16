@@ -173,10 +173,7 @@ public class DateTimeUtil {
      * 获取指定周期下一个时间点
      * @param intervalValue 1
      * @param intervalUnit 单位hours 或者minutes
-     * @param hour 小时
-     * @param minute 分钟
      * @param second 秒
-     * @return
      */
     public static LocalDateTime getSameDayNextInterval(String intervalValue, String intervalUnit, int second) {
         int interval = Integer.parseInt(intervalValue);
