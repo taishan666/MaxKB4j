@@ -1,6 +1,5 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.core.assistant.ParameterExtractionAssistant;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
@@ -13,7 +12,6 @@ import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.ParameterExtractionNode;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -33,14 +31,8 @@ public class ParameterExtractionNodeHandler extends AbsNodeHandler {
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         ParameterExtractionNode.NodeParams params = parseParams(node, ParameterExtractionNode.NodeParams.class);
-        String modelId = params.getModelId();
-        JSONObject modelParamsSetting = params.getModelParamsSetting();
-        if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
-            ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
-            modelId = modelConfig.getModelId();
-            modelParamsSetting = modelConfig.getModelParamsSetting();
-        }
-        ChatModel chatModel = modelFactory.buildChatModel(modelId, modelParamsSetting);
+        ModelConfig modelConfig = resolveModelConfig(workflow, params);
+        ChatModel chatModel = modelFactory.buildChatModel(modelConfig.getModelId(), modelConfig.getModelParamsSetting());
         Object query = workflow.getReferenceField(params.getInputVariable());
 
         ParameterExtractionAssistant assistant = AiServiceFactory.builder(ParameterExtractionAssistant.class)
@@ -50,16 +42,12 @@ public class ParameterExtractionNodeHandler extends AbsNodeHandler {
         String extractInfo = format(params.getVariableList());
         Result<Map<String, Object>> result = assistant.extract(extractInfo, query.toString());
 
-        TokenUsage tokenUsage = result.tokenUsage();
-        putDetails(node, Map.of(
-                "question", query,
-                "messageTokens", tokenUsage.inputTokenCount(),
-                "answerTokens", tokenUsage.outputTokenCount()
-        ));
+        putDetail(node, "question", query);
+        recordTokenUsage(node, result.tokenUsage());
 
         Map<String, Object> nodeVariable = new HashMap<>();
         Map<String, Object> arguments = result.content();
-        nodeVariable.put("result", new JSONObject(arguments));
+        nodeVariable.put("result", new com.alibaba.fastjson.JSONObject(arguments));
         nodeVariable.putAll(arguments);
         return new NodeResult(nodeVariable);
     }

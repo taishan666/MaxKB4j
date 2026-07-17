@@ -1,6 +1,5 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.core.assistant.IntentClassifyAssistant;
@@ -19,7 +18,6 @@ import com.maxkb4j.workflow.node.impl.IntentClassifyNode;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.internal.ValidationUtils;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,14 +36,8 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         IntentClassifyNode.NodeParams params = parseParams(node, IntentClassifyNode.NodeParams.class);
-        String modelId = params.getModelId();
-        JSONObject modelParamsSetting = params.getModelParamsSetting();
-        if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
-            ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
-            modelId = modelConfig.getModelId();
-            modelParamsSetting = modelConfig.getModelParamsSetting();
-        }
-        ChatModel chatModel = modelFactory.buildChatModel(modelId, modelParamsSetting);
+        ModelConfig modelConfig = resolveModelConfig(workflow, params);
+        ChatModel chatModel = modelFactory.buildChatModel(modelConfig.getModelId(), modelConfig.getModelParamsSetting());
         Object query = workflow.getReferenceField(params.getContentList());
         Map<String, String> branchMap = new HashMap<>();
         List<IntentClassifyNode.Branch> branches = params.getBranch();
@@ -72,14 +64,12 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
         String branchId = idToClassification.get(classificationId);
         String category = branchMap.get(branchId);
 
-        TokenUsage tokenUsage = result.tokenUsage();
         putDetails(node, Map.of(
                 "system", IntentClassifyAssistant.SYSTEM_MESSAGE,
                 "question", query,
-                "messageTokens", tokenUsage.inputTokenCount(),
-                "answerTokens", tokenUsage.outputTokenCount(),
                 "answer", category
         ));
+        recordTokenUsage(node, result.tokenUsage());
 
         return new NodeResult(Map.of("branchId", branchId, "category", category, "reason", ""));
     }

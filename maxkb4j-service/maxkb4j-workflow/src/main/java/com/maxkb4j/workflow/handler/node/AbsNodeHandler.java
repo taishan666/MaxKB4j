@@ -3,9 +3,12 @@ package com.maxkb4j.workflow.handler.node;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.OssFile;
+import com.maxkb4j.workflow.model.ModelAwareParams;
+import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import dev.langchain4j.model.output.TokenUsage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -260,5 +263,62 @@ public abstract class AbsNodeHandler implements INodeHandler {
                 .map(OssFile.class::cast)
                 .toList();
 
+    }
+
+    // ==================== 模型配置相关辅助方法 ====================
+
+    /**
+     * 解析模型配置：根据 {@link ModelAwareParams#getModelIdType()} 判断使用直接配置还是引用配置。
+     *
+     * <p>统一处理原先散落在各 NodeHandler 中的重复逻辑：
+     * <pre>
+     * if ("reference".equals(params.getModelIdType())) {
+     *     ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
+     *     modelId = modelConfig.getModelId();
+     *     modelParamsSetting = modelConfig.getModelParamsSetting();
+     * }
+     * </pre>
+     *
+     * @param workflow 工作流上下文，用于解析引用字段
+     * @param params   实现 {@link ModelAwareParams} 的节点参数
+     * @return 解析后的 {@link ModelConfig}；当 params 为 null 时返回 null
+     */
+    protected ModelConfig resolveModelConfig(Workflow workflow, ModelAwareParams params) {
+        if (params == null) {
+            return null;
+        }
+        String modelId = params.getModelId();
+        JSONObject modelParamsSetting = params.getModelParamsSetting();
+        if ("reference".equals(params.getModelIdType())) {
+            ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
+            if (modelConfig != null) {
+                modelId = modelConfig.getModelId();
+                modelParamsSetting = modelConfig.getModelParamsSetting();
+            }
+        }
+        ModelConfig resolved = new ModelConfig();
+        resolved.setModelId(modelId);
+        resolved.setModelParamsSetting(modelParamsSetting);
+        return resolved;
+    }
+
+    // ==================== Token 使用情况记录 ====================
+
+    /**
+     * 将 Token 使用情况写入节点详情。
+     *
+     * <p>当 tokenUsage 为 null 时静默跳过，避免各 Handler 重复的 null 判断模板代码。</p>
+     *
+     * @param node        节点实例
+     * @param tokenUsage  Token 使用统计；为 null 时不做任何操作
+     */
+    protected void recordTokenUsage(AbsNode node, TokenUsage tokenUsage) {
+        if (tokenUsage == null) {
+            return;
+        }
+        putDetails(node, Map.of(
+                "messageTokens", tokenUsage.inputTokenCount(),
+                "answerTokens", tokenUsage.outputTokenCount()
+        ));
     }
 }

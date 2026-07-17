@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.workflow.model.ModelAwareParams;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
@@ -26,7 +27,7 @@ public class QuestionNode extends AbsNode {
     }
 
     @Data
-    public static class NodeParams {
+    public static class NodeParams implements ModelAwareParams {
         private String modelId;
         private String modelIdType;
         private List<String> modelIdReference;

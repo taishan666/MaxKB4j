@@ -1,6 +1,5 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.core.assistant.NL2SqlAssistant;
 import com.maxkb4j.core.langchain4j.AiChatMemory;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
@@ -16,7 +15,6 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.NL2SqlNode;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,14 +38,8 @@ public class NL2SqlNodeHandler extends AbsNodeHandler {
         NL2SqlNode.DatabaseSetting databaseSetting = params.getDatabaseSetting();
         List<String> fields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, fields);
-        String modelId = params.getModelId();
-        JSONObject modelParamsSetting = params.getModelParamsSetting();
-        if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
-            ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
-            modelId = modelConfig.getModelId();
-            modelParamsSetting = modelConfig.getModelParamsSetting();
-        }
-        ChatModel chatModel = modelFactory.buildChatModel(modelId, modelParamsSetting);
+        ModelConfig modelConfig = resolveModelConfig(workflow, params);
+        ChatModel chatModel = modelFactory.buildChatModel(modelConfig.getModelId(), modelConfig.getModelParamsSetting());
         DataSource dataSource = DatabaseUtil.getDataSource(
                 databaseSetting.getType(), databaseSetting.getHost(), databaseSetting.getPort(),
                 databaseSetting.getUsername(), databaseSetting.getPassword(), databaseSetting.getDatabase());
@@ -65,12 +57,8 @@ public class NL2SqlNodeHandler extends AbsNodeHandler {
         String sql = DatabaseUtil.cleanSql(result.content());
         String sqlResult = DatabaseUtil.executeSqlQuery(result.content(), dataSource);
 
-        TokenUsage tokenUsage = result.tokenUsage();
-        putDetails(node, Map.of(
-                "question", question,
-                "messageTokens", tokenUsage.inputTokenCount(),
-                "answerTokens", tokenUsage.outputTokenCount()
-        ));
+        putDetail(node, "question", question);
+        recordTokenUsage(node, result.tokenUsage());
 
         return new NodeResult(Map.of("sql", sql, "result", sqlResult));
     }

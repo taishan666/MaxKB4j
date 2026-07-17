@@ -1,6 +1,5 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AiChatMemory;
@@ -17,7 +16,6 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.QuestionNode;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,14 +35,8 @@ public class QuestionNodeHandler extends AbsNodeHandler {
     @Override
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         QuestionNode.NodeParams params = parseParams(node, QuestionNode.NodeParams.class);
-        String modelId = params.getModelId();
-        JSONObject modelParamsSetting = params.getModelParamsSetting();
-        if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
-            ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
-            modelId = modelConfig.getModelId();
-            modelParamsSetting = modelConfig.getModelParamsSetting();
-        }
-        ChatModel chatModel = modelFactory.buildChatModel(modelId, modelParamsSetting);
+        ModelConfig modelConfig = resolveModelConfig(workflow, params);
+        ChatModel chatModel = modelFactory.buildChatModel(modelConfig.getModelId(), modelConfig.getModelParamsSetting());
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
 
         putDetail(node, "historyMessage", MessageConverter.resetMessageList(historyMessages));
@@ -66,13 +58,7 @@ public class QuestionNodeHandler extends AbsNodeHandler {
                 "question", question
         ));
 
-        TokenUsage tokenUsage = result.tokenUsage();
-        if (tokenUsage != null) {
-            putDetails(node, Map.of(
-                    "messageTokens", tokenUsage.inputTokenCount(),
-                    "answerTokens", tokenUsage.outputTokenCount()
-            ));
-        }
+        recordTokenUsage(node, result.tokenUsage());
 
         if (params.getIsResult()) {
             setAnswerText(node, result.content());
