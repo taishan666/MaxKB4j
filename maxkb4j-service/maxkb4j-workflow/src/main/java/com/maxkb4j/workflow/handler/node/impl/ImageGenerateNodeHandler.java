@@ -82,7 +82,7 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
         }
 
         if (params.getIsResult()) {
-            setAnswer(node, String.join(" ", answerTexts));
+            setAnswerText(node, String.join(" ", answerTexts));
         }
 
         putDetail(node, "question", prompt);

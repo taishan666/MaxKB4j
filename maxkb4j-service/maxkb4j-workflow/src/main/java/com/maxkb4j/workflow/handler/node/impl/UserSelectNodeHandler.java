@@ -48,7 +48,7 @@ public class UserSelectNodeHandler extends AbsNodeHandler {
             JSONObject formSetting = new JSONObject();
             formSetting.put("form_field_list", formFieldList);
             String formRender = "<card_selection_render>" + formSetting + "</card_selection_render>";
-            setAnswer(node, formRender);
+            setAnswerText(node, formRender);
             nodeVariable.put("form_field_list", formFieldList);
             nodeVariable.put("is_submit", false);
         }

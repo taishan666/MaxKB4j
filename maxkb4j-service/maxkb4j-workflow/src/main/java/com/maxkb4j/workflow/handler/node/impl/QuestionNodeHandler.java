@@ -75,7 +75,7 @@ public class QuestionNodeHandler extends AbsNodeHandler {
         }
 
         if (params.getIsResult()) {
-            setAnswer(node, result.content());
+            setAnswerText(node, result.content());
         }
 
         return new NodeResult(Map.of("answer", result.content()));

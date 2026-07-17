@@ -62,7 +62,7 @@ public class SpeechToTextNodeHandler extends AbsNodeHandler {
         ));
 
         if (params.getIsResult()) {
-            setAnswer(node, answer);
+            setAnswerText(node, answer);
         }
 
         return new NodeResult(Map.of("result", answer));

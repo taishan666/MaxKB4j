@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 
 import static org.springframework.web.util.UriUtils.extractFileExtension;
 
@@ -63,7 +64,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
     }
 
     @Override
-    protected CompletableFuture<NodeResult> doExecuteAsync(Workflow workflow, AbsNode node) throws Exception {
+    protected CompletableFuture<NodeResult> doExecuteAsync(Workflow workflow, AbsNode node) {
         AiChatNode.NodeParams params = parseParams(node, AiChatNode.NodeParams.class);
         String question = workflow.renderPrompt(params.getPrompt());
         String systemPrompt = workflow.renderPrompt(params.getSystem());
@@ -142,6 +143,10 @@ public class LLMNodeHandler extends AbsNodeHandler {
                 "hasImages", !contents.isEmpty()
         ));
     }
+    /**
+     * 工具渲染标签正则表达式
+     */
+    private static final Pattern TOOL_CALLS_RENDER_PATTERN = Pattern.compile("<tool_calls_render>(.*?)</tool_calls_render>", Pattern.DOTALL);
 
     private NodeResult handleChatResponse(ChatResponse response, String answer, AbsNode node, String errorMessage) {
         String reasoning = Optional.ofNullable(response.aiMessage().thinking()).orElse("");
@@ -153,7 +158,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
             ));
         }
         return new NodeResult(Map.of(
-                "answer", answer,
+                "answer", TOOL_CALLS_RENDER_PATTERN.matcher(answer).replaceAll(""),
                 "reasoningContent", reasoning,
                 "exceptionMessage", errorMessage
         ), true);
@@ -197,7 +202,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
                 }).onCompleteResponse(response -> {
                     String answer = String.join("", answerTexts);
                     if (isResult) {
-                        setAnswer(node, answer);
+                        setAnswerText(node, answer);
                     }
                     resultFuture.complete(handleChatResponse(response, answer, node, errorMessage.get()));
                 }).onError(error -> {

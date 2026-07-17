@@ -39,7 +39,7 @@ public class DirectReplyNodeHandler extends AbsNodeHandler {
             answerText.set(workflow.renderPrompt(params.getContent()));
         }
         if (params.getIsResult()) {
-            setAnswer(node, answerText.get());
+            setAnswerText(node, answerText.get());
         }
         return new NodeResult(Map.of("answer", answerText.get()));
     }

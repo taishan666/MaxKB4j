@@ -46,7 +46,7 @@ public class TextToSpeechNodeHandler extends AbsNodeHandler {
         putDetail(node, "content", content);
         if (params.getIsResult()) {
             String answer = "<audio src=\"" + ossFile.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
-            setAnswer(node, answer);
+            setAnswerText(node, answer);
         }
         return new NodeResult(Map.of("result", List.of(ossFile)));
     }

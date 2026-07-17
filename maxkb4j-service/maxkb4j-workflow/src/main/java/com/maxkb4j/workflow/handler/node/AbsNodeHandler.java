@@ -199,6 +199,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
         }
     }
 
+
     /**
      * 辅助方法：设置答案文本
      * 同时更新节点的 answerText 和 detail
@@ -206,9 +207,8 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * @param node  节点实例
      * @param answer 答案文本
      */
-    protected void setAnswer(AbsNode node, String answer) {
+    protected void setAnswerText(AbsNode node, String answer) {
         node.setAnswerText(answer);
-      //  node.getDetail().put("answer", answer);
     }
 
 
