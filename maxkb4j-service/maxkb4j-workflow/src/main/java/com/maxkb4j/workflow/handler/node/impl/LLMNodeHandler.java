@@ -137,7 +137,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
                                    String question, List<Content> contents) {
         putDetails(node, Map.of(
                 "system", systemPrompt,
-                "history_message", MessageConverter.resetMessageList(historyMessages),
+                "historyMessage", MessageConverter.resetMessageList(historyMessages),
                 "question", question,
                 "hasImages", !contents.isEmpty()
         ));

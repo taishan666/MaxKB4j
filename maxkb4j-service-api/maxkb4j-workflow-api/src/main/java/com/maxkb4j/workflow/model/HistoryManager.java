@@ -28,6 +28,10 @@ public record HistoryManager(List<ChatRecordDTO> historyChatRecords) {
      * 表单渲染标签正则表达式
      */
     private static final Pattern FORM_RENDER_PATTERN = Pattern.compile("<form_render>(.*?)</form_render>", Pattern.DOTALL);
+    /**
+     * 工具渲染标签正则表达式
+     */
+    private static final Pattern TOOL_CALLS_RENDER_PATTERN = Pattern.compile("<tool_calls_render>(.*?)</tool_calls_render>", Pattern.DOTALL);
 
     public HistoryManager(List<ChatRecordDTO> historyChatRecords) {
         this.historyChatRecords = Objects.requireNonNullElseGet(historyChatRecords, () -> new ArrayList<>(0));
@@ -72,6 +76,7 @@ public record HistoryManager(List<ChatRecordDTO> historyChatRecords) {
             // 跳过包含表单渲染的消息
             if (!matcher.find()) {
                 messages.add(new UserMessage(message.getProblemText()));
+                answerText = TOOL_CALLS_RENDER_PATTERN.matcher(answerText).replaceAll("");
                 messages.add(new AiMessage(answerText));
             }
         }

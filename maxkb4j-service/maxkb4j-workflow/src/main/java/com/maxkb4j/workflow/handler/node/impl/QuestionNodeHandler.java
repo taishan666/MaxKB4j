@@ -47,7 +47,7 @@ public class QuestionNodeHandler extends AbsNodeHandler {
         ChatModel chatModel = modelFactory.buildChatModel(modelId, modelParamsSetting);
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
 
-        putDetail(node, "history_message", MessageConverter.resetMessageList(historyMessages));
+        putDetail(node, "historyMessage", MessageConverter.resetMessageList(historyMessages));
 
         String question = workflow.renderPrompt(params.getPrompt());
         String systemPrompt = workflow.renderPrompt(params.getSystem());
