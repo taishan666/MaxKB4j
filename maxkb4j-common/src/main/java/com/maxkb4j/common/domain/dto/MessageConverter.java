@@ -3,13 +3,13 @@ package com.maxkb4j.common.domain.dto;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.util.RenderTags;
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.data.image.Image;
+import dev.langchain4j.data.message.*;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 消息转换工具类
@@ -32,14 +32,17 @@ public class MessageConverter {
         if (CollectionUtils.isEmpty(historyMessages)) {
             return new JSONArray();
         }
-
         JSONArray newMessageList = new JSONArray();
         for (ChatMessage chatMessage : historyMessages) {
             JSONObject message = new JSONObject();
-
             if (chatMessage instanceof UserMessage userMessage) {
                 message.put("role", "user");
-                message.put("content", userMessage.singleText());
+                List<Content> contents = userMessage.contents();
+                if (contents.size() == 1 && contents.getFirst() instanceof TextContent){
+                    message.put("content", userMessage.singleText());
+                }else {
+                    message.put("content", resetContents(contents));
+                }
                 newMessageList.add(message);
             }
 
@@ -49,13 +52,30 @@ public class MessageConverter {
                 newMessageList.add(message);
             }
         }
-
         // 确保消息成对出现（用户+AI）
         if (newMessageList.size() % 2 != 0) {
             newMessageList.removeLast();
         }
-
         return newMessageList;
+    }
+
+    public static List<JSONObject> resetContents(List<Content> contents) {
+        List<JSONObject> contentList = new ArrayList<>(contents.size());
+        for (Content content : contents) {
+            if (content instanceof TextContent textContent) {
+                JSONObject textMassage = new JSONObject();
+                textMassage.put("type", "text");
+                textMassage.put("text", textContent.text());
+                contentList.add(textMassage);
+            }else if (content instanceof ImageContent imageContent) {
+                JSONObject imageMassage = new JSONObject();
+                imageMassage.put("type", "image_url");
+                Image image = imageContent.image();
+                imageMassage.put("image_url", Map.of("url", "data:" + image.mimeType() + ";base64," + image.base64Data()));
+                contentList.add(imageMassage);
+            }
+        }
+        return contentList;
     }
 
     /**

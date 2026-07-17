@@ -19,10 +19,8 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.AiChatNode;
-import dev.langchain4j.data.image.Image;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;
-import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
@@ -32,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -131,16 +128,7 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
 
     private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,
                                    String textMassage, List<Content> contents) {
-        List<JSONObject> question = new ArrayList<>();
-        for (Content content : contents) {
-            if (content instanceof ImageContent imageContent) {
-                JSONObject imageMassage = new JSONObject();
-                imageMassage.put("type", "image_url");
-                Image image = imageContent.image();
-                imageMassage.put("image_url", Map.of("url", "data:" + image.mimeType() + ";base64," + image.base64Data()));
-                question.add(imageMassage);
-            }
-        }
+        List<JSONObject> question = MessageConverter.resetContents(contents);
         question.add(new JSONObject(Map.of("type", "text", "text", textMassage)));
         putDetails(node, Map.of(
                 "system", systemPrompt,

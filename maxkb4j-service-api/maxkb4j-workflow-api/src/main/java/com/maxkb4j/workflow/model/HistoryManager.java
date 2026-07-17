@@ -65,6 +65,9 @@ public record HistoryManager(List<ChatRecordDTO> historyChatRecords) {
                         }
                     }
                     messages.add(new UserMessage(contents));
+                }else if (question instanceof String){
+                    contents.add(TextContent.from(String.valueOf(question)));
+                    messages.add(new UserMessage(contents));
                 }
                 messages.add(new AiMessage(nodeDetails.getString("answer")));
             }
