@@ -50,14 +50,15 @@ public class ChatApiService {
         if (accessTokenEntity == null){
             throw new ApiException("application.app.not.found");
         }
+        String chatUserId = IdWorker.get32UUID();
         if (StpKit.USER.isLogin()) {
-            return StpKit.USER.getTokenValue();
+            chatUserId= StpKit.USER.getLoginIdAsString();
         }
         Map<String, Object> extraData = new HashMap<>();
         extraData.put("applicationId", accessTokenEntity.getApplicationId());
         extraData.put("chatUserType", ChatUserType.ANONYMOUS_USER.name());
         extraData.put("accessToken", accessToken);
-        return chatTokenService.issueAnonymousToken(IdWorker.get32UUID(), extraData);
+        return chatTokenService.issueAnonymousToken(chatUserId, extraData);
     }
 
     public ApplicationEntity appProfile(String appId) {
