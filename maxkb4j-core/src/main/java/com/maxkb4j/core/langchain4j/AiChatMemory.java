@@ -73,9 +73,6 @@ public class AiChatMemory implements ChatMemory {
         }
     }
 
-    public static AiChatMemory withMessages(Object id, List<ChatMessage> messages) {
-        return builder().id(id).messages(messages).build();
-    }
     public static AiChatMemory withMessages(List<ChatMessage> messages) {
         return builder().messages(messages).build();
     }
