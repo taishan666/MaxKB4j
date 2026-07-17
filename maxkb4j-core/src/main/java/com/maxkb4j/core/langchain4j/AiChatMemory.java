@@ -7,12 +7,18 @@ import dev.langchain4j.service.memory.ChatMemoryService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
 
 public class AiChatMemory implements ChatMemory {
     private final Object id;
     private final List<ChatMessage> messages;
+    /**
+     * 表单渲染标签正则表达式
+     */
+    private static final Pattern FORM_RENDER_PATTERN = Pattern.compile("<form_render>(.*?)</form_render>", Pattern.DOTALL);
+
 
     private AiChatMemory(Builder builder) {
         this.id = ensureNotNull(builder.id, "id");

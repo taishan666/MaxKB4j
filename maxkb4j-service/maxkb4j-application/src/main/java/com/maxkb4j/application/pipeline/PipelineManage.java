@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 public class PipelineManage {
@@ -59,6 +61,10 @@ public class PipelineManage {
         String reasoningContent =(String) this.context.getOrDefault("reasoningContent","");
         return Answer.builder().content(answer).reasoningContent(reasoningContent).viewType("many_view").runtimeNodeId("ai-chat-node").build();
     }
+    /**
+     * 表单渲染标签正则表达式
+     */
+    private static final Pattern TOOL_CALLS_RENDER_PATTERN = Pattern.compile("<tool_calls_render>(.*?)</tool_calls_render>", Pattern.DOTALL);
 
     public List<ChatMessage> getHistoryMessages(int dialogueNumber) {
         List<ChatMessage> historyMessages=new ArrayList<>();
@@ -67,7 +73,10 @@ public class PipelineManage {
         int startIndex = Math.max(total - dialogueNumber, 0);
         for (int i = startIndex; i < total; i++) {
             historyMessages.add(new UserMessage(historyChatRecords.get(i).getProblemText()));
-            historyMessages.add(new AiMessage(historyChatRecords.get(i).getAnswerText()));
+            String answerText=historyChatRecords.get(i).getAnswerText();
+            Matcher matcher = TOOL_CALLS_RENDER_PATTERN.matcher(answerText);
+            answerText = matcher.replaceAll("");
+            historyMessages.add(new AiMessage(answerText));
         }
         return historyMessages;
     }

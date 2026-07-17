@@ -53,7 +53,7 @@ public abstract class AbsChatStep extends AbsStep {
             KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
             Boolean fallbackEnable = knowledgeSetting.getFallbackEnable();
             if (!CollectionUtils.isEmpty(directlyReturnChunkList)) {
-                answerText.set(directlyReturnChunkList.get(0).text());
+                answerText.set(directlyReturnChunkList.getFirst().text());
             } else {
                 if (paragraphList.isEmpty() && Boolean.TRUE.equals(fallbackEnable)) {
                     String fallbackResponse = knowledgeSetting.getFallbackResponse();
