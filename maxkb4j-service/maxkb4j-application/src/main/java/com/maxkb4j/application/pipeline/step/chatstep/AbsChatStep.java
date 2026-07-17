@@ -85,34 +85,22 @@ public abstract class AbsChatStep extends AbsStep {
         }
         List<SimpleMessage> simpleMessages = new ArrayList<>(historyMessages.size());
         for (ChatMessage chatMessage : historyMessages) {
-            SimpleMessage message = new SimpleMessage();
             if (chatMessage instanceof SystemMessage systemMessage) {
-                message.setRole("system");
-                message.setContent(systemMessage.text());
-                simpleMessages.add(message);
-            }
-            if (chatMessage instanceof UserMessage userMessage) {
-                message.setRole("user");
-                message.setContent(userMessage.singleText());
-                simpleMessages.add(message);
-            }
-            if (chatMessage instanceof AiMessage aiMessage) {
+                simpleMessages.add(new SimpleMessage("system", systemMessage.text()));
+            } else if (chatMessage instanceof UserMessage userMessage) {
+                simpleMessages.add(new SimpleMessage("user", userMessage.singleText()));
+            } else if (chatMessage instanceof AiMessage aiMessage) {
                 int lastIndex = simpleMessages.size() - 1;
-                if (lastIndex > 0) {
+                if (lastIndex >= 0 && "ai".equals(simpleMessages.get(lastIndex).getRole())) {
                     SimpleMessage lastMessage = simpleMessages.get(lastIndex);
-                    if ("ai".equals(lastMessage.getRole())) {
-                        lastMessage.setContent(lastMessage.getContent() + aiMessage.text());
-                        continue;
-                    }
+                    lastMessage.setContent(lastMessage.getContent() + aiMessage.text());
+                } else {
+                    simpleMessages.add(new SimpleMessage("ai", aiMessage.text()));
                 }
-                message.setRole("ai");
-                message.setContent(aiMessage.text());
-                simpleMessages.add(message);
             }
         }
         return simpleMessages;
     }
-
 
     /**
      * 转换为聊天消息VO
