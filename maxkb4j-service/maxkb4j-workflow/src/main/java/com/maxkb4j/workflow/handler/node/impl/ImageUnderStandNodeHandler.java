@@ -1,20 +1,16 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.common.domain.dto.OssFile;
-import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.MimeTypeUtils;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AiChatMemory;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
-import com.maxkb4j.tool.service.IToolFormatterService;
-import com.maxkb4j.tool.service.IToolProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
@@ -22,8 +18,7 @@ import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.workflow.node.impl.AiChatNode;
-import dev.langchain4j.data.image.Image;
+import com.maxkb4j.workflow.node.impl.ImageUnderstandNode;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ImageContent;
@@ -45,14 +40,12 @@ import java.util.regex.Pattern;
 import static org.springframework.web.util.UriUtils.extractFileExtension;
 
 @Slf4j
-@NodeHandlerType(NodeType.AI_CHAT)
+@NodeHandlerType(NodeType.IMAGE_UNDERSTAND)
 @Component
 @RequiredArgsConstructor
-public class LLMNodeHandler extends AbsNodeHandler {
+public class ImageUnderStandNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
-    private final IToolProviderService toolProviderService;
-    private final IToolFormatterService toolFormatterService;
     private final IOssService ossService;
 
     @Override
@@ -67,7 +60,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
 
     @Override
     protected CompletableFuture<NodeResult> doExecuteAsync(Workflow workflow, AbsNode node) {
-        AiChatNode.NodeParams params = parseParams(node, AiChatNode.NodeParams.class);
+        ImageUnderstandNode.NodeParams params = parseParams(node, ImageUnderstandNode.NodeParams.class);
         String userPrompt = workflow.renderPrompt(params.getPrompt());
         String systemPrompt = workflow.renderPrompt(params.getSystem());
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(
@@ -75,12 +68,8 @@ public class LLMNodeHandler extends AbsNodeHandler {
                 params.getDialogueType(),
                 node.getRuntimeNodeId()
         );
-        List<String> toolIds = Optional.ofNullable(params.getToolIds()).orElse(List.of());
-        List<String> applicationIds = Optional.ofNullable(params.getApplicationIds()).orElse(List.of());
-
         // 构建多模态内容（如图片）
         List<Content> contents = buildImageContents(workflow, node, params.getImageList());
-
         // 记录上下文用于调试/追踪
         recordNodeDetails(node, systemPrompt, historyMessages, userPrompt, contents);
         String modelId = params.getModelId();
@@ -91,16 +80,14 @@ public class LLMNodeHandler extends AbsNodeHandler {
             modelParamsSetting = modelConfig.getModelParamsSetting();
         }
         // 构建 AI 服务
-        Assistant assistant = buildAiServices(modelId, modelParamsSetting, workflow, systemPrompt, historyMessages, toolIds, applicationIds);
+        Assistant assistant = buildAiServices(modelId, modelParamsSetting, systemPrompt, historyMessages);
 
         TokenStream tokenStream = assistant.chatStream(userPrompt, contents);
 
         return writeContextStreamAsync(params, tokenStream, workflow, node);
     }
 
-    private Assistant buildAiServices(String modelId, JSONObject modelParamsSetting, Workflow workflow,
-                                      String systemPrompt, List<ChatMessage> historyMessages,
-                                      List<String> toolIds, List<String> applicationIds) {
+    private Assistant buildAiServices(String modelId, JSONObject modelParamsSetting, String systemPrompt, List<ChatMessage> historyMessages) {
         AiServices<Assistant> builder = AiServiceFactory.builder(Assistant.class);
 
         if (StringUtils.isNotBlank(systemPrompt)) {
@@ -108,11 +95,6 @@ public class LLMNodeHandler extends AbsNodeHandler {
         }
         if (CollectionUtils.isNotEmpty(historyMessages)) {
             builder.chatMemory(AiChatMemory.withMessages(historyMessages));
-        }
-        try {
-            builder.toolProviders(toolProviderService.getToolProviders(toolIds, applicationIds));
-        } catch (ApiException e) {
-            workflow.output().emit(null); // Error will be propagated differently
         }
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, modelParamsSetting);
         return builder.streamingChatModel(chatModel).build();
@@ -129,6 +111,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
                 ImageContent imageContent = ImageContent.from(base64Data, MimeTypeUtils.getMimeType(extension));
                 contents.add(imageContent);
             }
+            putDetail(node, "imageList", imageFiles);
         } catch (Exception e) {
             log.warn("Failed to load image contents for node: {}", node.getRuntimeNodeId(), e);
         }
@@ -136,22 +119,12 @@ public class LLMNodeHandler extends AbsNodeHandler {
     }
 
     private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,
-                                   String textMassage, List<Content> contents) {
-        JSONArray question = new JSONArray();
-        for (Content content : contents) {
-            if (content instanceof ImageContent imageContent){
-                JSONObject imageMassage = new JSONObject();
-                imageMassage.put("type", "image_url");
-                Image image=imageContent.image();
-                imageMassage.put("image_url", Map.of("url", "data:"+image.mimeType()+";base64,"+image.base64Data()));
-                question.add(imageMassage);
-            }
-        }
-        question.add(Map.of("type", "text", "text", textMassage));
+                                   String userPrompt, List<Content> contents) {
         putDetails(node, Map.of(
                 "system", systemPrompt,
                 "historyMessage", MessageConverter.resetMessageList(historyMessages),
-                "question", question
+                "question", userPrompt,
+                "hasImages", !contents.isEmpty()
         ));
     }
     /**
@@ -179,31 +152,18 @@ public class LLMNodeHandler extends AbsNodeHandler {
      * 异步流式写入：不阻塞线程，直接返回 CompletableFuture
      * 流式回调完成后自动 complete Future，释放线程资源
      */
-    private CompletableFuture<NodeResult> writeContextStreamAsync(AiChatNode.NodeParams params, TokenStream tokenStream,
+    private CompletableFuture<NodeResult> writeContextStreamAsync(ImageUnderstandNode.NodeParams params, TokenStream tokenStream,
                                                                   Workflow workflow, AbsNode node) {
         List<String> answerTexts = new ArrayList<>();
         AtomicReference<String> errorMessage = new AtomicReference<>("");
         boolean isResult = Boolean.TRUE.equals(params.getIsResult());
-        boolean toolOutputEnable = Boolean.TRUE.equals(params.getToolOutputEnable());
         boolean reasoningContentEnable = Optional.ofNullable(params.getModelSetting())
                 .map(setting -> setting.getBooleanValue("reasoningContentEnable"))
                 .orElse(false);
-
         CompletableFuture<NodeResult> resultFuture = new CompletableFuture<>();
         tokenStream.onPartialThinking(thinking -> {
                     if (isResult && reasoningContentEnable) {
                         emitMessage(workflow, node, "", thinking.text());
-                    }
-                }).beforeToolExecution(toolExecute -> {
-                    if (isResult && toolOutputEnable) {
-                        String toolMessage = toolFormatterService.format(toolExecute);
-                        emitMessage(workflow, node, toolMessage, "");
-                    }
-                }).onToolExecuted(toolExecute -> {
-                    if (isResult && toolOutputEnable) {
-                        String toolMessage = toolFormatterService.format(toolExecute);
-                        emitMessage(workflow, node, toolMessage, "");
-                        answerTexts.add(toolMessage);
                     }
                 }).onPartialResponse(content -> {
                     if (isResult) {
