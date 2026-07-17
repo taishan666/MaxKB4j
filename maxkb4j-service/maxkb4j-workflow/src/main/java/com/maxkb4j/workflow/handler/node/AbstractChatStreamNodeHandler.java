@@ -3,6 +3,7 @@ package com.maxkb4j.workflow.handler.node;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.common.util.MimeTypeUtils;
+import com.maxkb4j.common.util.RenderTags;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.model.NodeResult;
@@ -23,7 +24,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Pattern;
 
 import static org.springframework.web.util.UriUtils.extractFileExtension;
 
@@ -47,12 +47,6 @@ import static org.springframework.web.util.UriUtils.extractFileExtension;
  */
 @Slf4j
 public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
-
-    /**
-     * 工具渲染标签正则表达式，用于从最终答案中移除 {@code <tool_calls_render>} 标签内容。
-     */
-    protected static final Pattern TOOL_CALLS_RENDER_PATTERN =
-            Pattern.compile("<tool_calls_render>(.*?)</tool_calls_render>", Pattern.DOTALL);
 
     protected final IModelProviderService modelFactory;
     protected final IOssService ossService;
@@ -130,7 +124,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
         String reasoning = Optional.ofNullable(response.aiMessage().thinking()).orElse("");
         recordTokenUsage(node, response.tokenUsage());
         return new NodeResult(Map.of(
-                "answer", TOOL_CALLS_RENDER_PATTERN.matcher(answer).replaceAll(""),
+                "answer", RenderTags.stripToolCallsRender(answer),
                 "reasoningContent", reasoning,
                 "exceptionMessage", errorMessage
         ), true);

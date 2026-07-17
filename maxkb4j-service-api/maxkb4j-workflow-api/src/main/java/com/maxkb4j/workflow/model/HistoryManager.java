@@ -2,17 +2,14 @@ package com.maxkb4j.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.workflow.enums.DialogueType;
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.data.message.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 历史消息管理服务
@@ -23,15 +20,6 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 public record HistoryManager(List<ChatRecordDTO> historyChatRecords) {
-
-    /**
-     * 表单渲染标签正则表达式
-     */
-    private static final Pattern FORM_RENDER_PATTERN = Pattern.compile("<form_render>(.*?)</form_render>", Pattern.DOTALL);
-    /**
-     * 工具渲染标签正则表达式
-     */
-    private static final Pattern TOOL_CALLS_RENDER_PATTERN = Pattern.compile("<tool_calls_render>(.*?)</tool_calls_render>", Pattern.DOTALL);
 
     public HistoryManager(List<ChatRecordDTO> historyChatRecords) {
         this.historyChatRecords = Objects.requireNonNullElseGet(historyChatRecords, () -> new ArrayList<>(0));
@@ -46,42 +34,10 @@ public record HistoryManager(List<ChatRecordDTO> historyChatRecords) {
      * @return 历史消息列表
      */
     public List<ChatMessage> getHistoryMessages(int dialogueNumber, String dialogueType, String runtimeNodeId) {
-        List<ChatMessage> historyMessages;
         if (DialogueType.NODE.name().equals(dialogueType)) {
-            historyMessages = getNodeMessages(runtimeNodeId);
-        } else {
-            historyMessages = getWorkFlowMessages();
+            return MessageConverter.lastRounds(getNodeMessages(runtimeNodeId), dialogueNumber);
         }
-        int total = historyMessages.size();
-        if (total == 0) {
-            return historyMessages;
-        }
-        // 获取最后 N 轮对话
-        int startIndex = Math.max(total - dialogueNumber * 2, 0);
-        return historyMessages.subList(startIndex, total);
-    }
-
-    /**
-     * 获取工作流级别的历史消息
-     * 排除包含表单渲染的消息
-     *
-     * @return 工作流历史消息列表
-     */
-    private List<ChatMessage> getWorkFlowMessages() {
-        List<ChatMessage> messages = new ArrayList<>();
-        for (ChatRecordDTO message : historyChatRecords) {
-            String answerText = message.getAnswerText();
-            Matcher matcher = FORM_RENDER_PATTERN.matcher(answerText);
-
-            // 跳过包含表单渲染的消息
-            if (!matcher.find()) {
-                messages.add(new UserMessage(message.getProblemText()));
-                answerText = TOOL_CALLS_RENDER_PATTERN.matcher(answerText).replaceAll("");
-                messages.add(new AiMessage(answerText));
-            }
-        }
-
-        return messages;
+        return MessageConverter.toHistoryMessages(historyChatRecords, dialogueNumber);
     }
 
     /**
@@ -95,9 +51,21 @@ public record HistoryManager(List<ChatRecordDTO> historyChatRecords) {
         for (ChatRecordDTO record : historyChatRecords) {
             // 获取节点详情
             JSONObject nodeDetails = record.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
-
             if (nodeDetails != null) {
-                messages.add(new UserMessage(nodeDetails.getString("question")));
+                Object question = nodeDetails.get("question");
+                List<Content> contents = new ArrayList<>();
+                if (question instanceof List<?> list){
+                    for (Object object : list) {
+                        JSONObject content = (JSONObject) object;
+                        String type = content.getString("type");
+                        if ("text".equals(type)) {
+                            contents.add(TextContent.from(content.getString("text")));
+                        }else if ("image_url".equals(type)) {
+                            contents.add(ImageContent.from(content.getString("url")));
+                        }
+                    }
+                    messages.add(new UserMessage(contents));
+                }
                 messages.add(new AiMessage(nodeDetails.getString("answer")));
             }
         }

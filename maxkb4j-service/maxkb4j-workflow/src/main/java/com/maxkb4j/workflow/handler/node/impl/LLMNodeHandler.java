@@ -1,9 +1,9 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.MessageConverter;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AiChatMemory;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
@@ -11,7 +11,6 @@ import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.service.IToolFormatterService;
 import com.maxkb4j.tool.service.IToolProviderService;
-import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbstractChatStreamNodeHandler;
@@ -33,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -118,10 +118,12 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
         if (CollectionUtils.isNotEmpty(historyMessages)) {
             builder.chatMemory(AiChatMemory.withMessages(historyMessages));
         }
-        try {
-            builder.toolProviders(toolProviderService.getToolProviders(toolIds, applicationIds));
-        } catch (ApiException e) {
-            workflow.output().emit(null); // Error will be propagated differently
+        if (CollectionUtils.isNotEmpty(toolIds)||CollectionUtils.isNotEmpty(applicationIds)){
+            try {
+                builder.toolProviders(toolProviderService.getToolProviders(toolIds, applicationIds));
+            } catch (ApiException e) {
+                workflow.output().emit(null); // Error will be propagated differently
+            }
         }
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, modelParamsSetting);
         return builder.streamingChatModel(chatModel).build();
@@ -129,7 +131,7 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
 
     private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,
                                    String textMassage, List<Content> contents) {
-        JSONArray question = new JSONArray();
+        List<JSONObject> question = new ArrayList<>();
         for (Content content : contents) {
             if (content instanceof ImageContent imageContent) {
                 JSONObject imageMassage = new JSONObject();
@@ -139,7 +141,7 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
                 question.add(imageMassage);
             }
         }
-        question.add(Map.of("type", "text", "text", textMassage));
+        question.add(new JSONObject(Map.of("type", "text", "text", textMassage)));
         putDetails(node, Map.of(
                 "system", systemPrompt,
                 "historyMessage", MessageConverter.resetMessageList(historyMessages),

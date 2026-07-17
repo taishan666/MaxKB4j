@@ -2,11 +2,13 @@ package com.maxkb4j.common.domain.dto;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.util.RenderTags;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,10 +52,53 @@ public class MessageConverter {
 
         // 确保消息成对出现（用户+AI）
         if (newMessageList.size() % 2 != 0) {
-            newMessageList.remove(newMessageList.size() - 1);
+            newMessageList.removeLast();
         }
 
         return newMessageList;
+    }
+
+    /**
+     * 将历史聊天记录转换为 LLM 历史消息，并取最近 {@code dialogueRounds} 轮（每轮 = user + ai 两条）。
+     * <p>跳过含 {@code <form_render>} 的记录（UI 控件不应进入上下文），并清理 {@code <tool_calls_render>} 标签。</p>
+     *
+     * @param records        历史聊天记录，可为 null
+     * @param dialogueRounds 保留的对话轮数；&lt;=0 返回空列表
+     * @return 最近 N 轮的 ChatMessage 列表
+     */
+    public static List<ChatMessage> toHistoryMessages(List<ChatRecordDTO> records, int dialogueRounds) {
+        List<ChatMessage> messages = new ArrayList<>();
+        if (records == null) {
+            return messages;
+        }
+        for (ChatRecordDTO record : records) {
+            String answer = record.getAnswerText();
+            if (answer == null) {
+                answer = "";
+            }
+            if (RenderTags.containsFormRender(answer)) {
+                continue;
+            }
+            messages.add(new UserMessage(record.getProblemText()));
+            messages.add(new AiMessage(RenderTags.stripToolCallsRender(answer)));
+        }
+        return lastRounds(messages, dialogueRounds);
+    }
+
+    /**
+     * 取消息列表最后 N 轮（每轮 2 条）；返回独立副本，调用方可安全修改。
+     *
+     * @param messages 消息列表，可为 null
+     * @param rounds   保留轮数；&lt;=0 返回空列表
+     * @return 最近 N 轮的消息副本
+     */
+    public static List<ChatMessage> lastRounds(List<ChatMessage> messages, int rounds) {
+        if (messages == null || messages.isEmpty() || rounds <= 0) {
+            return new ArrayList<>();
+        }
+        int total = messages.size();
+        int start = Math.max(total - rounds * 2, 0);
+        return new ArrayList<>(messages.subList(start, total));
     }
 
     /**

@@ -6,11 +6,9 @@ import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
-import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.UserMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Sinks;
@@ -19,7 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 @Slf4j
 public class PipelineManage {
@@ -60,23 +57,8 @@ public class PipelineManage {
         String reasoningContent =(String) this.context.getOrDefault("reasoningContent","");
         return Answer.builder().content(answer).reasoningContent(reasoningContent).viewType("many_view").runtimeNodeId("ai-chat-node").build();
     }
-    /**
-     * 工具渲染标签正则表达式
-     */
-    private static final Pattern TOOL_CALLS_RENDER_PATTERN = Pattern.compile("<tool_calls_render>(.*?)</tool_calls_render>", Pattern.DOTALL);
-
     public List<ChatMessage> getHistoryMessages(int dialogueNumber) {
-        List<ChatMessage> historyMessages=new ArrayList<>();
-        List<ChatRecordDTO> historyChatRecords= chatParams.getHistoryChatRecords();
-        int total=historyChatRecords.size();
-        int startIndex = Math.max(total - dialogueNumber, 0);
-        for (int i = startIndex; i < total; i++) {
-            historyMessages.add(new UserMessage(historyChatRecords.get(i).getProblemText()));
-            String answerText=historyChatRecords.get(i).getAnswerText();
-            answerText = TOOL_CALLS_RENDER_PATTERN.matcher(answerText).replaceAll("");
-            historyMessages.add(new AiMessage(answerText));
-        }
-        return historyMessages;
+        return MessageConverter.toHistoryMessages(chatParams.getHistoryChatRecords(), dialogueNumber);
     }
 
     @SuppressWarnings("unchecked")
