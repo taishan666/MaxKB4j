@@ -3,7 +3,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.MessageConverter;
 import com.maxkb4j.core.assistant.Assistant;
-import com.maxkb4j.core.langchain4j.AppChatMemory;
+import com.maxkb4j.core.langchain4j.AiChatMemory;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
@@ -54,7 +54,7 @@ public class QuestionNodeHandler extends AbsNodeHandler {
 
         Assistant assistant = AiServiceFactory.builder(Assistant.class)
                 .systemMessage(systemPrompt)
-                .chatMemory(AppChatMemory.withMessages("",historyMessages))
+                .chatMemory(AiChatMemory.withMessages("",historyMessages))
                 .chatModel(chatModel)
                 .build();
 

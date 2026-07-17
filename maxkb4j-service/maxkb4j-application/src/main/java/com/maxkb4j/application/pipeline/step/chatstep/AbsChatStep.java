@@ -1,8 +1,7 @@
 package com.maxkb4j.application.pipeline.step.chatstep;
 
 import com.alibaba.excel.util.StringUtils;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.application.dto.SimpleMessage;
 import com.maxkb4j.application.pipeline.AbsStep;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.vo.ApplicationVO;
@@ -17,6 +16,7 @@ import dev.langchain4j.data.message.UserMessage;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -69,7 +69,7 @@ public abstract class AbsChatStep extends AbsStep {
             manage.sink.tryEmitNext(this.toChatMessageVO(chatId, chatRecordId,answerText.get(), "",true));
             historyMessages.add(new UserMessage(problemText));
             historyMessages.add(new AiMessage(answerText.get()));
-            context.put("messageList", resetMessageToJSON(historyMessages));
+            context.put("messageList", formatHistoryMessages(historyMessages));
         }
         manage.context.put("answer", answerText.get());
         manage.context.put("reasoningContent", context.get("reasoningContent"));
@@ -79,28 +79,38 @@ public abstract class AbsChatStep extends AbsStep {
     protected abstract String execute(String chatId,String chatRecordId,ApplicationVO application,List<ChatMessage> historyMessages,String userPrompt,PipelineManage manage) throws Exception;
 
 
-    protected JSONArray resetMessageToJSON(List<ChatMessage> historyMessages) {
+    protected List<SimpleMessage> formatHistoryMessages(List<ChatMessage> historyMessages) {
         if (CollectionUtils.isEmpty(historyMessages)) {
-            return new JSONArray();
+            return Collections.emptyList();
         }
-        JSONArray newMessageList = new JSONArray();
+        List<SimpleMessage> simpleMessages = new ArrayList<>(historyMessages.size());
         for (ChatMessage chatMessage : historyMessages) {
-            JSONObject message = new JSONObject();
+            SimpleMessage message = new SimpleMessage();
             if (chatMessage instanceof SystemMessage systemMessage) {
-                message.put("role", "system");
-                message.put("content", systemMessage.text());
+                message.setRole("system");
+                message.setContent(systemMessage.text());
+                simpleMessages.add(message);
             }
             if (chatMessage instanceof UserMessage userMessage) {
-                message.put("role", "user");
-                message.put("content", userMessage.singleText());
+                message.setRole("user");
+                message.setContent(userMessage.singleText());
+                simpleMessages.add(message);
             }
             if (chatMessage instanceof AiMessage aiMessage) {
-                message.put("role", "ai");
-                message.put("content", aiMessage.text());
+                int lastIndex = simpleMessages.size() - 1;
+                if (lastIndex > 0) {
+                    SimpleMessage lastMessage = simpleMessages.get(lastIndex);
+                    if ("ai".equals(lastMessage.getRole())) {
+                        lastMessage.setContent(lastMessage.getContent() + aiMessage.text());
+                        continue;
+                    }
+                }
+                message.setRole("ai");
+                message.setContent(aiMessage.text());
+                simpleMessages.add(message);
             }
-            newMessageList.add(message);
         }
-        return newMessageList;
+        return simpleMessages;
     }
 
 

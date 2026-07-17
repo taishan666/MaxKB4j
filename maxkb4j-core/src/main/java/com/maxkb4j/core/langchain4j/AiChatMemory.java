@@ -10,11 +10,11 @@ import java.util.List;
 
 import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
 
-public class AppChatMemory implements ChatMemory {
+public class AiChatMemory implements ChatMemory {
     private final Object id;
     private final List<ChatMessage> messages;
 
-    private AppChatMemory(Builder builder) {
+    private AiChatMemory(Builder builder) {
         this.id = ensureNotNull(builder.id, "id");
         this.messages = builder.messages != null ? builder.messages : new ArrayList<>();
     }
@@ -28,7 +28,7 @@ public class AppChatMemory implements ChatMemory {
     public void add(ChatMessage message) {
         if (message instanceof SystemMessage){
             messages.addFirst(message);
-        }else {
+        } else {
             messages.add(message);
         }
     }
@@ -68,15 +68,15 @@ public class AppChatMemory implements ChatMemory {
             return this;
         }
 
-        public AppChatMemory build() {
-            return new AppChatMemory(this);
+        public AiChatMemory build() {
+            return new AiChatMemory(this);
         }
     }
 
-    public static AppChatMemory withMessages(Object id,List<ChatMessage> messages) {
+    public static AiChatMemory withMessages(Object id, List<ChatMessage> messages) {
         return builder().id(id).messages(messages).build();
     }
-    public static AppChatMemory withMessages(List<ChatMessage> messages) {
+    public static AiChatMemory withMessages(List<ChatMessage> messages) {
         return builder().messages(messages).build();
     }
 }

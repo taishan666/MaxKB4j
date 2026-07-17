@@ -8,7 +8,7 @@ import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.MimeTypeUtils;
 import com.maxkb4j.core.assistant.Assistant;
-import com.maxkb4j.core.langchain4j.AppChatMemory;
+import com.maxkb4j.core.langchain4j.AiChatMemory;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
@@ -104,7 +104,7 @@ public class LLMNodeHandler extends AbsNodeHandler {
             builder.systemMessage(systemPrompt);
         }
         if (CollectionUtils.isNotEmpty(historyMessages)) {
-            builder.chatMemory(AppChatMemory.withMessages(historyMessages));
+            builder.chatMemory(AiChatMemory.withMessages(historyMessages));
         }
         try {
             builder.toolProviders(toolProviderService.getToolProviders(toolIds, applicationIds));

@@ -7,7 +7,7 @@ import com.maxkb4j.application.service.IApplicationLongTermMemoryService;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.core.assistant.Assistant;
-import com.maxkb4j.core.langchain4j.AppChatMemory;
+import com.maxkb4j.core.langchain4j.AiChatMemory;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.tool.service.IToolFormatterService;
@@ -68,7 +68,7 @@ public class ChatStep extends AbsChatStep {
             manage.sink.tryEmitError(e);
             return "";
         }
-        Assistant assistant = aiServicesBuilder.chatMemory(AppChatMemory.withMessages(chatId,historyMessages)).streamingChatModel(chatModel).build();
+        Assistant assistant = aiServicesBuilder.chatMemory(AiChatMemory.withMessages(chatId,historyMessages)).streamingChatModel(chatModel).build();
         Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
         TokenStream tokenStream = assistant.chatStream(userPrompt);
         CompletableFuture<ChatResponse> future = new CompletableFuture<>();
@@ -98,7 +98,7 @@ public class ChatStep extends AbsChatStep {
                 .onError(future::completeExceptionally)
                 .start();
         ChatResponse response = future.get(10L, TimeUnit.MINUTES);
-        context.put("messageList", resetMessageToJSON(historyMessages));
+        context.put("messageList", formatHistoryMessages(historyMessages));
         context.put("reasoningContent", response.aiMessage().thinking());
         TokenUsage tokenUsage = response.tokenUsage();
         if (tokenUsage != null) {
