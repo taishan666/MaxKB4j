@@ -95,7 +95,7 @@ public abstract class AbsChatStep extends AbsStep {
                     SimpleMessage lastMessage = simpleMessages.get(lastIndex);
                     lastMessage.setContent(lastMessage.getContent() + aiMessage.text());
                 } else {
-                    simpleMessages.add(new SimpleMessage("ai", aiMessage.text()));
+                    simpleMessages.add(new SimpleMessage("ai", aiMessage.text()==null?"":aiMessage.text()));
                 }
             }
         }
