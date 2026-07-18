@@ -130,7 +130,7 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
         question.add(new JSONObject(Map.of("type", "text", "text", textMassage)));
         putDetails(node, Map.of(
                 "system", systemPrompt,
-                "historyMessage", MessageConverter.resetMessageList(historyMessages),
+                "historyMessage", MessageConverter.formatHistoryMessages(historyMessages),
                 "question", question
         ));
     }

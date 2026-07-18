@@ -92,7 +92,7 @@ public class ImageUnderStandNodeHandler extends AbstractChatStreamNodeHandler {
                                    String userPrompt, List<Content> contents) {
         putDetails(node, Map.of(
                 "system", systemPrompt,
-                "historyMessage", MessageConverter.resetMessageList(historyMessages),
+                "historyMessage", MessageConverter.formatHistoryMessages(historyMessages),
                 "question", userPrompt,
                 "hasImages", !contents.isEmpty()
         ));

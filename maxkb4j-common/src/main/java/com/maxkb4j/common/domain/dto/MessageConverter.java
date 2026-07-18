@@ -28,7 +28,7 @@ public class MessageConverter {
      * @param historyMessages 历史消息列表
      * @return JSONArray 格式的消息列表
      */
-    public static JSONArray resetMessageList(List<ChatMessage> historyMessages) {
+    public static JSONArray formatHistoryMessages(List<ChatMessage> historyMessages) {
         if (CollectionUtils.isEmpty(historyMessages)) {
             return new JSONArray();
         }
@@ -45,7 +45,6 @@ public class MessageConverter {
                 }
                 newMessageList.add(message);
             }
-
             if (chatMessage instanceof AiMessage aiMessage) {
                 message.put("role", "ai");
                 message.put("content", aiMessage.text());

@@ -47,7 +47,7 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
         }
 
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
-        putDetail(node, "historyMessage", MessageConverter.resetMessageList(historyMessages));
+        putDetail(node, "historyMessage", MessageConverter.formatHistoryMessages(historyMessages));
 
         Map<Integer, String> idToClassification = new HashMap<>();
         String options = optionsFormat(idToClassification, branches);

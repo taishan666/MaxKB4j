@@ -98,7 +98,6 @@ public class ChatStep extends AbsChatStep {
                 .onError(future::completeExceptionally)
                 .start();
         ChatResponse response = future.get(10L, TimeUnit.MINUTES);
-        context.put("messageList", formatHistoryMessages(historyMessages));
         context.put("reasoningContent", response.aiMessage().thinking());
         TokenUsage tokenUsage = response.tokenUsage();
         if (tokenUsage != null) {

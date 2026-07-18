@@ -3,7 +3,6 @@ package com.maxkb4j.workflow.handler.node;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.common.util.MimeTypeUtils;
-import com.maxkb4j.common.util.RenderTags;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.model.NodeResult;
@@ -17,11 +16,7 @@ import dev.langchain4j.service.tool.BeforeToolExecution;
 import dev.langchain4j.service.tool.ToolExecution;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -124,7 +119,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
         String reasoning = Optional.ofNullable(response.aiMessage().thinking()).orElse("");
         recordTokenUsage(node, response.tokenUsage());
         return new NodeResult(Map.of(
-                "answer", RenderTags.stripToolCallsRender(answer),
+                "answer", answer,
                 "reasoningContent", reasoning,
                 "exceptionMessage", errorMessage
         ), true);

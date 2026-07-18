@@ -1,7 +1,6 @@
 package com.maxkb4j.application.pipeline.step.chatstep;
 
 import com.alibaba.excel.util.StringUtils;
-import com.maxkb4j.application.dto.SimpleMessage;
 import com.maxkb4j.application.pipeline.AbsStep;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.vo.ApplicationVO;
@@ -11,12 +10,10 @@ import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -67,10 +64,10 @@ public abstract class AbsChatStep extends AbsStep {
         }
         if (!isAiAnswer){
             manage.sink.tryEmitNext(this.toChatMessageVO(chatId, chatRecordId,answerText.get(), "",true));
-            historyMessages.add(new UserMessage(problemText));
-            historyMessages.add(new AiMessage(answerText.get()));
-            context.put("messageList", formatHistoryMessages(historyMessages));
         }
+        historyMessages.add(new UserMessage(problemText));
+        historyMessages.add(new AiMessage(answerText.get()));
+        context.put("messageList", manage.formatHistoryMessages(historyMessages));
         manage.context.put("answer", answerText.get());
         manage.context.put("reasoningContent", context.get("reasoningContent"));
     }
@@ -79,28 +76,6 @@ public abstract class AbsChatStep extends AbsStep {
     protected abstract String execute(String chatId,String chatRecordId,ApplicationVO application,List<ChatMessage> historyMessages,String userPrompt,PipelineManage manage) throws Exception;
 
 
-    protected List<SimpleMessage> formatHistoryMessages(List<ChatMessage> historyMessages) {
-        if (CollectionUtils.isEmpty(historyMessages)) {
-            return Collections.emptyList();
-        }
-        List<SimpleMessage> simpleMessages = new ArrayList<>(historyMessages.size());
-        for (ChatMessage chatMessage : historyMessages) {
-            if (chatMessage instanceof SystemMessage systemMessage) {
-                simpleMessages.add(new SimpleMessage("system", systemMessage.text()));
-            } else if (chatMessage instanceof UserMessage userMessage) {
-                simpleMessages.add(new SimpleMessage("user", userMessage.singleText()));
-            } else if (chatMessage instanceof AiMessage aiMessage) {
-                int lastIndex = simpleMessages.size() - 1;
-                if (lastIndex >= 0 && "ai".equals(simpleMessages.get(lastIndex).getRole())) {
-                    SimpleMessage lastMessage = simpleMessages.get(lastIndex);
-                    lastMessage.setContent(lastMessage.getContent() + aiMessage.text());
-                } else {
-                    simpleMessages.add(new SimpleMessage("ai", aiMessage.text()==null?"":aiMessage.text()));
-                }
-            }
-        }
-        return simpleMessages;
-    }
 
     /**
      * 转换为聊天消息VO

@@ -29,7 +29,7 @@ public class AiChatMemory implements ChatMemory {
     public void add(ChatMessage message) {
         if (message instanceof SystemMessage){
             messages.addFirst(message);
-        } else {
+        } else{
             messages.add(message);
         }
     }
@@ -75,6 +75,8 @@ public class AiChatMemory implements ChatMemory {
     }
 
     public static AiChatMemory withMessages(List<ChatMessage> messages) {
-        return builder().messages(messages).build();
+        List<ChatMessage> historyMessages = new ArrayList<>(messages.size());
+        historyMessages.addAll(messages);
+        return builder().messages(historyMessages).build();
     }
 }

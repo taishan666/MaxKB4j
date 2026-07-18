@@ -1,13 +1,10 @@
 package com.maxkb4j.application.pipeline;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.vo.ApplicationVO;
-import com.maxkb4j.common.domain.dto.Answer;
-import com.maxkb4j.common.domain.dto.ChatContext;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.MessageConverter;
+import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import dev.langchain4j.data.message.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +61,9 @@ public class PipelineManage {
     }
     public List<ChatMessage> getHistoryMessages(int dialogueNumber) {
         return MessageConverter.toHistoryMessages(chatContext.getHistoryChatRecords(), dialogueNumber);
+    }
+    public JSONArray formatHistoryMessages(List<ChatMessage> historyMessages){
+        return MessageConverter.formatHistoryMessages(historyMessages);
     }
 
     @SuppressWarnings("unchecked")
