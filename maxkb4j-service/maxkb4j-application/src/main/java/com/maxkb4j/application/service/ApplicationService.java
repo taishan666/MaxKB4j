@@ -12,7 +12,6 @@ import com.maxkb4j.application.dto.ApplicationQuery;
 import com.maxkb4j.application.dto.MaxKb4J;
 import com.maxkb4j.application.entity.*;
 import com.maxkb4j.application.enums.AppType;
-import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationMapper;
 import com.maxkb4j.application.util.ResourceUtil;
 import com.maxkb4j.application.vo.ApplicationListVO;
@@ -63,8 +62,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final ApplicationApiKeyService applicationApiKeyService;
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationVersionService applicationVersionService;
-    private final ApplicationChatRecordService applicationChatRecordService;
-    private final ApplicationChatMapper applicationChatMapper;
     private final IUserResourcePermissionService userResourcePermissionService;
     private final IToolService toolService;
     private final ApplicationResourceMappingService applicationResourceMappingService;
@@ -123,11 +120,6 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         applicationApiKeyService.remove(Wrappers.<ApplicationApiKeyEntity>lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId));
         chatUserStatsService.remove(Wrappers.<ApplicationChatUserStatsEntity>lambdaQuery().eq(ApplicationChatUserStatsEntity::getApplicationId, appId));
         applicationVersionService.remove(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId));
-        List<String> chatIds = applicationChatMapper.selectList(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId)).stream().map(ApplicationChatEntity::getId).toList();
-        if (!CollectionUtils.isEmpty(chatIds)) {
-            applicationChatMapper.delete(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getApplicationId, appId));
-            applicationChatRecordService.remove(Wrappers.<ApplicationChatRecordEntity>lambdaQuery().in(ApplicationChatRecordEntity::getChatId, chatIds));
-        }
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, appId);
         // 批量删除资源映射
         applicationResourceMappingService.deleteResourceMappings(appId);

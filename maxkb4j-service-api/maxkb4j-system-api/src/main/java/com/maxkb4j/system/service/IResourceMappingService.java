@@ -11,4 +11,5 @@ public interface IResourceMappingService extends IService<ResourceMappingEntity>
     boolean relation(String sourceType, String sourceId, List<TargetResource> targets);
 
     boolean deleteBySourceId(String sourceType,String sourceId);
+
 }

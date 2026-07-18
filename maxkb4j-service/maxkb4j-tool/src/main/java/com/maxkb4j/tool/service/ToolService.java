@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.system.constant.AuthTargetType;
+import com.maxkb4j.system.service.IResourceMappingService;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;
@@ -47,6 +49,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> implements 
     private final ToolPermissionHandler permissionHandler;
     private final ToolSkillHandler skillHandler;
     private final ToolAssembleHandler assembleHandler;
+    private final IResourceMappingService resourceMappingService;
 
     public IPage<ToolVO> pageList(int current, int size, ToolQuery query) {
         IPage<ToolEntity> page = new Page<>(current, size);
@@ -92,6 +95,7 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> implements 
     public boolean removeToolById(String id) {
         ToolEntity entity = this.getById(id);
         skillHandler.onDelete(entity);
+        resourceMappingService.deleteBySourceId(ResourceType.TOOL, id);
         userResourcePermissionService.remove(AuthTargetType.TOOL, id);
         return this.removeById(id);
     }
