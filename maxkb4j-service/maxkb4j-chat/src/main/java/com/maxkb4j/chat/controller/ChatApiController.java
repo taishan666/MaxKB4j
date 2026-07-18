@@ -9,7 +9,6 @@ import com.maxkb4j.application.entity.*;
 import com.maxkb4j.application.service.*;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.application.vo.ShareChatVO;
-import com.maxkb4j.chat.query.EmbedQuery;
 import com.maxkb4j.chat.service.ChatApiService;
 import com.maxkb4j.chat.service.ChatEmbedService;
 import com.maxkb4j.common.api.R;
@@ -25,6 +24,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -202,8 +202,14 @@ public class ChatApiController {
     @Hidden
     @GetMapping("/embed")
     @SaIgnore
-    public ResponseEntity<String> embed(EmbedQuery query) {
-        return ResponseEntity.ok().header("Content-Type", "text/javascript; charset=utf-8").body(chatEmbedService.embed(query));
+    public ResponseEntity<String> embed(
+            @NotBlank @RequestParam String protocol,
+            @NotBlank @RequestParam String host,
+            @NotBlank @RequestParam String token,
+            @RequestParam Map<String, Object> params) {
+        return ResponseEntity.ok()
+                .header("Content-Type", "text/javascript; charset=utf-8")
+                .body(chatEmbedService.embed(protocol,host,token,params));
     }
 
     @Hidden

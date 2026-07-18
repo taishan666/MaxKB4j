@@ -1,10 +1,14 @@
 package com.maxkb4j.chat.query;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class EmbedQuery {
 
@@ -17,5 +21,5 @@ public class EmbedQuery {
     @NotBlank(message = "token 不能为空")
     private String token;
 
-    private Map<String, String> params=Map.of();
+    private Map<String, Object> params=Map.of();
 }

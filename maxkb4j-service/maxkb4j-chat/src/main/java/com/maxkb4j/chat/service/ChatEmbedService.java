@@ -1,6 +1,5 @@
 package com.maxkb4j.chat.service;
 
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
 import com.maxkb4j.application.service.IApplicationAccessTokenService;
@@ -28,6 +27,13 @@ public class ChatEmbedService {
 
     private final IApplicationAccessTokenService accessTokenService;
 
+    public String embed(String protocol,String host, String token,Map<String, Object> params) {
+        // 移除固定参数，剩下的就是不固定参数
+        params.remove("protocol");
+        params.remove("host");
+        params.remove("token");
+        return embed(new EmbedQuery(protocol,host,token,params));
+    }
     public String embed(EmbedQuery query) {
         ClassLoader classLoader = getClass().getClassLoader();
         InputStream inputStream = classLoader.getResourceAsStream("template/embed.txt");
@@ -40,9 +46,7 @@ public class ChatEmbedService {
             throw new ApiException("application.access.white.list.required");
         }
         String content = IoUtil.readToString(inputStream, StandardCharsets.UTF_8);
-        String result = render(content, getParamsMap(token, query));
-        System.out.println(result);
-        return result;
+        return render(content, getParamsMap(token, query));
     }
 
     private Map<String, String> getParamsMap(ApplicationAccessTokenEntity token, EmbedQuery query) {
@@ -59,8 +63,8 @@ public class ChatEmbedService {
         map.put("is_draggable", "false");
         map.put("float_icon", floatIcon);
         map.put("prefix", "/chat");
-        String queryStr= JSON.toJSONString(query.getParams());
-        map.put("query", "");
+        String queryStr= getQueryApiInput(query.getParams());
+        map.put("query", queryStr);
         map.put("show_guide", "true");
         map.put("x_type", "right");
         map.put("y_type", "bottom");
@@ -69,6 +73,12 @@ public class ChatEmbedService {
         map.put("max_kb_id", IdWorker.get32UUID());
         map.put("header_font_color", "rgb(100, 106, 115");
         return map;
+    }
+
+    public String getQueryApiInput(Map<String, Object> params) {
+        StringBuilder query = new StringBuilder();
+        params.forEach((key, value) -> query.append("&").append(key).append("=").append(value));
+        return query.toString();
     }
 
     private String render(String content, Map<String, String> variables) {
