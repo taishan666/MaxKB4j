@@ -4,8 +4,6 @@ import com.maxkb4j.common.exception.UserIdentityException;
 import com.maxkb4j.common.interceptor.UserIdentityInterceptor;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 /**
  * 基于 {@link ThreadLocal} 的 {@link UserContext} 实现。
  * <p>由 {@link UserIdentityInterceptor} 在请求开始时填充、请求结束时清理,
@@ -45,5 +43,14 @@ public class ThreadLocalUserContext implements UserContext {
             throw new UserIdentityException("当前线程未解析到登录身份");
         }
         return identity.userId();
+    }
+
+    @Override
+    public String getTokenValue() {
+        UserIdentity identity = HOLDER.get();
+        if (identity == null) {
+            throw new UserIdentityException("当前线程未解析到登录身份");
+        }
+        return identity.tokenValue();
     }
 }

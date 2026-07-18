@@ -11,18 +11,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import java.util.Map;
-
 /**
  * 请求身份解析拦截器。
  * <p>在请求开始时从 sa-token 解析当前登录身份(ADMIN 或 USER),写入 {@link ThreadLocalUserContext},
  * 使业务层可通过 {@link com.maxkb4j.common.context.UserContext} 获取当前用户,而无需直接依赖 sa-token。
  *
- * <p>解析顺序:
+ * <p>解析策略(按请求路径决定优先级):
  * <ol>
- *   <li>{@link StpKit#ADMIN}:ADMIN 会话由 sa-token 按其 token 名自动解析(无需手动桥接);命中则快照身份。</li>
- *   <li>{@link StpKit#USER}:仅对 chat 路径,将 {@code Authorization} 头中的 token 桥接进 USER 会话后再解析,
- *       集中替代原本散落在 {@code ChatApiService}/{@code ChatApiController} 中的 {@code setTokenValue} 调用。</li>
+ *   <li>chat 路径({@code /chat/**}):优先解析 {@link StpKit#USER},避免同浏览器同时登录 ADMIN+USER 时误判为 ADMIN。</li>
+ *   <li>其他路径:优先解析 {@link StpKit#ADMIN},ADMIN 未命中时再尝试 USER。</li>
  * </ol>
  *
  * <p>本拦截器只负责"填充上下文",不承担鉴权(鉴权由 {@code AuthInterceptor}、{@code SaCheckPermAspect} 等负责),
@@ -44,7 +41,7 @@ public class UserIdentityInterceptor implements HandlerInterceptor {
                              HttpServletResponse response,
                              Object handler) {
         try {
-            UserIdentity identity = resolve();
+            UserIdentity identity = resolve(request);
             if (identity != null) {
                 userContext.set(identity);
             }
@@ -64,10 +61,28 @@ public class UserIdentityInterceptor implements HandlerInterceptor {
         userContext.clear();
     }
 
-    private UserIdentity resolve() {
-        // 2) ADMIN:sa-token 按 token 名自动解析
+    private static final String CHAT_PATH_PREFIX = "/chat";
+
+    private UserIdentity resolve(HttpServletRequest request) {
+        boolean isChatPath = request.getRequestURI().startsWith(CHAT_PATH_PREFIX);
+        if (isChatPath) {
+            // chat 路径:优先解析 USER,避免同浏览器双登录时误取 ADMIN 身份
+            return  resolveUser();
+        }
+        // 其他路径:优先解析 ADMIN
+        return resolveAdmin();
+    }
+
+    private UserIdentity resolveAdmin() {
         if (StpKit.ADMIN.isLogin()) {
-            return new UserIdentity(StpKit.ADMIN.getLoginIdAsString(),StpKit.ADMIN.getTokenValue(), LoginType.ADMIN, Map.of());
+            return new UserIdentity(StpKit.ADMIN.getLoginIdAsString(), StpKit.ADMIN.getTokenValue(), LoginType.ADMIN);
+        }
+        return null;
+    }
+
+    private UserIdentity resolveUser() {
+        if (StpKit.USER.isLogin()) {
+            return new UserIdentity(StpKit.USER.getLoginIdAsString(), StpKit.USER.getTokenValue(), LoginType.USER);
         }
         return null;
     }
