@@ -4,6 +4,7 @@ import com.maxkb4j.application.service.ApplicationChatService;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.enums.ChatSource;
@@ -36,13 +37,15 @@ public class ChatMessageController {
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params, @CurrentUserId String userId) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
-        params.setChatUserId(userId);
-        params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
-        params.setSource(ChatSource.ONLINE);
-        params.setIpAddress(WebUtil.getIP());
-        params.setDebug(true);
+        ChatContext chatContext = ChatContext.builder()
+                .chatUserId(userId)
+                .chatUserType(ChatUserType.ANONYMOUS_USER.name())
+                .source(ChatSource.ONLINE)
+                .ipAddress(WebUtil.getIP())
+                .debug(true)
+                .build();
         // 异步执行业务逻辑
-        chatService.chatMessageAsync(params, sink);
+        chatService.chatMessageAsync(params, chatContext, sink);
         return sink.asFlux();
     }
 }

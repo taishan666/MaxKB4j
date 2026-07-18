@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.domain.dto.Answer;
+import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.MessageConverter;
@@ -24,6 +25,7 @@ public class PipelineManage {
     public Map<String, Object> context;
     public ApplicationVO application;
     public ChatParams chatParams;
+    public ChatContext chatContext;
     public Sinks.Many<ChatMessageVO> sink;
 
     public PipelineManage(List<AbsStep> stepList) {
@@ -34,12 +36,15 @@ public class PipelineManage {
     }
 
 
-    public Answer run(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink)  {
+    public Answer run(ApplicationVO application, ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink)  {
         if (application != null) {
             this.application= application;
         }
         if (chatParams != null) {
             this.chatParams= chatParams;
+        }
+        if (chatContext != null) {
+            this.chatContext= chatContext;
         }
         if (sink != null){
             this.sink = sink;
@@ -58,7 +63,7 @@ public class PipelineManage {
         return Answer.builder().content(answer).reasoningContent(reasoningContent).viewType("many_view").runtimeNodeId("ai-chat-node").build();
     }
     public List<ChatMessage> getHistoryMessages(int dialogueNumber) {
-        return MessageConverter.toHistoryMessages(chatParams.getHistoryChatRecords(), dialogueNumber);
+        return MessageConverter.toHistoryMessages(chatContext.getHistoryChatRecords(), dialogueNumber);
     }
 
     @SuppressWarnings("unchecked")

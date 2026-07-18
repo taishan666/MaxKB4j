@@ -12,6 +12,7 @@ import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.service.ApplicationChatUserStatsService;
 import com.maxkb4j.application.service.IApplicationLongTermMemoryService;
 import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
@@ -36,13 +37,13 @@ public class ChatPostHandler implements PostResponseHandler {
     private final ApplicationChatRecordMapper chatRecordMapper;
 
     @Override
-    public void handler(ChatParams chatParams, ChatResponse chatResponse, long startTime) {
+    public void handler(ChatParams chatParams, ChatContext chatContext, ChatResponse chatResponse, long startTime) {
         String chatId = chatParams.getChatId();
         String chatRecordId = chatParams.getChatRecordId();
         String problemText = chatParams.getMessage();
-        String chatUserId = chatParams.getChatUserId();
-        String chatUserType = chatParams.getChatUserType();
-        boolean debug = chatParams.getDebug();
+        String chatUserId = chatContext.getChatUserId();
+        String chatUserType = chatContext.getChatUserType();
+        boolean debug = chatContext.getDebug();
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
         ChatInfo chatInfo = ChatCache.get(chatId);
         String answerText = chatResponse.getAnswer();
@@ -50,7 +51,7 @@ public class ChatPostHandler implements PostResponseHandler {
         int messageTokens = chatResponse.getMessageTokens();
         int answerTokens = chatResponse.getAnswerTokens();
         JSONObject details = chatResponse.getRunDetails();
-        ChatRecordDTO chatRecord=chatParams.getChatRecord();
+        ChatRecordDTO chatRecord=chatContext.getChatRecord();
         ApplicationChatRecordEntity chatRecordEntity = new ApplicationChatRecordEntity();
         chatRecordEntity.setId(chatRecordId);
         chatRecordEntity.setChatId(chatId);
@@ -82,7 +83,7 @@ public class ChatPostHandler implements PostResponseHandler {
         chatRecordEntity.setImproveParagraphIdList(List.of());
         ChatRecordDTO chatRecordDTO=BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
         if (chatInfo==null){
-            chatInfo = new ChatInfo(chatId, chatParams.getAppId());
+            chatInfo = new ChatInfo(chatId, chatContext.getAppId());
         }
         chatInfo.addChatRecord(chatRecordDTO);
         // 重新设置缓存
@@ -110,8 +111,8 @@ public class ChatPostHandler implements PostResponseHandler {
                 chatEntity.setTrampleNum(0);
                 chatEntity.setChatRecordCount(1);
                 chatEntity.setMarkSum(0);
-                chatEntity.setIpAddress(chatParams.getIpAddress());
-                ChatSource source=chatParams.getSource()==null?ChatSource.ONLINE:chatParams.getSource();
+                chatEntity.setIpAddress(chatContext.getIpAddress());
+                ChatSource source=chatContext.getSource()==null?ChatSource.ONLINE:chatContext.getSource();
                 chatEntity.setSource(new JSONObject(Map.of("type", source)));
                 chatMapper.insert(chatEntity);
             }else {

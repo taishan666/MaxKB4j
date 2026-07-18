@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.constant.ResourceType;
+import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
@@ -116,13 +117,15 @@ public class TriggerTaskExecutor {
                 ChatParams chatParams = ChatParams.builder()
                         .message(question)
                         .chatId(chatId)
-                        .appId(appId)
-                        .debug(false)
                         .reChat(false)
-                        .source(ChatSource.TRIGGER)
                         .stream(false)
                         .build();
-                ChatResponse response = applicationChatService.chatMessage(chatParams, sink);
+                ChatContext chatContext = ChatContext.builder()
+                        .appId(appId)
+                        .debug(false)
+                        .source(ChatSource.TRIGGER)
+                        .build();
+                ChatResponse response = applicationChatService.chatMessage(chatParams, chatContext, sink);
                 float runTime = (System.currentTimeMillis() - startTime) / 1000f;
                 TaskState state = (response != null && response.getAnswerTextList() != null) ? TaskState.SUCCESS : TaskState.FAILURE;
                 JSONObject meta = (response != null) ? response.getRunDetails() : new JSONObject();

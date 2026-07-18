@@ -67,8 +67,8 @@ public class StartNodeHandler extends AbsNodeHandler {
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         resultMap.put("historyContext", getHistoryContext(workflow));
         resultMap.put("chatId", chatParams.getChatId());
-        resultMap.put("chatUserId", chatParams.getChatUserId());
-        resultMap.put("chatUserType", chatParams.getChatUserType());
+        resultMap.put("chatUserId", workflow.getContext().getChatUserId());
+        resultMap.put("chatUserType", workflow.getContext().getChatUserType());
         resultMap.put("chatUser", new JSONObject(Map.of("username", "游客")));
         if (chatParams.getFormData() != null){
             resultMap.putAll(chatParams.getFormData());

@@ -61,7 +61,10 @@ public record HistoryManager(List<ChatRecordDTO> historyChatRecords) {
                         if ("text".equals(type)) {
                             contents.add(TextContent.from(content.getString("text")));
                         }else if ("image_url".equals(type)) {
-                            contents.add(ImageContent.from(content.getString("url")));
+                            String url = content.getString("url");
+                            if (url!=null) {
+                                contents.add(ImageContent.from(content.getString("url")));
+                            }
                         }
                     }
                     messages.add(new UserMessage(contents));

@@ -13,6 +13,7 @@ import com.maxkb4j.application.service.IApplicationChatRecordService;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.application.vo.ApplicationVO;
+import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.domain.dto.McpRequest;
@@ -159,12 +160,14 @@ public class ChatApiService {
                             .reChat(false)
                             .stream(false)
                             .chatId(chatId)
+                            .build();
+                    ChatContext chatContext = ChatContext.builder()
                             .appId(apiKey.getApplicationId())
                             .chatUserId(IdWorker.get32UUID())
                             .chatUserType(ChatUserType.ANONYMOUS_USER.name())
                             .debug(false)
                             .build();
-                    ChatResponse chatResponse = chatService.chatMessage(params, Sinks.many().unicast().onBackpressureBuffer());
+                    ChatResponse chatResponse = chatService.chatMessage(params, chatContext, Sinks.many().unicast().onBackpressureBuffer());
                     Map<String, Object> content = Map.of("type", "text", "text", chatResponse.getAnswer());
                     resp.result = Map.of("content", List.of(content));
                 }

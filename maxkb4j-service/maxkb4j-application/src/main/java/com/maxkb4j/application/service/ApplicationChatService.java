@@ -112,32 +112,32 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         return chatInfo;
     }
 
-    public ChatResponse chatMessage(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+    public ChatResponse chatMessage(ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
         long startTime = System.currentTimeMillis();
-        ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatParams.getAppId());
-        if (visitCountOver(chatParams)) {
+        ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatContext.getAppId());
+        if (visitCountOver(chatParams, chatContext)) {
             sink.tryEmitError(new AccessNumLimitException());
             return new ChatResponse(List.of(), null);
         }
         List<ChatRecordDTO> historyChatRecordList = chatRecordService.getChatRecords(chatParams.getChatId());
-        chatParams.setHistoryChatRecords(historyChatRecordList);
+        chatContext.setHistoryChatRecords(historyChatRecordList);
         if (StringUtils.isNotBlank(chatParams.getChatRecordId())) {
             ChatRecordDTO chatRecord = historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
-            chatParams.setChatRecord(chatRecord);
+            chatContext.setChatRecord(chatRecord);
         } else {
             chatParams.setChatRecordId(IdWorker.get32UUID());
         }
-        ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatParams.getDebug());
+        ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatContext.getDebug());
         IChatService chatService = ChatServiceBuilder.getChatService(application.getType());
-        ChatResponse chatResponse = chatService.chatMessage(application, chatParams, sink);
-        postResponseHandler.handler(chatParams, chatResponse, startTime);
+        ChatResponse chatResponse = chatService.chatMessage(application, chatParams, chatContext, sink);
+        postResponseHandler.handler(chatParams, chatContext, chatResponse, startTime);
         sink.tryEmitNext(new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true));
         sink.tryEmitComplete();
         return chatResponse;
     }
 
-    public void chatMessageAsync(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
-        CompletableFuture.supplyAsync(() -> chatMessage(chatParams, sink), chatTaskExecutor)
+    public void chatMessageAsync(ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
+        CompletableFuture.supplyAsync(() -> chatMessage(chatParams, chatContext, sink), chatTaskExecutor)
                 .exceptionally(throwable -> {
                     // 记录异常日志（关键！）
                     log.error("Async chatMessage failed", throwable);
@@ -149,14 +149,14 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 });
     }
 
-    public boolean visitCountOver(ChatParams chatParams) {
-        String appId = chatParams.getAppId();
-        String chatUserId = chatParams.getChatUserId();
-        boolean debug = chatParams.getDebug();
+    public boolean visitCountOver(ChatParams chatParams, ChatContext chatContext) {
+        String appId = chatContext.getAppId();
+        String chatUserId = chatContext.getChatUserId();
+        boolean debug = chatContext.getDebug();
         if (!debug && Objects.nonNull(appId)) {
             ApplicationChatUserStatsEntity chatUserStats = chatUserStatsService.getByUserIdAndAppId(chatUserId, appId);
             if (Objects.isNull(chatUserStats)) {
-                String chatUserType = chatParams.getChatUserType();
+                String chatUserType = chatContext.getChatUserType();
                 chatUserStats = new ApplicationChatUserStatsEntity();
                 chatUserStats.setChatUserId(chatUserId);
                 chatUserStats.setChatUserType(chatUserType);

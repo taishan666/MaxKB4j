@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.engine;
 
+import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
@@ -52,6 +53,15 @@ public class WorkflowConfiguration {
      */
     @Setter
     private ChatParams chatParams;
+
+    /**
+     * 对话执行上下文（服务端解析的身份信息与历史记录）
+     * -- SETTER --
+     *  设置对话执行上下文
+     *
+     */
+    @Setter
+    private ChatContext chatContext;
 
     /**
      * 节点执行超时时间（分钟）

@@ -36,27 +36,29 @@ public class ChatOpenAiController {
     public Object chatCompletion(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
         String chatId = chatService.chatOpen(appId, false);
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
-        // 构建 ChatParams
+        // 构建 ChatParams（请求入参）与 ChatContext（服务端上下文）
         ChatParams params = convertToChatParams(request, chatId);
-        if (Boolean.TRUE.equals(request.getStream())) {
-            return handleStreamResponse(request, params, sink);
-        } else {
-            return handleSyncResponse(request, params, sink);
-        }
-    }
-
-    /**
-     * 将 OpenAI 请求转换为内部 ChatParams
-     */
-    private ChatParams convertToChatParams(OpenAIChatCompletionRequest request, String chatId) {
-        return ChatParams.builder()
-                .message(request.getLastUserMessage())
-                .chatId(chatId)
+        ChatContext chatContext = ChatContext.builder()
                 .chatUserId(IdWorker.get32UUID())
                 .chatUserType(ChatUserType.APPLICATION_API_KEY.name())
                 .source(ChatSource.API_CALL)
                 .ipAddress(WebUtil.getIP())
                 .debug(false)
+                .build();
+        if (Boolean.TRUE.equals(request.getStream())) {
+            return handleStreamResponse(request, params, chatContext, sink);
+        } else {
+            return handleSyncResponse(request, params, chatContext, sink);
+        }
+    }
+
+    /**
+     * 将 OpenAI 请求转换为内部 ChatParams（仅请求入参）
+     */
+    private ChatParams convertToChatParams(OpenAIChatCompletionRequest request, String chatId) {
+        return ChatParams.builder()
+                .message(request.getLastUserMessage())
+                .chatId(chatId)
                 .stream(request.getStream())
                 .reChat(false)
                 .build();
@@ -65,11 +67,11 @@ public class ChatOpenAiController {
     /**
      * 处理流式响应
      */
-    private Flux<ServerSentEvent<String>> handleStreamResponse(OpenAIChatCompletionRequest request, ChatParams params, Sinks.Many<ChatMessageVO> sink) {
+    private Flux<ServerSentEvent<String>> handleStreamResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
         String completionId = generateCompletionId();
         String model = request.getModel() != null ? request.getModel() : "maxkb4j";
         // 异步执行业务逻辑
-        chatService.chatMessageAsync(params, sink);
+        chatService.chatMessageAsync(params, chatContext, sink);
 
         return sink.asFlux()
                 .timeout(Duration.ofMinutes(10))
@@ -101,8 +103,8 @@ public class ChatOpenAiController {
     /**
      * 处理同步响应
      */
-    private ResponseEntity<OpenAIChatCompletionResponse> handleSyncResponse(OpenAIChatCompletionRequest request, ChatParams params, Sinks.Many<ChatMessageVO> sink) {
-        ChatResponse chatResponse = chatService.chatMessage(params, sink);
+    private ResponseEntity<OpenAIChatCompletionResponse> handleSyncResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
+        ChatResponse chatResponse = chatService.chatMessage(params, chatContext, sink);
         String completionId = generateCompletionId();
         String model = request.getModel() != null ? request.getModel() : "maxkb4j";
 

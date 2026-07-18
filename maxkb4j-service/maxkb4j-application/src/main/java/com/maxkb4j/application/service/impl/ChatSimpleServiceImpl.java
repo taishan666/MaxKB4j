@@ -10,6 +10,7 @@ import com.maxkb4j.application.pipeline.step.searchdatasetstep.AbsSearchDatasetS
 import com.maxkb4j.application.service.IChatService;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.domain.dto.Answer;
+import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
@@ -31,7 +32,7 @@ public class ChatSimpleServiceImpl implements IChatService {
     private final AbsChatStep chatStep;
 
     @Override
-    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
+    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         Boolean problemOptimization = application.getProblemOptimization();
         if (!CollectionUtils.isEmpty(application.getKnowledgeIds())) {
@@ -44,7 +45,7 @@ public class ChatSimpleServiceImpl implements IChatService {
         pipelineManageBuilder.addStep(chatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
         chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
-        Answer answer = pipelineManage.run(application,chatParams, sink);
+        Answer answer = pipelineManage.run(application, chatParams, chatContext, sink);
         JSONObject details = pipelineManage.getDetails();
         return new ChatResponse(List.of(answer), details);
     }

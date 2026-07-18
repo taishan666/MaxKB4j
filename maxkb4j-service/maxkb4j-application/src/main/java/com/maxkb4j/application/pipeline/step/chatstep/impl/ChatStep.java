@@ -50,7 +50,7 @@ public class ChatStep extends AbsChatStep {
         List<String> toolIds = Optional.ofNullable(application.getToolIds()).orElse(List.of());
         List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
         AiServices<Assistant> aiServicesBuilder = AiServiceFactory.builder(Assistant.class);
-        String chatUserId = manage.chatParams.getChatUserId();
+        String chatUserId = manage.chatContext.getChatUserId();
         String systemText = application.getModelSetting().getSystem();
         if (StringUtils.isNotBlank(systemText)){
             aiServicesBuilder.systemMessage(systemText);

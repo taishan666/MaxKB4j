@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.engine;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
@@ -27,6 +28,7 @@ import java.util.Objects;
  * <pre>
  * Workflow workflow = WorkflowBuilder.create(mode, nodes, edges)
  *     .chatParams(chatParams)
+ *     .context(chatContext)
  *     .sink(sink)
  *     .restoreState(details, nodeId, nodeData)
  *     .build();
@@ -40,6 +42,7 @@ public class WorkflowBuilder {
     private final List<LfEdge> edges;
     // ==================== 可选参数 ====================
     ChatParams chatParams;
+    ChatContext chatContext;
     Many<ChatMessageVO> sink;
     JSONObject details;
     String currentNodeId;
@@ -74,12 +77,17 @@ public class WorkflowBuilder {
      */
     public WorkflowBuilder chatParams(ChatParams params) {
         this.chatParams = params;
-        if (params != null &&
-            params.getChatRecord() != null &&
-           params.getChatRecord().getDetails() != null
-        ) {
-            restoreState(chatParams.getChatRecord().getDetails(), chatParams.getRuntimeNodeId(), chatParams.getNodeData());
-        }
+        return this;
+    }
+
+    /**
+     * 设置对话执行上下文（服务端解析的身份信息与历史记录）。
+     *
+     * @param chatContext 对话执行上下文
+     * @return this
+     */
+    public WorkflowBuilder context(ChatContext chatContext) {
+        this.chatContext = chatContext;
         return this;
     }
 
@@ -112,16 +120,24 @@ public class WorkflowBuilder {
         // 1. 构建 Configuration
         this.configuration = new WorkflowConfiguration(workflowMode, nodes, edges);
         this.configuration.setChatParams(chatParams);
+        this.configuration.setChatContext(chatContext);
         // 2. 构建 Context
         this.context = new WorkflowContext();
-        // 3. 构建 HistoryManager
-        List<ChatRecordDTO> history = chatParams != null
-                ? chatParams.getHistoryChatRecords()
+        // 3. 恢复执行状态：chatRecord 来自上下文，runtimeNodeId/nodeData 来自请求入参
+        if (chatContext != null
+                && chatContext.getChatRecord() != null
+                && chatContext.getChatRecord().getDetails() != null) {
+            restoreState(chatContext.getChatRecord().getDetails(),
+                    chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+        }
+        // 4. 构建 HistoryManager（历史记录来自上下文）
+        List<ChatRecordDTO> history = chatContext != null
+                ? chatContext.getHistoryChatRecords()
                 : Collections.emptyList();
         this.historyManager = new HistoryManager(history);
-        // 4. 构建 Navigator
+        // 5. 构建 Navigator
         this.navigator = new EdgeNavigator(edges);
-        // 5. 构建 Workflow（内部完成依赖组件初始化）
+        // 6. 构建 Workflow（内部完成依赖组件初始化）
         return new WorkflowImpl(this);
     }
 

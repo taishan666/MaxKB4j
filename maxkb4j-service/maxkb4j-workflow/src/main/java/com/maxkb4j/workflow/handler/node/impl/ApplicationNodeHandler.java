@@ -39,6 +39,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
         List<String> questionFields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, questionFields);
         ChatParams chatParams = workflow.getChatParams();
+        ChatContext chatContext = workflow.getContext();
         String chatId = chatParams.getChatId() + "_" + params.getApplicationId();
         // 获取各种文件列表
         List<OssFile> docList = getOssFiles(workflow, params.getDocumentList());
@@ -56,20 +57,22 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
         formData.putAll(buildFormData(workflow, params.getApiInputFieldList()));
         ChatParams nodeChatParams = ChatParams.builder()
                 .message(question)
-                .appId(params.getApplicationId())
                 .chatId(chatId)
                 .chatRecordId(nodeChatRecordId)
                 .runtimeNodeId(nodeRuntimeNodeId)
                 .reChat(chatParams.getReChat())
-                .chatUserId(chatParams.getChatUserId())
-                .chatUserType(chatParams.getChatUserType())
                 .imageList(imageList)
                 .audioList(audioList)
                 .documentList(docList)
                 .otherList(otherList)
                 .formData(formData)
                 .nodeData(chatParams.getNodeData())
-                .debug(chatParams.getDebug())
+                .build();
+        ChatContext nodeContext = ChatContext.builder()
+                .appId(params.getApplicationId())
+                .chatUserId(chatContext.getChatUserId())
+                .chatUserType(chatContext.getChatUserType())
+                .debug(chatContext.getDebug())
                 .build();
         Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
         AtomicBoolean isInterruptExec = new AtomicBoolean(false);
@@ -90,7 +93,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
                 workflow.output().emit(vo);
             });
         }
-        ChatResponse chatResponse = chatService.chatMessage(nodeChatParams, appNodeSink);
+        ChatResponse chatResponse = chatService.chatMessage(nodeChatParams, nodeContext, appNodeSink);
         // 写入详情
         putDetails(node, Map.of(
                 "messageTokens", chatResponse.getMessageTokens(),

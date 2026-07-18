@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.engine;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.workflow.model.IWorkflowContext;
@@ -224,6 +225,16 @@ public class WorkflowImpl implements Workflow {
     @Override
     public ChatParams getChatParams() {
         return configuration.getChatParams();
+    }
+
+    /**
+     * 获取对话执行上下文
+     *
+     * @return ChatContext 实例
+     */
+    @Override
+    public ChatContext getContext() {
+        return configuration.getChatContext();
     }
 
     /**

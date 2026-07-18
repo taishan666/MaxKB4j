@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.application.dto.ShareChatDTO;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.vo.ShareChatVO;
+import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
@@ -15,8 +16,8 @@ public interface IApplicationChatService extends IService<ApplicationChatEntity>
 
     String chatOpen(String appId, boolean debug);
 
-    ChatResponse chatMessage(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink);
-    void chatMessageAsync(ChatParams chatParams, Sinks.Many<ChatMessageVO> sink);
+    ChatResponse chatMessage(ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink);
+    void chatMessageAsync(ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink);
     Boolean deleteById(String chatId);
 
     Map<String, String> shareChat(String id, String chatId, ShareChatDTO dto);

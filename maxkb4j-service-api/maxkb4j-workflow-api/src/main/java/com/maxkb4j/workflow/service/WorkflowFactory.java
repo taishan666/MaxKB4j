@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.service;
 
+import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.logic.LfEdge;
@@ -21,13 +22,14 @@ public interface WorkflowFactory {
     /**
      * 构造应用（聊天）工作流，恢复执行状态并接入响应式输出。
      *
-     * @param nodes      节点列表
-     * @param edges       边列表
-     * @param chatParams 聊天参数（含历史记录与恢复状态）
-     * @param sink        响应式输出 Sink
+     * @param nodes        节点列表
+     * @param edges        边列表
+     * @param chatParams   聊天请求入参（含恢复状态所需的 runtimeNodeId/nodeData）
+     * @param chatContext  对话执行上下文（含历史记录与身份信息）
+     * @param sink         响应式输出 Sink
      * @return 工作流实例
      */
-    Workflow createApplication(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink);
+    Workflow createApplication(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink);
 
     /**
      * 构造知识库工作流。

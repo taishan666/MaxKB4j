@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.model;
 
+import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -108,6 +109,11 @@ public interface Workflow {
      * 获取聊天参数。
      */
     ChatParams getChatParams();
+
+    /**
+     * 获取对话执行上下文（服务端解析的身份信息与历史记录）。
+     */
+    ChatContext getContext();
 
     /**
      * 获取节点执行超时时间（分钟），与 TimeUnit.MINUTES 配合使用。

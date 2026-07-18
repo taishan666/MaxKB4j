@@ -1,10 +1,5 @@
 package com.maxkb4j.common.domain.dto;
 
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.maxkb4j.common.enums.ChatSource;
-import com.maxkb4j.common.enums.ChatUserType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,6 +9,14 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 对话请求入参：仅承载客户端提交的请求字段，由 {@code @RequestBody} 绑定。
+ * <p>
+ * 服务端解析的运行时状态（用户身份、来源、历史记录等）已分离至 {@link ChatContext}，
+ * 沿调用链独立传递，避免请求 DTO 与可变执行上下文混装。
+ *
+ * @author tarzan
+ */
 @Builder
 @Data
 @Schema(description = "对话参数", requiredProperties = {"message", "chatId"})
@@ -48,29 +51,4 @@ public class ChatParams {
     @Schema(description = "是否重新回答")
     @NotNull(message = "是否重新回答")
     private Boolean reChat;
-
-    @JsonIgnore
-    private String ipAddress;
-    @JsonIgnore
-    private ChatSource source;
-    @JsonIgnore
-    private String appId;
-    @JsonIgnore
-    private Boolean debug;
-    @JsonIgnore
-    private String chatUserId;
-    @JsonIgnore
-    private String chatUserType;
-    @JsonIgnore
-    private List<ChatRecordDTO> historyChatRecords;
-    @JsonIgnore
-    private ChatRecordDTO chatRecord;
-
-    public String getChatUserId() {
-        return StringUtils.isBlank(chatUserId)? IdWorker.get32UUID() : chatUserId;
-    }
-
-    public String getChatUserType() {
-        return StringUtils.isBlank(chatUserType)? ChatUserType.ANONYMOUS_USER.name() : chatUserType;
-    }
 }

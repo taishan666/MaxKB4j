@@ -14,6 +14,7 @@ import com.maxkb4j.chat.service.ChatApiService;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.domain.dto.McpRequest;
@@ -99,17 +100,19 @@ public class ChatApiController {
         String userId = StpKit.USER.getLoginIdAsString();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
-        params.setChatUserId(userId);
-        params.setChatUserType(ChatUserType.ANONYMOUS_USER.name());
-        params.setSource(ChatSource.ONLINE);
-        params.setIpAddress(WebUtil.getIP());
-        params.setDebug(false);
+        ChatContext chatContext = ChatContext.builder()
+                .chatUserId(userId)
+                .chatUserType(ChatUserType.ANONYMOUS_USER.name())
+                .source(ChatSource.ONLINE)
+                .ipAddress(WebUtil.getIP())
+                .debug(false)
+                .build();
         if (Boolean.TRUE.equals(params.getStream())) {
             // 异步执行业务逻辑
-            chatService.chatMessageAsync(params, sink);
+            chatService.chatMessageAsync(params, chatContext, sink);
             return sink.asFlux();
         } else {
-            ChatResponse chatResponse = chatService.chatMessage(params, sink);
+            ChatResponse chatResponse = chatService.chatMessage(params, chatContext, sink);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .body(R.data(chatResponse));
