@@ -1,16 +1,16 @@
-package com.maxkb4j.application.handler.impl;
+package com.maxkb4j.chat.handler.impl;
 
 import cn.dev33.satoken.stp.SaLoginModel;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.maxkb4j.application.entity.ApplicationApiKeyEntity;
-import com.maxkb4j.application.service.ApplicationApiKeyService;
+import com.maxkb4j.application.service.IApplicationApiKeyService;
+import com.maxkb4j.chat.handler.AuthHandler;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.util.ResponseProvider;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
-import com.maxkb4j.core.handler.AuthHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AppKeyHandler implements AuthHandler {
 
-    private final ApplicationApiKeyService apiKeyService;
+    private final IApplicationApiKeyService apiKeyService;
 
     @Override
     public boolean handle(HttpServletResponse response) {

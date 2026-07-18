@@ -1,8 +1,8 @@
 package com.maxkb4j.start.listener;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.maxkb4j.core.event.DocumentIndexEvent;
-import com.maxkb4j.core.event.ParagraphIndexEvent;
+import com.maxkb4j.knowledge.event.DocumentIndexEvent;
+import com.maxkb4j.knowledge.event.ParagraphIndexEvent;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.service.IDocumentService;
 import com.maxkb4j.knowledge.service.IParagraphService;

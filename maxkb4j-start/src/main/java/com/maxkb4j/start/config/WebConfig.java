@@ -2,7 +2,7 @@ package com.maxkb4j.start.config;
 
 import com.maxkb4j.common.interceptor.UserIdentityInterceptor;
 import com.maxkb4j.common.web.CurrentUserIdArgumentResolver;
-import com.maxkb4j.core.interceptor.AuthInterceptor;
+import com.maxkb4j.chat.interceptor.AuthInterceptor;
 import com.maxkb4j.system.interceptor.LocaleInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +42,6 @@ public class WebConfig implements WebMvcConfigurer {
                 .order(Integer.MIN_VALUE);
         // 拦截聊天所有请求
         registry.addInterceptor(authInterceptor)
-                .addPathPatterns("/chat/api/auth/anonymous")
                 .addPathPatterns("/chat/api/application/profile")
                 .addPathPatterns("/chat/api/open")
                 .addPathPatterns("/chat/api/chat_message/{chatId}")

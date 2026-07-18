@@ -1,4 +1,4 @@
-package com.maxkb4j.core.event;
+package com.maxkb4j.knowledge.event;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;

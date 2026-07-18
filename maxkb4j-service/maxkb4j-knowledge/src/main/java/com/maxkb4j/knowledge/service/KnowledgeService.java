@@ -10,7 +10,7 @@ import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.core.event.CreateWebDocsEvent;
+import com.maxkb4j.knowledge.event.CreateWebDocsEvent;
 import com.maxkb4j.knowledge.dto.KnowledgeQuery;
 import com.maxkb4j.knowledge.dto.WebKnowledgeDTO;
 import com.maxkb4j.knowledge.entity.*;

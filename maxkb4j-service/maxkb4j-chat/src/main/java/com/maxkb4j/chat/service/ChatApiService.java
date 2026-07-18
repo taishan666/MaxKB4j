@@ -21,7 +21,9 @@ import com.maxkb4j.common.domain.vo.McpResponse;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.StpKit;
+import com.maxkb4j.common.util.WebUtil;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,8 +54,12 @@ public class ChatApiService {
             throw new ApiException("application.app.not.found");
         }
         String chatUserId = IdWorker.get32UUID();
-        if (StpKit.USER.isLogin()) {
-            chatUserId= StpKit.USER.getLoginIdAsString();
+        String tokenValue = WebUtil.getTokenValue();
+        if (StringUtils.isNotBlank(tokenValue)){
+            StpKit.USER.setTokenValue(tokenValue);
+            if (StpKit.USER.isLogin()) {
+                chatUserId= StpKit.USER.getLoginIdAsString();
+            }
         }
         Map<String, Object> extraData = new HashMap<>();
         extraData.put("applicationId", accessTokenEntity.getApplicationId());

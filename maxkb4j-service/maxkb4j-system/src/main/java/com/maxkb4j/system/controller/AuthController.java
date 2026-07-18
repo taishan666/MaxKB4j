@@ -1,8 +1,10 @@
 package com.maxkb4j.system.controller;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.user.dto.ResetPasswordDTO;
@@ -58,6 +60,7 @@ public class AuthController {
 		return R.status(userService.checkCode(dto.getEmail(),dto.getCode()));
 	}
 
+	@SaCheckLogin(type = LoginType.ADMIN)
 	@PostMapping("/user/rePassword")
 	public R<Boolean> rePassword(@Valid @RequestBody ResetPasswordDTO dto){
 		 String password=dto.getPassword();
@@ -71,6 +74,7 @@ public class AuthController {
 		return R.status(false);
 	}
 
+	@SaCheckLogin(type = LoginType.ADMIN)
 	@PostMapping("/user/logout")
 	public R<Boolean> logout(){
 		if(StpKit.ADMIN.isLogin()){

@@ -1,4 +1,4 @@
-package com.maxkb4j.core.event;
+package com.maxkb4j.knowledge.event;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.Getter;

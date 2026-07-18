@@ -5,7 +5,7 @@ import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.domain.form.LocalFileUpload;
 import com.maxkb4j.common.domain.form.TextInputField;
-import com.maxkb4j.core.event.GenerateProblemEvent;
+import com.maxkb4j.knowledge.event.GenerateProblemEvent;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeActionEntity;

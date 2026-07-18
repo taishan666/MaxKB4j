@@ -3,7 +3,7 @@ package com.maxkb4j.knowledge.service;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.maxkb4j.core.event.DocumentIndexEvent;
+import com.maxkb4j.knowledge.event.DocumentIndexEvent;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;

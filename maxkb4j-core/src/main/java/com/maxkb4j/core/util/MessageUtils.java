@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 public class MessageUtils {
 
-
     /**
      * 生成包含输入和输出的工具消息模版
      *

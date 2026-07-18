@@ -1,4 +1,4 @@
-package com.maxkb4j.core.handler;
+package com.maxkb4j.chat.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

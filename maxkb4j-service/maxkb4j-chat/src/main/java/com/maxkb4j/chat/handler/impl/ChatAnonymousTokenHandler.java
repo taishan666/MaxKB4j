@@ -1,12 +1,12 @@
-package com.maxkb4j.application.handler.impl;
+package com.maxkb4j.chat.handler.impl;
 
 import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
-import com.maxkb4j.application.service.ApplicationAccessTokenService;
+import com.maxkb4j.application.service.IApplicationAccessTokenService;
+import com.maxkb4j.chat.handler.AuthHandler;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.util.ResponseProvider;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
-import com.maxkb4j.core.handler.AuthHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ChatAnonymousTokenHandler implements AuthHandler {
 
-    private final ApplicationAccessTokenService accessTokenService;
+    private final IApplicationAccessTokenService accessTokenService;
 
     @Override
     public boolean handle(HttpServletResponse response) {

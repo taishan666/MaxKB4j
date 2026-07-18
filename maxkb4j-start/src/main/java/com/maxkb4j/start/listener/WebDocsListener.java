@@ -1,6 +1,6 @@
 package com.maxkb4j.start.listener;
 
-import com.maxkb4j.core.event.CreateWebDocsEvent;
+import com.maxkb4j.knowledge.event.CreateWebDocsEvent;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.service.DocumentService;
