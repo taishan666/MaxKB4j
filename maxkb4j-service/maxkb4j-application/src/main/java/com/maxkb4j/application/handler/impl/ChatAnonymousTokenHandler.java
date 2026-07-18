@@ -24,8 +24,6 @@ public class ChatAnonymousTokenHandler implements AuthHandler {
 
     @Override
     public boolean handle(HttpServletResponse response) {
-        String tokenValue = WebUtil.getTokenValue();
-        StpKit.USER.setTokenValue(tokenValue);
         String accessToken = (String) StpKit.USER.getExtra("accessToken");
         ApplicationAccessTokenEntity token = accessTokenService.getByAccessToken(accessToken);
         if (token == null || !token.getIsActive()) {

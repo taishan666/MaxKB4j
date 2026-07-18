@@ -42,9 +42,12 @@ public class WebConfig implements WebMvcConfigurer {
                 .order(Integer.MIN_VALUE);
         // 拦截聊天所有请求
         registry.addInterceptor(authInterceptor)
+                .addPathPatterns("/chat/api/auth/anonymous")
                 .addPathPatterns("/chat/api/application/profile")
                 .addPathPatterns("/chat/api/open")
-                .addPathPatterns("/chat/api/chat_message/*");
+                .addPathPatterns("/chat/api/chat_message/{chatId}")
+                .addPathPatterns("/chat/api/historical_conversation/{current}/{size}")
+                .addPathPatterns("/chat/api/historical_conversation/clear");
         // 用户身份解析（填充 UserContext，供业务层获取当前用户；order=1 保证晚于 authInterceptor 解析 USER 会话）
         registry.addInterceptor(userIdentityInterceptor)
                 .addPathPatterns("/**")
