@@ -8,11 +8,11 @@ import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.workflow.builder.NodeBuilder;
-import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LogicFlow;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
+import com.maxkb4j.workflow.service.WorkflowFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
@@ -26,15 +26,13 @@ public class ChatFlowServiceImpl implements IChatService {
 
     private final IWorkFlowActuator workFlowActuator;
     private final NodeBuilder nodeBuilder;
+    private final WorkflowFactory workflowFactory;
 
     @Override
     public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, Sinks.Many<ChatMessageVO> sink) {
         LogicFlow logicFlow = LogicFlow.newInstance(application.getWorkFlow());
         List<AbsNode> nodes = logicFlow.getNodes().stream().map(nodeBuilder::getNode).filter(Objects::nonNull).toList();
-        Workflow workflow = Workflow.builder(WorkflowMode.APPLICATION, nodes, logicFlow.getEdges())
-                .chatParams(chatParams)
-                .sink(sink)
-                .build();
+        Workflow workflow = workflowFactory.createApplication(nodes, logicFlow.getEdges(), chatParams, sink);
         workFlowActuator.execute(workflow);
         List<Answer> answerTextList = workflow.output().answers();
         JSONObject details = workflow.output().runtimeDetails();

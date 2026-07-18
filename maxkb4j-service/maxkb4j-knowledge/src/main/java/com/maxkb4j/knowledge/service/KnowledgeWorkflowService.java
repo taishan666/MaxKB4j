@@ -15,9 +15,10 @@ import com.maxkb4j.user.service.IUserService;
 import com.maxkb4j.workflow.builder.NodeBuilder;
 import com.maxkb4j.workflow.logic.LogicFlow;
 import com.maxkb4j.workflow.model.KnowledgeParams;
-import com.maxkb4j.workflow.model.KnowledgeWorkflow;
+import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
+import com.maxkb4j.workflow.service.WorkflowFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -47,6 +48,7 @@ public class KnowledgeWorkflowService {
     private final KnowledgeActionService knowledgeActionService;
     private final IWorkFlowActuator workFlowActuator;
     private final NodeBuilder nodeBuilder;
+    private final WorkflowFactory workflowFactory;
     private final UserContext userContext;
     private final IUserService userService;
     private final TaskExecutor workflowTaskExecutor;
@@ -130,7 +132,7 @@ public class KnowledgeWorkflowService {
         params.setActionId(knowledgeAction.getId());
         params.setKnowledgeId(id);
         params.setDebug(debug);
-        KnowledgeWorkflow workflow = new KnowledgeWorkflow(nodes, logicFlow.getEdges(), params);
+        Workflow workflow = workflowFactory.createKnowledge(nodes, logicFlow.getEdges(), params);
         CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow), workflowTaskExecutor);
         return knowledgeAction;
     }

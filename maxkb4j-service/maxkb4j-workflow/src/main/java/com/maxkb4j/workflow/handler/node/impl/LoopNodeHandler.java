@@ -11,8 +11,9 @@ import com.maxkb4j.workflow.builder.NodeBuilder;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.logic.LogicFlow;
+import com.maxkb4j.workflow.engine.LoopWorkFlow;
+import com.maxkb4j.workflow.engine.WorkflowImpl;
 import com.maxkb4j.workflow.model.LoopParams;
-import com.maxkb4j.workflow.model.LoopWorkFlow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -215,7 +216,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
                 .filter(Objects::nonNull)
                 .toList();
         LoopParams loopParams = new LoopParams(ctx.currentIndex, items.get(ctx.currentIndex));
-        LoopWorkFlow loopWorkflow = new LoopWorkFlow(workflow, nodes, logicFlow.getEdges(), loopParams, ctx.currentDetails, sink);
+        LoopWorkFlow loopWorkflow = new LoopWorkFlow((WorkflowImpl) workflow, nodes, logicFlow.getEdges(), loopParams, ctx.currentDetails, sink);
         AtomicReference<ChildNode> childNodeRef = subscribeToSink(sink, loopParams, ctx, workflow, node);
         workFlowActuator.execute(loopWorkflow);
         // 发送结束标记
