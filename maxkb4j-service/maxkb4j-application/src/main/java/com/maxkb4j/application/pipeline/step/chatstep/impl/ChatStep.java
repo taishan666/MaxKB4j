@@ -1,7 +1,6 @@
 package com.maxkb4j.application.pipeline.step.chatstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.chatstep.AbsChatStep;
 import com.maxkb4j.application.service.IApplicationLongTermMemoryService;
@@ -63,13 +62,11 @@ public class ChatStep extends AbsChatStep {
                 aiServicesBuilder.systemMessageTransformer(systemMessage -> systemMessage==null?memory:systemMessage+"\n" + memory);
             }
         }
-        if (CollectionUtils.isNotEmpty(toolIds)||CollectionUtils.isNotEmpty(applicationIds)){
-            try {
-                aiServicesBuilder.toolProviders(toolProvider.getToolProviders(toolIds, applicationIds));
-            } catch (ApiException e) {
-                manage.sink.tryEmitError(e);
-                return "";
-            }
+        try {
+            aiServicesBuilder.toolProviders(toolProvider.getToolProviders(toolIds, applicationIds));
+        } catch (ApiException e) {
+            manage.sink.tryEmitError(e);
+            return "";
         }
         Assistant assistant = aiServicesBuilder.chatMemory(AiChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();
         Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();

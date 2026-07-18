@@ -115,12 +115,10 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
         if (CollectionUtils.isNotEmpty(historyMessages)) {
             builder.chatMemory(AiChatMemory.withMessages(historyMessages));
         }
-        if (CollectionUtils.isNotEmpty(toolIds)||CollectionUtils.isNotEmpty(applicationIds)){
-            try {
-                builder.toolProviders(toolProviderService.getToolProviders(toolIds, applicationIds));
-            } catch (ApiException e) {
-                workflow.output().emit(null); // Error will be propagated differently
-            }
+        try {
+            builder.toolProviders(toolProviderService.getToolProviders(toolIds, applicationIds));
+        } catch (ApiException e) {
+            workflow.output().emit(null); // Error will be propagated differently
         }
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, modelParamsSetting);
         return builder.streamingChatModel(chatModel).build();
