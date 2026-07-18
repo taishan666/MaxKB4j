@@ -4,20 +4,17 @@ import cn.dev33.satoken.annotation.SaIgnore;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.maxkb4j.application.dto.EmbedDTO;
 import com.maxkb4j.application.dto.ShareChatDTO;
 import com.maxkb4j.application.entity.*;
 import com.maxkb4j.application.service.*;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.application.vo.ShareChatVO;
+import com.maxkb4j.chat.query.EmbedQuery;
 import com.maxkb4j.chat.service.ChatApiService;
+import com.maxkb4j.chat.service.ChatEmbedService;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatContext;
-import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.ChatResponse;
-import com.maxkb4j.common.domain.dto.McpRequest;
+import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
@@ -49,7 +46,7 @@ public class ChatApiController {
 
     private final IApplicationAccessTokenService accessTokenService;
     private final IApplicationSpeechService applicationSpeechService;
-    private final IApplicationEmbedService applicationEmbedService;
+    private final ChatEmbedService chatEmbedService;
     private final IApplicationChatService chatService;
     private final IApplicationChatRecordService chatRecordService;
     private final ChatApiService chatApiService;
@@ -200,13 +197,13 @@ public class ChatApiController {
     /**
      * 嵌入第三方
      *
-     * @param dto dto
+     * @param query dto
      */
     @Hidden
     @GetMapping("/embed")
     @SaIgnore
-    public ResponseEntity<String> embed(EmbedDTO dto) {
-        return ResponseEntity.ok().header("Content-Type", "text/javascript; charset=utf-8").body(applicationEmbedService.embed(dto));
+    public ResponseEntity<String> embed(EmbedQuery query) {
+        return ResponseEntity.ok().header("Content-Type", "text/javascript; charset=utf-8").body(chatEmbedService.embed(query));
     }
 
     @Hidden
