@@ -219,6 +219,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         return false;
     }
 
+    @Override
+    public boolean batchDelete(List<String> ids) {
+        return this.lambdaUpdate().eq(UserEntity::getRole, RoleType.USER).in(UserEntity::getId, ids).remove();
+    }
+
     public boolean updatePassword(String id, PasswordDTO dto) {
         UserEntity user = new UserEntity();
         user.setId(id);

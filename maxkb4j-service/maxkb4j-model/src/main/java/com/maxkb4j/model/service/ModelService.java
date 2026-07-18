@@ -170,9 +170,8 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> implemen
     @Transactional
     public Boolean removeModelById(String id) {
         userResourcePermissionService.remove(AuthTargetType.MODEL, id);
-        boolean removed = this.removeById(id);
         evictCache(id);
-        return removed;
+        return this.removeById(id);
     }
 
     public ModelEntity getInfo(String id) {

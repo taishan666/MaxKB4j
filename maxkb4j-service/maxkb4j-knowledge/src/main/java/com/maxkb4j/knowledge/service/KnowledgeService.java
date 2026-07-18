@@ -58,6 +58,7 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
     private final KnowledgeActionService knowledgeActionService;
     private final KnowledgeVersionService knowledgeVersionService;
     private final IResourceMappingService resourceMappingService;
+    private final ITagService tagService;
     private final UserContext userContext;
 
 
@@ -98,12 +99,13 @@ public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEnti
         problemParagraphMapper.delete(Wrappers.<ProblemParagraphEntity>lambdaQuery().eq(ProblemParagraphEntity::getKnowledgeId, id));
         problemMapper.delete(Wrappers.<ProblemEntity>lambdaQuery().eq(ProblemEntity::getKnowledgeId, id));
         paragraphMapper.delete(Wrappers.<ParagraphEntity>lambdaQuery().eq(ParagraphEntity::getKnowledgeId, id));
-        documentService.remove(Wrappers.<DocumentEntity>lambdaQuery().eq(DocumentEntity::getKnowledgeId, id));
+        documentService.deleteByKnowledgeId(id);
         knowledgeVersionService.lambdaUpdate().eq(KnowledgeVersionEntity::getKnowledgeId, id).remove();
         knowledgeActionService.lambdaUpdate().eq(KnowledgeActionEntity::getKnowledgeId, id).remove();
         userResourcePermissionService.remove(AuthTargetType.KNOWLEDGE, id);
         compositeStore.deleteByKnowledgeId(id);
         resourceMappingService.deleteBySourceId(ResourceType.KNOWLEDGE, id);
+        tagService.lambdaUpdate().eq(TagEntity::getKnowledgeId, id).remove();
         return this.removeById(id);
     }
 

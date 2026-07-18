@@ -9,6 +9,7 @@ import com.maxkb4j.user.entity.UserEntity;
 import com.maxkb4j.user.vo.UserNameVO;
 import com.maxkb4j.user.vo.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Map;
@@ -58,4 +59,6 @@ public interface IUserService extends IService<UserEntity> {
     boolean updatePassword(String id, PasswordDTO dto);
 
     boolean resetPassword(PasswordDTO dto);
+
+    boolean batchDelete(@Valid List<String> ids);
 }

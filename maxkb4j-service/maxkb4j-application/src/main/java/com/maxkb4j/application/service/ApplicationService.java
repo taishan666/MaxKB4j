@@ -68,6 +68,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
     private final IUserResourcePermissionService userResourcePermissionService;
     private final IToolService toolService;
     private final ApplicationResourceMappingService applicationResourceMappingService;
+    private final ApplicationChatShareLinkService  applicationChatShareLinkService;
+    private final ApplicationLongTermMemoryService applicationLongTermMemoryService;
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
         Page<ApplicationEntity> appPage = new Page<>(page, size);
@@ -129,6 +131,8 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         userResourcePermissionService.remove(AuthTargetType.APPLICATION, appId);
         // 批量删除资源映射
         applicationResourceMappingService.deleteResourceMappings(appId);
+        applicationChatShareLinkService.remove(Wrappers.<ApplicationChatShareLinkEntity>lambdaQuery().eq(ApplicationChatShareLinkEntity::getApplicationId, appId));
+        applicationLongTermMemoryService.remove(Wrappers.<ApplicationLongTermMemoryEntity>lambdaQuery().eq(ApplicationLongTermMemoryEntity::getApplicationId, appId));
         return this.removeById(appId);
     }
 

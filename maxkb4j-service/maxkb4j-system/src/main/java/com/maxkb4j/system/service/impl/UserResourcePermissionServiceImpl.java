@@ -56,11 +56,11 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
 
 
     public boolean remove(String type, String targetId) {
-        return this.lambdaUpdate().eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getTargetId, targetId).eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_ID).remove();
+        return this.lambdaUpdate().eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getTargetId, targetId).remove();
     }
 
     public boolean update(String type, String targetId, String userId) {
-        return this.lambdaUpdate().eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getTargetId, targetId).eq(UserResourcePermissionEntity::getUserId, userId).eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_ID).update();
+        return this.lambdaUpdate().eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getTargetId, targetId).eq(UserResourcePermissionEntity::getUserId, userId).update();
     }
 
 

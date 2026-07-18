@@ -1,17 +1,13 @@
 package com.maxkb4j.system.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
-import cn.dev33.satoken.annotation.SaMode;
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
-import com.maxkb4j.common.props.SystemProperties;
-import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.user.dto.PasswordDTO;
-import com.maxkb4j.user.dto.UserDTO;
 import com.maxkb4j.user.entity.UserEntity;
 import com.maxkb4j.user.service.IUserService;
 import com.maxkb4j.user.vo.UserVO;
@@ -19,8 +15,6 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 /**
  * @author tarzan
@@ -32,74 +26,31 @@ import java.util.Map;
 public class UserController {
 
     private final IUserService userService;
-	private final SystemProperties systemProperties;
-
 
     @GetMapping("user/profile")
     public R<UserVO> getUserProfile(@CurrentUserId String userId){
         return R.data(userService.getUserById(userId));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = {RoleType.ADMIN, RoleType.USER}, mode = SaMode.OR)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
     @PostMapping("/user/language")
     public R<Boolean> language(@RequestBody UserEntity user) {
         return R.status(userService.updateLanguage(user));
     }
 
-
     @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
-    @GetMapping("/user_manage/{page}/{size}")
-    public R<IPage<UserEntity>> userManage(@PathVariable("page") int page, @PathVariable("size") int size, UserDTO dto) {
-        return R.data(userService.selectUserPage(page, size, dto));
-    }
-
-
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
-    @PostMapping("/user_manage")
-    public R<Boolean> createUser(@RequestBody UserEntity user) {
-        return R.status(userService.createUser(user));
-    }
-
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
-    @GetMapping("/user_manage/password")
-    public R<Map<String, String>> password() {
-        return R.data(Map.of("password", systemProperties.getDefaultPassword()));
-    }
-
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
-    @PutMapping("/user_manage/{id}")
-    public R<Boolean> updateUserById(@PathVariable("id") String id, @RequestBody UserEntity user) {
-        user.setId(id);
-        return R.status(userService.updateById(user));
-    }
-
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
-    @DeleteMapping("/user_manage/{id}")
-    public R<Boolean> deleteUserById(@PathVariable("id") String id) {
-        return R.status(userService.deleteUserById(id));
-    }
-
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
-    @PutMapping("/user_manage/{id}/re_password")
-    public R<Boolean> updatePassword(@PathVariable("id") String id, @Valid @RequestBody PasswordDTO dto) {
-        if (!dto.getPassword().equals(dto.getRePassword())) {
-            return R.fail(I18nUtil.get("user.password.not.match"));
-        }
-        return R.status(userService.updatePassword(id, dto));
-    }
-
-    @SaCheckRole(type = LoginType.ADMIN, value = {RoleType.ADMIN, RoleType.USER}, mode = SaMode.OR)
     @PostMapping("/user/current/send_email")
     public R<Boolean> sendEmail(@CurrentUserId String userId) throws MessagingException {
         String email = userService.getEmail(userId);
         return R.status(userService.sendEmailCode(email, I18nUtil.get("email.subject.modify.password")));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = {RoleType.ADMIN, RoleType.USER}, mode = SaMode.OR)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
     @PostMapping("/user/current/reset_password")
     public R<Boolean> resetPassword(@Valid @RequestBody PasswordDTO dto) {
         return R.status(userService.resetPassword(dto));
     }
+
 
 
 }
