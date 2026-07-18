@@ -3,6 +3,8 @@ package com.maxkb4j.chat.query;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.util.Map;
+
 @Data
 public class EmbedQuery {
 
@@ -15,5 +17,5 @@ public class EmbedQuery {
     @NotBlank(message = "token 不能为空")
     private String token;
 
-    private String query;
+    private Map<String, String> params=Map.of();
 }
