@@ -187,6 +187,21 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
         this.lambdaUpdate().eq(DocumentEntity::getKnowledgeId, knowledgeId).remove();
     }
 
+    /**
+     * 批量删除多个知识库下的文档及其标签，用 {@code IN (...)} 合并查询，避免逐个知识库往返。
+     */
+    @Transactional
+    public void deleteByKnowledgeIds(List<String> knowledgeIds) {
+        if (CollectionUtils.isEmpty(knowledgeIds)) {
+            return;
+        }
+        List<String> docIds = this.lambdaQuery().select(DocumentEntity::getId).in(DocumentEntity::getKnowledgeId, knowledgeIds).list().stream().map(DocumentEntity::getId).toList();
+        if (!CollectionUtils.isEmpty(docIds)) {
+            documentTagService.lambdaUpdate().in(DocumentTagEntity::getDocumentId, docIds).remove();
+        }
+        this.lambdaUpdate().in(DocumentEntity::getKnowledgeId, knowledgeIds).remove();
+    }
+
     public boolean embedByDocIds(String knowledgeId, List<String> docIds, List<String> stateList) {
         publishDocumentIndexEvent(knowledgeId, docIds, stateList);
         return true;

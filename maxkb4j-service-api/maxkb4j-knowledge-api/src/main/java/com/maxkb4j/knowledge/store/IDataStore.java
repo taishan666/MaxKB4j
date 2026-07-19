@@ -56,6 +56,21 @@ public interface IDataStore {
     void deleteByKnowledgeId(String knowledgeId);
 
     /**
+     * 批量删除多个知识库的全部向量/全文数据。
+     * <p>默认实现逐个调用 {@link #deleteByKnowledgeId(String)} 兜底；各后端应 override 为
+     * 单条 {@code IN (...)} 删除以避免大批量删除时的多次往返与超时。</p>
+     * @param knowledgeIds 知识库 ID 列表
+     */
+    default void deleteByKnowledgeIds(List<String> knowledgeIds) {
+        if (knowledgeIds == null || knowledgeIds.isEmpty()) {
+            return;
+        }
+        for (String knowledgeId : knowledgeIds) {
+            deleteByKnowledgeId(knowledgeId);
+        }
+    }
+
+    /**
      * Perform vector similarity search
      * @param request search request parameters
      * @return list of matching text chunks

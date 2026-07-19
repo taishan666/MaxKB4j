@@ -59,6 +59,14 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
         return this.lambdaUpdate().eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getTargetId, targetId).remove();
     }
 
+    @Override
+    public boolean remove(String type, List<String> targetIds) {
+        if (CollectionUtils.isEmpty(targetIds)) {
+            return false;
+        }
+        return this.lambdaUpdate().eq(UserResourcePermissionEntity::getAuthTargetType, type).in(UserResourcePermissionEntity::getTargetId, targetIds).remove();
+    }
+
     public boolean update(String type, String targetId, String userId) {
         return this.lambdaUpdate().eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getTargetId, targetId).eq(UserResourcePermissionEntity::getUserId, userId).update();
     }

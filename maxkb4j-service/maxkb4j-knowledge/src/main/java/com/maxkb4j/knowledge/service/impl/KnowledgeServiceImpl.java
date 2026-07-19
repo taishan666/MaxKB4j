@@ -1,5 +1,6 @@
 package com.maxkb4j.knowledge.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -27,11 +28,14 @@ import com.maxkb4j.system.entity.TargetResource;
 import com.maxkb4j.system.service.IResourceMappingService;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -61,6 +65,19 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
     private final IResourceMappingService resourceMappingService;
     private final ITagService tagService;
     private final UserContext userContext;
+    private final PlatformTransactionManager transactionManager;
+    private TransactionTemplate transactionTemplate;
+
+    /**
+     * 批量删除分块大小：每个分块一个独立短事务并独立清理向量库，避免大批量删除时
+     * 长事务持有连接/锁、或单条超大 IN/DELETE 触发数据库超时。
+     */
+    private static final int DELETE_CHUNK_SIZE = 200;
+
+    @PostConstruct
+    private void initTransactionTemplate() {
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+    }
 
 
     public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
@@ -95,19 +112,53 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
     }
 
 
-    @Transactional
     public Boolean deleteById(String id) {
-        problemParagraphMapper.delete(Wrappers.<ProblemParagraphEntity>lambdaQuery().eq(ProblemParagraphEntity::getKnowledgeId, id));
-        problemMapper.delete(Wrappers.<ProblemEntity>lambdaQuery().eq(ProblemEntity::getKnowledgeId, id));
-        paragraphMapper.delete(Wrappers.<ParagraphEntity>lambdaQuery().eq(ParagraphEntity::getKnowledgeId, id));
-        documentService.deleteByKnowledgeId(id);
-        knowledgeVersionService.lambdaUpdate().eq(KnowledgeVersionEntity::getKnowledgeId, id).remove();
-        knowledgeActionService.lambdaUpdate().eq(KnowledgeActionEntity::getKnowledgeId, id).remove();
-        userResourcePermissionService.remove(AuthTargetType.KNOWLEDGE, id);
-        compositeStore.deleteByKnowledgeId(id);
-        resourceMappingService.deleteBySourceId(ResourceType.KNOWLEDGE, id);
-        tagService.lambdaUpdate().eq(TagEntity::getKnowledgeId, id).remove();
-        return this.removeById(id);
+        return deleteKnowledge(List.of(id));
+    }
+
+    public Boolean delMulApplication(List<String> idList) {
+        if (CollectionUtils.isEmpty(idList)) {
+            return false;
+        }
+        return deleteKnowledge(idList);
+    }
+
+    /**
+     * 批量删除知识库（单删同样走此路径）：
+     * <ul>
+     *   <li>关系型清理按 {@link #DELETE_CHUNK_SIZE} 分块，每块一个独立短事务，避免长事务占连接/锁导致超时；</li>
+     *   <li>向量/全文库清理在关系型事务提交后执行——派生数据不在关系型事务内，避免大 embedding 表 DELETE
+     *       被裹进事务而触发数据库超时；失败仅记日志（主行已删，孤儿向量无害且删除幂等）。</li>
+     * </ul>
+     */
+    private Boolean deleteKnowledge(List<String> idList) {
+        boolean removed = false;
+        for (List<String> chunk : CollUtil.split(idList, DELETE_CHUNK_SIZE)) {
+            Boolean chunkRemoved = transactionTemplate.execute(status -> deleteKnowledgeRelational(chunk));
+            removed |= Boolean.TRUE.equals(chunkRemoved);
+            try {
+                compositeStore.deleteByKnowledgeIds(chunk);
+            } catch (Exception e) {
+                log.error("Delete vector store for knowledge chunk failed, relational rows already removed. ids={}, error={}", chunk, e.getMessage(), e);
+            }
+        }
+        return removed;
+    }
+
+    /**
+     * 单块关系型清理：用 {@code IN (...)} 合并所有按 knowledgeId 过滤的删除，从一次一条降到一次一块。
+     */
+    private boolean deleteKnowledgeRelational(List<String> chunk) {
+        problemParagraphMapper.delete(Wrappers.<ProblemParagraphEntity>lambdaQuery().in(ProblemParagraphEntity::getKnowledgeId, chunk));
+        problemMapper.delete(Wrappers.<ProblemEntity>lambdaQuery().in(ProblemEntity::getKnowledgeId, chunk));
+        paragraphMapper.delete(Wrappers.<ParagraphEntity>lambdaQuery().in(ParagraphEntity::getKnowledgeId, chunk));
+        documentService.deleteByKnowledgeIds(chunk);
+        knowledgeVersionService.lambdaUpdate().in(KnowledgeVersionEntity::getKnowledgeId, chunk).remove();
+        knowledgeActionService.lambdaUpdate().in(KnowledgeActionEntity::getKnowledgeId, chunk).remove();
+        userResourcePermissionService.remove(AuthTargetType.KNOWLEDGE, chunk);
+        resourceMappingService.deleteBySourceIds(ResourceType.KNOWLEDGE, chunk);
+        tagService.lambdaUpdate().in(TagEntity::getKnowledgeId, chunk).remove();
+        return this.removeByIds(chunk);
     }
 
 
@@ -206,14 +257,6 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
         targets.addAll(toolIds.stream().map(id -> new TargetResource(id, ResourceType.TOOL)).toList());
         targets.addAll(modelIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.MODEL)).toList());
         resourceMappingService.relation(ResourceType.KNOWLEDGE, knowledge.getId(), targets);
-    }
-
-    public Boolean delMulApplication(List<String> idList) {
-        Boolean result = false;
-        for (String id : idList) {
-            result = deleteById(id);
-        }
-        return result;
     }
 
     /**

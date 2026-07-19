@@ -106,6 +106,16 @@ public class FullTextStoreImpl extends BaseStoreImpl {
     }
 
     @Override
+    public void deleteByKnowledgeIds(List<String> knowledgeIds) {
+        if (knowledgeIds == null || knowledgeIds.isEmpty()) {
+            return;
+        }
+        Query query = new Query(Criteria.where("knowledgeId").in(knowledgeIds));
+        mongoTemplate.remove(query, EmbeddingEntity.class);
+        log.debug("Deleted embeddings from MongoDB for {} knowledge IDs", knowledgeIds.size());
+    }
+
+    @Override
     public List<TextChunkVO> search(SearchRequest request) {
         if (shouldShortCircuit(request)) {
             return Collections.emptyList();

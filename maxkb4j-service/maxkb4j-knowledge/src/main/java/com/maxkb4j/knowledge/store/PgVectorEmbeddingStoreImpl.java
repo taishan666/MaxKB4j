@@ -39,12 +39,10 @@ import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metad
 
 /**
  * Langchain4j {@link PgVectorEmbeddingStore} 实现的向量后端。
- * <p>与 {@link VectorStoreImpl} 互斥，由 {@code knowledge.vector.type=pgvector} 启用。</p>
  */
 @Slf4j
 @Component("vectorStore")
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "knowledge.vector.type", havingValue = "pgvector", matchIfMissing = true)
 public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
 
     /** 召回放大倍数：langchain4j 检索 topK*RECALL_MULTIPLIER 条后在内存里做 paragraphId 去重 */
@@ -218,6 +216,15 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
             return;
         }
         Filter filter = metadataKey("knowledgeId").isEqualTo(knowledgeId);
+        removeAllStores(filter);
+    }
+
+    @Override
+    public void deleteByKnowledgeIds(List<String> knowledgeIds) {
+        if (knowledgeIds == null || knowledgeIds.isEmpty()) {
+            return;
+        }
+        Filter filter = metadataKey("knowledgeId").isIn(knowledgeIds);
         removeAllStores(filter);
     }
 

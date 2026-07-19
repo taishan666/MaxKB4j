@@ -60,6 +60,17 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
         return this.remove(wrapper);
     }
 
+    @Override
+    public boolean deleteBySourceIds(String sourceType, List<String> sourceIds) {
+        if (CollectionUtils.isEmpty(sourceIds)) {
+            return false;
+        }
+        LambdaQueryWrapper<ResourceMappingEntity> wrapper = Wrappers.<ResourceMappingEntity>lambdaQuery()
+                .eq(StringUtils.isNotBlank(sourceType), ResourceMappingEntity::getSourceType, sourceType)
+                .in(ResourceMappingEntity::getSourceId, sourceIds);
+        return this.remove(wrapper);
+    }
+
 
     public IPage<ResourceUseVO> selectPage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType) {
         return doPage(resourceType, resourceId, current, size, resourceName, userName, sourceType, Direction.TARGET_TO_SOURCE);

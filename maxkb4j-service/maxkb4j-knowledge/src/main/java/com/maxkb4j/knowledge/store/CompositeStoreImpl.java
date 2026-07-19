@@ -70,6 +70,14 @@ public class CompositeStoreImpl extends BaseStoreImpl {
         dualWrite("deleteByKnowledgeId", s -> s.deleteByKnowledgeId(knowledgeId));
     }
 
+    @Override
+    public void deleteByKnowledgeIds(List<String> knowledgeIds) {
+        if (knowledgeIds == null || knowledgeIds.isEmpty()) {
+            return;
+        }
+        dualWrite("deleteByKnowledgeIds", s -> s.deleteByKnowledgeIds(knowledgeIds));
+    }
+
     /**
      * 同时检索向量库与全文库，按 paragraphId 取较高分融合后排序截断到 topK。
      * 任意一路检索异常会被降级为空列表，另一路结果仍然返回。
