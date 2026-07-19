@@ -10,6 +10,7 @@ import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.StpKit;
 import dev.langchain4j.exception.AuthenticationException;
 import dev.langchain4j.exception.InvalidRequestException;
+import dev.langchain4j.exception.ModelNotFoundException;
 import dev.langchain4j.exception.RateLimitException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
@@ -245,8 +246,12 @@ public class GlobalExceptionHandler {
         return R.fail(400, e.getMessage());
     }
 
-
-
+    @ExceptionHandler(ModelNotFoundException.class)
+    @ResponseBody
+    public R<String> handleException(ModelNotFoundException e) {
+        log.error("模型不存在异常", e);
+        return R.fail(500, I18nUtil.get("model.name.not.found"));
+    }
 
     @ExceptionHandler(Exception.class)
     @ResponseBody

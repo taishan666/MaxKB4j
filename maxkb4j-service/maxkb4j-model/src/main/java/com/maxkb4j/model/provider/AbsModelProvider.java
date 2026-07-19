@@ -25,7 +25,6 @@ import dev.langchain4j.model.image.DisabledImageModel;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
 import dev.langchain4j.service.AiServices;
-import lombok.Data;
 import org.springframework.core.task.VirtualThreadTaskExecutor;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
@@ -38,7 +37,6 @@ import java.util.Optional;
  * Abstract base class for model providers
  * Defines the contract for all model providers in the system
  */
-@Data
 public abstract class AbsModelProvider {
 
     private SpringRestClientBuilder springRestClientBuilder;
@@ -151,15 +149,15 @@ public abstract class AbsModelProvider {
             if (ModelType.LLM.getKey().equals(modelType)||ModelType.VISION.getKey().equals(modelType)) {
                 StreamingChatModel model = buildStreamingChatModel(modelName, credential, params);
                 Assistant assistant = AiServices.create(Assistant.class,model);
-                Flux<String> flux = assistant.chatFlux("hi");
+                Flux<String> flux = assistant.chatFlux("only say ok");
                 // 同步阻塞，异常才能在当前请求线程冒泡，被 GlobalExceptionHandler 捕获
                 flux.blockLast();
             } else if (ModelType.EMBEDDING.getKey().equals(modelType)) {
                 EmbeddingModel model = buildEmbeddingModel(modelName, credential, params);
-                model.embed("hi");
+                model.embed("ok");
             }else if (ModelType.RERANKER.getKey().equals(modelType)) {
                 ScoringModel model = buildScoringModel(modelName, credential, params);
-                model.score("hi", "hi");
+                model.score("ok", "ok");
             }
         }
     }

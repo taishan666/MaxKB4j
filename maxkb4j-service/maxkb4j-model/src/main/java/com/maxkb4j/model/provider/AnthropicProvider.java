@@ -43,7 +43,7 @@ public class AnthropicProvider extends AbsModelProvider {
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return AnthropicChatModel.builder()
-                .httpClientBuilder(getSpringRestClientBuilder())
+                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -61,7 +61,7 @@ public class AnthropicProvider extends AbsModelProvider {
         params.remove("enable_thinking");
         params.put("thinking", Map.of("type", flag));
         return AnthropicStreamingChatModel.builder()
-                .httpClientBuilder(getSpringRestClientBuilder())
+                .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
