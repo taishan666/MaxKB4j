@@ -2,14 +2,12 @@ package com.maxkb4j.tool.controller;
 
 import cn.hutool.http.HttpResponse;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.maxkb4j.tool.executor.GroovyScriptExecutor;
-import com.maxkb4j.tool.executor.HttpRequestExecutor;
+import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.mp.entity.ToolInputField;
-import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolDTO;
@@ -94,7 +92,7 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_DEBUG)
     @PostMapping("/tool/debug")
-    public R<Object> debug(@Valid @RequestBody ToolDTO dto) {
+    public R<Object> debug(@Valid @RequestBody ToolDTO dto) throws IOException {
         Map<String, Object> params = new HashMap<>(5);
         if (!CollectionUtils.isEmpty(dto.getDebugFieldList())) {
             for (ToolInputField inputField : dto.getDebugFieldList()) {
@@ -102,14 +100,12 @@ public class ToolController {
             }
         }
         log.info("input params: {}", params);
-        String toolType = dto.getToolType();
         Object result;
-        if (ToolConstants.ToolType.HTTP.equals(toolType)){
-            HttpResponse response=  new HttpRequestExecutor(dto.getCode()).execute(params);
-            result=response.body();
+        if (ToolConstants.ToolType.HTTP.equals(dto.getToolType())){
+            HttpResponse httpResponse = toolService.httpExecute(dto.getCode(),params);
+            result = httpResponse.body();
         }else {
-            // 执行脚本并返回结果
-            result=new GroovyScriptExecutor(dto.getCode(),dto.getInitParams()).execute(params);
+            result = toolService.customExecute(dto.getCode(), dto.getInitParams(),params);
         }
         return R.data(result);
 

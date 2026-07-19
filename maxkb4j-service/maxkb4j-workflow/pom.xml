@@ -29,12 +29,6 @@
             <artifactId>maxkb4j-tool-api</artifactId>
             <version>${revision}</version>
         </dependency>
-        <!-- 工具执行器(GroovyScriptExecutor/HttpRequestExecutor/McpClientExecutor 等)已迁移至 tool 实现模块 -->
-        <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-tool</artifactId>
-            <version>${revision}</version>
-        </dependency>
         <dependency>
             <groupId>com.tarzan</groupId>
             <artifactId>maxkb4j-workflow-api</artifactId>

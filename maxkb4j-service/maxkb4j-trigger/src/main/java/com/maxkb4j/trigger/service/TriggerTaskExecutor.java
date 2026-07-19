@@ -1,6 +1,7 @@
 package com.maxkb4j.trigger.service;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.http.HttpResponse;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -14,8 +15,6 @@ import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
-import com.maxkb4j.tool.executor.GroovyScriptExecutor;
-import com.maxkb4j.tool.executor.HttpRequestExecutor;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
 import com.maxkb4j.trigger.entity.EventTriggerTaskRecordEntity;
@@ -146,12 +145,11 @@ public class TriggerTaskExecutor {
             ToolEntity tool = toolService.lambdaQuery().select(ToolEntity::getToolType,ToolEntity::getCode, ToolEntity::getInitParams).eq(ToolEntity::getId, toolId).one();
             JSONObject parameter = task.getParameter();
             Object response;
-            if(ToolConstants.ToolType.HTTP.equals(tool.getToolType())){
-                HttpRequestExecutor executor =  new HttpRequestExecutor(tool.getCode());
-                response = executor.execute(parameter);
+            if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())){
+                HttpResponse httpResponse = toolService.httpExecute(tool.getCode(),parameter);
+                response = httpResponse.isOk()?httpResponse.body():null;
             }else {
-                GroovyScriptExecutor scriptExecutor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
-                response = scriptExecutor.execute(parameter);
+                response = toolService.customExecute(tool.getCode(), tool.getInitParams(),parameter);
             }
             float runTime = (System.currentTimeMillis() - startTime) / 1000f;
             TaskState state = (response != null) ? TaskState.SUCCESS : TaskState.FAILURE;
