@@ -116,7 +116,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
     public ChatResponse chatMessage(ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
         long startTime = System.currentTimeMillis();
         ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatContext.getAppId());
-        if (visitCountOver(chatParams, chatContext)) {
+        if (visitCountOver(chatContext)) {
             sink.tryEmitError(new AccessNumLimitException());
             return new ChatResponse(List.of(), null);
         }
@@ -150,7 +150,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
                 });
     }
 
-    public boolean visitCountOver(ChatParams chatParams, ChatContext chatContext) {
+    public boolean visitCountOver(ChatContext chatContext) {
         String appId = chatContext.getAppId();
         String chatUserId = chatContext.getChatUserId();
         boolean debug = chatContext.getDebug();
