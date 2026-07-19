@@ -67,8 +67,8 @@ public class ChatEmbedService {
         map.put("query", queryStr);
         map.put("show_guide", "true");
         map.put("x_type", "right");
-        map.put("y_type", "bottom");
         map.put("x_value", "0");
+        map.put("y_type", "bottom");
         map.put("y_value", "30");
         map.put("max_kb_id", IdWorker.get32UUID());
         map.put("header_font_color", "rgb(100, 106, 115");

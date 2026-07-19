@@ -16,6 +16,7 @@ import com.maxkb4j.application.excel.ChatRecordDetailExcel;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatShareLinkMapper;
+import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.application.vo.ChatRecordDetailVO;
 import com.maxkb4j.application.vo.ShareChatVO;
@@ -211,13 +212,7 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         }
         ApplicationChatEntity chatEntity = this.lambdaQuery().select(ApplicationChatEntity::getSummary).eq(ApplicationChatEntity::getId, chatShareLink.getChatId()).one();
         shareChatVO.setSummary(chatEntity != null ? chatEntity.getSummary() : null);
-        List<ApplicationChatRecordEntity> chatRecordList = chatRecordService.lambdaQuery()
-                .select(ApplicationChatRecordEntity::getId,
-                        ApplicationChatRecordEntity::getProblemText,
-                        ApplicationChatRecordEntity::getAnswerText,
-                        ApplicationChatRecordEntity::getAnswerTextList,
-                        ApplicationChatRecordEntity::getCreateTime)
-                .in(ApplicationChatRecordEntity::getId,chatShareLink.getChatRecordIds()).list();
+        List<ApplicationChatRecordVO> chatRecordList = chatRecordService.listVOByIds(chatShareLink.getChatRecordIds());
         shareChatVO.setChatRecordList(chatRecordList);
         return shareChatVO;
     }

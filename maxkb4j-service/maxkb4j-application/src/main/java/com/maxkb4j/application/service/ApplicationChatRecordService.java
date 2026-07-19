@@ -139,6 +139,22 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return PageUtil.copy(chatRecordIpage, this::convert);
     }
 
+    @Override
+    public List<ApplicationChatRecordVO> listVOByIds(List<String> ids) {
+        if (CollectionUtils.isEmpty(ids)){
+            return List.of();
+        }
+        List<ApplicationChatRecordEntity> chatRecordList = this.lambdaQuery()
+                .select(ApplicationChatRecordEntity::getId,
+                        ApplicationChatRecordEntity::getProblemText,
+                        ApplicationChatRecordEntity::getAnswerText,
+                        ApplicationChatRecordEntity::getAnswerTextList,
+                        ApplicationChatRecordEntity::getDetails,
+                        ApplicationChatRecordEntity::getCreateTime)
+                .in(ApplicationChatRecordEntity::getId,ids).list();
+        return BeanUtil.copyList(chatRecordList, this::convert);
+    }
+
 
     @Transactional
     public boolean addChatLogs(String appId, AddChatImproveDTO dto) {

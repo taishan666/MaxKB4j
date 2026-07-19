@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -85,6 +86,16 @@ public class BeanUtil {
         }
         return source.stream().map(e -> copy(e, target)).collect(Collectors.toList());
     }
+
+    public static <T, R> List<R> copyList(List<T> source, Function<? super T, ? extends R> mapper) {
+        if (null == source || source.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return source.stream()
+                .map(mapper)
+                .collect(Collectors.toList());
+    }
+
 
     public static <T> Map<String, T> toMap(Object requestParameters) {
         if (requestParameters == null) {

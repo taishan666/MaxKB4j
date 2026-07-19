@@ -197,7 +197,7 @@ public class ChatApiController {
     /**
      * 嵌入第三方
      *
-     * @param query dto
+     * @param params 参数
      */
     @Hidden
     @GetMapping("/embed")

@@ -9,5 +9,5 @@ import java.util.List;
 public class ShareChatVO {
 
     private String summary;
-    private List<ApplicationChatRecordEntity> chatRecordList;
+    private List<ApplicationChatRecordVO> chatRecordList;
 }
