@@ -179,9 +179,9 @@ public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity>
 
     @Transactional
     public void deleteByKnowledgeId(String knowledgeId) {
-        List<String> docIds = this.lambdaQuery().eq(DocumentEntity::getKnowledgeId, knowledgeId).list().stream().map(DocumentEntity::getId).toList();
+        List<String> docIds = this.lambdaQuery().select(DocumentEntity::getId).eq(DocumentEntity::getKnowledgeId, knowledgeId).list().stream().map(DocumentEntity::getId).toList();
         if (!CollectionUtils.isEmpty(docIds)) {
-            documentTagService.lambdaUpdate().eq(DocumentTagEntity::getDocumentId, docIds).remove();
+            documentTagService.lambdaUpdate().in(DocumentTagEntity::getDocumentId, docIds).remove();
         }
         this.lambdaUpdate().eq(DocumentEntity::getKnowledgeId, knowledgeId).remove();
     }

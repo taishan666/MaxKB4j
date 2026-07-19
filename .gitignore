@@ -42,3 +42,4 @@ logs/
 postgres/
 mongo/
 data/
+application-test.yml
