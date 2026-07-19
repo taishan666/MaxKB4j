@@ -25,7 +25,7 @@ public record TemplateRenderer(VariableResolver variableResolver) {
      * @return 渲染后的字符串
      */
     public String render(String prompt) {
-        return render(prompt, variableResolver.getPromptVariables());
+        return render(prompt, Map.of());
     }
 
     /**
