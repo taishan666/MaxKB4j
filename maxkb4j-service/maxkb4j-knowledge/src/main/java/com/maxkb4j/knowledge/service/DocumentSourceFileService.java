@@ -3,6 +3,7 @@ package com.maxkb4j.knowledge.service;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.util.IoUtil;
 import com.maxkb4j.knowledge.entity.DocumentEntity;
+import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
 import com.maxkb4j.oss.service.IOssService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class DocumentSourceFileService {
     private static final String META_SOURCE_FILE_ID = "sourceFileId";
     private static final String META_ALLOW_DOWNLOAD = "allow_download";
 
-    private final DocumentService documentService;
+    private final DocumentServiceImpl documentService;
     private final IOssService ossService;
 
     public boolean download(String docId, HttpServletResponse response) throws IOException {

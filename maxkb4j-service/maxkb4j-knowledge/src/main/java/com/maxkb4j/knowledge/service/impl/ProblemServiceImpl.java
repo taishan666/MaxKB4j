@@ -1,4 +1,4 @@
-package com.maxkb4j.knowledge.service;
+package com.maxkb4j.knowledge.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
@@ -11,6 +11,7 @@ import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.mapper.ProblemMapper;
+import com.maxkb4j.knowledge.service.IProblemService;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.ProblemParagraphVO;
 import com.maxkb4j.knowledge.vo.ProblemVO;
@@ -35,9 +36,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ProblemService extends ServiceImpl<ProblemMapper, ProblemEntity> implements IProblemService{
+public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity> implements IProblemService {
 
-    private final ProblemParagraphService problemParagraphService;
+    private final ProblemParagraphServiceImpl problemParagraphService;
     private final IDataStore compositeStore;
 
     /**

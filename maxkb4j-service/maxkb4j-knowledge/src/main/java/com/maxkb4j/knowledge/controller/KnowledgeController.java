@@ -17,7 +17,7 @@ import com.maxkb4j.knowledge.entity.KnowledgeActionEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeVersionEntity;
 import com.maxkb4j.knowledge.handler.KnowledgeImportHandler;
-import com.maxkb4j.knowledge.service.KnowledgeService;
+import com.maxkb4j.knowledge.service.impl.KnowledgeServiceImpl;
 import com.maxkb4j.knowledge.service.KnowledgeExportService;
 import com.maxkb4j.knowledge.service.KnowledgeWorkflowService;
 import com.maxkb4j.knowledge.service.KnowledgePublishService;
@@ -44,7 +44,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KnowledgeController {
 
-    private final KnowledgeService knowledgeService;
+    private final KnowledgeServiceImpl knowledgeService;
     private final KnowledgeExportService knowledgeExportService;
     private final KnowledgeWorkflowService knowledgeWorkflowService;
     private final KnowledgePublishService knowledgePublishService;

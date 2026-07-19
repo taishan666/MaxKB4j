@@ -1,4 +1,4 @@
-package com.maxkb4j.knowledge.service;
+package com.maxkb4j.knowledge.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -18,6 +18,7 @@ import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
 import com.maxkb4j.knowledge.mapper.ProblemMapper;
 import com.maxkb4j.knowledge.mapper.ProblemParagraphMapper;
+import com.maxkb4j.knowledge.service.*;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.KnowledgeListVO;
 import com.maxkb4j.knowledge.vo.KnowledgeVO;
@@ -45,18 +46,18 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class KnowledgeService extends ServiceImpl<KnowledgeMapper, KnowledgeEntity> implements IKnowledgeService {
+public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, KnowledgeEntity> implements IKnowledgeService {
 
     private final ProblemMapper problemMapper;
     private final ParagraphMapper paragraphMapper;
     private final ProblemParagraphMapper problemParagraphMapper;
-    private final DocumentService documentService;
+    private final DocumentServiceImpl documentService;
     private final IUserService userService;
     private final IUserResourcePermissionService userResourcePermissionService;
     private final ApplicationEventPublisher eventPublisher;
     private final IDataStore compositeStore;
-    private final KnowledgeActionService knowledgeActionService;
-    private final KnowledgeVersionService knowledgeVersionService;
+    private final KnowledgeActionServiceImpl knowledgeActionService;
+    private final KnowledgeVersionServiceImpl knowledgeVersionService;
     private final IResourceMappingService resourceMappingService;
     private final ITagService tagService;
     private final UserContext userContext;

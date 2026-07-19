@@ -1,4 +1,4 @@
-package com.maxkb4j.knowledge.service;
+package com.maxkb4j.knowledge.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -10,6 +10,8 @@ import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.mapper.ProblemMapper;
 import com.maxkb4j.knowledge.mapper.ProblemParagraphMapper;
+import com.maxkb4j.knowledge.service.IProblemParagraphService;
+import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.ProblemParagraphVO;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -26,7 +28,7 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-public class ProblemParagraphService extends ServiceImpl<ProblemParagraphMapper, ProblemParagraphEntity>{
+public class ProblemParagraphServiceImpl extends ServiceImpl<ProblemParagraphMapper, ProblemParagraphEntity> implements IProblemParagraphService {
 
     private final ProblemMapper problemMapper;
     private final KnowledgeModelService knowledgeModelService;

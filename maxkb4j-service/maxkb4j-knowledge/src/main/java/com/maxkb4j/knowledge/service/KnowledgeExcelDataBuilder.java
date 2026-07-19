@@ -3,6 +3,8 @@ package com.maxkb4j.knowledge.service;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.excel.KnowledgeExcel;
+import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
+import com.maxkb4j.knowledge.service.impl.ProblemParagraphServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -15,8 +17,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class KnowledgeExcelDataBuilder {
 
-    private final ParagraphService paragraphService;
-    private final ProblemParagraphService problemParagraphService;
+    private final ParagraphServiceImpl paragraphService;
+    private final ProblemParagraphServiceImpl problemParagraphService;
 
     public List<KnowledgeExcel> buildByDocId(String docId) {
         List<ParagraphEntity> paragraphs = paragraphService.lambdaQuery()

@@ -1,5 +1,6 @@
-package com.maxkb4j.knowledge.service;
+package com.maxkb4j.knowledge.service.impl;
 
+import com.maxkb4j.knowledge.service.IDocumentSplitService;
 import com.maxkb4j.knowledge.util.SentenceSplitter;
 import com.maxkb4j.knowledge.util.TextSplitter;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
@@ -15,7 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class DocumentSplitService implements IDocumentSplitService {
+public class DocumentSplitServiceImpl implements IDocumentSplitService {
 
     // 预编译正则表达式以提高性能
     private static final Pattern MULTIPLE_SPACES = Pattern.compile(" +");

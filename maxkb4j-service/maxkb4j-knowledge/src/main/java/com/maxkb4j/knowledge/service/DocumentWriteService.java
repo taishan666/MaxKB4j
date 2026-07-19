@@ -10,6 +10,9 @@ import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.mapper.DocumentMapper;
+import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
+import com.maxkb4j.knowledge.service.impl.ProblemParagraphServiceImpl;
+import com.maxkb4j.knowledge.service.impl.ProblemServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,9 +35,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RequiredArgsConstructor
 public class DocumentWriteService extends ServiceImpl<DocumentMapper, DocumentEntity> {
 
-    private final ParagraphService paragraphService;
-    private final ProblemService problemService;
-    private final ProblemParagraphService problemParagraphService;
+    private final ParagraphServiceImpl paragraphService;
+    private final ProblemServiceImpl problemService;
+    private final ProblemParagraphServiceImpl problemParagraphService;
     private final ApplicationEventPublisher eventPublisher;
 
 

@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.handler.KnowledgeExportHandler;
+import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
+import com.maxkb4j.knowledge.service.impl.KnowledgeServiceImpl;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +25,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KnowledgeExportService {
 
-    private final KnowledgeService knowledgeService;
-    private final DocumentService documentService;
+    private final KnowledgeServiceImpl knowledgeService;
+    private final DocumentServiceImpl documentService;
     private final KnowledgeExportHandler knowledgeExportHandler;
 
     /**

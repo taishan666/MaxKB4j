@@ -1,9 +1,10 @@
-package com.maxkb4j.knowledge.service;
+package com.maxkb4j.knowledge.service.impl;
 
 import com.maxkb4j.knowledge.engine.DocumentParseEngine;
 import com.maxkb4j.knowledge.engine.impl.DocLingParseEngine;
 import com.maxkb4j.knowledge.engine.impl.LocalParseEngine;
 import com.maxkb4j.knowledge.engine.props.DocLingProperties;
+import com.maxkb4j.knowledge.service.IDocumentParseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,7 +14,7 @@ import java.io.InputStream;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DocumentParseService implements IDocumentParseService {
+public class DocumentParseServiceImpl implements IDocumentParseService {
 
     private final LocalParseEngine localEngine;
     private final DocLingParseEngine docLingParseEngine;

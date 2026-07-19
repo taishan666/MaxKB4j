@@ -1,10 +1,11 @@
-package com.maxkb4j.knowledge.service;
+package com.maxkb4j.knowledge.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.knowledge.entity.DocumentTagEntity;
 import com.maxkb4j.knowledge.entity.TagEntity;
 import com.maxkb4j.knowledge.mapper.DocumentTagMapper;
+import com.maxkb4j.knowledge.service.IDocumentTagService;
 import com.maxkb4j.knowledge.util.TagUtil;
 import com.maxkb4j.knowledge.vo.DocumentTagVO;
 import com.maxkb4j.knowledge.vo.TagListVO;
@@ -17,7 +18,7 @@ import java.util.*;
 
 @RequiredArgsConstructor
 @Service
-public class DocumentTagService extends ServiceImpl<DocumentTagMapper,DocumentTagEntity> implements IDocumentTagService{
+public class DocumentTagServiceImpl extends ServiceImpl<DocumentTagMapper,DocumentTagEntity> implements IDocumentTagService {
     @Override
     public List<TagListVO> listTags(String docId,String name) {
         List<TagEntity> tagEntities = baseMapper.listTags(docId,name);

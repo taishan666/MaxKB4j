@@ -1,4 +1,4 @@
-package com.maxkb4j.knowledge.service;
+package com.maxkb4j.knowledge.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -17,6 +17,7 @@ import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.mapper.DocumentMapper;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
+import com.maxkb4j.knowledge.service.IParagraphService;
 import com.maxkb4j.knowledge.store.IDataStore;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
@@ -37,10 +38,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ParagraphService extends ServiceImpl<ParagraphMapper, ParagraphEntity> implements IParagraphService{
+public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, ParagraphEntity> implements IParagraphService {
 
-    private final ProblemService problemService;
-    private final ProblemParagraphService problemParagraphService;
+    private final ProblemServiceImpl problemService;
+    private final ProblemParagraphServiceImpl problemParagraphService;
     private final IDataStore compositeStore;
     private final DocumentMapper documentMapper;
     private final ApplicationEventPublisher eventPublisher;

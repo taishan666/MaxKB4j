@@ -8,7 +8,7 @@ import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.excel.KnowledgeExcel;
 import com.maxkb4j.knowledge.listener.ExcelDataListener;
 import com.maxkb4j.knowledge.service.DocumentWriteService;
-import com.maxkb4j.knowledge.service.KnowledgeService;
+import com.maxkb4j.knowledge.service.impl.KnowledgeServiceImpl;
 import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.IModelService;
@@ -36,7 +36,7 @@ import java.util.zip.ZipInputStream;
 @RequiredArgsConstructor
 public class KnowledgeImportHandler {
 
-    private final KnowledgeService knowledgeService;
+    private final KnowledgeServiceImpl knowledgeService;
     private final DocumentWriteService documentWriteService;
     private final IModelService modelService;
 

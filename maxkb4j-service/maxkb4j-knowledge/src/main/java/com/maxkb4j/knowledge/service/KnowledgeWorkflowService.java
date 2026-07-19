@@ -11,6 +11,10 @@ import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeActionEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeVersionEntity;
+import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
+import com.maxkb4j.knowledge.service.impl.KnowledgeActionServiceImpl;
+import com.maxkb4j.knowledge.service.impl.KnowledgeServiceImpl;
+import com.maxkb4j.knowledge.service.impl.KnowledgeVersionServiceImpl;
 import com.maxkb4j.user.service.IUserService;
 import com.maxkb4j.workflow.builder.NodeBuilder;
 import com.maxkb4j.workflow.logic.LogicFlow;
@@ -42,10 +46,10 @@ import static com.maxkb4j.workflow.enums.NodeType.DATA_SOURCE_WEB;
 @RequiredArgsConstructor
 public class KnowledgeWorkflowService {
 
-    private final KnowledgeService knowledgeService;
-    private final DocumentService documentService;
-    private final KnowledgeVersionService knowledgeVersionService;
-    private final KnowledgeActionService knowledgeActionService;
+    private final KnowledgeServiceImpl knowledgeService;
+    private final DocumentServiceImpl documentService;
+    private final KnowledgeVersionServiceImpl knowledgeVersionService;
+    private final KnowledgeActionServiceImpl knowledgeActionService;
     private final IWorkFlowActuator workFlowActuator;
     private final NodeBuilder nodeBuilder;
     private final WorkflowFactory workflowFactory;

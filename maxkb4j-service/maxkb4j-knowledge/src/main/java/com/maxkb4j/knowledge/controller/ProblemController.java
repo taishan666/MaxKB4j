@@ -8,8 +8,8 @@ import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.dto.ProblemDTO;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
-import com.maxkb4j.knowledge.service.KnowledgeService;
-import com.maxkb4j.knowledge.service.ProblemService;
+import com.maxkb4j.knowledge.service.impl.KnowledgeServiceImpl;
+import com.maxkb4j.knowledge.service.impl.ProblemServiceImpl;
 import com.maxkb4j.knowledge.vo.ProblemVO;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
@@ -26,8 +26,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProblemController {
 
-    private final KnowledgeService datasetService;
-    private final ProblemService problemService;
+    private final KnowledgeServiceImpl datasetService;
+    private final ProblemServiceImpl problemService;
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_PROBLEM_CREATE)
     @PostMapping("/knowledge/{id}/problem")

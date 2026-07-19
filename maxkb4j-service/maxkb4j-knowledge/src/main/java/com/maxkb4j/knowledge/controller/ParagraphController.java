@@ -10,8 +10,8 @@ import com.maxkb4j.knowledge.dto.IdListDTO;
 import com.maxkb4j.knowledge.dto.ParagraphAddDTO;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
-import com.maxkb4j.knowledge.service.ParagraphService;
-import com.maxkb4j.knowledge.service.ProblemParagraphService;
+import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
+import com.maxkb4j.knowledge.service.impl.ProblemParagraphServiceImpl;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +23,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ParagraphController {
 
-    private final ParagraphService paragraphService;
-    private final ProblemParagraphService problemParagraphService;
+    private final ParagraphServiceImpl paragraphService;
+    private final ProblemParagraphServiceImpl problemParagraphService;
 
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)

@@ -1,4 +1,4 @@
-package com.maxkb4j.knowledge.service;
+package com.maxkb4j.knowledge.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -17,6 +17,7 @@ import com.maxkb4j.knowledge.entity.*;
 import com.maxkb4j.knowledge.handler.DocumentHandler;
 import com.maxkb4j.knowledge.mapper.DocumentMapper;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
+import com.maxkb4j.knowledge.service.*;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.DocFileVO;
 import com.maxkb4j.knowledge.vo.DocumentVO;
@@ -45,15 +46,15 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DocumentService extends ServiceImpl<DocumentMapper, DocumentEntity> implements IDocumentService {
+public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEntity> implements IDocumentService {
 
-    private final ParagraphService paragraphService;
-    private final ProblemParagraphService problemParagraphService;
+    private final ParagraphServiceImpl paragraphService;
+    private final ProblemParagraphServiceImpl problemParagraphService;
     private final IDocumentParseService documentParseService;
-    private final DocumentSplitService documentSpiltService;
+    private final DocumentSplitServiceImpl documentSpiltService;
     private final IOssService ossService;
     private final ApplicationEventPublisher eventPublisher;
-    private final DocumentWebService documentWebService;
+    private final DocumentWebServiceImpl documentWebService;
     private final DocumentWriteService documentWriteService;
     private final DocumentHandler documentHandler;
     private final IDataStore compositeStore;

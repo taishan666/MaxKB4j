@@ -1,8 +1,10 @@
-package com.maxkb4j.knowledge.service;
+package com.maxkb4j.knowledge.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
+import com.maxkb4j.knowledge.service.IDocumentParseService;
+import com.maxkb4j.knowledge.service.IDocumentWebService;
 import com.maxkb4j.knowledge.util.JsoupUtil;
 import com.maxkb4j.knowledge.util.WebContentCleaner;
 import org.jetbrains.annotations.NotNull;
@@ -36,9 +38,9 @@ import java.util.Set;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DocumentWebService implements IDocumentWebService{
+public class DocumentWebServiceImpl implements IDocumentWebService {
 
-    private final DocumentSplitService documentSpiltService;
+    private final DocumentSplitServiceImpl documentSpiltService;
     private final IDocumentParseService documentParseService;
 
     /** MD文件输出目录 */

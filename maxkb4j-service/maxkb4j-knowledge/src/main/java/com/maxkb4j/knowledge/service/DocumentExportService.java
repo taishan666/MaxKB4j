@@ -7,6 +7,7 @@ import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.excel.KnowledgeExcel;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
+import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
 import com.maxkb4j.knowledge.support.ExcelExportSupport;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DocumentExportService {
 
-    private final DocumentService documentService;
+    private final DocumentServiceImpl documentService;
     private final KnowledgeMapper knowledgeMapper;
     private final KnowledgeExcelDataBuilder excelDataBuilder;
 
