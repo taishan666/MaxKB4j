@@ -8,7 +8,7 @@ import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.excel.KnowledgeExcel;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
-import com.maxkb4j.knowledge.support.ExcelExportSupport;
+import com.maxkb4j.knowledge.util.ExcelExportSupport;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.maxkb4j.knowledge.support;
+package com.maxkb4j.knowledge.util;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
