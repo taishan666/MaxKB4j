@@ -38,6 +38,7 @@ public class FileController {
             "/admin/*/*/*/*/oss/file/{fileId:[\\w-]+}",
             "/admin/oss/file/{fileId:[\\w-]+}",
             "/chat/oss/file/{fileId:[\\w-]+}",
+            "/chat/share/oss/file/{fileId:[\\w-]+}",
             "/oss/file/{fileId:[\\w-]+}"})
     public void downloadFile(@PathVariable("fileId") String fileId, HttpServletResponse response){
         ossService.downloadFile(fileId, response);
