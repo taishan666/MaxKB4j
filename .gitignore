@@ -42,4 +42,4 @@ logs/
 postgres/
 mongo/
 data/
-application-test.yml
+maxkb4j-start/src/main/resources/application-test.yml
