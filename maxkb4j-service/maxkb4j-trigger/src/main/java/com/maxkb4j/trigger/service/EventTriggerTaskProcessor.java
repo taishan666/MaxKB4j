@@ -6,7 +6,6 @@ import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.trigger.vo.ApplicationTaskVO;
 import com.maxkb4j.trigger.vo.EventTriggerTaskVO;
@@ -49,7 +48,7 @@ public class EventTriggerTaskProcessor {
         List<String> toolIds = extractIds(tasks, ResourceType.TOOL);
 
         List<ApplicationTaskVO> appsList = appIds.isEmpty() ? List.of() : BeanUtil.copyList(applicationService.listByIds(appIds), ApplicationTaskVO.class);
-        List<ToolTaskVO> toolsList = toolIds.isEmpty() ? List.of() : BeanUtil.copyList(toolService.listByIds(toolIds), ToolTaskVO.class);
+        List<ToolTaskVO> toolsList = toolIds.isEmpty() ? List.of() : BeanUtil.copyList(toolService.listDtoByIds(toolIds), ToolTaskVO.class);
 
         Map<String, ApplicationTaskVO> appMap = appsList.stream()
                 .collect(Collectors.toMap(ApplicationTaskVO::getId, a -> a));
@@ -90,7 +89,7 @@ public class EventTriggerTaskProcessor {
 
         List<Map<String, Object>> results = Objects.equals(type, ResourceType.APPLICATION)
                 ? applicationService.listMaps(new LambdaQueryWrapper<ApplicationEntity>().in(ApplicationEntity::getId, ids))
-                : toolService.listMaps(new LambdaQueryWrapper<ToolEntity>().in(ToolEntity::getId, ids));
+                : toolService.listMapsByIds(ids);
 
         if (results == null || results.isEmpty()) return Map.of();
 

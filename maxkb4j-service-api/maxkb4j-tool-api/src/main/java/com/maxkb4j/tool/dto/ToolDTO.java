@@ -1,14 +1,17 @@
 package com.maxkb4j.tool.dto;
 
-import com.maxkb4j.common.mp.entity.ToolInputField;
-import com.maxkb4j.tool.entity.ToolEntity;
+import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-import java.util.List;
-
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class ToolDTO extends ToolEntity {
-    private List<ToolInputField> debugFieldList;
+public class ToolDTO {
+    private String id;
+    private String name;
+    private String icon;
+    private String desc;
+    private String toolType;
+    private String code;
+    private JSONObject initParams;
+    private String userId;
+    private Boolean isActive;
 }

@@ -14,7 +14,7 @@ import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.tool.entity.ToolEntity;
+import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.trigger.dto.EventQuery;
 import com.maxkb4j.trigger.dto.EventTriggerDTO;
@@ -224,7 +224,7 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
                 ApplicationEntity app =applicationService.getById(sourceTask.get().getSourceId());
                 vo.setApplicationTask(BeanUtil.copy(app, ApplicationTaskVO.class));
             } else if (ResourceType.TOOL.equals(sourceType)) {
-                ToolEntity tool =toolService.getById(sourceTask.get().getSourceId());
+                ToolDTO tool =toolService.getDtoById(sourceTask.get().getSourceId());
                 vo.setToolTask(BeanUtil.copy(tool, ToolTaskVO.class));
             }
             vo.setTriggerTask(sourceTask.get());

@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.dto.MaxKb4J;
 import com.maxkb4j.application.entity.ApplicationEntity;
-import com.maxkb4j.tool.entity.ToolEntity;
+import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.workflow.enums.NodeType;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,9 +34,9 @@ public class ApplicationExportService {
             toolIds.addAll(app.getToolIds());
         }
         toolIds.addAll(getToolIdList(app.getWorkFlow()));
-        List<ToolEntity> toolList=new ArrayList<>();
+        List<ToolDTO> toolList=new ArrayList<>();
         if (!toolIds.isEmpty()){
-            toolList=toolService.listByIds(toolIds);
+            toolList=toolService.listDtoByIds(toolIds);
         }
         MaxKb4J maxKb4J = new MaxKb4J(app, toolList, "v2");
         byte[] bytes = Objects.requireNonNull(JSONUtil.toJsonStr(maxKb4J)).getBytes(StandardCharsets.UTF_8);

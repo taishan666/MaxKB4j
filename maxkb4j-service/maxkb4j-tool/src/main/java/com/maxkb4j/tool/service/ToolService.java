@@ -8,9 +8,11 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.ResourceType;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.system.service.IResourceMappingService;
 import com.maxkb4j.tool.consts.ToolConstants;
+import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.executor.GroovyScriptExecutor;
@@ -176,6 +178,28 @@ public class ToolService extends ServiceImpl<ToolMapper, ToolEntity> implements 
 
     public String uploadSkillFile(MultipartFile file) throws IOException {
         return skillHandler.uploadSkillFile(file);
+    }
+
+    @Override
+    public ToolDTO getDtoById(String id) {
+        return BeanUtil.copy(this.getById(id), ToolDTO.class);
+    }
+
+    @Override
+    public List<ToolDTO> listDtoByIds(List<String> ids) {
+        return BeanUtil.copyList(this.listByIds(ids), ToolDTO.class);
+    }
+
+    @Override
+    public List<Map<String, Object>> listMapsByIds(List<String> ids) {
+        return this.listMaps(new LambdaQueryWrapper<ToolEntity>().in(ToolEntity::getId, ids));
+    }
+
+    @Override
+    @Transactional
+    public void saveOrUpdateBatch(List<ToolDTO> toolDTOList) {
+        List<ToolEntity> toolEntities= BeanUtil.copyList(toolDTOList, ToolEntity.class);
+        this.saveOrUpdateBatch(toolEntities);
     }
 
     @Override

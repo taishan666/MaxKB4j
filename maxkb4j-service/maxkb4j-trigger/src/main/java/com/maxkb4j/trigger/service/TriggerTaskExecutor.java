@@ -14,7 +14,7 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.tool.consts.ToolConstants;
-import com.maxkb4j.tool.entity.ToolEntity;
+import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
 import com.maxkb4j.trigger.entity.EventTriggerTaskRecordEntity;
@@ -142,7 +142,7 @@ public class TriggerTaskExecutor {
     private void executeToolTask(EventTriggerTaskEntity task, long startTime) {
         String toolId = task.getSourceId();
         try {
-            ToolEntity tool = toolService.lambdaQuery().select(ToolEntity::getToolType,ToolEntity::getCode, ToolEntity::getInitParams).eq(ToolEntity::getId, toolId).one();
+            ToolDTO tool = toolService.getDtoById(toolId);
             JSONObject parameter = task.getParameter();
             Object response;
             if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())){

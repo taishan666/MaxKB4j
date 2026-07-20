@@ -3,7 +3,6 @@ package com.maxkb4j.tool.service;
 import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.util.ToolNaming;
-import com.maxkb4j.tool.vo.ToolRenderMeta;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.service.tool.BeforeToolExecution;
 import dev.langchain4j.service.tool.ToolExecution;
@@ -19,7 +18,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ToolFormatterService implements IToolFormatterService {
 
-    private final IToolService toolService;
+    private final ToolService toolService;
     private final Optional<IAgentToolMetaResolver> agentMetaResolver;
 
     @Override

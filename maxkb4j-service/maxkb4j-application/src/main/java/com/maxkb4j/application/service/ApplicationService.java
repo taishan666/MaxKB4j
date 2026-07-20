@@ -27,7 +27,7 @@ import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
 import com.maxkb4j.system.constant.AuthTargetType;
-import com.maxkb4j.tool.entity.ToolEntity;
+import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
@@ -372,16 +372,14 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         application.setCreateTime(now);
         application.setUpdateTime(now);
         application.setUserId(userContext.getUserId());
-        List<ToolEntity> toolList = maxKb4j.getToolList();
+        List<ToolDTO> toolList = maxKb4j.getToolList();
         if (!CollectionUtils.isEmpty(toolList)) {
             toolList.forEach(e -> {
                 e.setUserId(userContext.getUserId());
                 e.setIsActive(true);
-                e.setCreateTime(now);
-                e.setUpdateTime(now);
             });
             toolService.saveOrUpdateBatch(toolList);
-            List<String> toolIds = toolList.stream().map(ToolEntity::getId).toList();
+            List<String> toolIds = toolList.stream().map(ToolDTO::getId).toList();
             application.setToolIds(toolIds);
         }
         return this.saveApp(application);

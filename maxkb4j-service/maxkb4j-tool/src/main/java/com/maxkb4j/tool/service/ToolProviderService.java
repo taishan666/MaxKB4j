@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ToolProviderService implements IToolProviderService {
 
-    private final IToolService toolService;
+    private final ToolService toolService;
     private final SkillToolService skillToolService;
     private final IAgentToolService agentToolService;
     private final ToolSpecificationBuilder toolSpecificationBuilder;
