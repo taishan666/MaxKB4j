@@ -1,6 +1,7 @@
 package com.maxkb4j.system.strategy;
 
-import com.maxkb4j.system.entity.SourceResource;
+
+import com.maxkb4j.system.dto.SourceResource;
 
 import java.util.Collection;
 import java.util.List;

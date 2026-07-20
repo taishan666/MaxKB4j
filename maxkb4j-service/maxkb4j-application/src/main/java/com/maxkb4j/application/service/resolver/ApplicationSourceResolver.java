@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.mapper.ApplicationMapper;
 import com.maxkb4j.common.constant.ResourceType;
-import com.maxkb4j.system.entity.SourceResource;
+import com.maxkb4j.system.dto.SourceResource;
 import com.maxkb4j.system.strategy.SourceResourceResolver;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;

@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.common.constant.ResourceType;
-import com.maxkb4j.system.entity.TargetResource;
+import com.maxkb4j.system.dto.TargetResource;
 import com.maxkb4j.system.service.IResourceMappingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

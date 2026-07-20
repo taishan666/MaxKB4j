@@ -8,7 +8,7 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.util.IoUtil;
 import com.maxkb4j.common.util.JarUtil;
-import com.maxkb4j.system.dto.AppTemplate;
+import com.maxkb4j.application.dto.AppTemplate;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;

@@ -2,7 +2,7 @@ package com.maxkb4j.tool.service.resolver;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.common.constant.ResourceType;
-import com.maxkb4j.system.entity.SourceResource;
+import com.maxkb4j.system.dto.SourceResource;
 import com.maxkb4j.system.strategy.SourceResourceResolver;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.mapper.ToolMapper;

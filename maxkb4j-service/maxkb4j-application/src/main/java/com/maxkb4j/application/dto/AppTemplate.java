@@ -1,4 +1,4 @@
-package com.maxkb4j.system.dto;
+package com.maxkb4j.application.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
