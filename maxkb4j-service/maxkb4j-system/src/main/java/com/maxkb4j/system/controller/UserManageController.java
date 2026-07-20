@@ -8,10 +8,10 @@ import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.props.SystemProperties;
 import com.maxkb4j.common.util.I18nUtil;
-import com.maxkb4j.user.dto.PasswordDTO;
-import com.maxkb4j.user.dto.UserDTO;
-import com.maxkb4j.user.entity.UserEntity;
-import com.maxkb4j.user.service.IUserService;
+import com.maxkb4j.system.entity.UserEntity;
+import com.maxkb4j.system.service.impl.UserServiceImpl;
+import com.maxkb4j.system.dto.PasswordDTO;
+import com.maxkb4j.system.dto.UserDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +28,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserManageController {
 
-    private final IUserService userService;
+    private final UserServiceImpl userService;
 	private final SystemProperties systemProperties;
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)

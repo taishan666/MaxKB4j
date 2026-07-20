@@ -22,15 +22,15 @@ import com.maxkb4j.common.util.RSAUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.system.constant.UserLanguage;
 import com.maxkb4j.system.constant.UserSource;
-import com.maxkb4j.system.service.EmailService;
-import com.maxkb4j.user.dto.PasswordDTO;
-import com.maxkb4j.user.dto.UserDTO;
-import com.maxkb4j.user.dto.UserLoginDTO;
-import com.maxkb4j.user.entity.UserEntity;
+import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.mapper.UserMapper;
+import com.maxkb4j.system.service.EmailService;
+import com.maxkb4j.system.dto.PasswordDTO;
+import com.maxkb4j.system.dto.UserDTO;
+import com.maxkb4j.system.dto.UserLoginDTO;
 import com.maxkb4j.user.service.IUserService;
-import com.maxkb4j.user.vo.UserNameVO;
-import com.maxkb4j.user.vo.UserVO;
+import com.maxkb4j.system.vo.UserNameVO;
+import com.maxkb4j.system.vo.UserVO;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -219,7 +219,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         return false;
     }
 
-    @Override
     public boolean batchDelete(List<String> ids) {
         return this.lambdaUpdate().eq(UserEntity::getRole, RoleType.USER).in(UserEntity::getId, ids).remove();
     }
@@ -251,13 +250,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
                 .collect(HashMap::new, (m, e) -> m.put(e.getId(), e.getNickname()), HashMap::putAll);
     }
 
-    @Override
     public List<UserNameVO> listActiveUserNames() {
         List<UserEntity> userList = this.lambdaQuery().eq(UserEntity::getIsActive, true).list();
         return BeanUtil.copyList(userList, UserNameVO.class);
     }
 
-    @Override
     public List<UserEntity> listActiveMembers() {
         return this.lambdaQuery()
                 .eq(UserEntity::getRole, RoleType.USER)
@@ -276,7 +273,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         return list.isEmpty() ? "" : list.getFirst().getNickname();
     }
 
-    @Override
     public String getEmail(String userId) {
         List<UserEntity> list = this.lambdaQuery().select(UserEntity::getEmail).eq(UserEntity::getId, userId).list();
         return list.isEmpty() ? "" : list.getFirst().getEmail();

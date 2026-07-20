@@ -1,21 +1,20 @@
-package com.maxkb4j.user.vo;
+package com.maxkb4j.system.vo;
 
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class UserResourcePermissionVO  {
+public class ResourceUserPermissionVO {
+
     private String id;
-    private String name;
-    private String icon;
-    private String folderId;
+    private String userId;
+    private String username;
+    private String nickname;
     private String permission;
     private String workspaceId;
     private String authTargetType;
     private String targetId;
     private String authType;
     private List<String> permissionList;
-    private String userId;
-
 }

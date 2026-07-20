@@ -1,4 +1,4 @@
-package com.maxkb4j.user.vo;
+package com.maxkb4j.system.vo;
 
 import lombok.Data;
 

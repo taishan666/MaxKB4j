@@ -1,8 +1,8 @@
 package com.maxkb4j.system.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.maxkb4j.user.entity.UserEntity;
-import com.maxkb4j.user.vo.PermissionVO;
+import com.maxkb4j.system.entity.UserEntity;
+import com.maxkb4j.system.vo.PermissionVO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

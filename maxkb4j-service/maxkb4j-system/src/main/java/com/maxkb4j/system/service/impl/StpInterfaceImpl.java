@@ -4,10 +4,9 @@ import cn.dev33.satoken.stp.StpInterface;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.common.enums.PermissionEnum;
-import com.maxkb4j.user.entity.UserEntity;
-import com.maxkb4j.user.entity.UserResourcePermissionEntity;
+import com.maxkb4j.system.entity.UserEntity;
+import com.maxkb4j.system.entity.UserResourcePermissionEntity;
 import com.maxkb4j.system.mapper.UserMapper;
-import com.maxkb4j.user.service.IUserResourcePermissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +21,7 @@ import java.util.List;
 public class StpInterfaceImpl implements StpInterface {
 
     private final UserMapper userMapper;
-    private final IUserResourcePermissionService userResourcePermissionService;
+    private final UserResourcePermissionServiceImpl userResourcePermissionService;
 
     /**
      * 返回一个账号所拥有的权限码集合

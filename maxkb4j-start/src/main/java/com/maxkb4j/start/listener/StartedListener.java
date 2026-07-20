@@ -7,7 +7,7 @@ import com.maxkb4j.common.enums.SettingType;
 import com.maxkb4j.common.util.RSAUtil;
 import com.maxkb4j.system.entity.SystemSettingEntity;
 import com.maxkb4j.system.service.SystemSettingService;
-import com.maxkb4j.user.service.IUserService;
+import com.maxkb4j.system.service.impl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
@@ -36,7 +36,7 @@ import java.util.Map;
 public class StartedListener implements ApplicationListener<ApplicationStartedEvent> {
 
     private final SystemSettingService systemSettingService;
-    private final IUserService userService;
+    private final UserServiceImpl userService;
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationStartedEvent event) {

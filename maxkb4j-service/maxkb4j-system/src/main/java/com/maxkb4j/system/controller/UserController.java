@@ -7,10 +7,10 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.util.I18nUtil;
-import com.maxkb4j.user.dto.PasswordDTO;
-import com.maxkb4j.user.entity.UserEntity;
-import com.maxkb4j.user.service.IUserService;
-import com.maxkb4j.user.vo.UserVO;
+import com.maxkb4j.system.entity.UserEntity;
+import com.maxkb4j.system.service.impl.UserServiceImpl;
+import com.maxkb4j.system.dto.PasswordDTO;
+import com.maxkb4j.system.vo.UserVO;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final IUserService userService;
+    private final UserServiceImpl userService;
 
     @GetMapping("user/profile")
     public R<UserVO> getUserProfile(@CurrentUserId String userId){
