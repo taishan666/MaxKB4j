@@ -1,4 +1,4 @@
-package com.maxkb4j.folder.vo;
+package com.maxkb4j.system.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

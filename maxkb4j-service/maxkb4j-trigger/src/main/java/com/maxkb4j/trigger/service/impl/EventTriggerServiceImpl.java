@@ -1,4 +1,4 @@
-package com.maxkb4j.trigger.service;
+package com.maxkb4j.trigger.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -22,6 +22,7 @@ import com.maxkb4j.trigger.entity.EventTriggerEntity;
 import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
 import com.maxkb4j.trigger.enums.TriggerType;
 import com.maxkb4j.trigger.mapper.EventTriggerMapper;
+import com.maxkb4j.trigger.service.*;
 import com.maxkb4j.trigger.vo.*;
 import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class EventTriggerService extends ServiceImpl<EventTriggerMapper, EventTriggerEntity> implements IEventTriggerService {
+public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, EventTriggerEntity> implements IEventTriggerService {
 
     private final IEventTriggerTaskService eventTriggerTaskService;
     private final IUserService userService;

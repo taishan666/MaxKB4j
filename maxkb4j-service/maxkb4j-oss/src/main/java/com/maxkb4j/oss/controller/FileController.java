@@ -1,7 +1,7 @@
 package com.maxkb4j.oss.controller;
 
 import com.maxkb4j.common.api.R;
-import com.maxkb4j.oss.service.IOssService;
+import com.maxkb4j.oss.service.MongoFileService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +20,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class FileController {
 
-    private final IOssService ossService;
+    private final MongoFileService ossService;
 
 
     @PostMapping(value = {

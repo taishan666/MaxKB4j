@@ -1,9 +1,9 @@
 package com.maxkb4j.system.controller;
 
-import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.api.R;
-import com.maxkb4j.folder.service.IFolderService;
-import com.maxkb4j.folder.vo.FolderVO;
+import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.system.service.FolderService;
+import com.maxkb4j.system.vo.FolderVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FolderController {
 
-    private final IFolderService folderService;
+    private final FolderService folderService;
 
     @GetMapping("/{source}/folder")
     public R<List<FolderVO>> folderTree(@PathVariable String source) {
