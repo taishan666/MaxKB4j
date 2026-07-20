@@ -2,11 +2,11 @@ package com.maxkb4j.model.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.maxkb4j.common.annotation.SaCheckPerm;
-import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.model.entity.ModelEntity;
-import com.maxkb4j.model.service.IModelService;
+import com.maxkb4j.model.service.impl.ModelServiceImpl;
 import com.maxkb4j.model.vo.ModelVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +23,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ModelController{
 
-	private final IModelService modelService;
+	private final ModelServiceImpl modelService;
 
 	@SaCheckPerm(PermissionEnum.MODEL_CREATE)
 	@PostMapping("/model")
@@ -76,7 +76,6 @@ public class ModelController{
 	@SaCheckPerm(PermissionEnum.MODEL_EDIT)
 	@PutMapping("/model/{id}/model_params_form")
 	public R<JSONArray> updateModelParamsForm(@PathVariable String id,@RequestBody JSONArray paramsForm){
-
 		modelService.updateModelParamsForm(id,paramsForm);
 		return R.data(paramsForm);
 	}

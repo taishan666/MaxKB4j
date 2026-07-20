@@ -2,6 +2,7 @@ package com.maxkb4j.knowledge.handler;
 
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
@@ -9,7 +10,6 @@ import com.maxkb4j.knowledge.excel.KnowledgeExcel;
 import com.maxkb4j.knowledge.listener.ExcelDataListener;
 import com.maxkb4j.knowledge.service.DocumentWriteService;
 import com.maxkb4j.knowledge.service.impl.KnowledgeServiceImpl;
-import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.IModelService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -39,6 +40,8 @@ public class KnowledgeImportHandler {
     private final KnowledgeServiceImpl knowledgeService;
     private final DocumentWriteService documentWriteService;
     private final IModelService modelService;
+    private final UserContext userContext;
+
 
     /**
      * 从ZIP文件导入知识库
@@ -140,30 +143,18 @@ public class KnowledgeImportHandler {
         knowledge.setType(knowledgeJson.getInteger("type"));
         
         JSONObject meta = knowledgeJson.getJSONObject("meta");
-        if (meta != null) {
-            knowledge.setMeta(meta);
-        } else {
-            knowledge.setMeta(new JSONObject());
-        }
+        knowledge.setMeta(Objects.requireNonNullElseGet(meta, JSONObject::new));
         
         Integer fileSizeLimit = knowledgeJson.getInteger("file_size_limit");
-        if (fileSizeLimit != null) {
-            knowledge.setFileSizeLimit(fileSizeLimit);
-        } else {
-            knowledge.setFileSizeLimit(100);
-        }
+        knowledge.setFileSizeLimit(Objects.requireNonNullElse(fileSizeLimit, 100));
         
         Integer fileCountLimit = knowledgeJson.getInteger("file_count_limit");
-        if (fileCountLimit != null) {
-            knowledge.setFileCountLimit(fileCountLimit);
-        } else {
-            knowledge.setFileCountLimit(50);
-        }
+        knowledge.setFileCountLimit(Objects.requireNonNullElse(fileCountLimit, 50));
         
         // 设置embedding_model_id，默认为向量模型的第一个
         String embeddingModelId = knowledgeJson.getString("embedding_model_id");
         if (embeddingModelId == null || embeddingModelId.isEmpty()) {
-            embeddingModelId = getDefaultEmbeddingModelId();
+            embeddingModelId = modelService.getLastModelId(ModelType.EMBEDDING.name(),userContext.getUserId());
         }
         knowledge.setEmbeddingModelId(embeddingModelId);
         knowledge.setFolderId("default");
@@ -211,16 +202,6 @@ public class KnowledgeImportHandler {
         
         documentWriteService.batchCreateDocs(knowledgeId, 0, docs);
     }
-    
-    /**
-     * 获取默认向量模型ID（按创建时间倒序，取第一个）
-     */
-    private String getDefaultEmbeddingModelId() {
-        ModelEntity embeddingModel = modelService.lambdaQuery()
-                .eq(ModelEntity::getModelType, ModelType.EMBEDDING.getKey())
-                .orderByDesc(ModelEntity::getCreateTime)
-                .last("limit 1")
-                .one();
-        return embeddingModel != null ? embeddingModel.getId() : null;
-    }
+
+
 }

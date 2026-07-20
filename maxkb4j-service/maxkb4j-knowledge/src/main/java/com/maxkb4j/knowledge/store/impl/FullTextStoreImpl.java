@@ -1,4 +1,4 @@
-package com.maxkb4j.knowledge.store;
+package com.maxkb4j.knowledge.store.impl;
 
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;

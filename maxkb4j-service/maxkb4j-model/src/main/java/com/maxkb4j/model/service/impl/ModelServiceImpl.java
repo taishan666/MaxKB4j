@@ -1,4 +1,4 @@
-package com.maxkb4j.model.service;
+package com.maxkb4j.model.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -19,6 +19,7 @@ import com.maxkb4j.model.enums.ModelProvider;
 import com.maxkb4j.model.enums.ModelStatus;
 import com.maxkb4j.model.mapper.ModelMapper;
 import com.maxkb4j.model.provider.AbsModelProvider;
+import com.maxkb4j.model.service.IModelService;
 import com.maxkb4j.model.vo.ModelVO;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
@@ -41,7 +42,7 @@ import java.util.function.Function;
  */
 @Service
 @RequiredArgsConstructor
-public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> implements IModelService{
+public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> implements IModelService {
 
     private final IUserService userService;
     private final IUserResourcePermissionService userResourcePermissionService;
@@ -260,5 +261,16 @@ public class ModelService extends ServiceImpl<ModelMapper, ModelEntity> implemen
         modelEntity.setId(id);
         modelEntity.setModelParamsForm(paramsForm);
         this.updateById(modelEntity);
+    }
+
+    @Override
+    public String getLastModelId(String modelType,String userId) {
+        ModelEntity embeddingModel = this.lambdaQuery()
+                .eq(ModelEntity::getModelType, modelType)
+                .eq(ModelEntity::getUserId, userId)
+                .orderByDesc(ModelEntity::getCreateTime)
+                .last("limit 1")
+                .one();
+        return embeddingModel != null ? embeddingModel.getId() : null;
     }
 }

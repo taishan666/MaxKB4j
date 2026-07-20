@@ -1,4 +1,4 @@
-package com.maxkb4j.knowledge.store;
+package com.maxkb4j.knowledge.store.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.util.BatchUtil;

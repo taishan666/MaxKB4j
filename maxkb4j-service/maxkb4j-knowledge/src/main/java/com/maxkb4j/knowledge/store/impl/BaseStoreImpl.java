@@ -1,8 +1,9 @@
-package com.maxkb4j.knowledge.store;
+package com.maxkb4j.knowledge.store.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
+import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import org.apache.commons.lang3.StringUtils;
 

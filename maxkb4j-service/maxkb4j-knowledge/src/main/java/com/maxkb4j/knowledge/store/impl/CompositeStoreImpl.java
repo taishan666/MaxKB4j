@@ -1,7 +1,8 @@
-package com.maxkb4j.knowledge.store;
+package com.maxkb4j.knowledge.store.impl;
 
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
+import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.extern.slf4j.Slf4j;
