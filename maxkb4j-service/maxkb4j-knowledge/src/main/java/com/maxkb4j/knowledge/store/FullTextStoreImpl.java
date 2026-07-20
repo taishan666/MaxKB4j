@@ -3,7 +3,7 @@ package com.maxkb4j.knowledge.store;
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
-import com.maxkb4j.knowledge.service.IParagraphService;
+import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
 import com.maxkb4j.knowledge.util.Tokenizer;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -41,7 +41,7 @@ public class FullTextStoreImpl extends BaseStoreImpl {
 
     private final MongoTemplate mongoTemplate;
     /** 延迟解析以避免与 ParagraphService 之间的构造期循环依赖，仅在 search() 中使用。 */
-    private final ObjectProvider<IParagraphService> paragraphServiceProvider;
+    private final ObjectProvider<ParagraphServiceImpl> paragraphServiceProvider;
 
     @Override
     public void upsert(EmbeddingModel model, List<EmbeddingEntity> entities) {

@@ -166,7 +166,6 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
         return documentWriteService.batchCreateDocs(knowledgeId, knowledgeType, docs);
     }
 
-    @Override
     public List<String> getNoActiveDocIds(List<String> knowledgeIds) {
         List<DocumentEntity> excludeDocuments = this.lambdaQuery()
                 .select(DocumentEntity::getId)
