@@ -24,7 +24,7 @@ import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.PageUtil;
-import com.maxkb4j.knowledge.entity.KnowledgeEntity;
+import com.maxkb4j.knowledge.dto.KnowledgeSimple;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.tool.dto.ToolDTO;
@@ -248,7 +248,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
                                 if (knowledgeIdListJson != null) {
                                     List<String> nodeKnowledgeIds = knowledgeIdListJson.toJavaList(String.class);
                                     if (!CollectionUtils.isEmpty(nodeKnowledgeIds)) {
-                                        nodeData.put("knowledgeList", knowledgeService.listByIds(nodeKnowledgeIds));
+                                        nodeData.put("knowledgeList", knowledgeService.listNameAndDescByIds(nodeKnowledgeIds));
                                     }
                                 }
                             }
@@ -259,7 +259,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         } else {
             List<String> knowledgeIds = vo.getKnowledgeIds();
             if (!CollectionUtils.isEmpty(knowledgeIds)) {
-                List<KnowledgeEntity> knowledgeList = knowledgeService.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName).in(KnowledgeEntity::getId, knowledgeIds).orderByDesc(KnowledgeEntity::getCreateTime).list();
+                List<KnowledgeSimple> knowledgeList = knowledgeService.listNameAndDescByIds( knowledgeIds);
                 vo.setKnowledgeList(BeanUtil.copyList(knowledgeList, KnowledgeDTO.class));
             } else {
                 vo.setKnowledgeList(List.of());

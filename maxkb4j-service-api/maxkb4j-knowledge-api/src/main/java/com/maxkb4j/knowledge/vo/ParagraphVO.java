@@ -1,25 +1,28 @@
 package com.maxkb4j.knowledge.vo;
 
-import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.maxkb4j.common.typehandler.JSONBTypeHandler;
-import com.maxkb4j.knowledge.entity.DocumentEntity;
-import com.maxkb4j.knowledge.entity.ParagraphEntity;
+import com.maxkb4j.knowledge.consts.HitHandlingMethod;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class ParagraphVO extends ParagraphEntity {
+public class ParagraphVO {
+    private String id;
     private String knowledgeName;
     private Integer knowledgeType;
     private String documentName;
     private String hitHandlingMethod;
     private Double similarity;
     private Double directlyReturnSimilarity;
-    @TableField(typeHandler = JSONBTypeHandler.class)
-    private JSONObject meta;
+
     private Double comprehensiveScore;
+
+    private String title;
+    private String content;
+    private String status;
+    private Integer hitNum;
+    private Boolean isActive;
+    private String knowledgeId;
+    private String documentId;
+    private Integer position;
 
     /**
      * 是否应“直接返回”：命中处理方式为 {@link DocumentEntity#HIT_HANDLING_DIRECTLY_RETURN}
@@ -29,7 +32,7 @@ public class ParagraphVO extends ParagraphEntity {
      * 以表达“判定谓词”语义。同时对 {@code similarity}/{@code directlyReturnSimilarity} 为 null 做兜底，避免拆箱 NPE。</p>
      */
     public boolean shouldDirectlyReturn() {
-        return DocumentEntity.HIT_HANDLING_DIRECTLY_RETURN.equals(hitHandlingMethod)
+        return HitHandlingMethod.HIT_HANDLING_DIRECTLY_RETURN.equals(hitHandlingMethod)
                 && similarity != null
                 && directlyReturnSimilarity != null
                 && similarity >= directlyReturnSimilarity;

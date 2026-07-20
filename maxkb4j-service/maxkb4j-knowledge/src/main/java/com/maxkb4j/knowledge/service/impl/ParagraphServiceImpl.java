@@ -6,6 +6,9 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.knowledge.dto.ParagraphDTO;
+import com.maxkb4j.knowledge.dto.ProblemDTO;
 import com.maxkb4j.knowledge.event.GenerateProblemEvent;
 import com.maxkb4j.knowledge.event.ParagraphIndexEvent;
 import com.maxkb4j.knowledge.consts.SourceType;
@@ -90,11 +93,15 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
             log.info("结束---->向量化段落:{}", paragraph.getId());
         }
     }
+    public void createIndexBatch1(List<ParagraphEntity> paragraphs, EmbeddingModel embeddingModel) {
+        for (ParagraphEntity paragraph : paragraphs) {
+            createIndex(paragraph, embeddingModel);
+        }
+    }
 
     /**
      * Batch create index for multiple paragraphs with optimized processing
      */
-    @Override
     public void createIndexBatch(List<ParagraphEntity> paragraphs, EmbeddingModel embeddingModel) {
         if (CollectionUtils.isEmpty(paragraphs)) {
             return;
@@ -150,13 +157,18 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
     @Override
-    public List<String> noActiveList(List<String> knowledgeIds, List<String> excludeDocumentIds) {
+    public List<ParagraphDTO> listDtoByIds(List<String> ids) {
+        return BeanUtil.copyList(baseMapper.selectByIds(ids), ParagraphDTO.class);
+    }
+
+    @Override
+    public List<String> getNoActiveParagraphIds(List<String> knowledgeIds, List<String> excludeDocIds) {
         LambdaQueryWrapper<ParagraphEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.select(ParagraphEntity::getId);
         queryWrapper.in(ParagraphEntity::getKnowledgeId, knowledgeIds);
         queryWrapper.eq(ParagraphEntity::getIsActive, false);
-        if (!CollectionUtils.isEmpty(excludeDocumentIds)){
-            queryWrapper.notIn(ParagraphEntity::getDocumentId, excludeDocumentIds);
+        if (!CollectionUtils.isEmpty(excludeDocIds)){
+            queryWrapper.notIn(ParagraphEntity::getDocumentId, excludeDocIds);
         }
         List<ParagraphEntity> paragraphs = super.list(queryWrapper);
         return paragraphs.stream().map(ParagraphEntity::getId).toList();
@@ -184,11 +196,11 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
 
     @Transactional
     public boolean saveParagraphAndProblem(String knowledgeId, String docId, ParagraphAddDTO addDTO) {
-        ParagraphEntity paragraph= createParagraph(knowledgeId, docId, addDTO.getTitle(), addDTO.getContent(),addDTO.getPosition());
-        List<ProblemEntity> problemList = addDTO.getProblemList();
+        ParagraphDTO paragraph= new ParagraphDTO(knowledgeId, docId, addDTO.getTitle(), addDTO.getContent(),addDTO.getPosition());
+        List<ProblemDTO> problemList = addDTO.getProblemList();
         List<String> problems = new ArrayList<>();
         if (!CollectionUtils.isEmpty(problemList)) {
-            problems =problemList.stream().map(ProblemEntity::getContent).toList();
+            problems =problemList.stream().map(ProblemDTO::getContent).toList();
         }
         return saveParagraphAndProblem(paragraph, problems);
     }
@@ -196,8 +208,8 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
 
 
     @Transactional
-    public boolean saveParagraphAndProblem(ParagraphEntity paragraph, List<String> problems) {
-        this.save(paragraph);
+    public boolean saveParagraphAndProblem(ParagraphDTO paragraph, List<String> problems) {
+        this.save(BeanUtil.copy(paragraph, ParagraphEntity.class));
         if (!CollectionUtils.isEmpty(problems)) {
             List<ProblemParagraphEntity> problemParagraphMappingEntities = new ArrayList<>();
             for (String problem : problems) {
@@ -249,19 +261,20 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
 
+    @Override
     @Transactional
-    public void saveBatch(List<ParagraphEntity> paragraphs) {
-        Map<String,List<ParagraphEntity>> knowledgeGroup = paragraphs.stream()
+    public boolean saveDtoBatch(List<ParagraphDTO> paragraphs) {
+        Map<String,List<ParagraphDTO>> knowledgeGroup = paragraphs.stream()
                 .filter(e -> e.getKnowledgeId() != null)
-                .collect(Collectors.groupingBy(ParagraphEntity::getKnowledgeId));
+                .collect(Collectors.groupingBy(ParagraphDTO::getKnowledgeId));
         knowledgeGroup.forEach((knowledgeId,knowledgeParagraphs)->{
-            Map<String,List<ParagraphEntity>> docGroup = knowledgeParagraphs.stream()
+            Map<String,List<ParagraphDTO>> docGroup = knowledgeParagraphs.stream()
                     .filter(e -> e.getDocumentId() != null)
-                    .collect(Collectors.groupingBy(ParagraphEntity::getDocumentId));
+                    .collect(Collectors.groupingBy(ParagraphDTO::getDocumentId));
             docGroup.forEach((docId,docParagraphs)->{
                 long count = this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, docId).count();
                 int position= (int) (count+1);
-                for (ParagraphEntity paragraph : docParagraphs) {
+                for (ParagraphDTO paragraph : docParagraphs) {
                     if (paragraph.getTitle()!=null&&paragraph.getTitle().trim().length()>256){
                         paragraph.setTitle(paragraph.getTitle().substring(0,256));
                     }
@@ -270,7 +283,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
                 }
             });
         });
-        super.saveBatch(paragraphs);
+       return super.saveBatch(BeanUtil.copyList(paragraphs, ParagraphEntity.class));
     }
 
 
@@ -366,6 +379,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
 
     }
 
+    @Override
     @Transactional
     public boolean deleteById(String knowledgeId,String paragraphId) {
         compositeStore.deleteByParagraphId(knowledgeId, paragraphId);

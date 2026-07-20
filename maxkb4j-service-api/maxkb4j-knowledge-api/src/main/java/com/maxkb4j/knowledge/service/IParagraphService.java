@@ -1,32 +1,16 @@
 package com.maxkb4j.knowledge.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
+
 import com.maxkb4j.knowledge.dto.ParagraphAddDTO;
-import com.maxkb4j.knowledge.entity.ParagraphEntity;
-import dev.langchain4j.model.embedding.EmbeddingModel;
+import com.maxkb4j.knowledge.dto.ParagraphDTO;
 
 import java.util.List;
 
-public interface IParagraphService extends IService<ParagraphEntity> {
-    ParagraphEntity createParagraph(String knowledgeId, String docId, String title, String content,Integer  position);
+public interface IParagraphService {
+    List<ParagraphDTO> listDtoByIds(List<String> ids);
+    List<String> getNoActiveParagraphIds(List<String> knowledgeIds, List<String> excludeDocIds);
+    boolean saveDtoBatch(List<ParagraphDTO> paragraphDTOList);
     boolean saveParagraphAndProblem(String knowledgeId, String docId, ParagraphAddDTO addDTO);
-    boolean saveParagraphAndProblem(ParagraphEntity paragraph, List<String> problems);
+    boolean saveParagraphAndProblem(ParagraphDTO paragraph, List<String> problems);
     boolean deleteById(String knowledgeId,String paragraphId);
-    List<ParagraphEntity> listByStateIds(String docId,int type, List<String> stateList);
-    void updateStatusById(String id, int type, int status);
-    void updateStatusByIds(List<String> ids, int type, int status);
-    void createIndex(ParagraphEntity paragraph, EmbeddingModel embeddingModel);
-
-    /**
-     * Batch create index for multiple paragraphs
-     * @param paragraphs list of paragraphs to index
-     * @param embeddingModel embedding model for vectorization
-     */
-    default void createIndexBatch(List<ParagraphEntity> paragraphs, EmbeddingModel embeddingModel) {
-        for (ParagraphEntity paragraph : paragraphs) {
-            createIndex(paragraph, embeddingModel);
-        }
-    }
-
-    List<String> noActiveList(List<String> knowledgeIds, List<String> excludeDocumentIds);
 }

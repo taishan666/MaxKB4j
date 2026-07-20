@@ -1,7 +1,10 @@
 package com.maxkb4j.knowledge.entity;
 
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.maxkb4j.common.mp.base.BaseEntity;
+import com.maxkb4j.common.typehandler.JSONBTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -21,6 +24,8 @@ public class ParagraphEntity extends BaseEntity {
 	private String knowledgeId;
 	private String documentId;
 	private Integer position;
+	@TableField(typeHandler = JSONBTypeHandler.class)
+	private JSONObject meta;
 /*	@TableField(typeHandler = JOSNBTypeHandler.class,fill = FieldFill.INSERT)
 	private JSONObject statusMeta;*/
 

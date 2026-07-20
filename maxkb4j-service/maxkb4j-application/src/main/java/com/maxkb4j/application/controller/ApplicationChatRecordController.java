@@ -7,12 +7,12 @@ import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.service.ApplicationChatRecordService;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.common.annotation.SaCheckPerm;
-import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
-import com.maxkb4j.knowledge.entity.ParagraphEntity;
-import lombok.RequiredArgsConstructor;
+import com.maxkb4j.knowledge.dto.ParagraphDTO;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -60,7 +60,7 @@ public class ApplicationChatRecordController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/improve")
-    public R<List<ParagraphEntity>> improveChatLog(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @PathVariable("chatRecordId") String chatRecordId) {
+    public R<List<ParagraphDTO>> improveChatLog(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @PathVariable("chatRecordId") String chatRecordId) {
         return R.data(chatRecordService.improveChatLog(chatRecordId));
     }
 

@@ -12,6 +12,7 @@ import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.knowledge.dto.KnowledgeQuery;
+import com.maxkb4j.knowledge.dto.KnowledgeSimple;
 import com.maxkb4j.knowledge.dto.WebKnowledgeDTO;
 import com.maxkb4j.knowledge.entity.*;
 import com.maxkb4j.knowledge.event.CreateWebDocsEvent;
@@ -211,8 +212,13 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
     }
 
     @Override
-    public List<KnowledgeEntity> listNameAndDescByIds(List<String> knowledgeIds) {
-        return this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc).in(KnowledgeEntity::getId, knowledgeIds).list();
+    public List<KnowledgeSimple> listNameAndDescByIds(List<String> knowledgeIds) {
+        List<KnowledgeEntity> list = this.lambdaQuery()
+                .select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc)
+                .in(KnowledgeEntity::getId, knowledgeIds)
+                .orderByDesc(KnowledgeEntity::getCreateTime)
+                .list();
+        return BeanUtil.copyList(list, KnowledgeSimple.class);
     }
 
 

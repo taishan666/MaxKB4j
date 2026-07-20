@@ -2,7 +2,6 @@ package com.maxkb4j.knowledge.retriever;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.knowledge.consts.SearchType;
-import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.retrieval.SearchMode;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.IDocumentService;
@@ -53,13 +52,9 @@ public class DataRetriever {
         request.setTopK(maxResults);
         request.setMinScore(minScore);
         request.setMode(SEARCH_MODE_MAP.get(searchMode));
-        List<DocumentEntity> excludeDocuments = documentService.lambdaQuery()
-                .select(DocumentEntity::getId)
-                .in(DocumentEntity::getKnowledgeId, knowledgeIds)
-                .eq(DocumentEntity::getIsActive, false)
-                .list();
-        if (CollectionUtils.isNotEmpty(excludeDocuments)){
-            request.setExcludeDocumentIds(excludeDocuments.stream().map(DocumentEntity::getId).toList());
+        List<String> excludeDocIds = documentService.getNoActiveDocIds(knowledgeIds);
+        if (CollectionUtils.isNotEmpty(excludeDocIds)){
+            request.setExcludeDocumentIds(excludeDocIds);
         }
         return getStore(searchMode).search(request);
     }

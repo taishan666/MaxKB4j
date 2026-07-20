@@ -18,10 +18,10 @@ import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
-import com.maxkb4j.common.domain.dto.ParagraphDTO;
+import com.maxkb4j.common.domain.dto.ParagraphRecordDTO;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.PageUtil;
-import com.maxkb4j.knowledge.entity.ParagraphEntity;
+import com.maxkb4j.knowledge.dto.ParagraphDTO;
 import com.maxkb4j.knowledge.service.IParagraphService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -99,7 +99,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                 JSONArray paragraphList = searchStep.getJSONArray("paragraphList");
                 if (!CollectionUtils.isEmpty(paragraphList)) {
                     String json = JSONObject.toJSONString(paragraphList);
-                    chatRecordVO.setParagraphList(JSON.parseArray(json, ParagraphDTO.class));
+                    chatRecordVO.setParagraphList(JSON.parseArray(json, ParagraphRecordDTO.class));
                 }
             }
             JSONObject problemPadding = details.getJSONObject("problem_padding");
@@ -117,7 +117,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                     if (showKnowledge) {
                         Object paragraphListObj = detail.get("paragraphList"); // 假设每个节点都有 id 字段
                         if (paragraphListObj != null) {
-                            List<ParagraphDTO> list = (List<ParagraphDTO>) paragraphListObj;
+                            List<ParagraphRecordDTO> list = (List<ParagraphRecordDTO>) paragraphListObj;
                             chatRecordVO.getParagraphList().addAll(list);
                         }
                     }
@@ -159,21 +159,21 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
     @Transactional
     public boolean addChatLogs(String appId, AddChatImproveDTO dto) {
         List<ApplicationChatRecordEntity> chatRecords = this.lambdaQuery().select(ApplicationChatRecordEntity::getProblemText, ApplicationChatRecordEntity::getAnswerText).in(ApplicationChatRecordEntity::getChatId, dto.getChatIds()).list();
-        List<ParagraphEntity> paragraphs=new ArrayList<>();
+        List<ParagraphDTO> paragraphs=new ArrayList<>();
         for (ApplicationChatRecordEntity e : chatRecords) {
-            ParagraphEntity paragraphEntity = paragraphService.createParagraph(dto.getKnowledgeId(), dto.getDocumentId(), e.getProblemText(), e.getAnswerText(), null);
-            paragraphs.add(paragraphEntity);
+            ParagraphDTO paragraphDTO= new ParagraphDTO(dto.getKnowledgeId(), dto.getDocumentId(), e.getProblemText(), e.getAnswerText(), null);
+            paragraphs.add(paragraphDTO);
         }
-        return paragraphService.saveBatch(paragraphs);
+        return paragraphService.saveDtoBatch(paragraphs);
     }
 
     @Transactional
     public ApplicationChatRecordEntity improveChatLog(String chatId, String chatRecordId, String knowledgeId, String docId, ChatImproveDTO dto) {
-        ParagraphEntity paragraphEntity = paragraphService.createParagraph(knowledgeId, docId, dto.getTitle(), dto.getContent(), null);
-        paragraphService.saveParagraphAndProblem(paragraphEntity,List.of(dto.getProblemText()));
+        ParagraphDTO paragraphDTO = new ParagraphDTO(knowledgeId, docId, dto.getTitle(), dto.getContent(), null);
+        paragraphService.saveParagraphAndProblem(paragraphDTO,List.of(dto.getProblemText()));
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
         chatRecord.setId(chatRecordId);
-        chatRecord.setImproveParagraphIdList(List.of(paragraphEntity.getId()));
+        chatRecord.setImproveParagraphIdList(List.of(paragraphDTO.getId()));
         this.updateById(chatRecord);
         ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
         ApplicationChatEntity updateChatEntity=new ApplicationChatEntity();
@@ -199,9 +199,9 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
         return paragraphService.deleteById(knowledgeId,paragraphId);
     }
 
-    public List<ParagraphEntity> improveChatLog(String chatRecordId) {
+    public List<ParagraphDTO> improveChatLog(String chatRecordId) {
         ApplicationChatRecordEntity chatRecord =this.getById(chatRecordId);
-        return paragraphService.listByIds(chatRecord.getImproveParagraphIdList());
+        return paragraphService.listDtoByIds(chatRecord.getImproveParagraphIdList());
     }
 
     public List<ApplicationChatRecordEntity> listByAppIdAndChatUserId(String applicationId, String chatUserId,int pageSize,int offset) {

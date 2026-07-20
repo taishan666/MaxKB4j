@@ -1,11 +1,10 @@
 package com.maxkb4j.knowledge.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class ProblemDTO {
-    private String id;
+    @NotBlank(message = "内容不能为空")
     private String content;
-    private Integer hitNum;
-    private String knowledgeId;
 }

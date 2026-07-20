@@ -29,7 +29,7 @@ public abstract class BaseStoreImpl implements IDataStore {
      */
     protected List<String> resolveExcludeParagraphIds(SearchRequest request, IParagraphService paragraphService) {
         List<String> excludeParagraphIds = new ArrayList<>();
-        List<String> noActiveParagraphIds = paragraphService.noActiveList(
+        List<String> noActiveParagraphIds = paragraphService.getNoActiveParagraphIds(
                 request.getKnowledgeIds(), request.getExcludeDocumentIds());
         if (CollectionUtils.isNotEmpty(noActiveParagraphIds)) {
             excludeParagraphIds.addAll(noActiveParagraphIds);

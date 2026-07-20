@@ -8,7 +8,7 @@ import com.maxkb4j.application.pipeline.step.searchdatasetstep.AbsSearchDatasetS
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.core.assistant.RouterAssistant;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
-import com.maxkb4j.knowledge.entity.KnowledgeEntity;
+import com.maxkb4j.knowledge.dto.KnowledgeSimple;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
 import com.maxkb4j.knowledge.service.IRetrieveService;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
@@ -49,10 +49,10 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
                         .chatModel(chatModel)
                         .build();
                 List<String> options=new ArrayList<>();
-                List<KnowledgeEntity> knowledgeList =knowledgeService.listNameAndDescByIds(knowledgeIds);
+                List<KnowledgeSimple> knowledgeList =knowledgeService.listNameAndDescByIds(knowledgeIds);
                 Map<String, String> idToClassification=new HashMap<>();
                 for (int i = 0; i < knowledgeList.size(); i++) {
-                    KnowledgeEntity knowledge=knowledgeList.get(i);
+                    KnowledgeSimple knowledge=knowledgeList.get(i);
                     int id = i + 1;
                     options.add(id+ ":" + knowledge.getName()+"("+knowledge.getDesc()+")");
                     idToClassification.put(String.valueOf(id), knowledge.getId());

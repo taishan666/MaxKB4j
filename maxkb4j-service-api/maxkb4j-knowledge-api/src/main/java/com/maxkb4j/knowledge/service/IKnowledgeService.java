@@ -1,11 +1,10 @@
 package com.maxkb4j.knowledge.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.maxkb4j.knowledge.entity.KnowledgeEntity;
+import com.maxkb4j.knowledge.dto.KnowledgeSimple;
 
 import java.util.List;
 
-public interface IKnowledgeService extends IService<KnowledgeEntity> {
+public interface IKnowledgeService {
 
-    List<KnowledgeEntity> listNameAndDescByIds(List<String> knowledgeIds);
+    List<KnowledgeSimple> listNameAndDescByIds(List<String> knowledgeIds);
 }

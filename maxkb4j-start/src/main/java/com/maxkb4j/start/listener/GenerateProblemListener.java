@@ -1,13 +1,13 @@
 package com.maxkb4j.start.listener;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.maxkb4j.knowledge.event.GenerateProblemEvent;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
+import com.maxkb4j.knowledge.event.GenerateProblemEvent;
 import com.maxkb4j.knowledge.service.IDocumentService;
-import com.maxkb4j.knowledge.service.IParagraphService;
 import com.maxkb4j.knowledge.service.IProblemService;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
+import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
 import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -25,7 +25,7 @@ import java.util.List;
 public class GenerateProblemListener {
 
     private final IDocumentService documentService;
-    private final IParagraphService paragraphService;
+    private final ParagraphServiceImpl paragraphService;
     private final IModelProviderService modelFactory;
     private final IProblemService problemService;
     private final KnowledgeModelService knowledgeModelService;

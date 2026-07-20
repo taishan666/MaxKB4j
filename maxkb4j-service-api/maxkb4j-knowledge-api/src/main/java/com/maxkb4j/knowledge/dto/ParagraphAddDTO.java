@@ -1,6 +1,5 @@
 package com.maxkb4j.knowledge.dto;
 
-import com.maxkb4j.knowledge.entity.ProblemEntity;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -13,7 +12,7 @@ public class ParagraphAddDTO  {
     @NotBlank(message = "内容不能为空")
     private String content;
     private Integer position;
-    private List<ProblemEntity> problemList;
+    private List<ProblemDTO> problemList;
 
 
 }

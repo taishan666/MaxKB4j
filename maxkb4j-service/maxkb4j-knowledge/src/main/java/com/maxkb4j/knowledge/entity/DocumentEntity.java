@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.maxkb4j.common.mp.base.BaseEntity;
 import com.maxkb4j.common.typehandler.JSONBTypeHandler;
+import com.maxkb4j.knowledge.consts.HitHandlingMethod;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -46,10 +47,7 @@ public class DocumentEntity extends BaseEntity {
 
 	/** 名称最大字符数 */
 	public static final int MAX_NAME_LENGTH = 150;
-	/** 命中处理方式：直接返回（相似度达标时直接返回段落内容，不再走 LLM） */
-	public static final String HIT_HANDLING_DIRECTLY_RETURN = "directlyReturn";
-	/** 命中处理方式：优化（交由 LLM 结合段落内容作答） */
-	public static final String HIT_HANDLING_OPTIMIZATION = "optimization";
+
 	/** 默认直接返回相似度阈值 */
 	public static final double DEFAULT_DIRECTLY_RETURN_SIMILARITY = 0.9;
 	/** 文档初始状态码 */
@@ -66,7 +64,7 @@ public class DocumentEntity extends BaseEntity {
 		this.charLength = 0;
 		this.meta = new JSONObject();
 		this.statusMeta = new JSONObject();
-		this.hitHandlingMethod = HIT_HANDLING_OPTIMIZATION;
+		this.hitHandlingMethod = HitHandlingMethod.HIT_HANDLING_OPTIMIZATION;
 		this.directlyReturnSimilarity = DEFAULT_DIRECTLY_RETURN_SIMILARITY;
 	}
 }

@@ -166,6 +166,16 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
         return documentWriteService.batchCreateDocs(knowledgeId, knowledgeType, docs);
     }
 
+    @Override
+    public List<String> getNoActiveDocIds(List<String> knowledgeIds) {
+        List<DocumentEntity> excludeDocuments = this.lambdaQuery()
+                .select(DocumentEntity::getId)
+                .in(DocumentEntity::getKnowledgeId, knowledgeIds)
+                .eq(DocumentEntity::getIsActive, false)
+                .list();
+        return excludeDocuments.stream().map(DocumentEntity::getId).toList();
+    }
+
     @Transactional
     public boolean deleteDocByIds(String knowledgeId, List<String> docIds) {
         if (CollectionUtils.isEmpty(docIds)) {
