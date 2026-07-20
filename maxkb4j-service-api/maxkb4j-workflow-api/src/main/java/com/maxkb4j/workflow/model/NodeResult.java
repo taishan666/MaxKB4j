@@ -147,7 +147,7 @@ public class NodeResult {
         /**
          * 设置节点的回答文本（非流式）
          * <p>
-         * 注意：方法名 {@code success} 仅表示"成功返回的答案"，与 {@link NodeResultFuture#getStatus()}
+         * 注意：方法名 {@code success} 仅表示"成功返回的答案"，与 {@code NodeResultFuture#getStatus()}
          * 的成功状态无关。{@code NodeResult} 本身不携带 status 概念。
          *
          * @param answer 答案内容
