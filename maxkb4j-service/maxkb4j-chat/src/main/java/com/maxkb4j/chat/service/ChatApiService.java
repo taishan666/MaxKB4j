@@ -1,13 +1,11 @@
 package com.maxkb4j.chat.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.maxkb4j.application.entity.*;
+import com.maxkb4j.application.dto.*;
 import com.maxkb4j.application.service.IApplicationAccessTokenService;
 import com.maxkb4j.application.service.IApplicationChatRecordService;
 import com.maxkb4j.application.service.IApplicationChatService;
@@ -49,7 +47,7 @@ public class ChatApiService {
 
     public String authToken(JSONObject params) {
         String accessToken = params.getString("accessToken");
-        ApplicationAccessTokenEntity accessTokenEntity = accessTokenService.getByAccessToken(accessToken);
+        ApplicationAccessTokenDTO accessTokenEntity = accessTokenService.getByAccessToken(accessToken);
         if (accessTokenEntity == null){
             throw new ApiException("application.app.not.found");
         }
@@ -66,8 +64,8 @@ public class ChatApiService {
         return chatTokenService.issueAnonymousToken(chatUserId, extraData);
     }
 
-    public ApplicationEntity appProfile(String appId) {
-        ApplicationAccessTokenEntity appAccessToken = accessTokenService.getById(appId);
+    public ApplicationVO appProfile(String appId) {
+        ApplicationAccessTokenDTO appAccessToken = accessTokenService.getByAppId(appId);
         ApplicationVO application = applicationService.appProfile(appId);
         if (appAccessToken != null && application != null) {
             application.setLanguage(appAccessToken.getLanguage());
@@ -77,41 +75,35 @@ public class ChatApiService {
         return application;
     }
 
-    public Page<ApplicationChatEntity> historicalConversation(int current, int size) {
+    public IPage<ApplicationChatDTO> historicalConversation(int current, int size) {
         String appId = (String) StpKit.USER.getExtra("applicationId");
         String userId = StpKit.USER.getLoginIdAsString();
-        Page<ApplicationChatEntity> page = new Page<>(current, size);
-        LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
-        wrapper.orderByDesc(ApplicationChatEntity::getCreateTime);
-        return chatService.page(page, wrapper);
+        return chatService.page(appId, userId, current, size);
     }
 
     public boolean historicalConversationClear() {
         String appId = (String) StpKit.USER.getExtra("applicationId");
         String userId = StpKit.USER.getLoginIdAsString();
-        LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
-        return chatService.remove(wrapper);
+        return chatService.clear(appId, userId);
     }
 
     @Transactional
-    public boolean updateConversation(String chatId, String chatRecordId, ApplicationChatRecordEntity chatRecord) {
+    public boolean updateConversation(String chatId, String chatRecordId, ApplicationChatRecordDTO chatRecord) {
         chatRecord.setChatId(chatId);
         chatRecord.setId(chatRecordId);
-        chatRecordService.updateById(chatRecord);
-        List<ApplicationChatRecordEntity> chatRecordEntities = chatRecordService.lambdaQuery().select(ApplicationChatRecordEntity::getVoteStatus).eq(ApplicationChatRecordEntity::getChatId, chatId).list();
-        ApplicationChatEntity chatEntity = new ApplicationChatEntity();
-        chatEntity.setId(chatId);
+        chatRecordService.updateDtoById(chatRecord);
+        List<ApplicationChatRecordDTO> chatRecordEntities = chatRecordService.listVoteStatusByChatId(chatId);
+        ApplicationChatDTO chatDTO = new ApplicationChatDTO();
+        chatDTO.setId(chatId);
         int starNum = (int) chatRecordEntities.stream().filter(item -> item.getVoteStatus().equals("0")).count();
         int trampleNum = (int) chatRecordEntities.stream().filter(item -> item.getVoteStatus().equals("1")).count();
-        chatEntity.setStarNum(starNum);
-        chatEntity.setTrampleNum(trampleNum);
-        return chatService.updateById(chatEntity);
+        chatDTO.setStarNum(starNum);
+        chatDTO.setTrampleNum(trampleNum);
+        return chatService.updateDtoById(chatDTO);
     }
 
     @Async
-    public void mcpHandleAsync(ApplicationApiKeyEntity apiKey, McpRequest req, ResponseBodyEmitter emitter) {
+    public void mcpHandleAsync(ApplicationApiKeyDTO apiKey, McpRequest req, ResponseBodyEmitter emitter) {
         McpResponse resp = this.mcpHandle(apiKey,req);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         try {
@@ -124,7 +116,7 @@ public class ChatApiService {
 
     }
 
-    public McpResponse mcpHandle(ApplicationApiKeyEntity apiKey, McpRequest req) {
+    public McpResponse mcpHandle(ApplicationApiKeyDTO apiKey, McpRequest req) {
         McpResponse resp = new McpResponse();
         resp.id = req.id;
         try {
@@ -140,9 +132,7 @@ public class ChatApiService {
                 );
                 case "notifications/initialized", "ping" -> resp.result = Map.of();
                 case "tools/list" -> {
-                    ApplicationEntity app = applicationService.lambdaQuery()
-                            .select(ApplicationEntity::getName, ApplicationEntity::getDesc)
-                            .eq(ApplicationEntity::getId, apiKey.getApplicationId()).one();
+                    ApplicationSimple app = applicationService.getAppSimpleById(apiKey.getApplicationId());
                     resp.result = Map.of("tools", List.of(
                             Map.of(
                                     "name", String.format("agent_%s", apiKey.getApplicationId()),

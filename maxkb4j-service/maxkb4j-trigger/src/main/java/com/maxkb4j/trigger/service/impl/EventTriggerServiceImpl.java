@@ -7,8 +7,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.service.IApplicationService;
+import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.context.UserContext;
@@ -221,7 +221,7 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
         Optional<EventTriggerTaskEntity> sourceTask = allTasks.stream().filter(task -> sourceType.equals(task.getSourceType()) && sourceId.equals(task.getSourceId())).findFirst();
         if (sourceTask.isPresent()) {
             if (ResourceType.APPLICATION.equals(sourceType)) {
-                ApplicationEntity app =applicationService.getById(sourceTask.get().getSourceId());
+                ApplicationVO app =applicationService.getDtoById(sourceTask.get().getSourceId());
                 vo.setApplicationTask(BeanUtil.copy(app, ApplicationTaskVO.class));
             } else if (ResourceType.TOOL.equals(sourceType)) {
                 ToolDTO tool =toolService.getDtoById(sourceTask.get().getSourceId());

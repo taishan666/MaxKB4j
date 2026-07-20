@@ -1,8 +1,8 @@
 package com.maxkb4j.application.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
+import com.maxkb4j.application.dto.ApplicationAccessTokenDTO;
 
-public interface IApplicationAccessTokenService extends IService<ApplicationAccessTokenEntity> {
-    ApplicationAccessTokenEntity getByAccessToken(String accessToken);
+public interface IApplicationAccessTokenService {
+    ApplicationAccessTokenDTO getByAccessToken(String accessToken);
+    ApplicationAccessTokenDTO getByAppId(String appId);
 }

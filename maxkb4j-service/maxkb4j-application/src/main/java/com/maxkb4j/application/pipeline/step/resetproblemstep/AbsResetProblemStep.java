@@ -1,9 +1,9 @@
 package com.maxkb4j.application.pipeline.step.resetproblemstep;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.pipeline.AbsStep;
 import com.maxkb4j.application.pipeline.PipelineManage;
+import com.maxkb4j.application.vo.ApplicationVO;
 import dev.langchain4j.data.message.ChatMessage;
 
 import java.util.List;
@@ -12,7 +12,7 @@ public abstract class AbsResetProblemStep extends AbsStep {
 
     @Override
     protected void _run(PipelineManage manage) {
-        ApplicationEntity application = manage.application;
+        ApplicationVO application = manage.application;
         String modelId = application.getModelId();
         JSONObject modelParams = application.getModelParamsSetting();
         String question = manage.chatParams.getMessage();

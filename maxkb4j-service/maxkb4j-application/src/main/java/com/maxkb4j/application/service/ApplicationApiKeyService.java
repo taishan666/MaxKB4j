@@ -2,10 +2,12 @@ package com.maxkb4j.application.service;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.maxkb4j.application.dto.ApplicationApiKeyDTO;
 import com.maxkb4j.application.entity.ApplicationApiKeyEntity;
 import com.maxkb4j.application.mapper.ApplicationApiKeyMapper;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.context.UserContext;
+import com.maxkb4j.common.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +48,8 @@ public class ApplicationApiKeyService extends ServiceImpl<ApplicationApiKeyMappe
         return this.removeById(apiKeyId);
     }
 
-    public ApplicationApiKeyEntity getBySecretKey(String secretKey) {
-        return this.lambdaQuery().eq(ApplicationApiKeyEntity::getSecretKey, secretKey).one();
+    public ApplicationApiKeyDTO getBySecretKey(String secretKey) {
+        ApplicationApiKeyEntity entity = new ApplicationApiKeyEntity(); this.lambdaQuery().eq(ApplicationApiKeyEntity::getSecretKey, secretKey).one();
+        return BeanUtil.copy(entity, ApplicationApiKeyDTO.class);
     }
 }

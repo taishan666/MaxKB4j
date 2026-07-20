@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.builder.ChatServiceBuilder;
+import com.maxkb4j.application.dto.ApplicationChatDTO;
 import com.maxkb4j.application.dto.ChatQueryDTO;
 import com.maxkb4j.application.dto.ShareChatDTO;
 import com.maxkb4j.application.entity.*;
@@ -26,6 +28,7 @@ import com.maxkb4j.common.exception.AccessNumLimitException;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
+import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.common.util.StpKit;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -201,6 +204,27 @@ public class ApplicationChatService extends ServiceImpl<ApplicationChatMapper, A
         chatShareLink.setShareType(ShareLinkType.PUBLIC.name());
         chatShareLinkMapper.insert(chatShareLink);
         return Map.of("link", chatShareLink.getId());
+    }
+
+    @Override
+    public IPage<ApplicationChatDTO> page(String appId, String userId, int current, int size) {
+        Page<ApplicationChatEntity> page = new Page<>(current, size);
+        LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
+        wrapper.orderByDesc(ApplicationChatEntity::getCreateTime);
+        return PageUtil.copy(this.page(page, wrapper), ApplicationChatDTO.class);
+    }
+
+    @Override
+    public boolean clear(String appId, String userId) {
+        LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
+        return this.remove(wrapper);
+    }
+
+    @Override
+    public boolean updateDtoById(ApplicationChatDTO applicationChatDTO) {
+        return this.updateById(BeanUtil.copy(applicationChatDTO, ApplicationChatEntity.class));
     }
 
     @Override

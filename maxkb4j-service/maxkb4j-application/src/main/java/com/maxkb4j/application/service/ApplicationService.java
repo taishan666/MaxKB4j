@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.dto.ApplicationDTO;
 import com.maxkb4j.application.dto.ApplicationQuery;
+import com.maxkb4j.application.dto.ApplicationSimple;
 import com.maxkb4j.application.dto.MaxKb4J;
 import com.maxkb4j.application.entity.*;
 import com.maxkb4j.application.enums.AppType;
@@ -211,6 +212,38 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
         } else {
             return this.getPublishedDetail(appId);
         }
+    }
+
+    @Override
+    public ApplicationSimple getAppSimpleById(String appId) {
+        ApplicationEntity app = this.lambdaQuery()
+                .select(ApplicationEntity::getId,ApplicationEntity::getName, ApplicationEntity::getDesc, ApplicationEntity::getIcon)
+                .eq(ApplicationEntity::getId, appId).one();
+        return BeanUtil.copy(app, ApplicationSimple.class);
+    }
+
+    @Override
+    public List<ApplicationSimple> listAppSimpleByIds(List<String> applicationIds) {
+        LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery(ApplicationEntity.class)
+                .select(ApplicationEntity::getId,ApplicationEntity::getName, ApplicationEntity::getDesc, ApplicationEntity::getIcon)
+                .in(ApplicationEntity::getId, applicationIds);
+        List<ApplicationEntity> list = this.list(wrapper);
+        return BeanUtil.copyList(list, ApplicationSimple.class);
+    }
+
+    @Override
+    public ApplicationVO getDtoById(String id) {
+        return BeanUtil.copy(this.getById(id), ApplicationVO.class);
+    }
+
+    @Override
+    public List<ApplicationVO> listDtoByIds(List<String> ids) {
+        return BeanUtil.copyList(this.listByIds(ids), ApplicationVO.class);
+    }
+
+    @Override
+    public List<Map<String, Object>> listMapsByIds(List<String> ids) {
+        return this.listMaps(new LambdaQueryWrapper<ApplicationEntity>().in(ApplicationEntity::getId, ids));
     }
 
     public ApplicationVO getDetail(String id) {

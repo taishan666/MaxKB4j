@@ -29,7 +29,14 @@ public class ApplicationAccessTokenService extends ServiceImpl<ApplicationAccess
         return this.getById(appId);
     }
 
-    public ApplicationAccessTokenEntity getByAccessToken(String accessToken) {
-        return this.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).eq(ApplicationAccessTokenEntity::getIsActive, true).one();
+    public ApplicationAccessTokenDTO getByAccessToken(String accessToken) {
+        ApplicationAccessTokenEntity entity = this.lambdaQuery().eq(ApplicationAccessTokenEntity::getAccessToken, accessToken).eq(ApplicationAccessTokenEntity::getIsActive, true).one();
+        return BeanUtil.copy(entity, ApplicationAccessTokenDTO.class);
+    }
+
+    @Override
+    public ApplicationAccessTokenDTO getByAppId(String appId) {
+        ApplicationAccessTokenEntity entity =this.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
+        return BeanUtil.copy(entity, ApplicationAccessTokenDTO.class);
     }
 }

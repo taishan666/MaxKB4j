@@ -1,14 +1,13 @@
-package com.maxkb4j.application.vo;
+package com.maxkb4j.application.dto;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.dto.ParagraphRecordDTO;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class ApplicationChatRecordVO{
+public class ApplicationChatRecordDTO {
     private String id;
     private String voteStatus;
     private String voteReason;
@@ -24,12 +23,4 @@ public class ApplicationChatRecordVO{
     private Integer index;
     private String chatId;
     private JSONArray answerTextList;
-    private List<ParagraphRecordDTO> paragraphList;
-    private String paddingProblemText;
-    private List<JSONObject> executionDetails;
-
-    public void setExecutionDetails(List<JSONObject> executionDetails) {
-        this.executionDetails = executionDetails;
-        this.setDetails(null);
-    }
 }

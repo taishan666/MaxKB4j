@@ -3,11 +3,10 @@ package com.maxkb4j.chat.controller;
 import cn.dev33.satoken.annotation.SaIgnore;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.maxkb4j.application.dto.ShareChatDTO;
-import com.maxkb4j.application.entity.*;
+import com.maxkb4j.application.dto.*;
 import com.maxkb4j.application.service.*;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
+import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.application.vo.ShareChatVO;
 import com.maxkb4j.chat.service.ChatApiService;
 import com.maxkb4j.chat.service.ChatEmbedService;
@@ -56,7 +55,7 @@ public class ChatApiController {
     @Hidden
     @GetMapping("/profile")
     public R<JSONObject> profile(String accessToken) {
-        ApplicationAccessTokenEntity appAccessToken = accessTokenService.getByAccessToken(accessToken);
+        ApplicationAccessTokenDTO appAccessToken = accessTokenService.getByAccessToken(accessToken);
         if (appAccessToken == null) {
             return R.fail(I18nUtil.get("application.app.not.found"));
         }
@@ -75,7 +74,7 @@ public class ChatApiController {
 
     @Operation(summary = "获取应用相关信息", description = "获取应用相关信息")
     @GetMapping("/application/profile")
-    public R<ApplicationEntity> appProfile() {
+    public R<ApplicationVO> appProfile() {
         if (StpKit.USER.isLogin()) {
             String appId = (String) StpKit.USER.getExtra("applicationId");
             return R.data(chatApiService.appProfile(appId));
@@ -121,7 +120,7 @@ public class ChatApiController {
     public ResponseBodyEmitter handleMcpRequest(@RequestBody McpRequest req) {
         ResponseBodyEmitter emitter = new ResponseBodyEmitter();
         String secretKey = WebUtil.getTokenValue();
-        ApplicationApiKeyEntity apiKey = apiKeyService.getBySecretKey(secretKey);
+        ApplicationApiKeyDTO apiKey = apiKeyService.getBySecretKey(secretKey);
         if (apiKey == null || !apiKey.getIsActive()) {
             emitter.completeWithError(new ApiException("chat.token.invalid.or.disabled"));
         } else {
@@ -134,7 +133,7 @@ public class ChatApiController {
 
     @Hidden
     @GetMapping("/historical_conversation/{current}/{size}")
-    public R<Page<ApplicationChatEntity>> historicalConversation(@PathVariable int current, @PathVariable int size) {
+    public R<IPage<ApplicationChatDTO>> historicalConversation(@PathVariable int current, @PathVariable int size) {
         return R.data(chatApiService.historicalConversation(current, size));
     }
 
@@ -146,9 +145,9 @@ public class ChatApiController {
 
     @Hidden
     @PutMapping("/historical_conversation/{chatId}")
-    public R<Boolean> updateConversation(@PathVariable String chatId, @RequestBody ApplicationChatEntity chatEntity) {
-        chatEntity.setId(chatId);
-        return R.status(chatService.updateById(chatEntity));
+    public R<Boolean> updateConversation(@PathVariable String chatId, @RequestBody ApplicationChatDTO chatDTO) {
+        chatDTO.setId(chatId);
+        return R.status(chatService.updateDtoById(chatDTO));
     }
 
     @Hidden
@@ -171,7 +170,7 @@ public class ChatApiController {
 
     @Hidden
     @PutMapping("/vote/chat/{chatId}/chat_record/{chatRecordId}")
-    public R<Boolean> updateConversation(@PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordEntity chatRecord) {
+    public R<Boolean> updateConversation(@PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordDTO chatRecord) {
         return R.status(chatApiService.updateConversation(chatId, chatRecordId, chatRecord));
     }
 

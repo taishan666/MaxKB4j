@@ -1,6 +1,6 @@
 package com.maxkb4j.chat.handler.impl;
 
-import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
+import com.maxkb4j.application.dto.ApplicationAccessTokenDTO;
 import com.maxkb4j.application.service.IApplicationAccessTokenService;
 import com.maxkb4j.chat.handler.AuthHandler;
 import com.maxkb4j.common.enums.ChatUserType;
@@ -25,7 +25,7 @@ public class ChatAnonymousTokenHandler implements AuthHandler {
     @Override
     public boolean handle(HttpServletResponse response) {
         String accessToken = (String) StpKit.USER.getExtra("accessToken");
-        ApplicationAccessTokenEntity token = accessTokenService.getByAccessToken(accessToken);
+        ApplicationAccessTokenDTO token = accessTokenService.getByAccessToken(accessToken);
         if (token == null || !token.getIsActive()) {
             log.warn("accessToken不合法或被禁用");
             ResponseProvider.write(response);

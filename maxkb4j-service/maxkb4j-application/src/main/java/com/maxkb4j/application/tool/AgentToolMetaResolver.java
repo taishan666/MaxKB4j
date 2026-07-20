@@ -1,6 +1,6 @@
 package com.maxkb4j.application.tool;
 
-import com.maxkb4j.application.entity.ApplicationEntity;
+import com.maxkb4j.application.dto.ApplicationSimple;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.tool.service.IAgentToolMetaResolver;
 import com.maxkb4j.tool.vo.ToolRenderMeta;
@@ -23,10 +23,7 @@ public class AgentToolMetaResolver implements IAgentToolMetaResolver {
 
     @Override
     public ToolRenderMeta resolve(String agentId) {
-        ApplicationEntity app = applicationService.lambdaQuery()
-                .select(ApplicationEntity::getIcon, ApplicationEntity::getName)
-                .eq(ApplicationEntity::getId, agentId)
-                .one();
+        ApplicationSimple app = applicationService.getAppSimpleById(agentId);
         return app == null ? null : new ToolRenderMeta(app.getIcon(), app.getName());
     }
 }

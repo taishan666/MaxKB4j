@@ -1,8 +1,6 @@
 package com.maxkb4j.application.tool;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.maxkb4j.application.entity.ApplicationEntity;
+import com.maxkb4j.application.dto.ApplicationSimple;
 import com.maxkb4j.application.executor.AgentExecutor;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.application.service.IApplicationService;
@@ -62,7 +60,7 @@ public class ApplicationToolServiceImpl implements IAgentToolService {
         if (applicationIds == null || applicationIds.isEmpty()) {
             return Collections.emptyList();
         }
-        List<ApplicationEntity> applications = queryApplications(applicationIds);
+        List<ApplicationSimple> applications = queryApplications(applicationIds);
         if (applications.isEmpty()) {
             return Collections.emptyList();
         }
@@ -74,17 +72,14 @@ public class ApplicationToolServiceImpl implements IAgentToolService {
     /**
      * 查询指定 ID 的应用列表（仅选取构建工具所需的字段）
      */
-    private List<ApplicationEntity> queryApplications(List<String> applicationIds) {
-        LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery(ApplicationEntity.class)
-                .select(ApplicationEntity::getId, ApplicationEntity::getName, ApplicationEntity::getDesc)
-                .in(ApplicationEntity::getId, applicationIds);
-        return applicationService.list(wrapper);
+    private List<ApplicationSimple> queryApplications(List<String> applicationIds) {
+        return applicationService.listAppSimpleByIds(applicationIds);
     }
 
     /**
      * 将单个应用实体构建为 AiServiceTool（工具规范 + 执行器）
      */
-    private AiServiceTool toAiServiceTool(ApplicationEntity app) {
+    private AiServiceTool toAiServiceTool(ApplicationSimple app) {
         ToolSpecification spec = buildAgentSpecification(app);
         ToolExecutor executor = new AgentExecutor(app.getId(), chatService);
         return AiServiceTool.builder()
@@ -97,7 +92,7 @@ public class ApplicationToolServiceImpl implements IAgentToolService {
      * 根据应用实体构建 ToolSpecification（应用作为工具时的规范）：
      * 单参 message，名称遵循 agent_&lt;id&gt; 约定。
      */
-    private ToolSpecification buildAgentSpecification(ApplicationEntity app) {
+    private ToolSpecification buildAgentSpecification(ApplicationSimple app) {
         JsonObjectSchema parameters = JsonObjectSchema.builder()
                 .addStringProperty("message")
                 .required("message")

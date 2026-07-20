@@ -1,8 +1,7 @@
 package com.maxkb4j.application.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.maxkb4j.application.entity.ApplicationApiKeyEntity;
+import com.maxkb4j.application.dto.ApplicationApiKeyDTO;
 
-public interface IApplicationApiKeyService extends IService<ApplicationApiKeyEntity> {
-    ApplicationApiKeyEntity getBySecretKey(String secretKey);
+public interface IApplicationApiKeyService{
+    ApplicationApiKeyDTO getBySecretKey(String secretKey);
 }

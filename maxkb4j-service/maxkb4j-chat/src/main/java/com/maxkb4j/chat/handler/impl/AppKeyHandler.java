@@ -3,7 +3,7 @@ package com.maxkb4j.chat.handler.impl;
 import cn.dev33.satoken.stp.SaLoginModel;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
-import com.maxkb4j.application.entity.ApplicationApiKeyEntity;
+import com.maxkb4j.application.dto.ApplicationApiKeyDTO;
 import com.maxkb4j.application.service.IApplicationApiKeyService;
 import com.maxkb4j.chat.handler.AuthHandler;
 import com.maxkb4j.common.constant.AppConst;
@@ -35,7 +35,7 @@ public class AppKeyHandler implements AuthHandler {
             ResponseProvider.write( response);
             return false;
         }
-        ApplicationApiKeyEntity apiKey = apiKeyService.getBySecretKey(secretKey);
+        ApplicationApiKeyDTO apiKey = apiKeyService.getBySecretKey(secretKey);
         if (apiKey==null || !apiKey.getIsActive()){
             log.warn("token不合法或被禁用");
             ResponseProvider.write(response);

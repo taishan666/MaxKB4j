@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.dto.AddChatImproveDTO;
+import com.maxkb4j.application.dto.ApplicationChatRecordDTO;
 import com.maxkb4j.application.dto.ChatImproveDTO;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
@@ -153,6 +154,18 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                         ApplicationChatRecordEntity::getCreateTime)
                 .in(ApplicationChatRecordEntity::getId,ids).list();
         return BeanUtil.copyList(chatRecordList, this::convert);
+    }
+
+    @Override
+    public boolean updateDtoById(ApplicationChatRecordDTO applicationChatDTO) {
+        return this.updateById(BeanUtil.copy(applicationChatDTO, ApplicationChatRecordEntity.class));
+    }
+
+    @Override
+    public List<ApplicationChatRecordDTO> listVoteStatusByChatId(String chatId) {
+        List<ApplicationChatRecordEntity> chatRecordEntities = this.lambdaQuery().select(ApplicationChatRecordEntity::getVoteStatus).eq(ApplicationChatRecordEntity::getChatId, chatId).list();
+        return BeanUtil.copyList(chatRecordEntities, ApplicationChatRecordDTO.class);
+
     }
 
 

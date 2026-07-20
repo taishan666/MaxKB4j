@@ -1,8 +1,8 @@
 package com.maxkb4j.application.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.maxkb4j.application.dto.ApplicationChatDTO;
 import com.maxkb4j.application.dto.ShareChatDTO;
-import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.vo.ShareChatVO;
 import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
@@ -12,7 +12,7 @@ import reactor.core.publisher.Sinks;
 
 import java.util.Map;
 
-public interface IApplicationChatService extends IService<ApplicationChatEntity> {
+public interface IApplicationChatService {
 
     String chatOpen(String appId, boolean debug);
 
@@ -20,7 +20,11 @@ public interface IApplicationChatService extends IService<ApplicationChatEntity>
     void chatMessageAsync(ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink);
     Boolean deleteById(String chatId);
 
-    Map<String, String> shareChat(String id, String chatId, ShareChatDTO dto);
+    IPage<ApplicationChatDTO> page(String appId, String userId, int current, int size);
+    boolean clear(String appId, String userId);
+    boolean updateDtoById(ApplicationChatDTO applicationChatDTO);
 
+
+    Map<String, String> shareChat(String id, String chatId, ShareChatDTO dto);
     ShareChatVO shareChat(String id);
 }

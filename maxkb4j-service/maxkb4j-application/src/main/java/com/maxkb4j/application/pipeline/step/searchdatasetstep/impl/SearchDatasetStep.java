@@ -2,9 +2,9 @@ package com.maxkb4j.application.pipeline.step.searchdatasetstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.searchdatasetstep.AbsSearchDatasetStep;
+import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.core.assistant.RouterAssistant;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
@@ -41,7 +41,7 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
         List<ParagraphVO> paragraphList= new ArrayList<>();
         if (CollectionUtils.isNotEmpty(knowledgeIds)){
             if(Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
-                ApplicationEntity application = manage.application;
+                ApplicationVO application = manage.application;
                 String modelId = application.getModelId();
                 JSONObject modelParams = application.getModelParamsSetting();
                 ChatModel chatModel = modelFactory.buildChatModel(modelId,modelParams);

@@ -1,7 +1,6 @@
 package com.maxkb4j.application.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.model.service.ISTTModel;
@@ -28,7 +27,6 @@ public class ApplicationSpeechService implements IApplicationSpeechService{
     /**
      * 语音播放测试：使用传入的模型参数直接合成固定测试文案。
      */
-    @Override
     public byte[] playDemoText(JSONObject modelParams) {
         String ttsModelId = modelParams.getString("ttsModelId");
         ITTSModel ttsModel = modelFactory.buildTTSModel(ttsModelId, modelParams);
@@ -37,7 +35,7 @@ public class ApplicationSpeechService implements IApplicationSpeechService{
 
     @Override
     public String speechToText(String appId, MultipartFile file, boolean debug) throws IOException {
-        ApplicationEntity app =applicationService.getAppDetail(appId, debug);
+        ApplicationVO app =applicationService.getAppDetail(appId, debug);
         return speechToText(app.getSttModelId(), file);
     }
 
@@ -51,7 +49,7 @@ public class ApplicationSpeechService implements IApplicationSpeechService{
     /**
      * 文本转语音。浏览器内置类型或未配置模型时返回空字节数组。
      */
-    private byte[] textToSpeech(String text, ApplicationEntity app) {
+    private byte[] textToSpeech(String text, ApplicationVO app) {
         if ("BROWSER".equals(app.getTtsType())) {
             return new byte[0];
         }

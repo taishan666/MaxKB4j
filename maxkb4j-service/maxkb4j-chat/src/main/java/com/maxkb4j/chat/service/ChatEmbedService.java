@@ -1,7 +1,7 @@
 package com.maxkb4j.chat.service;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
+import com.maxkb4j.application.dto.ApplicationAccessTokenDTO;
 import com.maxkb4j.application.service.IApplicationAccessTokenService;
 import com.maxkb4j.chat.query.EmbedQuery;
 import com.maxkb4j.common.exception.ApiException;
@@ -37,7 +37,7 @@ public class ChatEmbedService {
     public String embed(EmbedQuery query) {
         ClassLoader classLoader = getClass().getClassLoader();
         InputStream inputStream = classLoader.getResourceAsStream("template/embed.txt");
-        ApplicationAccessTokenEntity token = accessTokenService.getByAccessToken(query.getToken());
+        ApplicationAccessTokenDTO token = accessTokenService.getByAccessToken(query.getToken());
         if (token == null || !token.getIsActive()) {
             throw new ApiException("application.token.invalid.or.disabled");
         }
@@ -49,7 +49,7 @@ public class ChatEmbedService {
         return render(content, getParamsMap(token, query));
     }
 
-    private Map<String, String> getParamsMap(ApplicationAccessTokenEntity token, EmbedQuery query) {
+    private Map<String, String> getParamsMap(ApplicationAccessTokenDTO token, EmbedQuery query) {
         String floatIcon = query.getProtocol() + "://" + query.getHost() + "/chat/MaxKB.gif";
         List<String> whiteList = token.getWhiteList();
         Map<String, String> map = new HashMap<>();

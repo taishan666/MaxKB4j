@@ -1,8 +1,6 @@
 package com.maxkb4j.trigger.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.util.BeanUtil;
@@ -47,7 +45,7 @@ public class EventTriggerTaskProcessor {
         List<String> appIds = extractIds(tasks, ResourceType.APPLICATION);
         List<String> toolIds = extractIds(tasks, ResourceType.TOOL);
 
-        List<ApplicationTaskVO> appsList = appIds.isEmpty() ? List.of() : BeanUtil.copyList(applicationService.listByIds(appIds), ApplicationTaskVO.class);
+        List<ApplicationTaskVO> appsList = appIds.isEmpty() ? List.of() : BeanUtil.copyList(applicationService.listDtoByIds(appIds), ApplicationTaskVO.class);
         List<ToolTaskVO> toolsList = toolIds.isEmpty() ? List.of() : BeanUtil.copyList(toolService.listDtoByIds(toolIds), ToolTaskVO.class);
 
         Map<String, ApplicationTaskVO> appMap = appsList.stream()
@@ -88,7 +86,7 @@ public class EventTriggerTaskProcessor {
         if (ids.isEmpty()) return Map.of();
 
         List<Map<String, Object>> results = Objects.equals(type, ResourceType.APPLICATION)
-                ? applicationService.listMaps(new LambdaQueryWrapper<ApplicationEntity>().in(ApplicationEntity::getId, ids))
+                ? applicationService.listMapsByIds(ids)
                 : toolService.listMapsByIds(ids);
 
         if (results == null || results.isEmpty()) return Map.of();
