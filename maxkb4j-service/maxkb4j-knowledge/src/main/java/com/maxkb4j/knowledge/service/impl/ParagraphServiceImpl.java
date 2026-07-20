@@ -161,7 +161,6 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
         return BeanUtil.copyList(baseMapper.selectByIds(ids), ParagraphDTO.class);
     }
 
-    @Override
     public List<String> getNoActiveParagraphIds(List<String> knowledgeIds, List<String> excludeDocIds) {
         LambdaQueryWrapper<ParagraphEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.select(ParagraphEntity::getId);
@@ -206,7 +205,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
 
-
+    @Override
     @Transactional
     public boolean saveParagraphAndProblem(ParagraphDTO paragraph, List<String> problems) {
         this.save(BeanUtil.copy(paragraph, ParagraphEntity.class));

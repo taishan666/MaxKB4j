@@ -4,9 +4,9 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.event.GenerateProblemEvent;
-import com.maxkb4j.knowledge.service.IDocumentService;
 import com.maxkb4j.knowledge.service.IProblemService;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
+import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
 import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
 import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.model.chat.ChatModel;
@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GenerateProblemListener {
 
-    private final IDocumentService documentService;
+    private final DocumentServiceImpl documentService;
     private final ParagraphServiceImpl paragraphService;
     private final IModelProviderService modelFactory;
     private final IProblemService problemService;

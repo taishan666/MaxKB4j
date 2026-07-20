@@ -2,18 +2,11 @@ package com.maxkb4j.knowledge.store;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
-import com.maxkb4j.knowledge.service.IParagraphService;
+import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 检索/写入 store 的抽象基类，承担参数校验、结果去重排序等模板职责
@@ -22,12 +15,11 @@ public abstract class BaseStoreImpl implements IDataStore {
 
     /**
      * 汇总搜索时需要排除的 paragraphId 集合：
-     *   1) 通过 {@link IParagraphService#noActiveList} 查询出非活跃段落（按 knowledgeIds + excludeDocumentIds 过滤）
      *   2) 合并调用方在 {@link SearchRequest#getExcludeParagraphIds()} 显式传入的 ID
      * <p>主要给不支持就地更新 metadata 的向量后端（如 langchain4j 的 PgVectorEmbeddingStore）使用，
      * 在检索时通过 filter 过滤掉 isActive=false 的段落。</p>
      */
-    protected List<String> resolveExcludeParagraphIds(SearchRequest request, IParagraphService paragraphService) {
+    protected List<String> resolveExcludeParagraphIds(SearchRequest request, ParagraphServiceImpl paragraphService) {
         List<String> excludeParagraphIds = new ArrayList<>();
         List<String> noActiveParagraphIds = paragraphService.getNoActiveParagraphIds(
                 request.getKnowledgeIds(), request.getExcludeDocumentIds());

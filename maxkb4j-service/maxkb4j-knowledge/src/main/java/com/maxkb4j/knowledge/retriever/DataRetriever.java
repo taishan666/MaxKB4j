@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.knowledge.consts.SearchType;
 import com.maxkb4j.knowledge.retrieval.SearchMode;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
-import com.maxkb4j.knowledge.service.IDocumentService;
+import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +24,12 @@ public class DataRetriever {
     private final IDataStore vectorStore;
     private final IDataStore fullTextStore;
     private final IDataStore compositeStore;
-    private final IDocumentService documentService;
+    private final DocumentServiceImpl documentService;
 
     public DataRetriever(@Qualifier("vectorStore") IDataStore vectorStore,
                          @Qualifier("fullTextStore") IDataStore fullTextStore,
                          @Qualifier("compositeStore") IDataStore compositeStore,
-                         IDocumentService documentService) {
+                         DocumentServiceImpl documentService) {
         this.vectorStore = vectorStore;
         this.fullTextStore = fullTextStore;
         this.compositeStore = compositeStore;

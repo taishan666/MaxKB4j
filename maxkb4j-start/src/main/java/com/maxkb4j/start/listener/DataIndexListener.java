@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.event.DocumentIndexEvent;
 import com.maxkb4j.knowledge.event.ParagraphIndexEvent;
-import com.maxkb4j.knowledge.service.IDocumentService;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
+import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
 import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.List;
 public class DataIndexListener {
 
     private final KnowledgeModelService knowledgeModelService;
-    private final IDocumentService documentService;
+    private final DocumentServiceImpl documentService;
     private final ParagraphServiceImpl paragraphService;
 
     @Async
