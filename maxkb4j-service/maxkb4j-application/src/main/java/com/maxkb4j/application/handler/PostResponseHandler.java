@@ -3,7 +3,7 @@ package com.maxkb4j.application.handler;
 
 import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.ChatResponse;
+import com.maxkb4j.application.dto.ChatResponse;
 
 public interface PostResponseHandler {
 

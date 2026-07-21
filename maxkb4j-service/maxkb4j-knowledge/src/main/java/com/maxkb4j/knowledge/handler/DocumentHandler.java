@@ -6,7 +6,7 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.fastjson.JSON;
-import com.maxkb4j.common.util.FilePathSecurityUtil;
+import com.maxkb4j.knowledge.util.FilePathSecurityUtil;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
 import com.maxkb4j.knowledge.excel.KnowledgeExcel;

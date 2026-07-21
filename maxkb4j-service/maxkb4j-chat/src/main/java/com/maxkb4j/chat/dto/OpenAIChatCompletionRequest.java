@@ -1,4 +1,4 @@
-package com.maxkb4j.common.domain.dto;
+package com.maxkb4j.chat.dto;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;

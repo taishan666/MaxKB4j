@@ -1,4 +1,4 @@
-package com.maxkb4j.common.executor;
+package com.maxkb4j.tool.executor;
 
 import dev.langchain4j.internal.Json;
 import dev.langchain4j.internal.Utils;

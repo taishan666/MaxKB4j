@@ -1,8 +1,10 @@
-package com.maxkb4j.common.domain.dto;
+package com.maxkb4j.common.util;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.util.RenderTags;
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.common.domain.dto.ChildNode;
 import dev.langchain4j.data.image.Image;
 import dev.langchain4j.data.message.*;
 import org.springframework.util.CollectionUtils;

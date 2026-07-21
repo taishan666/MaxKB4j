@@ -3,21 +3,24 @@ package com.maxkb4j.knowledge.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.maxkb4j.common.domain.vo.KeyAndValueVO;
+import com.maxkb4j.common.domain.dto.KeyAndValue;
 import com.maxkb4j.common.exception.FileLimitExceededException;
-import com.maxkb4j.common.util.FilePathSecurityUtil;
-import com.maxkb4j.knowledge.event.DocumentIndexEvent;
-import com.maxkb4j.knowledge.event.GenerateProblemEvent;
+import com.maxkb4j.knowledge.util.FilePathSecurityUtil;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.DatasetBatchHitHandlingDTO;
 import com.maxkb4j.knowledge.dto.DocQuery;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.entity.*;
+import com.maxkb4j.knowledge.event.DocumentIndexEvent;
+import com.maxkb4j.knowledge.event.GenerateProblemEvent;
 import com.maxkb4j.knowledge.handler.DocumentHandler;
 import com.maxkb4j.knowledge.mapper.DocumentMapper;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
-import com.maxkb4j.knowledge.service.*;
+import com.maxkb4j.knowledge.service.DocumentWriteService;
+import com.maxkb4j.knowledge.service.IDocumentParseService;
+import com.maxkb4j.knowledge.service.IDocumentService;
+import com.maxkb4j.knowledge.service.IDocumentTagService;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.DocFileVO;
 import com.maxkb4j.knowledge.vo.DocumentVO;
@@ -251,21 +254,21 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
         return docPage;
     }
 
-    public List<KeyAndValueVO> splitPattern() {
+    public List<KeyAndValue> splitPattern() {
         return Arrays.asList(
-                new KeyAndValueVO("#", "(?<=^)# .*|(?<=\\n)# .*"),
-                new KeyAndValueVO("##", "(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*"),
-                new KeyAndValueVO("###", "(?<=\\n)(?<!#)### (?!#).*|(?<=^)(?<!#)### (?!#).*"),
-                new KeyAndValueVO("####", "(?<=\\n)(?<!#)#### (?!#).*|(?<=^)(?<!#)#### (?!#).*"),
-                new KeyAndValueVO("#####", "(?<=\\n)(?<!#)##### (?!#).*|(?<=^)(?<!#)##### (?!#).*"),
-                new KeyAndValueVO("######", "(?<=\\n)(?<!#)###### (?!#).*|(?<=^)(?<!#)###### (?!#).*"),
-                new KeyAndValueVO("-", "(?<! )- .*"),
-                new KeyAndValueVO("space", "(?<! ) (?! )"),
-                new KeyAndValueVO("semicolon", "(?<!；)；(?!；)"),
-                new KeyAndValueVO("comma", "(?<!，)，(?!，)"),
-                new KeyAndValueVO("period", "(?<!。)。(?!。)"),
-                new KeyAndValueVO("enter", "(?<!\\n)\\n(?!\\n)"),
-                new KeyAndValueVO("blank line", "(?<!\\n)\\n\\n(?!\\n)")
+                new KeyAndValue("#", "(?<=^)# .*|(?<=\\n)# .*"),
+                new KeyAndValue("##", "(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*"),
+                new KeyAndValue("###", "(?<=\\n)(?<!#)### (?!#).*|(?<=^)(?<!#)### (?!#).*"),
+                new KeyAndValue("####", "(?<=\\n)(?<!#)#### (?!#).*|(?<=^)(?<!#)#### (?!#).*"),
+                new KeyAndValue("#####", "(?<=\\n)(?<!#)##### (?!#).*|(?<=^)(?<!#)##### (?!#).*"),
+                new KeyAndValue("######", "(?<=\\n)(?<!#)###### (?!#).*|(?<=^)(?<!#)###### (?!#).*"),
+                new KeyAndValue("-", "(?<! )- .*"),
+                new KeyAndValue("space", "(?<! ) (?! )"),
+                new KeyAndValue("semicolon", "(?<!；)；(?!；)"),
+                new KeyAndValue("comma", "(?<!，)，(?!，)"),
+                new KeyAndValue("period", "(?<!。)。(?!。)"),
+                new KeyAndValue("enter", "(?<!\\n)\\n(?!\\n)"),
+                new KeyAndValue("blank line", "(?<!\\n)\\n\\n(?!\\n)")
         );
     }
 

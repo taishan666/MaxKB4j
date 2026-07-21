@@ -4,10 +4,10 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.ChatResponse;
+import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
-import com.maxkb4j.common.executor.AbsToolExecutor;
+import com.maxkb4j.tool.executor.AbsToolExecutor;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import reactor.core.publisher.Sinks;
 

@@ -8,7 +8,7 @@ import com.maxkb4j.application.service.IApplicationApiKeyService;
 import com.maxkb4j.chat.handler.AuthHandler;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.ChatUserType;
-import com.maxkb4j.common.util.ResponseProvider;
+import com.maxkb4j.chat.util.ResponseProvider;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
 import jakarta.servlet.http.HttpServletRequest;

@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.engine;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
-import com.maxkb4j.common.domain.dto.MessageConverter;
+import com.maxkb4j.common.util.MessageConverter;
 import com.maxkb4j.workflow.enums.DialogueType;
 import dev.langchain4j.data.message.*;
 import lombok.extern.slf4j.Slf4j;

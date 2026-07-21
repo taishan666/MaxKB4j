@@ -8,6 +8,7 @@ import com.maxkb4j.application.service.*;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.application.vo.ShareChatVO;
+import com.maxkb4j.chat.dto.McpRequest;
 import com.maxkb4j.chat.service.ChatApiService;
 import com.maxkb4j.chat.service.ChatEmbedService;
 import com.maxkb4j.common.api.R;

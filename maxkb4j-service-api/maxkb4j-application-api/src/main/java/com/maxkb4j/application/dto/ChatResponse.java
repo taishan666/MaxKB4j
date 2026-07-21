@@ -1,7 +1,8 @@
-package com.maxkb4j.common.domain.dto;
+package com.maxkb4j.application.dto;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.domain.dto.Answer;
 import lombok.Data;
 
 import java.util.ArrayList;

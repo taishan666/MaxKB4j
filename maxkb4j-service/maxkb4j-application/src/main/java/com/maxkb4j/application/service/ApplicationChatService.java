@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.builder.ChatServiceBuilder;
 import com.maxkb4j.application.dto.ApplicationChatDTO;
 import com.maxkb4j.application.dto.ChatQueryDTO;
+import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.application.dto.ShareChatDTO;
 import com.maxkb4j.application.entity.*;
 import com.maxkb4j.application.enums.ShareLinkType;

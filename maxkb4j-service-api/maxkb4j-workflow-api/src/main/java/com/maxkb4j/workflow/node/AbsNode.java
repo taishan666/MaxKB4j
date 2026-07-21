@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChildNode;
-import com.maxkb4j.common.domain.dto.MessageConverter;
+import com.maxkb4j.common.util.MessageConverter;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.util.NodeIdGenerator;

@@ -1,9 +1,9 @@
 package com.maxkb4j.model.controller;
 
-import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.domain.dto.KeyAndValue;
 import com.maxkb4j.common.domain.form.BaseField;
-import com.maxkb4j.common.domain.vo.KeyAndValueVO;
 import com.maxkb4j.model.enums.ModelProvider;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.provider.AbsModelProvider;
@@ -43,12 +43,12 @@ public class ProviderController {
 
 
     @GetMapping("/provider/model_type_list")
-    public R<List<KeyAndValueVO>> modelTypeList(String provider) {
+    public R<List<KeyAndValue>> modelTypeList(String provider) {
         AbsModelProvider modelProvider = ModelProvider.get(provider);
         List<ModelInfo> modelInfos = modelProvider.getModelList();
         Map<ModelType, List<ModelInfo>> map = modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
         Set<ModelType> keys = map.keySet();
-        List<KeyAndValueVO> list = ModelType.getModelTypeList().stream().filter(keys::contains).map(e -> new KeyAndValueVO(e.getName(), e.getKey())).toList();
+        List<KeyAndValue> list = ModelType.getModelTypeList().stream().filter(keys::contains).map(e -> new KeyAndValue(e.getName(), e.getKey())).toList();
         return R.data(list);
     }
 

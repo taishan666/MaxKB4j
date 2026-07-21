@@ -1,4 +1,4 @@
-package com.maxkb4j.common.util;
+package com.maxkb4j.chat.util;
 
 import cn.hutool.json.JSONUtil;
 import com.maxkb4j.common.api.R;

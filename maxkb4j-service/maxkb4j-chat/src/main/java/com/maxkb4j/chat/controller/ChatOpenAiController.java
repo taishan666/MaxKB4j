@@ -2,7 +2,10 @@ package com.maxkb4j.chat.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.application.service.IApplicationChatService;
+import com.maxkb4j.chat.dto.OpenAIChatCompletionRequest;
+import com.maxkb4j.chat.dto.OpenAIChatCompletionResponse;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.common.enums.ChatSource;

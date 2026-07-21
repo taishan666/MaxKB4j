@@ -3,7 +3,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 import cn.hutool.http.HttpResponse;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.dto.ToolHttpRequest;
+import com.maxkb4j.tool.dto.ToolHttpRequest;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;

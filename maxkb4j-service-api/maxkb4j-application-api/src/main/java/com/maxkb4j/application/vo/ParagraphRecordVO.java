@@ -1,10 +1,10 @@
-package com.maxkb4j.common.domain.dto;
+package com.maxkb4j.application.vo;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 @Data
-public class ParagraphRecordDTO {
+public class ParagraphRecordVO {
     private String title;
     private String content;
     private Float similarity;

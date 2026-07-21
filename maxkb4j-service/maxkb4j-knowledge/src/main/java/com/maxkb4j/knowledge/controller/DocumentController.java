@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.vo.KeyAndValueVO;
+import com.maxkb4j.common.domain.dto.KeyAndValue;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.*;
@@ -12,8 +12,8 @@ import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
 import com.maxkb4j.knowledge.vo.DocumentVO;
 import com.maxkb4j.knowledge.vo.TextSegmentVO;
-import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -70,7 +70,7 @@ public class DocumentController {
     }
 
     @GetMapping("/knowledge/{id}/document/split_pattern")
-    public R<List<KeyAndValueVO>> splitPattern(@PathVariable("id") String id) {
+    public R<List<KeyAndValue>> splitPattern(@PathVariable("id") String id) {
         return R.data(documentService.splitPattern());
     }
 

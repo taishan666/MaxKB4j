@@ -6,7 +6,6 @@ import java.util.List;
 
 @Data
 public class ShareChatVO {
-
     private String summary;
     private List<ApplicationChatRecordVO> chatRecordList;
 }

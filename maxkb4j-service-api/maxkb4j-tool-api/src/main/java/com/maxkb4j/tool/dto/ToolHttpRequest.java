@@ -1,6 +1,7 @@
-package com.maxkb4j.common.domain.dto;
+package com.maxkb4j.tool.dto;
 
 import cn.hutool.http.Method;
+import com.maxkb4j.common.domain.dto.KeyAndValue;
 import lombok.Data;
 
 import java.util.List;

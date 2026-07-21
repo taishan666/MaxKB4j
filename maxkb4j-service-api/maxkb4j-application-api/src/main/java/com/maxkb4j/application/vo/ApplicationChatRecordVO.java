@@ -2,7 +2,6 @@ package com.maxkb4j.application.vo;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.dto.ParagraphRecordDTO;
 import lombok.Data;
 
 import java.util.List;
@@ -24,7 +23,7 @@ public class ApplicationChatRecordVO{
     private Integer index;
     private String chatId;
     private JSONArray answerTextList;
-    private List<ParagraphRecordDTO> paragraphList;
+    private List<ParagraphRecordVO> paragraphList;
     private String paddingProblemText;
     private List<JSONObject> executionDetails;
 

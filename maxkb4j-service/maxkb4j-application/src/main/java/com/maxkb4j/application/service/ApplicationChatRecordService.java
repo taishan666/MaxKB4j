@@ -19,7 +19,7 @@ import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
-import com.maxkb4j.common.domain.dto.ParagraphRecordDTO;
+import com.maxkb4j.application.vo.ParagraphRecordVO;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.knowledge.dto.ParagraphDTO;
@@ -100,7 +100,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                 JSONArray paragraphList = searchStep.getJSONArray("paragraphList");
                 if (!CollectionUtils.isEmpty(paragraphList)) {
                     String json = JSONObject.toJSONString(paragraphList);
-                    chatRecordVO.setParagraphList(JSON.parseArray(json, ParagraphRecordDTO.class));
+                    chatRecordVO.setParagraphList(JSON.parseArray(json, ParagraphRecordVO.class));
                 }
             }
             JSONObject problemPadding = details.getJSONObject("problem_padding");
@@ -118,7 +118,7 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
                     if (showKnowledge) {
                         Object paragraphListObj = detail.get("paragraphList"); // 假设每个节点都有 id 字段
                         if (paragraphListObj != null) {
-                            List<ParagraphRecordDTO> list = (List<ParagraphRecordDTO>) paragraphListObj;
+                            List<ParagraphRecordVO> list = (List<ParagraphRecordVO>) paragraphListObj;
                             chatRecordVO.getParagraphList().addAll(list);
                         }
                     }
@@ -157,8 +157,8 @@ public class ApplicationChatRecordService extends ServiceImpl<ApplicationChatRec
     }
 
     @Override
-    public boolean updateDtoById(ApplicationChatRecordDTO applicationChatDTO) {
-        return this.updateById(BeanUtil.copy(applicationChatDTO, ApplicationChatRecordEntity.class));
+    public void updateDtoById(ApplicationChatRecordDTO applicationChatDTO) {
+        this.updateById(BeanUtil.copy(applicationChatDTO, ApplicationChatRecordEntity.class));
     }
 
     @Override

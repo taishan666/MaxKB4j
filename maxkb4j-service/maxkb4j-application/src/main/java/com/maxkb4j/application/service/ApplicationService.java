@@ -19,7 +19,7 @@ import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.context.UserContext;
-import com.maxkb4j.common.domain.dto.KnowledgeDTO;
+import com.maxkb4j.application.vo.KnowledgeVO;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
@@ -293,7 +293,7 @@ public class ApplicationService extends ServiceImpl<ApplicationMapper, Applicati
             List<String> knowledgeIds = vo.getKnowledgeIds();
             if (!CollectionUtils.isEmpty(knowledgeIds)) {
                 List<KnowledgeSimple> knowledgeList = knowledgeService.listNameAndDescByIds( knowledgeIds);
-                vo.setKnowledgeList(BeanUtil.copyList(knowledgeList, KnowledgeDTO.class));
+                vo.setKnowledgeList(BeanUtil.copyList(knowledgeList, KnowledgeVO.class));
             } else {
                 vo.setKnowledgeList(List.of());
             }

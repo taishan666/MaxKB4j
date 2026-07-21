@@ -14,6 +14,6 @@ public interface IApplicationChatRecordService  {
 
     List<ApplicationChatRecordVO> listVOByIds(List<String> ids);
 
-    boolean updateDtoById(ApplicationChatRecordDTO applicationChatDTO);
+    void updateDtoById(ApplicationChatRecordDTO applicationChatDTO);
     List<ApplicationChatRecordDTO> listVoteStatusByChatId(String chatIds);
 }
