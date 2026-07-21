@@ -2,6 +2,7 @@ package com.maxkb4j.application.service;
 
 import com.maxkb4j.application.dto.PromptGenerateDTO;
 import com.maxkb4j.application.entity.ApplicationEntity;
+import com.maxkb4j.application.service.impl.ApplicationServiceImpl;
 import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -21,7 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * 应用 Prompt 生成（流式）逻辑，从 {@link ApplicationService} 抽离。
+ * 应用 Prompt 生成（流式）逻辑，从 {@link ApplicationServiceImpl} 抽离。
  *
  * @author tarzan
  */

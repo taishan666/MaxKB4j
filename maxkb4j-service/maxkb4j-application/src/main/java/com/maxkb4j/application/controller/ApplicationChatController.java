@@ -3,7 +3,7 @@ package com.maxkb4j.application.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.application.dto.ChatQueryDTO;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
-import com.maxkb4j.application.service.ApplicationChatService;
+import com.maxkb4j.application.service.impl.ApplicationChatServiceImpl;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
@@ -28,7 +28,7 @@ import java.util.List;
 @Slf4j
 public class ApplicationChatController {
 
-    private final ApplicationChatService chatService;
+    private final ApplicationChatServiceImpl chatService;
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/chat/client/{chatId}")

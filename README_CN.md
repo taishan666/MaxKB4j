@@ -15,6 +15,8 @@
  [<a href="/README_CN.md">中文(简体)</a>] | [<a href="/README.md">English</a>] 
 </p>
 
+> 💖 **支持本项目** — 如果 MaxKB4j 对你有帮助，欢迎在文末【💖 支持与赞助】请作者喝杯咖啡，每一份支持都是项目持续迭代的动力！☕
+
 ---
 ## 💡 为什么选择 MaxKB4j？
 在 AI 应用爆发的今天，您是否面临以下挑战？
@@ -52,7 +54,7 @@
 ### 1. 环境要求
 - Java 21+
 - PostgreSQL 12+（启用 pgvector 扩展）
-- MongoDB 6.0+（可选，用于全文检索）
+- MongoDB 6.0+（用于全文检索和文件存储）
 
 ### 2. 部署启动
 
@@ -89,6 +91,44 @@ docker-compose up -d
 </div>
 </details>
 
+#### 2.5 一键安装脚本（全流程）
+
+`deploy/` 目录提供交互式安装脚本，自动完成环境检查、镜像拉取/构建与 docker-compose 编排：
+
+| 脚本 | 平台 | 可选模式 |
+| :--- | :--- | :--- |
+| `deploy/install.sh` | Linux / macOS | ① Docker-Compose（预构建镜像）· ② 源码构建 -> 镜像 -> 编排 · ③ 卸载 |
+| `deploy/install.bat` | Windows | ① Docker-Compose（预构建镜像）· ② 源码构建 -> 镜像 -> 编排 · ③ 卸载 |
+
+```bash
+# Linux / macOS
+chmod +x deploy/install.sh
+./deploy/install.sh
+
+# Windows（在项目根目录执行）
+deploy\install.bat
+```
+
+> 选择 **模式 1** 拉取预构建镜像（最快），或 **模式 2** 从源码构建为本地镜像后再编排。PostgreSQL（pgvector）与 MongoDB 会自动配置就绪。
+
+#### 2.6 源码构建
+
+使用 Maven 在本地生成可执行 JAR（需 JDK 21+ 与 Maven 3.6.3+）：
+
+```bash
+mvn clean package -DskipTests
+# 产物：maxkb4j-start/target/maxkb4j-start.jar
+java -jar maxkb4j-start/target/maxkb4j-start.jar
+```
+
+Spring 配置文件（`dev` / `prod` / `test`）位于 `maxkb4j-start/src/main/resources/application-{profile}.yml`，按 profile 启动：
+
+```bash
+java -jar maxkb4j-start/target/maxkb4j-start.jar --spring.profiles.active=dev
+```
+
+> 首次启动前，请确保 PostgreSQL（启用 `pgvector` 扩展）与 MongoDB 可访问，并已在对应 profile 中配置数据源与 MongoDB URI。
+
 ### 3. 访问 Web 界面
 - 地址：http://localhost:8080/admin/login
 - 默认账号：`admin`
@@ -106,11 +146,64 @@ docker-compose up -d
 | **后端**    | Java 21, Spring Boot 3, Sa-Token（鉴权） |
 | **AI 框架** | LangChain4j                          |
 | **向量数据库** | PostgreSQL 15 + pgvector             |
-| **全文检索**  | MongoDB 5.0+                         |
+| **全文检索**  | MongoDB 6.0+                         |
 | **缓存**    | Caffeine                             |
 | **前端**    | Vue 3, Node.js v20.16.0              |
 | **脚本沙箱**  | groovy-sandbox            |
 
+
+---
+
+## 📂 项目结构
+
+MaxKB4j 采用分层多模块的 Maven 工程结构（父 POM 以 `${revision}` 统一版本）：
+
+```
+MaxKB4j/
+├── maxkb4j-common/
+├── maxkb4j-core/
+├── maxkb4j-service/
+│   ├── maxkb4j-application/
+│   ├── maxkb4j-chat/
+│   ├── maxkb4j-knowledge/
+│   ├── maxkb4j-model/
+│   ├── maxkb4j-oss/
+│   ├── maxkb4j-system/
+│   ├── maxkb4j-tool/
+│   ├── maxkb4j-trigger/
+│   └── maxkb4j-workflow/
+├── maxkb4j-service-api/
+│   ├── maxkb4j-application-api/
+│   ├── maxkb4j-knowledge-api/
+│   ├── maxkb4j-model-api/
+│   ├── maxkb4j-oss-api/
+│   ├── maxkb4j-system-api/
+│   ├── maxkb4j-tool-api/
+│   ├── maxkb4j-user-api/
+│   └── maxkb4j-workflow-api/
+├── maxkb4j-start/
+│   └── src/main/resources/
+│       ├── application.yml
+│       ├── application-dev.yml
+│       ├── application-prod.yml
+│       └── application-test.yml
+├── deploy/
+│   ├── install.sh
+│   └── install.bat
+├── docker-compose.yml
+└── docker-compose.dev.yml
+```
+
+| 模块 | 职责 |
+| :--- | :--- |
+| `maxkb4j-common` | 通用工具、常量与基础类 |
+| `maxkb4j-core` | 核心抽象与领域模型 |
+| `maxkb4j-service` | 业务服务实现（application、chat、knowledge、model、oss、system、tool、trigger、workflow） |
+| `maxkb4j-service-api` | 对外服务接口、DTO 与 VO |
+| `maxkb4j-start` | Spring Boot 启动入口、配置与打包 |
+| `deploy` | 一键安装脚本（`install.sh` / `install.bat`） |
+
+> 依赖方向自上而下：`start` -> `service` -> `service-api` -> `core` -> `common`。对外契约放在 `-api` 模块，实现放在 `service` 模块。
 
 ---
 ## 在线演示
@@ -134,17 +227,27 @@ docker-compose up -d
 
 ## 💖 支持与赞助
 
-> **🌟 开源不易，坚持更难**  
-> MaxKB4j 由个人开发者与社区成员**维护**，您的支持将直接用于服务器成本、Token测试消耗、API 测试、Bug 修复与新功能研发等！
+> **🌟 开源不易，坚持更难**
+> MaxKB4j 由个人开发者与社区成员**维护**，无商业公司背书。您的支持将直接用于服务器成本、Token 测试消耗、API 测试、Bug 修复与新功能研发，让项目持续前行！
 
+**赞助，你将获得：**
+- 🛠 **持续迭代** - Bug 修复、新模型 / 新工具适配优先排期
+- 📞 **直达作者** - 1 对 1 微信沟通，问题快速响应
+- 🎁 **专属权益** - 前端源码、知识星球、企业级售后支持
+- 🏅 **品牌曝光** - 企业赞助方可展示于官网赞助墙
 
-| 档位 |  金额   | 核心权益                                                                                         | 适合人群 |
-|:---:|:-----:|:---------------------------------------------------------------------------------------------|:---|
-| ☕ 咖啡支持 |  ¥10  | • 添加作者**微信号：** `vxhqqh`<br>• 加入核心交流群（备注"已赞助"）<br>• 项目更新优先通知                                  | 认可项目价值的个人开发者 |
-| 📚 学习会员 |  ¥99  | • 咖啡支持全部权益 <br>• 免费加入 [《👉 知识星球🔥》](https://wx.zsxq.com/group/28882525858841)<br>• 星球内问题优先解答 | 希望深度学习的开发者 |
-| 🏢 企业伙伴 | ¥799  | • 进阶开发者全部权益 <br>• 一次性获取前端源码 <br>• 问题售后技术支持   （持续涨价中。。。）                                      | 企业用户/深度使用者 |
-| 👑 战略合作 | ¥1399 | • 企业伙伴全部权益  <br>• 6个月内前端源码免费升级 <br>• 企业 Logo 展示于官网赞助墙    （持续涨价中。。。）                          | 深度合作伙伴 |
+> 📌 **早鸟提示**：企业伙伴 / 战略合作档位**持续涨价中**，当前为历史最低价，越早锁定权益越多。
 
+### 赞助档位
+
+| 档位 | 金额 | 核心权益 | 适合人群 |
+|:---:|:---:|:---|:---|
+| ☕ 咖啡支持 | ¥10 | • 添加作者**微信号** `vxhqqh`<br>• 加入核心交流群（备注"已赞助"）<br>• 项目更新优先通知 | 认可项目价值的个人开发者 |
+| 📚 学习会员 🏆 | ¥99 | • 咖啡支持全部权益<br>• 免费加入 [《👉 知识星球🔥》](https://wx.zsxq.com/group/28882525858841)<br>• 星球内问题优先解答 | 希望深度学习的开发者 |
+| 🏢 企业伙伴 ⭐ | ¥799 | • 学习会员全部权益<br>• 一次性获取**前端源码**<br>• 问题售后技术支持<br>• 适合企业 / 生产环境使用（持续涨价中…） | 企业用户 / 深度使用者 |
+| 👑 战略合作 | ¥1399 | • 企业伙伴全部权益<br>• 6 个月内前端源码免费升级<br>• 企业 Logo 展示于官网赞助墙（持续涨价中…） | 深度合作伙伴 |
+
+> 🏆 最受欢迎　·　⭐ 最具性价比
 
 <table style="border-collapse: collapse; border: 1px solid black;">
   <tr>
@@ -152,13 +255,26 @@ docker-compose up -d
     <th style="padding: 10px;"> <div align="center">微信赞赏码</div></th>
   </tr>
   <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src="image/zfb_skm.png" alt="支付宝赞赏码"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/wx_zsm.png" alt="微信赞赏码"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src="image/zfb_skm.png" alt="支付宝赞赏码" /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src="image/wx_zsm.png" alt="微信赞赏码" /></td>
   </tr>
 </table>
 
+### 🪜 如何赞助
+1. **选择档位** - 对照上表挑选适合的赞助档位
+2. **扫码付款** - 使用支付宝 / 微信扫码完成赞助（建议备注 用户昵称）
+3. **联系作者** - 添加微信 `vxhqqh`，发送付款截图，即刻开通对应权益
 
-> 赞助金额仅用于项目持续开发和维护，非盈利用途。💡 开源不易，感谢每一份支持！
+> 💡 付款后请务必联系作者，否则无法识别赞助身份、无法发放权益。
+
+### 🏅 赞助墙
+感谢所有支持 MaxKB4j 的伙伴（按赞助时间排序）：
+> 🎯 期待你的加入 - 你的企业 Logo / 昵称将展示于此，获得社区持续曝光。
+
+### 🤝 企业定制合作
+需要**私有化部署、二次开发、团队培训、SLA 保障**或更深度的合作？欢迎联系作者微信 `vxhqqh`，提供专属方案与报价。
+
+> 赞助金额仅用于项目持续开发与维护。💡 开源不易，感谢每一份支持 - 你们是 MaxKB4j 持续前进的动力！
 
 ---
 

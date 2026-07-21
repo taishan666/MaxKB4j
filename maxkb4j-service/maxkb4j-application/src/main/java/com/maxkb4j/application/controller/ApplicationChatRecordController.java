@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.application.dto.AddChatImproveDTO;
 import com.maxkb4j.application.dto.ChatImproveDTO;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
-import com.maxkb4j.application.service.ApplicationChatRecordService;
+import com.maxkb4j.application.service.impl.ApplicationChatRecordServiceImpl;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
@@ -26,7 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApplicationChatRecordController {
 
-    private final ApplicationChatRecordService chatRecordService;
+    private final ApplicationChatRecordServiceImpl chatRecordService;
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}/chat/{chatId}/chat_record/{chatRecordId}")

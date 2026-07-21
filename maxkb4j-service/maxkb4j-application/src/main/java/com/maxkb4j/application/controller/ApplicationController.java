@@ -5,11 +5,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.application.dto.*;
 import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
 import com.maxkb4j.application.entity.ApplicationEntity;
-import com.maxkb4j.application.service.ApplicationAccessTokenService;
+import com.maxkb4j.application.service.impl.ApplicationAccessTokenServiceImpl;
 import com.maxkb4j.application.service.ApplicationExportService;
 import com.maxkb4j.application.service.ApplicationPromptService;
-import com.maxkb4j.application.service.ApplicationService;
-import com.maxkb4j.application.service.ApplicationSpeechService;
+import com.maxkb4j.application.service.impl.ApplicationServiceImpl;
+import com.maxkb4j.application.service.IApplicationSpeechService;
 import com.maxkb4j.application.service.ApplicationStatsService;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationStatisticsVO;
@@ -47,11 +47,11 @@ import java.util.Map;
 public class ApplicationController {
 
     private final IToolService toolService;
-    private final ApplicationService applicationService;
+    private final ApplicationServiceImpl applicationService;
     private final ApplicationExportService exportService;
     private final ApplicationStatsService applicationStatsService;
-    private final ApplicationAccessTokenService accessTokenService;
-    private final ApplicationSpeechService applicationSpeechService;
+    private final ApplicationAccessTokenServiceImpl accessTokenService;
+    private final IApplicationSpeechService applicationSpeechService;
     private final ApplicationPromptService applicationPromptService;
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)

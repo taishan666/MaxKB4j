@@ -22,7 +22,7 @@ import java.util.List;
  * 应用工具服务实现，负责将智能体应用构建为可执行的工具。
  *
  * <p>本类实现 tool-api 中的 {@link IAgentToolService} SPI，由 tool 模块的
- * {@code ToolProviderService} 在运行期注入，从而避免 tool 模块反向编译依赖 application。
+ * {@code ToolProviderServiceImpl} 在运行期注入，从而避免 tool 模块反向编译依赖 application。
  *
  * @author tarzan
  */

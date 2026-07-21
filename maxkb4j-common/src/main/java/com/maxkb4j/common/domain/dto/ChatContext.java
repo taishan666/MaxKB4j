@@ -21,7 +21,7 @@ import java.util.List;
  * <ul>
  *   <li>不会被 Jackson 反序列化——仅由服务端构造，沿调用链显式传递。</li>
  *   <li>两阶段装配：入口点（controller / 定时任务 / 工具执行）填充身份字段，
- *       {@code ApplicationChatService} 随后补全历史记录，因此保留 setter。</li>
+ *       {@code ApplicationChatServiceImpl} 随后补全历史记录，因此保留 setter。</li>
  *   <li>非 ThreadLocal——含两阶段装配、异步线程（{@code chatTaskExecutor}）及嵌套子调用
  *       （{@code ApplicationNodeHandler}/{@code AgentExecutor}），需作为显式参数传递。</li>
  *   <li>与 {@code com.maxkb4j.common.context.UserContext}（请求线程管理员身份的 ThreadLocal 抽象）

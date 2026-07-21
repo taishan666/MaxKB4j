@@ -3,6 +3,7 @@ package com.maxkb4j.application.service;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.entity.ApplicationEntity;
+import com.maxkb4j.application.service.impl.ApplicationServiceImpl;
 import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.system.dto.TargetResource;
 import com.maxkb4j.system.service.IResourceMappingService;
@@ -15,7 +16,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
- * 应用资源映射（知识库/工具/模型）维护逻辑，从 {@link ApplicationService} 抽离。
+ * 应用资源映射（知识库/工具/模型）维护逻辑，从 {@link ApplicationServiceImpl} 抽离。
  * 负责从应用配置及工作流节点中收集资源 ID 并批量建立映射关系。
  *
  * @author tarzan

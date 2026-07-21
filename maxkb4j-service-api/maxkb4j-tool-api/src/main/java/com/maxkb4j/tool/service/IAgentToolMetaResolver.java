@@ -7,7 +7,7 @@ import com.maxkb4j.tool.vo.ToolRenderMeta;
  *
  * <p>agent 工具对应一个应用，其图标/名称需查询应用数据，
  * 此查询本质上属于 application 领域。接口声明在 tool-api 供
- * {@code ToolFormatterService} 消费，由 application 模块实现并在运行期注入，
+ * {@code ToolFormatterServiceImpl} 消费，由 application 模块实现并在运行期注入，
  * 避免 tool 模块反向编译依赖 application。
  *
  * @author tarzan

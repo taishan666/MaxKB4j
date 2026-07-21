@@ -3,6 +3,7 @@ package com.maxkb4j.tool.service;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.handler.ToolSkillHandler;
+import com.maxkb4j.tool.service.impl.ToolProviderServiceImpl;
 import com.maxkb4j.tool.util.ToolNaming;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.service.tool.AiServiceTool;
@@ -24,7 +25,7 @@ import java.util.List;
  * Skill 工具服务，负责 Skill 类型工具的加载与 ShellSkills / ToolProvider / AiServiceTool 构建。
  *
  * <p>文件管理（解压、懒加载）委托给 {@link ToolSkillHandler}，数据库查询由
- * {@link ToolProviderService} 编排，本服务仅关注 Skill 的加载与 langchain4j 工具对象的构建。
+ * {@link ToolProviderServiceImpl} 编排，本服务仅关注 Skill 的加载与 langchain4j 工具对象的构建。
  */
 @Service
 @RequiredArgsConstructor

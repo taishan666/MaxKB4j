@@ -13,7 +13,7 @@ import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;
-import com.maxkb4j.tool.service.ToolService;
+import com.maxkb4j.tool.service.impl.ToolServiceImpl;
 import com.maxkb4j.tool.vo.ToolVO;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -37,7 +37,7 @@ import java.util.*;
 @Slf4j
 public class ToolController {
 
-    private final ToolService toolService;
+    private final ToolServiceImpl toolService;
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool/{current}/{size}")

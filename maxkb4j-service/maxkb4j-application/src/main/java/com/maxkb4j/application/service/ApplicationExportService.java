@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.dto.MaxKb4J;
 import com.maxkb4j.application.entity.ApplicationEntity;
+import com.maxkb4j.application.service.impl.ApplicationServiceImpl;
 import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -24,7 +25,7 @@ import java.util.Objects;
 @Service
 public class ApplicationExportService {
 
-    private final ApplicationService applicationService;
+    private final ApplicationServiceImpl applicationService;
     private final IToolService toolService;
 
     public void appExport(String id, HttpServletResponse response) throws IOException {

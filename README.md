@@ -14,6 +14,8 @@
  [<a href="/README_CN.md">中文(简体)</a>] | [<a href="/README.md">English</a>]
 </p>
 
+> 💖 **Sponsor this project** — if MaxKB4j helps you, consider supporting us in the **💖 Support & Sponsorship** section at the bottom. Every ☕ keeps the project growing!
+
 ---
 ## 💡 Why Choose MaxKB4j?
 In today's AI application boom, are you facing these challenges?
@@ -88,6 +90,44 @@ Click the button below for one-click deployment:
 </div>
 </details>
 
+#### 2.5 One-Click Install Script (All-in-One)
+
+The `deploy/` directory ships interactive installers that handle prerequisite checks, image pull/build, and docker-compose orchestration end-to-end:
+
+| Script | Platform | Available Modes |
+| :--- | :--- | :--- |
+| `deploy/install.sh` | Linux / macOS | (1) Docker-Compose (prebuilt image) - (2) Source build -> image -> compose - (3) Uninstall |
+| `deploy/install.bat` | Windows | (1) Docker-Compose (prebuilt image) - (2) Source build -> image -> compose - (3) Uninstall |
+
+```bash
+# Linux / macOS
+chmod +x deploy/install.sh
+./deploy/install.sh
+
+# Windows (run from the project root)
+deploy\install.bat
+```
+
+> Pick **mode 1** to pull the prebuilt image (fastest), or **mode 2** to build from source into a local image before composing. PostgreSQL (pgvector) and MongoDB are wired up automatically.
+
+#### 2.6 Build from Source
+
+To produce the executable JAR locally with Maven (requires JDK 21+ and Maven 3.6.3+):
+
+```bash
+mvn clean package -DskipTests
+# Output: maxkb4j-start/target/maxkb4j-start.jar
+java -jar maxkb4j-start/target/maxkb4j-start.jar
+```
+
+Spring profiles (`dev` / `prod` / `test`) are defined in `maxkb4j-start/src/main/resources/application-{profile}.yml`. Start with a specific profile:
+
+```bash
+java -jar maxkb4j-start/target/maxkb4j-start.jar --spring.profiles.active=dev
+```
+
+> Before the first run, ensure PostgreSQL (with the `pgvector` extension) and MongoDB are reachable, and that the datasource / MongoDB URIs in the active profile are configured.
+
 ### 3. Access Web Interface
 - URL: http://localhost:8080/admin/login
 - Default username: `admin`
@@ -105,11 +145,64 @@ Click the button below for one-click deployment:
 | **Backend**    | Java 21, Spring Boot 3, Sa-Token (Authentication) |
 | **AI Framework** | LangChain4j                          |
 | **Vector Database** | PostgreSQL 15 + pgvector             |
-| **Full-Text Search**  | MongoDB 5.0+                         |
+| **Full-Text Search**  | MongoDB 6.0+                         |
 | **Caching**    | Caffeine                             |
 | **Frontend**    | Vue 3, Node.js v20.16.0              |
 | **Script Sandbox**  | groovy-sandbox            |
 
+
+---
+
+## 📂 Project Structure
+
+MaxKB4j adopts a layered multi-module Maven layout (parent POM driven by `${revision}`):
+
+```
+MaxKB4j/
+├── maxkb4j-common/
+├── maxkb4j-core/
+├── maxkb4j-service/
+│   ├── maxkb4j-application/
+│   ├── maxkb4j-chat/
+│   ├── maxkb4j-knowledge/
+│   ├── maxkb4j-model/
+│   ├── maxkb4j-oss/
+│   ├── maxkb4j-system/
+│   ├── maxkb4j-tool/
+│   ├── maxkb4j-trigger/
+│   └── maxkb4j-workflow/
+├── maxkb4j-service-api/
+│   ├── maxkb4j-application-api/
+│   ├── maxkb4j-knowledge-api/
+│   ├── maxkb4j-model-api/
+│   ├── maxkb4j-oss-api/
+│   ├── maxkb4j-system-api/
+│   ├── maxkb4j-tool-api/
+│   ├── maxkb4j-user-api/
+│   └── maxkb4j-workflow-api/
+├── maxkb4j-start/
+│   └── src/main/resources/
+│       ├── application.yml
+│       ├── application-dev.yml
+│       ├── application-prod.yml
+│       └── application-test.yml
+├── deploy/
+│   ├── install.sh
+│   └── install.bat
+├── docker-compose.yml
+└── docker-compose.dev.yml
+```
+
+| Module | Responsibility |
+| :--- | :--- |
+| `maxkb4j-common` | Shared utilities, constants, and base classes |
+| `maxkb4j-core` | Core abstractions and domain models |
+| `maxkb4j-service` | Business service implementations (application, chat, knowledge, model, oss, system, tool, trigger, workflow) |
+| `maxkb4j-service-api` | Public service interfaces, DTOs, and VOs |
+| `maxkb4j-start` | Spring Boot entry point, configuration, and packaging |
+| `deploy` | One-click install scripts (`install.sh` / `install.bat`) |
+
+> Dependency direction flows top-down: `start` -> `service` -> `service-api` -> `core` -> `common`. Keep public contracts in `-api` modules and implementations in `service` modules.
 
 ---
 ## Online Demo
@@ -134,16 +227,26 @@ We welcome community contributions! If you have suggestions, bug reports, or new
 ## 💖 Support & Sponsorship
 
 > **🌟 Open source is not easy, persistence is harder**
-> MaxKB4j is **maintained** by individual developers and community members. Your support will be directly used for server costs, token testing consumption, API testing, bug fixes, and new feature development!
+> MaxKB4j is **maintained** by individual developers and community members, with no corporate backing. Your support goes directly to server costs, token testing, API testing, bug fixes, and new feature development - keeping the project moving forward!
 
+**What you get by sponsoring:**
+- 🛠 **Sustained iteration** - prioritized bug fixes and adaptation to new models / tools
+- 📞 **Direct line to the author** - 1-on-1 WeChat communication, fast responses
+- 🎁 **Exclusive perks** - frontend source code, Knowledge Planet, enterprise-grade support
+- 🏅 **Brand exposure** - enterprise sponsors can be listed on the official sponsor wall
 
-| Tier |  Amount   | Core Benefits                                                                                         | Target Audience |
-|:---:|:-----:|:---------------------------------------------------------------------------------------------|:---|
-| ☕ Coffee Support |  ¥10  | • Add the author on **WeChat:** `vxhqqh`<br>• Join the core discussion group (mention "sponsored")<br>• Priority notification of project updates                                  | Individual developers who recognize project value |
-| 📚 Learning Member |  ¥99  | • All Coffee Support benefits <br>• Free access to [《👉 Knowledge Planet🔥》](https://wx.zsxq.com/group/28882525858841)<br>• Priority answers to questions in the Planet | Developers who want to learn in depth |
-| 🏢 Enterprise Partner | ¥799  | • All Advanced Developer benefits <br>• One-time access to frontend source code <br>• Issue after-sales technical support   (price continues to rise...)                                      | Enterprise users / Advanced users |
-| 👑 Strategic Partner | ¥1399 | • All Enterprise Partner benefits  <br>• Free frontend source code upgrades within 6 months <br>• Enterprise Logo displayed on official website sponsor wall    (price continues to rise...)                          | Deep cooperation partners |
+> 📌 **Early-bird note**: the Enterprise / Strategic tiers **continue to rise in price** - current pricing is the lowest it will ever be, so lock in benefits early.
 
+### Sponsorship Tiers
+
+| Tier | Amount | Core Benefits | Target Audience |
+|:---:|:---:|:---|:---|
+| ☕ Coffee Support | ¥10 | • Add the author on **WeChat:** `vxhqqh`<br>• Join the core discussion group (mention "sponsored")<br>• Priority notification of project updates | Individual developers who recognize project value |
+| 📚 Learning Member 🏆 | ¥99 | • All Coffee Support benefits<br>• Free access to [《👉 Knowledge Planet🔥》](https://wx.zsxq.com/group/28882525858841)<br>• Priority answers to questions in the Planet | Developers who want to learn in depth |
+| 🏢 Enterprise Partner ⭐ | ¥799 | • All Learning Member benefits<br>• One-time access to **frontend source code**<br>• After-sales technical support<br>• Suited for enterprise / production use (price continues to rise…) | Enterprise users / Advanced users |
+| 👑 Strategic Partner | ¥1399 | • All Enterprise Partner benefits<br>• Free frontend source code upgrades within 6 months<br>• Enterprise Logo displayed on official website sponsor wall (price continues to rise…) | Deep cooperation partners |
+
+> 🏆 Most popular　·　⭐ Best value
 
 <table style="border-collapse: collapse; border: 1px solid black;">
   <tr>
@@ -151,13 +254,26 @@ We welcome community contributions! If you have suggestions, bug reports, or new
     <th style="padding: 10px;"> <div align="center">WeChat QR Code</div></th>
   </tr>
   <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src="image/zfb_skm.png" alt="Alipay QR Code"   /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src= "image/wx_zsm.png" alt="WeChat QR Code"   /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src="image/zfb_skm.png" alt="Alipay QR Code" /></td>
+    <td style="padding: 5px;background-color:#fff;"><img src="image/wx_zsm.png" alt="WeChat QR Code" /></td>
   </tr>
 </table>
 
+### 🪜 How to Sponsor
+1. **Choose a tier** - pick the sponsorship tier that fits you from the table above
+2. **Scan & pay** - pay via Alipay / WeChat QR code (tip: note your GitHub handle)
+3. **Contact the author** - add WeChat `vxhqqh`, send the payment screenshot, and your perks will be activated right away
 
-> Sponsorship amounts are only used for continuous project development and maintenance, not for profit purposes. 💡 Open source is not easy, thank you for every contribution!
+> 💡 Please contact the author after paying - otherwise we can't identify you or deliver your benefits.
+
+### 🏅 Sponsor Wall
+Thanks to everyone supporting MaxKB4j (ordered by sponsorship time):
+> 🎯 We'd love to have you on board - your enterprise Logo / nickname will be displayed here, gaining continuous community exposure.
+
+### 🤝 Enterprise Custom Cooperation
+Need **private deployment, secondary development, team training, SLA guarantees**, or a deeper partnership? Contact the author on WeChat `vxhqqh` for a tailored plan and quote.
+
+> Sponsorship amounts are used only for continuous project development and maintenance. 💡 Open source is not easy - thank you for every contribution. You are what keeps MaxKB4j moving forward!
 
 ---
 

@@ -1,7 +1,7 @@
 package com.maxkb4j.application.controller;
 
 import com.maxkb4j.application.entity.ApplicationApiKeyEntity;
-import com.maxkb4j.application.service.ApplicationApiKeyService;
+import com.maxkb4j.application.service.impl.ApplicationApiKeyServiceImpl;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.api.R;
@@ -20,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApplicationKeyController {
 
-    private final ApplicationApiKeyService apiKeyService;
+    private final ApplicationApiKeyServiceImpl apiKeyService;
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}/application_key")
