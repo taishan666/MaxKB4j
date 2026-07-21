@@ -1,11 +1,9 @@
 package com.maxkb4j.application.vo;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.maxkb4j.common.domain.dto.KnowledgeDTO;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.common.mp.entity.LlmModelSetting;
-import com.maxkb4j.common.typehandler.StringListTypeHandler;
 import lombok.Data;
 
 import java.util.Date;
@@ -61,6 +59,7 @@ public class ApplicationVO  {
 
     private Date publishTime;
 
+
     private String problemOptimizationPrompt;
 
     /*单位天*/
@@ -87,4 +86,6 @@ public class ApplicationVO  {
     private Boolean showSource;
     private Boolean showExec;
     private String language;
+    private Date createTime;
+    private Date updateTime;
 }
