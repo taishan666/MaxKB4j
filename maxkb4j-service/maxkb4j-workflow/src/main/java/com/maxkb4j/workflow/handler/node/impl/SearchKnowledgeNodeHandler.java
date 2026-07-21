@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.knowledge.service.IRetrieveService;
-import com.maxkb4j.knowledge.util.RagContentInjector;
+import com.maxkb4j.core.support.RagContentInjector;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;

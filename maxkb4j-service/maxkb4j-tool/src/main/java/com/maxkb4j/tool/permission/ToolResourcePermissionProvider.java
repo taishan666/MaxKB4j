@@ -6,9 +6,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.mapper.ToolMapper;
-import com.maxkb4j.user.service.IResourcePermissionPageProvider;
-import com.maxkb4j.user.support.ResourcePermissionQuerySupport;
-import com.maxkb4j.user.vo.UserResourcePermissionVO;
+import com.maxkb4j.core.support.IResourcePermissionPageProvider;
+import com.maxkb4j.core.support.ResourcePermissionQuerySupport;
+import com.maxkb4j.core.support.vo.UserResourcePermissionVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

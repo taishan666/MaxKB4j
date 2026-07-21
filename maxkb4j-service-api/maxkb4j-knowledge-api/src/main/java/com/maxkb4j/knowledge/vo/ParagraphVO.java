@@ -1,10 +1,11 @@
 package com.maxkb4j.knowledge.vo;
 
+import com.maxkb4j.core.support.RagContent;
 import com.maxkb4j.knowledge.consts.HitHandlingMethod;
 import lombok.Data;
 
 @Data
-public class ParagraphVO {
+public class ParagraphVO implements RagContent {
     private String id;
     private String knowledgeName;
     private Integer knowledgeType;

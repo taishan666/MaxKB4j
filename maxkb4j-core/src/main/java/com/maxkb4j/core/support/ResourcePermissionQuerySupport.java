@@ -1,4 +1,4 @@
-package com.maxkb4j.user.support;
+package com.maxkb4j.core.support;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -11,7 +11,7 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.Permission;
 import com.maxkb4j.common.mp.base.BaseEntity;
 import com.maxkb4j.common.util.PageUtil;
-import com.maxkb4j.user.vo.UserResourcePermissionVO;
+import com.maxkb4j.core.support.vo.UserResourcePermissionVO;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  *
  * <p>将 {@code UserResourcePermissionServiceImpl} 中与具体业务实体无关的分页模板、
  * 权限过滤计算与权限 ID 过滤器抽离至此，供各业务模块的
- * {@link com.maxkb4j.user.service.IResourcePermissionPageProvider} 实现复用，
+ * {@code IResourcePermissionPageProvider} 实现复用，
  * 避免在各 provider 中重复这段逻辑。
  *
  * @author tarzan

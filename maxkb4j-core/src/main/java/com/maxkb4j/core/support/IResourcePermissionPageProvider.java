@@ -1,7 +1,7 @@
-package com.maxkb4j.user.service;
+package com.maxkb4j.core.support;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.maxkb4j.user.vo.UserResourcePermissionVO;
+import com.maxkb4j.core.support.vo.UserResourcePermissionVO;
 
 import java.util.Map;
 import java.util.Set;
@@ -10,8 +10,9 @@ import java.util.Set;
  * 资源权限分页查询 SPI。
  *
  * <p>不同资源类型（应用/知识库/工具/模型）的分页查询本属各自业务领域，
- * 接口声明在 user-api 供 system 模块的 {@code UserResourcePermissionServiceImpl} 消费，
- * 由各业务模块实现并在运行期注入，避免 system 模块反向编译依赖各业务模块。
+ * 由各业务模块实现并在运行期注入，system 模块的
+ * {@code UserResourcePermissionServiceImpl} 消费，
+ * 避免 system 模块反向编译依赖各业务模块。
  *
  * @author tarzan
  */

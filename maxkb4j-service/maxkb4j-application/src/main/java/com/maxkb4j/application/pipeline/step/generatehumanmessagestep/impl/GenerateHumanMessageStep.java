@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.application.pipeline.step.generatehumanmessagestep.AbsGenerateHumanMessageStep;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.common.mp.entity.LlmModelSetting;
-import com.maxkb4j.knowledge.util.RagContentInjector;
+import com.maxkb4j.core.support.RagContentInjector;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import org.springframework.stereotype.Component;
 

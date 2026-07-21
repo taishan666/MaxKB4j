@@ -11,7 +11,7 @@ import com.maxkb4j.system.service.impl.UserResourcePermissionServiceImpl;
 import com.maxkb4j.system.service.impl.UserServiceImpl;
 import com.maxkb4j.system.vo.ResourceUserPermissionVO;
 import com.maxkb4j.system.vo.UserNameVO;
-import com.maxkb4j.user.vo.UserResourcePermissionVO;
+import com.maxkb4j.core.support.vo.UserResourcePermissionVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
