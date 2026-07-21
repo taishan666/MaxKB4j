@@ -40,6 +40,16 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-reactor</artifactId>
         </dependency>
+        <!-- common 的 MessageConverter/GlobalExceptionHandler 及 core 自身 AiServiceFactory 等依赖 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+        </dependency>
+        <!-- DatabaseUtil 使用 HikariCP 连接池，且 core 需 MyBatis-Plus 运行时 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

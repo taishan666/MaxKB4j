@@ -13,4 +13,12 @@
     <name>${project.artifactId}</name>
     <packaging>jar</packaging>
 
+    <dependencies>
+        <!-- IModelProviderService 等接口签名依赖 langchain4j 模型类型 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-core</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>
