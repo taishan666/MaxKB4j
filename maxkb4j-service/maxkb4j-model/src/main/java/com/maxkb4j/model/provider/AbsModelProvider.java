@@ -41,7 +41,7 @@ public abstract class AbsModelProvider {
 
     private SpringRestClientBuilder springRestClientBuilder;
 
-    protected HttpClientBuilder getHttpClientBuilder() {
+    protected synchronized HttpClientBuilder getHttpClientBuilder() {
         if (springRestClientBuilder == null) {
             HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
              requestFactory.setConnectTimeout(60_000);

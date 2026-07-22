@@ -1,4 +1,6 @@
 package com.maxkb4j.model.provider;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ModelCredential;
@@ -18,6 +20,8 @@ import java.util.List;
 /**
  * Azure OpenAI Model Provider
  */
+@Component
+@ModelProviderType(provider = "Azure", name = "Azure OpenAI", icon = "azure_icon.svg")
 public class AzureModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(

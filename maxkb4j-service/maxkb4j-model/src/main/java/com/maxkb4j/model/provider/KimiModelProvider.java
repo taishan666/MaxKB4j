@@ -1,4 +1,6 @@
 package com.maxkb4j.model.provider;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import org.springframework.stereotype.Component;
 
 
 import com.maxkb4j.model.enums.ModelType;
@@ -9,6 +11,8 @@ import java.util.List;
 /**
  * Kimi Model Provider - OpenAI compatible API
  */
+@Component
+@ModelProviderType(provider = "Kimi", name = "Kimi", icon = "kimi_icon.svg")
 public class KimiModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = "https://api.moonshot.cn/v1";

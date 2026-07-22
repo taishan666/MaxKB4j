@@ -3,9 +3,11 @@ package com.maxkb4j.application.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.application.dto.ChatQueryDTO;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
-import com.maxkb4j.application.service.impl.ApplicationChatServiceImpl;
+import com.maxkb4j.application.vo.ApplicationChatVO;
+import com.maxkb4j.application.service.IApplicationChatInternalService;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,7 +30,7 @@ import java.util.List;
 @Slf4j
 public class ApplicationChatController {
 
-    private final ApplicationChatServiceImpl chatService;
+    private final IApplicationChatInternalService chatService;
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/chat/client/{chatId}")
@@ -45,8 +47,8 @@ public class ApplicationChatController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}/chat/{page}/{size}")
-    public R<IPage<ApplicationChatEntity>> chatLogs(@PathVariable("id") String id, @PathVariable("page") int page, @PathVariable("size") int size, ChatQueryDTO query) {
-        return R.data(chatService.chatLogs(id, page, size, query));
+    public R<IPage<ApplicationChatVO>> chatLogs(@PathVariable("id") String id, @PathVariable("page") int page, @PathVariable("size") int size, ChatQueryDTO query) {
+        return R.data(BeanUtil.copyPage(chatService.chatLogs(id, page, size, query), ApplicationChatVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EXPORT)

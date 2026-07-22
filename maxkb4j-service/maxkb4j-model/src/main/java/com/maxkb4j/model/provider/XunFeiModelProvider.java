@@ -1,4 +1,6 @@
 package com.maxkb4j.model.provider;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import org.springframework.stereotype.Component;
 
 
 import com.maxkb4j.model.enums.ModelType;
@@ -9,6 +11,8 @@ import java.util.List;
 /**
  * XunFei (iFLYTEK) Model Provider - OpenAI compatible API
  */
+@Component
+@ModelProviderType(provider = "XunFei", name = "讯飞星火", icon = "xf_icon.svg")
 public class XunFeiModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = "https://spark-api-open.xf-yun.com/v1/";

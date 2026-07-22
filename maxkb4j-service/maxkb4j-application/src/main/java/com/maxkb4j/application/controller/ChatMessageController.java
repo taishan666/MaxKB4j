@@ -1,6 +1,6 @@
 package com.maxkb4j.application.controller;
 
-import com.maxkb4j.application.service.impl.ApplicationChatServiceImpl;
+import com.maxkb4j.application.service.IApplicationChatInternalService;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
@@ -26,7 +26,7 @@ import reactor.core.publisher.Sinks;
 @RequestMapping(AppConst.ADMIN_API)
 public class ChatMessageController {
 
-    private final ApplicationChatServiceImpl chatService;
+    private final IApplicationChatInternalService chatService;
 
     @GetMapping("/workspace/default/application/{id}/open")
     public R<String> open(@PathVariable("id") String id) {

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
@@ -16,8 +17,10 @@ import com.maxkb4j.knowledge.dto.KnowledgeQuery;
 import com.maxkb4j.knowledge.entity.KnowledgeActionEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeVersionEntity;
+import com.maxkb4j.knowledge.vo.KnowledgeActionVO;
+import com.maxkb4j.knowledge.vo.KnowledgeVersionVO;
 import com.maxkb4j.knowledge.handler.KnowledgeImportHandler;
-import com.maxkb4j.knowledge.service.impl.KnowledgeServiceImpl;
+import com.maxkb4j.knowledge.service.IKnowledgeInternalService;
 import com.maxkb4j.knowledge.service.KnowledgeExportService;
 import com.maxkb4j.knowledge.service.KnowledgeWorkflowService;
 import com.maxkb4j.knowledge.service.KnowledgePublishService;
@@ -44,7 +47,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KnowledgeController {
 
-    private final KnowledgeServiceImpl knowledgeService;
+    private final IKnowledgeInternalService knowledgeService;
     private final KnowledgeExportService knowledgeExportService;
     private final KnowledgeWorkflowService knowledgeWorkflowService;
     private final KnowledgePublishService knowledgePublishService;
@@ -60,29 +63,33 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/base")
-    public R<KnowledgeEntity> createKnowledgeBase(@RequestBody KnowledgeEntity knowledge) {
+    public R<KnowledgeVO> createKnowledgeBase(@RequestBody KnowledgeEntity knowledge) {
         knowledge.setType(KnowledgeType.BASE);
-        return R.data(knowledgeService.createKnowledge(knowledge));
+        KnowledgeEntity ke = knowledgeService.createKnowledge(knowledge);
+        return R.data(ke == null ? null : BeanUtil.copy(ke, KnowledgeVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/web")
-    public R<KnowledgeEntity> createKnowledgeWeb(@RequestBody WebKnowledgeDTO knowledge) {
+    public R<KnowledgeVO> createKnowledgeWeb(@RequestBody WebKnowledgeDTO knowledge) {
         knowledge.setType(KnowledgeType.WEB);
-        return R.data(knowledgeService.createKnowledgeWeb(knowledge));
+        KnowledgeEntity ke = knowledgeService.createKnowledgeWeb(knowledge);
+        return R.data(ke == null ? null : BeanUtil.copy(ke, KnowledgeVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/workflow")
-    public R<KnowledgeEntity> createKnowledgeWorkflow(@RequestBody KnowledgeEntity knowledge) {
+    public R<KnowledgeVO> createKnowledgeWorkflow(@RequestBody KnowledgeEntity knowledge) {
         knowledge.setType(KnowledgeType.WORKFLOW);
-        return R.data(knowledgeService.createKnowledge(knowledge));
+        KnowledgeEntity ke = knowledgeService.createKnowledge(knowledge);
+        return R.data(ke == null ? null : BeanUtil.copy(ke, KnowledgeVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_WORKFLOW_EDIT)
     @PutMapping("/knowledge/{id}/workflow")
-    public R<KnowledgeEntity> updateDatasetWorkflow(@PathVariable String id,@RequestBody KnowledgeEntity knowledge) {
-        return R.data(knowledgeWorkflowService.updateDatasetWorkflow(id,knowledge));
+    public R<KnowledgeVO> updateDatasetWorkflow(@PathVariable String id,@RequestBody KnowledgeEntity knowledge) {
+        KnowledgeEntity ke = knowledgeWorkflowService.updateDatasetWorkflow(id,knowledge);
+        return R.data(ke == null ? null : BeanUtil.copy(ke, KnowledgeVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_READ)
@@ -99,9 +106,9 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_EDIT)
     @PutMapping("/knowledge/{id}")
-    public R<KnowledgeEntity> updatedKnowledge(@PathVariable("id") String id, @RequestBody KnowledgeEntity datasetEntity) {
+    public R<KnowledgeVO> updatedKnowledge(@PathVariable("id") String id, @RequestBody KnowledgeEntity datasetEntity) {
         knowledgeService.updateKnowledge(id, datasetEntity);
-        return R.data(datasetEntity);
+        return R.data(BeanUtil.copy(datasetEntity, KnowledgeVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_VECTOR)
@@ -154,8 +161,9 @@ public class KnowledgeController {
     }
 
     @PostMapping("/knowledge/import_knowledge")
-    public R<KnowledgeEntity> importKnowledge(@RequestParam("file") MultipartFile file) throws IOException {
-        return R.data(knowledgeImportHandler.importKnowledgeFromZip(file));
+    public R<KnowledgeVO> importKnowledge(@RequestParam("file") MultipartFile file) throws IOException {
+        KnowledgeEntity ke = knowledgeImportHandler.importKnowledgeFromZip(file);
+        return R.data(ke == null ? null : BeanUtil.copy(ke, KnowledgeVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
@@ -165,8 +173,9 @@ public class KnowledgeController {
     }
 
     @PostMapping("/knowledge/{id}/debug")
-    public R<KnowledgeActionEntity> debug(@PathVariable("id") String id, @RequestBody KnowledgeParams params) {
-        return R.data(knowledgeWorkflowService.uploadDocument(id,params, true));
+    public R<KnowledgeActionVO> debug(@PathVariable("id") String id, @RequestBody KnowledgeParams params) {
+        KnowledgeActionEntity ae = knowledgeWorkflowService.uploadDocument(id,params, true);
+        return R.data(ae == null ? null : BeanUtil.copy(ae, KnowledgeActionVO.class));
     }
 
     @PutMapping("/knowledge/{id}/publish")
@@ -174,8 +183,8 @@ public class KnowledgeController {
         return R.status(knowledgePublishService.publish(id));
     }
     @GetMapping("/knowledge/{id}/knowledge_version")
-    public R<List<KnowledgeVersionEntity>> knowledgeVersion(@PathVariable("id") String id) {
-        return R.data(knowledgePublishService.knowledgeVersion(id));
+    public R<List<KnowledgeVersionVO>> knowledgeVersion(@PathVariable("id") String id) {
+        return R.data(BeanUtil.copyList(knowledgePublishService.knowledgeVersion(id), KnowledgeVersionVO.class));
     }
 
     @PutMapping("/knowledge/{id}/knowledge_version/{versionId}")
@@ -184,18 +193,20 @@ public class KnowledgeController {
     }
 
     @GetMapping("/knowledge/{id}/action/{current}/{size}")
-    public R<IPage<KnowledgeActionEntity>> actionPage(@PathVariable("id") String id,@PathVariable("current") int current, @PathVariable("size") int size, String username, String state) {
-        return R.data(knowledgePublishService.actionPage(id,current,size,username,state));
+    public R<IPage<KnowledgeActionVO>> actionPage(@PathVariable("id") String id,@PathVariable("current") int current, @PathVariable("size") int size, String username, String state) {
+        return R.data(BeanUtil.copyPage(knowledgePublishService.actionPage(id,current,size,username,state), KnowledgeActionVO.class));
     }
 
     @PostMapping("/knowledge/{id}/upload_document")
-    public R<KnowledgeActionEntity> uploadDocument(@PathVariable("id") String id,@RequestBody  KnowledgeParams params) {
-        return R.data(knowledgeWorkflowService.uploadDocument(id,params, false));
+    public R<KnowledgeActionVO> uploadDocument(@PathVariable("id") String id,@RequestBody  KnowledgeParams params) {
+        KnowledgeActionEntity ae = knowledgeWorkflowService.uploadDocument(id,params, false);
+        return R.data(ae == null ? null : BeanUtil.copy(ae, KnowledgeActionVO.class));
     }
 
     @GetMapping("/knowledge/{id}/action/{actionId}")
-    public R<KnowledgeActionEntity> action(@PathVariable("id") String id, @PathVariable("actionId") String actionId) {
-        return R.data(knowledgePublishService.action(actionId));
+    public R<KnowledgeActionVO> action(@PathVariable("id") String id, @PathVariable("actionId") String actionId) {
+        KnowledgeActionEntity ae = knowledgePublishService.action(actionId);
+        return R.data(ae == null ? null : BeanUtil.copy(ae, KnowledgeActionVO.class));
     }
 
 

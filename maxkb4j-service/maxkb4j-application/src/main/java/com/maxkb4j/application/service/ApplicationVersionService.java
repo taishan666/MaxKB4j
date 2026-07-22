@@ -3,6 +3,7 @@ package com.maxkb4j.application.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.entity.ApplicationVersionEntity;
+import com.maxkb4j.application.service.IApplicationVersionService;
 import com.maxkb4j.application.mapper.ApplicationVersionMapper;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.util.BeanUtil;
@@ -15,7 +16,7 @@ import java.util.List;
  * @date 2024-12-28 18:47:27
  */
 @Service
-public class ApplicationVersionService extends ServiceImpl<ApplicationVersionMapper, ApplicationVersionEntity>{
+public class ApplicationVersionService extends ServiceImpl<ApplicationVersionMapper, ApplicationVersionEntity> implements IApplicationVersionService {
 
     public ApplicationVO getAppLatestOne(String appId) {
         LambdaQueryWrapper<ApplicationVersionEntity> wrapper = new LambdaQueryWrapper<>();

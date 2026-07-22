@@ -16,7 +16,7 @@ import com.maxkb4j.system.entity.UserResourcePermissionEntity;
 import com.maxkb4j.system.mapper.UserMapper;
 import com.maxkb4j.system.mapper.UserResourcePermissionMapper;
 import com.maxkb4j.core.support.IResourcePermissionPageProvider;
-import com.maxkb4j.user.service.IUserResourcePermissionService;
+import com.maxkb4j.system.service.IUserResourcePermissionInternalService;
 import com.maxkb4j.core.support.ResourcePermissionQuerySupport;
 import com.maxkb4j.system.vo.ResourceUserPermissionVO;
 import com.maxkb4j.core.support.vo.UserResourcePermissionVO;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
-public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourcePermissionMapper, UserResourcePermissionEntity> implements IUserResourcePermissionService {
+public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourcePermissionMapper, UserResourcePermissionEntity> implements IUserResourcePermissionInternalService {
     private final String DEFAULT_ID = "default";
     private final UserMapper userMapper;
     private final UserContext userContext;

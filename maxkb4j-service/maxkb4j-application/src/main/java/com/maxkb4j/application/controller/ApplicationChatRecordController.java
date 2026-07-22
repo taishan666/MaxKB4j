@@ -4,10 +4,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.application.dto.AddChatImproveDTO;
 import com.maxkb4j.application.dto.ChatImproveDTO;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
-import com.maxkb4j.application.service.impl.ApplicationChatRecordServiceImpl;
+import com.maxkb4j.application.service.IApplicationChatRecordInternalService;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.dto.ParagraphDTO;
@@ -26,7 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApplicationChatRecordController {
 
-    private final ApplicationChatRecordServiceImpl chatRecordService;
+    private final IApplicationChatRecordInternalService chatRecordService;
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}/chat/{chatId}/chat_record/{chatRecordId}")
@@ -48,8 +49,9 @@ public class ApplicationChatRecordController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/chat/{chatId}/chat_record/{chatRecordId}/knowledge/{knowledgeId}/document/{docId}/improve")
-    public R<ApplicationChatRecordEntity> improveChatLog(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @PathVariable("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable("docId") String docId, @Valid @RequestBody ChatImproveDTO dto) {
-        return R.data(chatRecordService.improveChatLog(chatId, chatRecordId, knowledgeId, docId, dto));
+    public R<ApplicationChatRecordVO> improveChatLog(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @PathVariable("chatRecordId") String chatRecordId, @PathVariable("knowledgeId") String knowledgeId, @PathVariable("docId") String docId, @Valid @RequestBody ChatImproveDTO dto) {
+        ApplicationChatRecordEntity e = chatRecordService.improveChatLog(chatId, chatRecordId, knowledgeId, docId, dto);
+        return R.data(e == null ? null : BeanUtil.copy(e, ApplicationChatRecordVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_DELETE)

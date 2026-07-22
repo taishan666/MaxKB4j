@@ -1,4 +1,6 @@
 package com.maxkb4j.model.provider;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import org.springframework.stereotype.Component;
 
 
 import com.maxkb4j.model.enums.ModelType;
@@ -9,6 +11,8 @@ import java.util.List;
 /**
  * Volcanic Engine (Doubao) Model Provider - OpenAI compatible API
  */
+@Component
+@ModelProviderType(provider = "VolcanicEngine", name = "火山引擎", icon = "volcanic_engine_icon.svg")
 public class VolcanicEngineModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = "https://ark.cn-beijing.volces.com/api/v3";

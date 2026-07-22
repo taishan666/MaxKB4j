@@ -15,7 +15,7 @@ import com.maxkb4j.system.dto.TargetResource;
 import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.mapper.ResourceMappingMapper;
 import com.maxkb4j.system.mapper.UserMapper;
-import com.maxkb4j.system.service.IResourceMappingService;
+import com.maxkb4j.system.service.IResourceMappingInternalService;
 import com.maxkb4j.system.strategy.SourceResourceResolver;
 import com.maxkb4j.system.vo.ResourceUseVO;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
-public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMapper, ResourceMappingEntity> implements IResourceMappingService {
+public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMapper, ResourceMappingEntity> implements IResourceMappingInternalService {
 
     private final UserMapper userMapper;
     private final Map<String, SourceResourceResolver> resolverMap;

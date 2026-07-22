@@ -1,5 +1,7 @@
 package com.maxkb4j.common.util;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapperImpl;
@@ -130,4 +132,20 @@ public class BeanUtil {
         return map;
     }
 
+
+    /**
+     * 复制分页对象：将 IPage<S> 的记录逐条拷贝为 target 类型，保留分页元数据。
+     */
+    public static <S, T> IPage<T> copyPage(IPage<S> source, Class<T> target) {
+        Page<T> page = new Page<>();
+        if (source == null) {
+            return page;
+        }
+        page.setRecords(copyList(source.getRecords(), target));
+        page.setCurrent(source.getCurrent());
+        page.setSize(source.getSize());
+        page.setTotal(source.getTotal());
+        page.setPages(source.getPages());
+        return page;
+    }
 }

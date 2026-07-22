@@ -4,14 +4,17 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.dto.IdListDTO;
 import com.maxkb4j.knowledge.dto.ParagraphAddDTO;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
-import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
-import com.maxkb4j.knowledge.service.impl.ProblemParagraphServiceImpl;
+import com.maxkb4j.knowledge.vo.ParagraphVO;
+import com.maxkb4j.knowledge.vo.ProblemVO;
+import com.maxkb4j.knowledge.service.IParagraphInternalService;
+import com.maxkb4j.knowledge.service.IProblemParagraphService;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +26,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ParagraphController {
 
-    private final ParagraphServiceImpl paragraphService;
-    private final ProblemParagraphServiceImpl problemParagraphService;
+    private final IParagraphInternalService paragraphService;
+    private final IProblemParagraphService problemParagraphService;
 
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
@@ -36,17 +39,18 @@ public class ParagraphController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document/{docId}/paragraph/{current}/{size}")
-    public R<IPage<ParagraphEntity>> getParagraphByProblemId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("current") int current, @PathVariable("size") int size, String title, String content) {
-        return R.data(paragraphService.pageParagraphByDocId(docId, current, size, title, content));
+    public R<IPage<ParagraphVO>> getParagraphByProblemId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("current") int current, @PathVariable("size") int size, String title, String content) {
+        return R.data(BeanUtil.copyPage(paragraphService.pageParagraphByDocId(docId, current, size, title, content), ParagraphVO.class));
     }
 
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{docId}/paragraph/{paragraphId}")
-    public R<ParagraphEntity> updateParagraphById(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @RequestBody ParagraphEntity paragraph) {
+    public R<ParagraphVO> updateParagraphById(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @RequestBody ParagraphEntity paragraph) {
         paragraph.setId(paragraphId);
         paragraphService.updateParagraphById(id, docId, paragraph);
-        return R.data(paragraphService.getById(paragraphId));
+        ParagraphEntity e = paragraphService.getById(paragraphId);
+        return R.data(e == null ? null : BeanUtil.copy(e, ParagraphVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_PROBLEM_RELATE)
@@ -76,8 +80,8 @@ public class ParagraphController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document/{docId}/paragraph/{paragraphId}/problem")
-    public R<List<ProblemEntity>> getProblemsByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId) {
-        return R.data(paragraphService.getProblemsByParagraphId(paragraphId));
+    public R<List<ProblemVO>> getProblemsByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId) {
+        return R.data(BeanUtil.copyList(paragraphService.getProblemsByParagraphId(paragraphId), ProblemVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)

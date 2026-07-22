@@ -15,11 +15,11 @@ import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DataMaskUtil;
 import com.maxkb4j.model.entity.ModelEntity;
-import com.maxkb4j.model.enums.ModelProvider;
+import com.maxkb4j.model.registry.ModelProviderRegistry;
 import com.maxkb4j.model.enums.ModelStatus;
 import com.maxkb4j.model.mapper.ModelMapper;
 import com.maxkb4j.model.provider.AbsModelProvider;
-import com.maxkb4j.model.service.IModelService;
+import com.maxkb4j.model.service.IModelInternalService;
 import com.maxkb4j.model.vo.ModelVO;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
@@ -42,17 +42,18 @@ import java.util.function.Function;
  */
 @Service
 @RequiredArgsConstructor
-public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> implements IModelService {
+public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> implements IModelInternalService {
 
     private final IUserService userService;
     private final IUserResourcePermissionService userResourcePermissionService;
     private final UserContext userContext;
+    private final ModelProviderRegistry providerRegistry;
 
     private static final Cache<String, ModelEntity> MODEL_CACHE = Caffeine.newBuilder()
             .initialCapacity(100)
-            // 超出最大容量时淘汰
+            // 瓒呭嚭鏈€澶у閲忔椂娣樻卑
             .maximumSize(10000)
-            //设置写缓存后n秒钟过期
+            //璁剧疆鍐欑紦瀛樺悗n绉掗挓杩囨湡
             .expireAfterWrite(1, TimeUnit.MINUTES)
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build();
@@ -116,7 +117,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
         if (model.getModelParamsForm() == null){
             model.setModelParamsForm(new JSONArray());
         }
-        AbsModelProvider  modelProvider= ModelProvider.get(model.getProvider());
+        AbsModelProvider  modelProvider= providerRegistry.get(model.getProvider());
         JSONObject params = extractDefaultModelParams(model.getModelParamsForm());
         modelProvider.modelIsValid(model.getModelType(),model.getModelName(),model.getCredential(),params);
         model.setUserId(userId);
@@ -128,17 +129,17 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
 
     private JSONObject extractDefaultModelParams(JSONArray modelParamsForm) {
         JSONObject defaultModelParams = new JSONObject();
-        // 防御性判断：如果传入的数组为空或 null，直接返回空对象
+        // 闃插尽鎬у垽鏂細濡傛灉浼犲叆鐨勬暟缁勪负绌烘垨 null锛岀洿鎺ヨ繑鍥炵┖瀵硅薄
         if (modelParamsForm == null || modelParamsForm.isEmpty()) {
             return defaultModelParams;
         }
-        // 遍历 JSONArray 中的每一个配置项
+        // 閬嶅巻 JSONArray 涓殑姣忎竴涓厤缃」
         for (int i = 0; i < modelParamsForm.size(); i++) {
             JSONObject paramConfig = modelParamsForm.getJSONObject(i);
-            // 获取字段名作为 key，默认值作为 value
+            // 鑾峰彇瀛楁鍚嶄綔涓?key锛岄粯璁ゅ€间綔涓?value
             String field = paramConfig.getString("field");
             Object defaultValue = paramConfig.get("default_value");
-            // 防止 field 为 null 导致异常
+            // 闃叉 field 涓?null 瀵艰嚧寮傚父
             if (field != null && defaultValue != null) {
                 defaultModelParams.put(field, defaultValue);
             }
@@ -160,7 +161,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
             credential.setBaseUrl(model.getCredential().getBaseUrl());
             model.setCredential(credential);
         }
-        AbsModelProvider  modelProvider= ModelProvider.get(entity.getProvider());
+        AbsModelProvider  modelProvider= providerRegistry.get(entity.getProvider());
         JSONObject params = extractDefaultModelParams(entity.getModelParamsForm());
         modelProvider.modelIsValid(model.getModelType(),model.getModelName(),model.getCredential(),params);
         this.updateById(model);
@@ -194,7 +195,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     }
 
     /**
-     * 应用通用筛选条件：名称模糊、模型类型、供应商。
+     * 搴旂敤閫氱敤绛涢€夋潯浠讹細鍚嶇О妯＄硦銆佹ā鍨嬬被鍨嬨€佷緵搴斿晢銆?
      */
     private void applyCommonFilters(LambdaQueryWrapper<ModelEntity> wrapper, String name, String modelType, String provider) {
         if (StringUtils.isNotBlank(name)) {
@@ -209,10 +210,10 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     }
 
     /**
-     * 应用数据权限：
-     * - 普通用户：仅可见已授权的模型，无授权则强制空结果
-     * - 无任何角色：强制空结果
-     * - 其他角色（如管理员）：不附加限制
+     * 搴旂敤鏁版嵁鏉冮檺锛?
+     * - 鏅€氱敤鎴凤細浠呭彲瑙佸凡鎺堟潈鐨勬ā鍨嬶紝鏃犳巿鏉冨垯寮哄埗绌虹粨鏋?
+     * - 鏃犱换浣曡鑹诧細寮哄埗绌虹粨鏋?
+     * - 鍏朵粬瑙掕壊锛堝绠＄悊鍛橈級锛氫笉闄勫姞闄愬埗
      */
     private void applyDataPermission(LambdaQueryWrapper<ModelEntity> wrapper) {
         String loginId = userContext.getUserId();
@@ -233,8 +234,8 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     }
 
     /**
-     * 以"当前登录者必须是模型拥有者"为前提取出模型，再由 mapper 决定返回内容。
-     * 非拥有者或模型不存在时返回 null。
+     * 浠?褰撳墠鐧诲綍鑰呭繀椤绘槸妯″瀷鎷ユ湁鑰?涓哄墠鎻愬彇鍑烘ā鍨嬶紝鍐嶇敱 mapper 鍐冲畾杩斿洖鍐呭銆?
+     * 闈炴嫢鏈夎€呮垨妯″瀷涓嶅瓨鍦ㄦ椂杩斿洖 null銆?
      */
     private <T> T getOwnedModel(String id, Function<ModelEntity, T> mapper) {
         ModelEntity model = this.getById(id);
@@ -254,7 +255,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
 
     public void updateModelParamsForm(String id, JSONArray paramsForm) {
         ModelEntity entity = this.getById(id);
-        AbsModelProvider  modelProvider= ModelProvider.get(entity.getProvider());
+        AbsModelProvider  modelProvider= providerRegistry.get(entity.getProvider());
         JSONObject params = extractDefaultModelParams(paramsForm);
         modelProvider.modelIsValid(entity.getModelType(),entity.getModelName(),entity.getCredential(),params);
         ModelEntity modelEntity= new ModelEntity();
@@ -274,3 +275,4 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
         return embeddingModel != null ? embeddingModel.getId() : null;
     }
 }
+

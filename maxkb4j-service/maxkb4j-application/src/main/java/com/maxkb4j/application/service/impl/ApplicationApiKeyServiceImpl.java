@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.dto.ApplicationApiKeyDTO;
 import com.maxkb4j.application.entity.ApplicationApiKeyEntity;
 import com.maxkb4j.application.mapper.ApplicationApiKeyMapper;
-import com.maxkb4j.application.service.IApplicationApiKeyService;
+import com.maxkb4j.application.service.IApplicationApiKeyInternalService;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.BeanUtil;
@@ -20,7 +20,7 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-public class ApplicationApiKeyServiceImpl extends ServiceImpl<ApplicationApiKeyMapper, ApplicationApiKeyEntity> implements IApplicationApiKeyService {
+public class ApplicationApiKeyServiceImpl extends ServiceImpl<ApplicationApiKeyMapper, ApplicationApiKeyEntity> implements IApplicationApiKeyInternalService {
 
     private final UserContext userContext;
 

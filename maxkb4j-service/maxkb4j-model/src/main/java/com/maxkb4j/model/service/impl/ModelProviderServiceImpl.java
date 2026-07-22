@@ -2,7 +2,7 @@ package com.maxkb4j.model.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.entity.ModelEntity;
-import com.maxkb4j.model.enums.ModelProvider;
+import com.maxkb4j.model.registry.ModelProviderRegistry;
 import com.maxkb4j.model.exception.ModelNotFoundException;
 import com.maxkb4j.model.provider.AbsModelProvider;
 import com.maxkb4j.model.service.IModelProviderService;
@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 public class ModelProviderServiceImpl implements IModelProviderService {
 
     private final ModelServiceImpl modelService;
+    private final ModelProviderRegistry providerRegistry;
 
     @Override
     public ChatModel buildChatModel(String modelId, JSONObject modelParams) {
@@ -99,7 +100,7 @@ public class ModelProviderServiceImpl implements IModelProviderService {
         if (model == null) {
             return null;
         }
-        return ModelProvider.get(model.getProvider());
+        return providerRegistry.get(model.getProvider());
     }
 
     private AbsModelProvider getModelProviderOrThrow(ModelEntity model) {

@@ -28,7 +28,7 @@ import com.maxkb4j.system.service.EmailService;
 import com.maxkb4j.system.dto.PasswordDTO;
 import com.maxkb4j.system.dto.UserDTO;
 import com.maxkb4j.system.dto.UserLoginDTO;
-import com.maxkb4j.user.service.IUserService;
+import com.maxkb4j.system.service.IUserInternalService;
 import com.maxkb4j.system.vo.UserNameVO;
 import com.maxkb4j.system.vo.UserVO;
 import jakarta.mail.MessagingException;
@@ -49,7 +49,7 @@ import java.util.*;
  */
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> implements IUserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> implements IUserInternalService {
 
     private final EmailService emailService;
     private final StpInterface stpInterface;

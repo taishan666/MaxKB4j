@@ -3,13 +3,14 @@ package com.maxkb4j.knowledge.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.KeyAndValue;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.*;
 import com.maxkb4j.knowledge.entity.DocumentEntity;
-import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
+import com.maxkb4j.knowledge.service.IDocumentInternalService;
 import com.maxkb4j.knowledge.vo.DocumentVO;
 import com.maxkb4j.knowledge.vo.TextSegmentVO;
 import jakarta.validation.Valid;
@@ -29,7 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DocumentController {
 
-    private final DocumentServiceImpl documentService;
+    private final IDocumentInternalService documentService;
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/web")
@@ -76,8 +77,8 @@ public class DocumentController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document")
-    public R<List<DocumentEntity>> listDocByKnowledgeId(@PathVariable String id) {
-        return R.data(documentService.listDocByKnowledgeId(id));
+    public R<List<DocumentVO>> listDocByKnowledgeId(@PathVariable String id) {
+        return R.data(BeanUtil.copyList(documentService.listDocByKnowledgeId(id), DocumentVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_GENERATE)
@@ -106,8 +107,9 @@ public class DocumentController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document/{docId}")
-    public R<DocumentEntity> getDocByDocId(@PathVariable String id, @PathVariable("docId") String docId) {
-        return R.data(documentService.getById(docId));
+    public R<DocumentVO> getDocByDocId(@PathVariable String id, @PathVariable("docId") String docId) {
+        DocumentEntity e = documentService.getById(docId);
+        return R.data(e == null ? null : BeanUtil.copy(e, DocumentVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_VECTOR)
@@ -130,8 +132,9 @@ public class DocumentController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{docId}")
-    public R<DocumentEntity> updateDocByDocId(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEntity documentEntity) {
-        return R.data(documentService.updateAndGetById(docId, documentEntity));
+    public R<DocumentVO> updateDocByDocId(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEntity documentEntity) {
+        DocumentEntity e = documentService.updateAndGetById(docId, documentEntity);
+        return R.data(e == null ? null : BeanUtil.copy(e, DocumentVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DELETE)

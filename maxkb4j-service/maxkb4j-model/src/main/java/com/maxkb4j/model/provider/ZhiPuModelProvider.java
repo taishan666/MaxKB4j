@@ -1,4 +1,6 @@
 package com.maxkb4j.model.provider;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import org.springframework.stereotype.Component;
 
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
@@ -8,6 +10,8 @@ import java.util.List;
 /**
  * ZhiPu (GLM) Model Provider
  */
+@Component
+@ModelProviderType(provider = "ZhiPu", name = "智谱清言", icon = "zhipu_ai_icon.svg")
 public class ZhiPuModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = "https://open.bigmodel.cn/api/paas/v4";

@@ -3,7 +3,7 @@ package com.maxkb4j.system.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.system.service.impl.ResourceMappingServiceImpl;
+import com.maxkb4j.system.service.IResourceMappingInternalService;
 import com.maxkb4j.system.vo.ResourceUseVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ResourceMappingController {
 
-    private final ResourceMappingServiceImpl resourceMappingService;
+    private final IResourceMappingInternalService resourceMappingService;
 
     /**
      * 获取资源被依赖关联的资源

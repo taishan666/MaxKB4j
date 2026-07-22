@@ -1,10 +1,14 @@
 package com.maxkb4j.model.provider;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import org.springframework.stereotype.Component;
 
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 
 import java.util.List;
 
+@Component
+@ModelProviderType(provider = "MinMax", name = "MinMax", icon = "minmax_icon.svg")
 public class MinMaxModelProvider extends OpenAiModelProvider {
 
 

@@ -1,10 +1,12 @@
 package com.maxkb4j.application.controller;
 
 import com.maxkb4j.application.entity.ApplicationVersionEntity;
-import com.maxkb4j.application.service.ApplicationVersionService;
+import com.maxkb4j.application.vo.ApplicationVersionVO;
+import com.maxkb4j.application.service.IApplicationVersionService;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.enums.PermissionEnum;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +24,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApplicationVersionController {
 
-    private final ApplicationVersionService applicationVersionService;
+    private final IApplicationVersionService applicationVersionService;
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}/application_version")
-    public R<List<ApplicationVersionEntity>> workFlowVersionList(@PathVariable("id") String id) {
-        return R.data(applicationVersionService.listByApplicationId(id));
+    public R<List<ApplicationVersionVO>> workFlowVersionList(@PathVariable("id") String id) {
+        return R.data(BeanUtil.copyList(applicationVersionService.listByApplicationId(id), ApplicationVersionVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)

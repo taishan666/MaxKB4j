@@ -1,4 +1,6 @@
 package com.maxkb4j.model.provider;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ModelCredential;
@@ -13,6 +15,8 @@ import java.util.Map;
 /**
  * DeepSeek Model Provider - OpenAI compatible API
  */
+@Component
+@ModelProviderType(provider = "DeepSeek", name = "DeepSeek", icon = "deepseek_icon.svg")
 public class DeepSeekModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = "https://api.deepseek.com/v1";

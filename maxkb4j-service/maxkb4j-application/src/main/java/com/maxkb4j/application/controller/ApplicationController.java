@@ -4,11 +4,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.application.dto.*;
 import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
+import com.maxkb4j.application.vo.ApplicationAccessTokenVO;
 import com.maxkb4j.application.entity.ApplicationEntity;
-import com.maxkb4j.application.service.impl.ApplicationAccessTokenServiceImpl;
+import com.maxkb4j.application.service.IApplicationAccessTokenInternalService;
 import com.maxkb4j.application.service.ApplicationExportService;
 import com.maxkb4j.application.service.ApplicationPromptService;
-import com.maxkb4j.application.service.impl.ApplicationServiceImpl;
+import com.maxkb4j.application.service.IApplicationInternalService;
 import com.maxkb4j.application.service.IApplicationSpeechService;
 import com.maxkb4j.application.service.ApplicationStatsService;
 import com.maxkb4j.application.vo.ApplicationListVO;
@@ -16,6 +17,7 @@ import com.maxkb4j.application.vo.ApplicationStatisticsVO;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.tool.service.IToolService;
@@ -47,10 +49,10 @@ import java.util.Map;
 public class ApplicationController {
 
     private final IToolService toolService;
-    private final ApplicationServiceImpl applicationService;
+    private final IApplicationInternalService applicationService;
     private final ApplicationExportService exportService;
     private final ApplicationStatsService applicationStatsService;
-    private final ApplicationAccessTokenServiceImpl accessTokenService;
+    private final IApplicationAccessTokenInternalService accessTokenService;
     private final IApplicationSpeechService applicationSpeechService;
     private final ApplicationPromptService applicationPromptService;
 
@@ -62,8 +64,9 @@ public class ApplicationController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_CREATE)
     @PostMapping("/application")
-    public R<ApplicationEntity> createApp(@Valid @RequestBody ApplicationDTO application) {
-        return R.data(applicationService.createApp(application));
+    public R<ApplicationVO> createApp(@Valid @RequestBody ApplicationDTO application) {
+        ApplicationEntity e = applicationService.createApp(application);
+        return R.data(e == null ? null : BeanUtil.copy(e, ApplicationVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_IMPORT)
@@ -74,8 +77,9 @@ public class ApplicationController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/publish")
-    public R<ApplicationEntity> publish(@PathVariable("id") String id, @RequestBody JSONObject params) {
-        return R.data(applicationService.publish(id, params));
+    public R<ApplicationVO> publish(@PathVariable("id") String id, @RequestBody JSONObject params) {
+        ApplicationEntity e = applicationService.publish(id, params);
+        return R.data(e == null ? null : BeanUtil.copy(e, ApplicationVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EXPORT)
@@ -141,14 +145,16 @@ public class ApplicationController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_ACCESS_READ)
     @GetMapping("/application/{id}/access_token")
-    public R<ApplicationAccessTokenEntity> getAccessToken(@PathVariable("id") String id) {
-        return R.data(accessTokenService.accessToken(id));
+    public R<ApplicationAccessTokenVO> getAccessToken(@PathVariable("id") String id) {
+        ApplicationAccessTokenEntity e = accessTokenService.accessToken(id);
+        return R.data(e == null ? null : BeanUtil.copy(e, ApplicationAccessTokenVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_ACCESS_EDIT)
     @PutMapping("/application/{id}/access_token")
-    public R<ApplicationAccessTokenEntity> updateAccessToken(@PathVariable("id") String id, @Valid @RequestBody ApplicationAccessTokenDTO dto) {
-        return R.data(accessTokenService.updateAccessToken(id, dto));
+    public R<ApplicationAccessTokenVO> updateAccessToken(@PathVariable("id") String id, @Valid @RequestBody ApplicationAccessTokenDTO dto) {
+        ApplicationAccessTokenEntity e = accessTokenService.updateAccessToken(id, dto);
+        return R.data(e == null ? null : BeanUtil.copy(e, ApplicationAccessTokenVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)

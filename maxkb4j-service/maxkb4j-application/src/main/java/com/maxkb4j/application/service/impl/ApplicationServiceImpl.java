@@ -55,7 +55,7 @@ import static com.maxkb4j.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
  */
 @Service
 @RequiredArgsConstructor
-public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, ApplicationEntity> implements IApplicationService {
+public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, ApplicationEntity> implements IApplicationInternalService {
 
     private final UserContext userContext;
     private final IKnowledgeService knowledgeService;

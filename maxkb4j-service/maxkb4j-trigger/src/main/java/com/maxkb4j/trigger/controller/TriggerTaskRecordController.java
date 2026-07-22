@@ -2,6 +2,7 @@ package com.maxkb4j.trigger.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.trigger.dto.EventTaskQuery;
 import com.maxkb4j.trigger.entity.EventTriggerTaskRecordEntity;
@@ -37,8 +38,8 @@ public class TriggerTaskRecordController {
     }
 
     @GetMapping("/trigger/{id}/trigger_task/{taskId}/trigger_task_record/{recordId}")
-    public R<EventTriggerTaskRecordEntity> get(@PathVariable String id, @PathVariable String taskId, @PathVariable String recordId) {
-        return R.data(eventTriggerTaskRecordService.get(id,taskId, recordId));
+    public R<EventTriggerTaskRecordVO> get(@PathVariable String id, @PathVariable String taskId, @PathVariable String recordId) {
+        return R.data(BeanUtil.copy(eventTriggerTaskRecordService.get(id,taskId, recordId), EventTriggerTaskRecordVO.class));
     }
 
 

@@ -15,7 +15,7 @@ import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
-import com.maxkb4j.application.service.IApplicationChatRecordService;
+import com.maxkb4j.application.service.IApplicationChatRecordInternalService;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
@@ -44,7 +44,7 @@ import static com.maxkb4j.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
  */
 @RequiredArgsConstructor
 @Service
-public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationChatRecordMapper, ApplicationChatRecordEntity> implements IApplicationChatRecordService {
+public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationChatRecordMapper, ApplicationChatRecordEntity> implements IApplicationChatRecordInternalService {
 
     private final IParagraphService paragraphService;
     private final ApplicationChatMapper chatMapper;

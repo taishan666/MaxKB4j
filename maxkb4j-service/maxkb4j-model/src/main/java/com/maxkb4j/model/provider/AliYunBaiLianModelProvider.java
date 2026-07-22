@@ -1,4 +1,6 @@
 package com.maxkb4j.model.provider;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.form.BaseField;
@@ -22,6 +24,8 @@ import java.util.List;
 /**
  * AliYun BaiLian (DashScope) Model Provider
  */
+@Component
+@ModelProviderType(provider = "AliYunBaiLian", name = "阿里百练", icon = "qwen_icon.svg")
 public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";

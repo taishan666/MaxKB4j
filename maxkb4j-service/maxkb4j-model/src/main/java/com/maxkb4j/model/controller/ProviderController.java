@@ -4,17 +4,17 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.KeyAndValue;
 import com.maxkb4j.common.domain.form.BaseField;
-import com.maxkb4j.model.enums.ModelProvider;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.provider.AbsModelProvider;
+import com.maxkb4j.model.registry.ModelProviderRegistry;
 import com.maxkb4j.model.vo.ModelInfo;
 import com.maxkb4j.model.vo.ModelProviderInfo;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,25 +26,27 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping(AppConst.ADMIN_API)
+@RequiredArgsConstructor
 public class ProviderController {
+
+    private final ModelProviderRegistry providerRegistry;
 
     @GetMapping("/provider")
     public R<List<ModelProviderInfo>> provider(String modelType) {
-        ModelProvider[] providerEnums = ModelProvider.values();
         if (StringUtils.isBlank(modelType)) {
-            return R.data(Arrays.stream(providerEnums).map(ModelProvider::getInfo).toList());
+            return R.data(providerRegistry.getProviderInfos());
         }
-        List<ModelProviderInfo> list = Arrays.stream(providerEnums).filter(e -> {
-            AbsModelProvider modelProvider = e.getModelProvider();
-            return modelProvider.isSupport(ModelType.getByKey(modelType));
-        }).map(ModelProvider::getInfo).toList();
+        List<ModelProviderInfo> list = providerRegistry.all().stream()
+                .filter(rp -> rp.provider().isSupport(ModelType.getByKey(modelType)))
+                .map(rp -> new ModelProviderInfo(rp.key(), rp.name(), rp.icon()))
+                .toList();
         return R.data(list);
     }
 
 
     @GetMapping("/provider/model_type_list")
     public R<List<KeyAndValue>> modelTypeList(String provider) {
-        AbsModelProvider modelProvider = ModelProvider.get(provider);
+        AbsModelProvider modelProvider = providerRegistry.get(provider);
         List<ModelInfo> modelInfos = modelProvider.getModelList();
         Map<ModelType, List<ModelInfo>> map = modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
         Set<ModelType> keys = map.keySet();
@@ -54,14 +56,14 @@ public class ProviderController {
 
     @GetMapping("/provider/model_form")
     public R<List<BaseField>> modelForm(String provider, String modelType, String modelName) {
-        AbsModelProvider modelProvider = ModelProvider.get(provider);
+        AbsModelProvider modelProvider = providerRegistry.get(provider);
         return R.data(modelProvider.getModelCredential().toForm());
     }
 
 
     @GetMapping("/provider/model_params_form")
     public R<List<BaseField>> modelParamsForm(String provider, String modelType, String modelName) {
-        AbsModelProvider modelProvider = ModelProvider.get(provider);
+        AbsModelProvider modelProvider = providerRegistry.get(provider);
         if (modelProvider == null){
             return R.data(List.of());
         }
@@ -75,7 +77,7 @@ public class ProviderController {
 
     @GetMapping("/provider/model_list")
     public R<List<ModelInfo>> modelList(String provider, String modelType) {
-        AbsModelProvider modelProvider = ModelProvider.get(provider);
+        AbsModelProvider modelProvider = providerRegistry.get(provider);
         List<ModelInfo> modelInfos = modelProvider.getModelList();
         if (StringUtils.isBlank(modelType)) {
             return R.data(modelInfos);

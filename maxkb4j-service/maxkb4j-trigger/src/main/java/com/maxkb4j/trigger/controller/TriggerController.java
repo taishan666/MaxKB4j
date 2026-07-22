@@ -2,6 +2,7 @@ package com.maxkb4j.trigger.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.trigger.dto.EventQuery;
 import com.maxkb4j.trigger.dto.EventTriggerDTO;
@@ -42,7 +43,7 @@ public class TriggerController {
      * 新增触发器
      */
     @PostMapping("/trigger")
-    public R<EventTriggerEntity> addTrigger(@Valid @RequestBody EventTriggerDTO dto) {
+    public R<EventTriggerDTO> addTrigger(@Valid @RequestBody EventTriggerDTO dto) {
         dto.setIsActive(false);
         eventTriggerService.saveTrigger(dto, false);
         return R.data(dto);
@@ -60,7 +61,7 @@ public class TriggerController {
      * 编辑触发器
      */
     @PutMapping("/trigger/{id}")
-    public R<EventTriggerEntity> updateTrigger(@PathVariable String id, @Valid @RequestBody EventTriggerDTO dto) {
+    public R<EventTriggerDTO> updateTrigger(@PathVariable String id, @Valid @RequestBody EventTriggerDTO dto) {
         dto.setId(id);
         eventTriggerService.saveTrigger(dto, true);
         return R.data(dto);
@@ -113,8 +114,8 @@ public class TriggerController {
     }
 
     @GetMapping("/{sourceType}/{sourceId}/trigger")
-    public R<List<EventTriggerEntity>> listBySourceId(@PathVariable String sourceType, @PathVariable String sourceId) {
-        return R.data(eventTriggerService.listBySource(sourceType, sourceId));
+    public R<List<EventTriggerVO>> listBySourceId(@PathVariable String sourceType, @PathVariable String sourceId) {
+        return R.data(BeanUtil.copyList(eventTriggerService.listBySource(sourceType, sourceId), EventTriggerVO.class));
     }
 
     @DeleteMapping("/{sourceType}/{sourceId}/trigger/{id}")

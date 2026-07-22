@@ -8,7 +8,7 @@ import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.system.entity.UserEntity;
-import com.maxkb4j.system.service.impl.UserServiceImpl;
+import com.maxkb4j.system.service.IUserInternalService;
 import com.maxkb4j.system.dto.ResetPasswordDTO;
 import com.maxkb4j.system.dto.UserLoginDTO;
 import com.wf.captcha.SpecCaptcha;
@@ -31,7 +31,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AuthController {
 
-	private final UserServiceImpl userService;
+	private final IUserInternalService userService;
 
 	@PostMapping("/user/login")
 	public R<String> login(@Valid @RequestBody UserLoginDTO dto, HttpServletRequest request){

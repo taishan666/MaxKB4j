@@ -6,12 +6,13 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
-import com.maxkb4j.system.entity.UserEntity;
-import com.maxkb4j.system.service.impl.UserResourcePermissionServiceImpl;
-import com.maxkb4j.system.service.impl.UserServiceImpl;
+import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.core.support.vo.UserResourcePermissionVO;
+import com.maxkb4j.system.service.IUserInternalService;
+import com.maxkb4j.system.service.IUserResourcePermissionInternalService;
 import com.maxkb4j.system.vo.ResourceUserPermissionVO;
 import com.maxkb4j.system.vo.UserNameVO;
-import com.maxkb4j.core.support.vo.UserResourcePermissionVO;
+import com.maxkb4j.system.vo.UserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,8 +27,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserResourcePermissionController {
 
-    private final UserResourcePermissionServiceImpl userResourcePermissionService;
-    private final UserServiceImpl userService;
+    private final IUserResourcePermissionInternalService userResourcePermissionService;
+    private final IUserInternalService userService;
 
    // @SaCheckRole(type= LoginType.ADMIN,value = {RoleType.ADMIN, RoleType.USER},mode = SaMode.OR)
     @GetMapping("/user_list")
@@ -37,8 +38,8 @@ public class UserResourcePermissionController {
 
     @SaCheckRole(type= LoginType.ADMIN,value = RoleType.ADMIN)
     @GetMapping("/user_member")
-    public R<List<UserEntity>> userMembers(){
-        return R.data(userService.listActiveMembers());
+    public R<List<UserVO>> userMembers(){
+        return R.data(BeanUtil.copyList(userService.listActiveMembers(), UserVO.class));
     }
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)

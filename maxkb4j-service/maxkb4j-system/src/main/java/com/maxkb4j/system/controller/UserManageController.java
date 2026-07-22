@@ -7,11 +7,13 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.props.SystemProperties;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.system.entity.UserEntity;
-import com.maxkb4j.system.service.impl.UserServiceImpl;
+import com.maxkb4j.system.service.IUserInternalService;
 import com.maxkb4j.system.dto.PasswordDTO;
 import com.maxkb4j.system.dto.UserDTO;
+import com.maxkb4j.system.vo.UserVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -28,13 +30,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserManageController {
 
-    private final UserServiceImpl userService;
+    private final IUserInternalService userService;
 	private final SystemProperties systemProperties;
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
     @GetMapping("/user_manage/{page}/{size}")
-    public R<IPage<UserEntity>> userManage(@PathVariable("page") int page, @PathVariable("size") int size, UserDTO dto) {
-        return R.data(userService.selectUserPage(page, size, dto));
+    public R<IPage<UserVO>> userManage(@PathVariable("page") int page, @PathVariable("size") int size, UserDTO dto) {
+        return R.data(BeanUtil.copyPage(userService.selectUserPage(page, size, dto), UserVO.class));
     }
 
 

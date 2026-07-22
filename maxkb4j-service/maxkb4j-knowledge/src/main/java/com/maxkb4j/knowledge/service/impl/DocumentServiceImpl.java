@@ -19,7 +19,7 @@ import com.maxkb4j.knowledge.mapper.DocumentMapper;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.knowledge.service.DocumentWriteService;
 import com.maxkb4j.knowledge.service.IDocumentParseService;
-import com.maxkb4j.knowledge.service.IDocumentService;
+import com.maxkb4j.knowledge.service.IDocumentInternalService;
 import com.maxkb4j.knowledge.service.IDocumentTagService;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.DocFileVO;
@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEntity> implements IDocumentService {
+public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEntity> implements IDocumentInternalService {
 
     private final ParagraphServiceImpl paragraphService;
     private final ProblemParagraphServiceImpl problemParagraphService;

@@ -1,7 +1,6 @@
 package com.maxkb4j.model.vo;
 
 import com.maxkb4j.common.util.IoUtil;
-import com.maxkb4j.model.enums.ModelProvider;
 import lombok.Data;
 
 import java.io.InputStream;
@@ -15,13 +14,6 @@ public class ModelProviderInfo {
 
     private static final Map<String, String> SVG_CACHE = new ConcurrentHashMap<>();
 
-    static {
-        // 启动时预加载所有 SVG 图标
-        for (ModelProvider provider : ModelProvider.values()) {
-            loadSvgIcon(provider.getIcon());
-        }
-    }
-
     private String provider;
     private String name;
     private String icon;
@@ -29,15 +21,23 @@ public class ModelProviderInfo {
     public ModelProviderInfo(String provider, String name, String icon) {
         this.provider = provider;
         this.name = name;
-        this.icon = SVG_CACHE.get(icon);
+        this.icon = loadSvgIcon(icon);
     }
 
-    private static void loadSvgIcon(String name) {
+    /**
+     * 懒加载 SVG 图标：首次使用时按需读取并缓存，替代原先在静态块中遍历 {@code ModelProvider.values()} 预加载的方式。
+     */
+    private static String loadSvgIcon(String name) {
+        if (name == null || name.isEmpty()) {
+            return null;
+        }
+        return SVG_CACHE.computeIfAbsent(name, ModelProviderInfo::readSvgIcon);
+    }
+
+    private static String readSvgIcon(String name) {
         ClassLoader classLoader = ModelProviderInfo.class.getClassLoader();
         InputStream inputStream = classLoader.getResourceAsStream(MODEL_ICONS_PATH + name);
-        if (inputStream != null) {
-            SVG_CACHE.put(name, IoUtil.readToString(inputStream));
-        }
+        return inputStream != null ? IoUtil.readToString(inputStream) : null;
     }
 
 }

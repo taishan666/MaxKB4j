@@ -1,4 +1,6 @@
 package com.maxkb4j.model.provider;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
@@ -28,6 +30,8 @@ import java.util.List;
  * OpenAI Model Provider Implementation
  * Provides integration with OpenAI's API services
  */
+@Component
+@ModelProviderType(provider = "OpenAI", name = "OpenAI", icon = "openai_icon.svg")
 public class OpenAiModelProvider extends AbsModelProvider {
     private static final String BASE_URL = "https://api.openai.com/v1";
 

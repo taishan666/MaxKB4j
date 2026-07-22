@@ -55,7 +55,7 @@ import java.util.concurrent.CompletionException;
  */
 @Service
 @RequiredArgsConstructor
-public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMapper, ApplicationChatEntity> implements IApplicationChatService {
+public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMapper, ApplicationChatEntity> implements IApplicationChatInternalService {
 
     private final ApplicationChatRecordServiceImpl chatRecordService;
     private final IApplicationService applicationService;

@@ -1,10 +1,12 @@
 package com.maxkb4j.application.controller;
 
 import com.maxkb4j.application.entity.ApplicationApiKeyEntity;
-import com.maxkb4j.application.service.impl.ApplicationApiKeyServiceImpl;
+import com.maxkb4j.application.vo.ApplicationApiKeyVO;
+import com.maxkb4j.application.service.IApplicationApiKeyInternalService;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.enums.PermissionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -20,12 +22,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApplicationKeyController {
 
-    private final ApplicationApiKeyServiceImpl apiKeyService;
+    private final IApplicationApiKeyInternalService apiKeyService;
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}/application_key")
-    public R<List<ApplicationApiKeyEntity>> listApikey(@PathVariable("id") String id) {
-        return R.data(apiKeyService.listApikey(id));
+    public R<List<ApplicationApiKeyVO>> listApikey(@PathVariable("id") String id) {
+        return R.data(BeanUtil.copyList(apiKeyService.listApikey(id), ApplicationApiKeyVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_CREATE)

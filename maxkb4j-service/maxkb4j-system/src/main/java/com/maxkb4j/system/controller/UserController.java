@@ -8,7 +8,7 @@ import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.system.entity.UserEntity;
-import com.maxkb4j.system.service.impl.UserServiceImpl;
+import com.maxkb4j.system.service.IUserInternalService;
 import com.maxkb4j.system.dto.PasswordDTO;
 import com.maxkb4j.system.vo.UserVO;
 import jakarta.mail.MessagingException;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserServiceImpl userService;
+    private final IUserInternalService userService;
 
     @GetMapping("user/profile")
     public R<UserVO> getUserProfile(@CurrentUserId String userId){

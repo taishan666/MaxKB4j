@@ -1,4 +1,6 @@
 package com.maxkb4j.model.provider;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.form.BaseField;
@@ -27,6 +29,8 @@ import java.util.List;
 /**
  * Ollama Model Provider - Local deployment
  */
+@Component
+@ModelProviderType(provider = "OLlama", name = "OLlama", icon = "ollama_icon.svg")
 public class OLlamaModelProvider extends AbsModelProvider {
 
     private static final String BASE_URL = "http://host.docker.internal:11434";

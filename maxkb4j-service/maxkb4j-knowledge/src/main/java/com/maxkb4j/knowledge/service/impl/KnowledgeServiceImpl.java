@@ -20,7 +20,7 @@ import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
 import com.maxkb4j.knowledge.mapper.ProblemMapper;
 import com.maxkb4j.knowledge.mapper.ProblemParagraphMapper;
-import com.maxkb4j.knowledge.service.IKnowledgeService;
+import com.maxkb4j.knowledge.service.IKnowledgeInternalService;
 import com.maxkb4j.knowledge.service.ITagService;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.KnowledgeListVO;
@@ -52,7 +52,7 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, KnowledgeEntity> implements IKnowledgeService {
+public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, KnowledgeEntity> implements IKnowledgeInternalService {
 
     private final ProblemMapper problemMapper;
     private final ParagraphMapper paragraphMapper;

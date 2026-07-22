@@ -8,12 +8,13 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.mp.entity.ToolInputField;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;
-import com.maxkb4j.tool.service.impl.ToolServiceImpl;
+import com.maxkb4j.tool.service.IToolInternalService;
 import com.maxkb4j.tool.vo.ToolVO;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -37,7 +38,7 @@ import java.util.*;
 @Slf4j
 public class ToolController {
 
-    private final ToolServiceImpl toolService;
+    private final IToolInternalService toolService;
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool/{current}/{size}")
@@ -47,19 +48,19 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool")
-    public R<Map<String, List<ToolEntity>>> list(String folderId, String[] toolTypeList) {
-        return R.data(Map.of("folders", List.of(), "tools", toolService.listTools(folderId,ToolConstants.Scope.WORKSPACE, toolTypeList)));
+    public R<Map<String, List<ToolVO>>> list(String folderId, String[] toolTypeList) {
+        return R.data(Map.of("folders", List.of(), "tools", BeanUtil.copyList(toolService.listTools(folderId,ToolConstants.Scope.WORKSPACE, toolTypeList), ToolVO.class)));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool/tool_list")
-    public R<Map<String, List<ToolEntity>>> toolList(String scope, String toolType) {
-        return R.data(Map.of("shared_tools", List.of(), "tools", toolService.toolList(scope, toolType)));
+    public R<Map<String, List<ToolVO>>> toolList(String scope, String toolType) {
+        return R.data(Map.of("shared_tools", List.of(), "tools", BeanUtil.copyList(toolService.toolList(scope, toolType), ToolVO.class)));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)
     @PostMapping("/tool/{templateId}/add_internal_tool")
-    public R<ToolEntity> addInternalTool(@PathVariable String templateId,@RequestBody ToolEntity dto, @CurrentUserId String userId) {
+    public R<ToolVO> addInternalTool(@PathVariable String templateId,@RequestBody ToolEntity dto, @CurrentUserId String userId) {
         dto.setId(null);
         dto.setUserId(userId);
         dto.setTemplateId(templateId);
@@ -70,12 +71,12 @@ public class ToolController {
         dto.setUpdateTime(now);
         dto.setIsActive(false);
         toolService.saveTool(dto);
-        return R.data(dto);
+        return R.data(BeanUtil.copy(dto, ToolVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)
     @PostMapping("/tool")
-    public R<ToolEntity> toolLib(@RequestBody ToolEntity dto, @CurrentUserId String userId) {
+    public R<ToolVO> toolLib(@RequestBody ToolEntity dto, @CurrentUserId String userId) {
         dto.setIsActive(true);
         if (StringUtils.isBlank(dto.getToolType())) {
             dto.setToolType(ToolConstants.ToolType.CUSTOM);
@@ -87,7 +88,7 @@ public class ToolController {
         }else {
             return R.fail(I18nUtil.get("tool.config.invalid"));
         }
-        return R.data(dto);
+        return R.data(BeanUtil.copy(dto, ToolVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_DEBUG)
@@ -119,7 +120,7 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_EDIT)
     @PutMapping("/tool/{id}")
-    public R<ToolEntity> tool(@PathVariable String id, @RequestBody ToolEntity dto) throws IOException {
+    public R<ToolVO> tool(@PathVariable String id, @RequestBody ToolEntity dto) throws IOException {
         dto.setId(id);
         if (toolService.mcpServerConfigValid(dto)){
             return R.data(toolService.updateTool(dto));
@@ -141,7 +142,7 @@ public class ToolController {
     }
 
     @PostMapping("/tool/pylint")
-    public R<List<ToolEntity>> pylint(@RequestBody ToolEntity dto) {
+    public R<List<ToolVO>> pylint(@RequestBody ToolEntity dto) {
         return R.data(Collections.emptyList());
     }
 

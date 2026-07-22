@@ -1,4 +1,6 @@
 package com.maxkb4j.model.provider;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import org.springframework.stereotype.Component;
 
 
 import com.maxkb4j.model.enums.ModelType;
@@ -9,6 +11,8 @@ import java.util.List;
 /**
  * Tencent HunYuan Model Provider - OpenAI compatible API
  */
+@Component
+@ModelProviderType(provider = "Tencent", name = "腾讯混元", icon = "tencent_icon.svg")
 public class TencentModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = "https://api.hunyuan.cloud.tencent.com/v1";

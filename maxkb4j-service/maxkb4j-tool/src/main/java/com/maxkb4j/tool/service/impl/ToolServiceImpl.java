@@ -20,7 +20,7 @@ import com.maxkb4j.tool.executor.HttpRequestExecutor;
 import com.maxkb4j.tool.executor.McpClientExecutor;
 import com.maxkb4j.tool.handler.*;
 import com.maxkb4j.tool.mapper.ToolMapper;
-import com.maxkb4j.tool.service.IToolService;
+import com.maxkb4j.tool.service.IToolInternalService;
 import com.maxkb4j.tool.util.McpToolUtil;
 import com.maxkb4j.tool.vo.McpToolVO;
 import com.maxkb4j.tool.vo.ToolVO;
@@ -48,7 +48,7 @@ import java.util.Objects;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> implements IToolService {
+public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> implements IToolInternalService {
 
     private final IUserResourcePermissionService userResourcePermissionService;
     private final ToolValidationHandler validationHandler;
