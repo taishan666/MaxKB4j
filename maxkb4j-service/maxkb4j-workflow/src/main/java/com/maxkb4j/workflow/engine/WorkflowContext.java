@@ -4,10 +4,10 @@ import com.maxkb4j.workflow.model.IWorkflowContext;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -41,10 +41,10 @@ public class WorkflowContext implements IWorkflowContext {
 
 
     public WorkflowContext() {
-        this.globalContext = new HashMap<>();
-        this.chatContext = new HashMap<>();
+        this.globalContext = new ConcurrentHashMap<>();
+        this.chatContext = new ConcurrentHashMap<>();
         this.nodeContext = new CopyOnWriteArrayList<>();
-        this.loopContext = new HashMap<>();
+        this.loopContext = new ConcurrentHashMap<>();
         // 2. 依赖组件初始化（顺序敏感）
         this.variableResolver = new VariableResolver(this);
         this.templateRenderer = new TemplateRenderer(this.variableResolver);

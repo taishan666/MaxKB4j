@@ -33,7 +33,7 @@ public abstract class AbsNode {
     private List<String> upNodeIdList;
     private String runtimeNodeId;
     private String answerText;
-    private Integer status;
+    private volatile Integer status;
     private String errMessage;
 
     public AbsNode(String id, JSONObject properties) {
