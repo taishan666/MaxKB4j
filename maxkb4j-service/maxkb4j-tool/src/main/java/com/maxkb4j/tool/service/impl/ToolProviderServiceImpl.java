@@ -1,23 +1,16 @@
 package com.maxkb4j.tool.service.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
-import com.maxkb4j.tool.executor.GroovyScriptExecutor;
-import com.maxkb4j.tool.executor.HttpRequestExecutor;
+import com.maxkb4j.tool.provider.AbsToolHandler;
+import com.maxkb4j.tool.registry.ToolHandlerRegistry;
 import com.maxkb4j.tool.service.IAgentToolService;
 import com.maxkb4j.tool.service.IToolProviderService;
 import com.maxkb4j.tool.service.SkillToolService;
-import com.maxkb4j.tool.service.ToolSpecificationBuilder;
-import com.maxkb4j.tool.util.McpToolUtil;
-import dev.langchain4j.agent.tool.ToolSpecification;
-import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.service.tool.AiServiceTool;
-import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProvider;
-import dev.langchain4j.service.tool.ToolProviderResult;
 import dev.langchain4j.skills.shell.ShellSkills;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,14 +23,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * 工具提供者服务，用于创建和管理工具规范和执行器。
- * <p>
- * 作为编排器，将不同工具类型（MCP/HTTP/SKILL/CUSTOM）的分发委托给专门的子服务：
- * <ul>
- *   <li>{@link SkillToolService} — Skill 工具的加载与执行</li>
- *   <li>{@link IAgentToolService} — 智能体应用工具构建</li>
- *   <li>{@link ToolSpecificationBuilder} — 工具规范（参数 schema）构建</li>
- * </ul>
+ * Tool provider service: creates and manages tool specifications and executors.
+ *
+ * <p>Dispatch by tool type (MCP/HTTP/SKILL/CUSTOM) is delegated to
+ * {@link AbsToolHandler} implementations discovered via {@link ToolHandlerRegistry};
+ * adding a new tool type only requires a new {@code @ToolHandlerType} handler, with no
+ * changes here (open/closed). This replaces the former if/else chains on toolType.
  */
 @RequiredArgsConstructor
 @Service
@@ -47,7 +38,7 @@ public class ToolProviderServiceImpl implements IToolProviderService {
     private final ToolServiceImpl toolService;
     private final SkillToolService skillToolService;
     private final IAgentToolService agentToolService;
-    private final ToolSpecificationBuilder toolSpecificationBuilder;
+    private final ToolHandlerRegistry toolHandlerRegistry;
 
 
     @Override
@@ -56,8 +47,8 @@ public class ToolProviderServiceImpl implements IToolProviderService {
         if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
             return tools;
         }
-        if (!CollectionUtils.isEmpty(toolIds)&& StringUtils.isNotBlank(userMessage)) {
-            tools.addAll(buildAiServiceTools(toolIds, tool -> skillToolService.getSkillsTools(userMessage, tool)));
+        if (!CollectionUtils.isEmpty(toolIds) && StringUtils.isNotBlank(userMessage)) {
+            tools.addAll(buildAiServiceTools(toolIds, userMessage));
         }
         if (!CollectionUtils.isEmpty(applicationIds)) {
             tools.addAll(agentToolService.buildTools(applicationIds));
@@ -75,8 +66,8 @@ public class ToolProviderServiceImpl implements IToolProviderService {
             toolProviders.addAll(buildToolProviders(toolIds));
         }
         if (!CollectionUtils.isEmpty(applicationIds)) {
-            ToolProvider toolProvider =agentToolService.buildToolProvider(applicationIds);
-            if (toolProvider != null){
+            ToolProvider toolProvider = agentToolService.buildToolProvider(applicationIds);
+            if (toolProvider != null) {
                 toolProviders.add(toolProvider);
             }
         }
@@ -90,10 +81,10 @@ public class ToolProviderServiceImpl implements IToolProviderService {
         return skillToolService.getShellSkills(tools);
     }
 
-    // ===== 私有方法：查询 =====
+    // ===== private: query =====
 
     /**
-     * 查询激活状态的工具，可选按工具类型过滤
+     * Query active tools, optionally filtered by tool type.
      */
     private List<ToolEntity> queryActiveTools(List<String> toolIds, String... toolTypes) {
         var query = toolService.lambdaQuery()
@@ -108,57 +99,33 @@ public class ToolProviderServiceImpl implements IToolProviderService {
         return query.list();
     }
 
-    // ===== 私有方法：构建 AiServiceTool =====
+    // ===== private: build AiServiceTool =====
 
     /**
-     * 构建工具列表为 AiServiceTool，通过 skillResolver 处理 SKILL 类型
+     * Build AiServiceTools by dispatching each tool to its registered handler.
      */
-    private List<AiServiceTool> buildAiServiceTools(List<String> toolIds, SkillToolResolver skillResolver) {
+    private List<AiServiceTool> buildAiServiceTools(List<String> toolIds, String userMessage) {
         List<ToolEntity> tools = queryActiveTools(toolIds);
         List<AiServiceTool> aiServiceTools = new ArrayList<>();
         for (ToolEntity tool : tools) {
-            String toolType = tool.getToolType();
-            if (ToolConstants.ToolType.MCP.equals(toolType)) {
-                aiServiceTools.addAll(buildMcpTools(tool));
-            } else if (ToolConstants.ToolType.HTTP.equals(toolType)) {
-                aiServiceTools.add(buildHttpTool(tool));
-            } else if (ToolConstants.ToolType.SKILL.equals(toolType)&&skillResolver!=null) {
-                List<AiServiceTool> skillsTools = skillResolver.resolve(tool);
-                if (CollectionUtils.isNotEmpty(skillsTools)) {
-                    aiServiceTools.addAll(skillsTools);
-                }
-            } else if (ToolConstants.ToolType.CUSTOM.equals(toolType)) {
-                aiServiceTools.add(buildCustomTool(tool));
+            AbsToolHandler handler = toolHandlerRegistry.get(tool.getToolType());
+            if (handler == null) {
+                continue;
             }
+            aiServiceTools.addAll(handler.buildAiServiceTools(tool, userMessage));
         }
         return aiServiceTools;
     }
 
-    private List<AiServiceTool> buildMcpTools(ToolEntity tool) {
-        JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
-        return McpToolUtil.getTools(mcpConfig);
-    }
-
-    private AiServiceTool buildHttpTool(ToolEntity tool) {
-        ToolSpecification spec = toolSpecificationBuilder.build(tool);
-        ToolExecutor executor = new HttpRequestExecutor(tool.getCode());
-        return AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build();
-    }
-
-    private AiServiceTool buildCustomTool(ToolEntity tool) {
-        ToolSpecification spec = toolSpecificationBuilder.build(tool);
-        ToolExecutor executor = new GroovyScriptExecutor(tool.getCode(), tool.getInitParams());
-        return AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build();
-    }
-
-    // ===== 私有方法：构建 ToolProvider =====
+    // ===== private: build ToolProvider =====
 
     /**
-     * 构建工具列表为 ToolProvider（仅 MCP/HTTP/CUSTOM）
+     * Build ToolProviders by dispatching each tool-type group to its registered handler.
      */
     private List<ToolProvider> buildToolProviders(List<String> toolIds) {
         List<ToolEntity> tools = queryActiveTools(toolIds,
-                ToolConstants.ToolType.MCP,ToolConstants.ToolType.SKILL,ToolConstants.ToolType.HTTP, ToolConstants.ToolType.CUSTOM);
+                ToolConstants.ToolType.MCP, ToolConstants.ToolType.SKILL,
+                ToolConstants.ToolType.HTTP, ToolConstants.ToolType.CUSTOM);
         List<ToolProvider> toolProviders = new ArrayList<>();
         if (tools.isEmpty()) {
             return toolProviders;
@@ -166,47 +133,11 @@ public class ToolProviderServiceImpl implements IToolProviderService {
         Map<String, List<ToolEntity>> toolMap = tools.stream()
                 .collect(Collectors.groupingBy(ToolEntity::getToolType));
         toolMap.forEach((toolType, toolList) -> {
-            if (ToolConstants.ToolType.MCP.equals(toolType)) {
-                for (ToolEntity tool : toolList) {
-                    JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
-                    McpToolProvider mcpToolProvider = McpToolUtil.getMcpToolProvider(mcpConfig);
-                    if (mcpToolProvider != null) {
-                        toolProviders.add(mcpToolProvider);
-                    }
-                }
-            }else if (ToolConstants.ToolType.SKILL.equals(toolType)) {
-                toolProviders.addAll(skillToolService.getShellSkillsToolProviders(toolList));
-            }else if (ToolConstants.ToolType.HTTP.equals(toolType)) {
-                toolProviders.add(wrapAsToolProvider(toolList, tool -> new HttpRequestExecutor(tool.getCode())));
-            } else if (ToolConstants.ToolType.CUSTOM.equals(toolType)) {
-                toolProviders.add(wrapAsToolProvider(toolList, tool -> new GroovyScriptExecutor(tool.getCode(), tool.getInitParams())));
+            AbsToolHandler handler = toolHandlerRegistry.get(toolType);
+            if (handler != null) {
+                toolProviders.addAll(handler.buildToolProviders(toolList));
             }
         });
         return toolProviders;
-    }
-
-    /**
-     * 将多个工具包装为单个 ToolProvider
-     */
-    private ToolProvider wrapAsToolProvider(List<ToolEntity> toolList, ToolExecutorFactory executorFactory) {
-        List<AiServiceTool> aiServiceTools = new ArrayList<>();
-        for (ToolEntity tool : toolList) {
-            ToolSpecification spec = toolSpecificationBuilder.build(tool);
-            ToolExecutor executor = executorFactory.create(tool);
-            aiServiceTools.add(AiServiceTool.builder().toolSpecification(spec).toolExecutor(executor).build());
-        }
-        return toolProviderRequest -> ToolProviderResult.builder().addAll(aiServiceTools).build();
-    }
-
-    // ===== 函数式接口 =====
-
-    @FunctionalInterface
-    private interface SkillToolResolver {
-        List<AiServiceTool> resolve(ToolEntity tool);
-    }
-
-    @FunctionalInterface
-    private interface ToolExecutorFactory {
-        ToolExecutor create(ToolEntity tool);
     }
 }
