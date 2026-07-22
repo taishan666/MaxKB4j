@@ -1,4 +1,6 @@
 package com.maxkb4j.workflow.node.impl;
+import com.maxkb4j.workflow.annotation.NodeCreatorType;
+import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -6,6 +8,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import static com.maxkb4j.workflow.enums.NodeType.BASE;
 
 
+@NodeCreatorType(NodeType.BASE)
 public class BaseNode extends AbsNode {
 
 

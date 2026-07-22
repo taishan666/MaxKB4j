@@ -1,4 +1,6 @@
 package com.maxkb4j.workflow.node.impl;
+import com.maxkb4j.workflow.annotation.NodeCreatorType;
+import com.maxkb4j.workflow.enums.NodeType;
 
 
 import com.alibaba.fastjson.JSONArray;
@@ -12,6 +14,7 @@ import java.util.Map;
 import static com.maxkb4j.workflow.enums.NodeType.HTTP_CLIENT;
 
 
+@NodeCreatorType(NodeType.HTTP_CLIENT)
 public class HttpNode extends AbsNode {
 
 

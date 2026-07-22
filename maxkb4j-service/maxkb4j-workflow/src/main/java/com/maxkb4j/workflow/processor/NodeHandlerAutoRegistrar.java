@@ -3,7 +3,7 @@ package com.maxkb4j.workflow.processor;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
-import com.maxkb4j.workflow.registry.NodeHandlerRegistry;
+import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.SmartInitializingSingleton;
@@ -13,21 +13,21 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * 自动扫描带有 {@link NodeHandlerType} 注解的 {@link INodeHandler} Bean，
- * 并注册到 {@link NodeHandlerRegistry}。
+ * Auto-scans {@link INodeHandler} beans carrying {@link NodeHandlerType} and registers them
+ * into {@link NodeCenter}.
  *
- * <p>使用 {@link SmartInitializingSingleton} 而非 {@code BeanPostProcessor}：
- * BPP 会在创建期触发 AspectJ AutoProxyCreator 枚举所有 {@code Advisor} Bean，
- * 进而强行提前实例化 Sa-Token 的 advisor，触发
- * "is not eligible for getting processed by all BeanPostProcessors" 警告。
- * 这里改为在所有单例就绪后统一注册，彻底避免该问题。</p>
+ * <p>Uses {@link SmartInitializingSingleton} rather than a {@code BeanPostProcessor}: a BPP
+ * would, during its creation phase, force eager instantiation of the AspectJ AutoProxyCreator
+ * (which abstracts all {@code Advisor} beans) and in turn eagerly instantiate Sa-Token's
+ * advisor, triggering the "is not eligible for getting processed by all BeanPostProcessors"
+ * warning. Registering here, after all singletons are ready, fully avoids that.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class NodeHandlerAutoRegistrar implements SmartInitializingSingleton {
 
-    private final NodeHandlerRegistry handlerRegistry;
+    private final NodeCenter nodeCenter;
     private final ApplicationContext applicationContext;
 
     @Override
@@ -44,7 +44,7 @@ public class NodeHandlerAutoRegistrar implements SmartInitializingSingleton {
                     log.warn("Skip empty node type in @NodeHandlerType on {}", handler.getClass().getName());
                     continue;
                 }
-                handlerRegistry.register(nodeType.getKey(), handler);
+                nodeCenter.registerHandler(nodeType.getKey(), handler);
             }
         }
     }

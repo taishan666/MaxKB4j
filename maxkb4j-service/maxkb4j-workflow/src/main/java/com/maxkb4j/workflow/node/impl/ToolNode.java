@@ -1,4 +1,6 @@
 package com.maxkb4j.workflow.node.impl;
+import com.maxkb4j.workflow.annotation.NodeCreatorType;
+import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ToolInputField;
@@ -12,6 +14,7 @@ import java.util.Map;
 import static com.maxkb4j.workflow.enums.NodeType.TOOL;
 
 
+@NodeCreatorType(NodeType.TOOL)
 public class ToolNode extends AbsNode {
     public ToolNode(String id,JSONObject properties) {
         super(id,properties);

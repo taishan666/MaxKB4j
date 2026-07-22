@@ -1,4 +1,6 @@
 package com.maxkb4j.workflow.node.impl;
+import com.maxkb4j.workflow.annotation.NodeCreatorType;
+import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.Workflow;
@@ -11,6 +13,7 @@ import java.util.Map;
 import static com.maxkb4j.workflow.enums.NodeType.VARIABLE_SPLITTING;
 
 
+@NodeCreatorType(NodeType.VARIABLE_SPLITTING)
 public class VariableSplittingNode extends AbsNode {
     public VariableSplittingNode(String id,JSONObject properties) {
         super(id,properties);

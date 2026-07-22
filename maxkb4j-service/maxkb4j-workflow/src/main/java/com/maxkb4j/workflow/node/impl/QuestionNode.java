@@ -1,4 +1,6 @@
 package com.maxkb4j.workflow.node.impl;
+import com.maxkb4j.workflow.annotation.NodeCreatorType;
+import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.ModelAwareParams;
@@ -11,6 +13,7 @@ import java.util.Map;
 
 import static com.maxkb4j.workflow.enums.NodeType.QUESTION;
 
+@NodeCreatorType(NodeType.QUESTION)
 public class QuestionNode extends AbsNode {
 
 

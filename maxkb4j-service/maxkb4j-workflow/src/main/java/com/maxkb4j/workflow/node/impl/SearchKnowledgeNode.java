@@ -1,4 +1,6 @@
 package com.maxkb4j.workflow.node.impl;
+import com.maxkb4j.workflow.annotation.NodeCreatorType;
+import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
@@ -12,6 +14,7 @@ import java.util.Map;
 import static com.maxkb4j.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
 
 
+@NodeCreatorType(NodeType.SEARCH_KNOWLEDGE)
 public class SearchKnowledgeNode extends AbsNode {
 
 

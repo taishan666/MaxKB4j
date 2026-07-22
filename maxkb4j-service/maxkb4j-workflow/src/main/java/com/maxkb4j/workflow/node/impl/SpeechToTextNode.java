@@ -1,4 +1,6 @@
 package com.maxkb4j.workflow.node.impl;
+import com.maxkb4j.workflow.annotation.NodeCreatorType;
+import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.Workflow;
@@ -11,6 +13,7 @@ import java.util.Map;
 import static com.maxkb4j.workflow.enums.NodeType.SPEECH_TO_TEXT;
 
 
+@NodeCreatorType(NodeType.SPEECH_TO_TEXT)
 public class SpeechToTextNode extends AbsNode {
 
 

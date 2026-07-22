@@ -1,34 +1,26 @@
 package com.maxkb4j.workflow.config;
 
 import com.maxkb4j.workflow.builder.NodeBuilder;
-import com.maxkb4j.workflow.factory.NodeRegistry;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 工作流配置类
- * 提供 Spring Bean 定义
+ * Workflow configuration: Spring bean wiring.
+ *
+ * <p>Node creators and handlers are now registered by annotation-driven auto-registrars
+ * ({@link com.maxkb4j.workflow.processor.NodeCreatorAutoRegistrar} and
+ * {@link com.maxkb4j.workflow.processor.NodeHandlerAutoRegistrar}) into the single
+ * {@link NodeCenter} registry, so no manual bean wiring is required here.
  */
 @Configuration
 public class WorkflowConfig {
 
     /**
-     * 节点注册表 Bean
-     * 作为普通类被 NodeCenter 使用
-     */
-    @Bean
-    public NodeRegistry nodeRegistry() {
-        return new NodeRegistry();
-    }
-
-    /**
-     * NodeBuilder Bean
-     * 通过注入 NodeCenter 替代静态调用
+     * NodeBuilder bean: backed by {@link NodeCenter} instead of static lookups.
      */
     @Bean
     public NodeBuilder nodeBuilder(NodeCenter nodeCenter) {
         return new NodeBuilder(nodeCenter);
     }
-
 }

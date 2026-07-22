@@ -1,4 +1,6 @@
 package com.maxkb4j.workflow.node.impl;
+import com.maxkb4j.workflow.annotation.NodeCreatorType;
+import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.Condition;
@@ -12,6 +14,7 @@ import java.util.Map;
 import static com.maxkb4j.workflow.enums.NodeType.LOOP_CONTINUE;
 
 
+@NodeCreatorType(NodeType.LOOP_CONTINUE)
 public class LoopContinueNode extends AbsNode {
     public LoopContinueNode(String id, JSONObject properties) {
         super(id,properties);
