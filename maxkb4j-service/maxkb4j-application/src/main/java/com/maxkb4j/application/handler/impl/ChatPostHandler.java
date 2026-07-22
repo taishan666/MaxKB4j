@@ -23,6 +23,7 @@ import com.maxkb4j.common.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ public class ChatPostHandler implements PostResponseHandler {
     private final ApplicationChatRecordMapper chatRecordMapper;
 
     @Override
+    @Transactional
     public void handler(ChatParams chatParams, ChatContext chatContext, ChatResponse chatResponse, long startTime) {
         String chatId = chatParams.getChatId();
         String chatRecordId = chatParams.getChatRecordId();
