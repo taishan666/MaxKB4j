@@ -1,16 +1,3 @@
--- ----------------------------
--- Table structure for application_access
--- ----------------------------
-CREATE TABLE "public"."application_access" (
-                                               "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                               "status" jsonb,
-                                               "config" jsonb,
-                                               "create_time" timestamp(6) NOT NULL,
-                                               "update_time" timestamp(6) NOT NULL
-)
-;
-
--- ----------------------------
--- Primary Key structure for table application_access
--- ----------------------------
-ALTER TABLE "public"."application_access" ADD CONSTRAINT "application_access_pkey" PRIMARY KEY ("id");
+ALTER TABLE "public"."application_chat_record"
+ALTER COLUMN "problem_text" TYPE text COLLATE "pg_catalog"."default" USING "problem_text"::text,
+  ALTER COLUMN "answer_text" TYPE text COLLATE "pg_catalog"."default" USING "answer_text"::text;
