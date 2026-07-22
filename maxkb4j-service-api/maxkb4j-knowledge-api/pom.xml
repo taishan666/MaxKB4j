@@ -24,12 +24,6 @@
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
         </dependency>
-        <!-- ParagraphVO 实现 core 的 RagContent 契约 -->
-        <dependency>
-            <groupId>com.tarzan</groupId>
-            <artifactId>maxkb4j-core</artifactId>
-            <version>${revision}</version>
-        </dependency>
     </dependencies>
 
 </project>

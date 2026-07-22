@@ -1,5 +1,6 @@
 package com.maxkb4j.core.support;
 
+import com.maxkb4j.common.domain.RagContent;
 import dev.langchain4j.internal.Utils;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.input.PromptTemplate;

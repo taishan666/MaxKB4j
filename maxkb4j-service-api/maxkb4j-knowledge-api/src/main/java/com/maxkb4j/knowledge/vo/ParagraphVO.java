@@ -1,6 +1,6 @@
 package com.maxkb4j.knowledge.vo;
 
-import com.maxkb4j.core.support.RagContent;
+import com.maxkb4j.common.domain.RagContent;
 import com.maxkb4j.knowledge.consts.HitHandlingMethod;
 import lombok.Data;
 
