@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
  * 节点抽象基类
@@ -36,6 +37,10 @@ public abstract class AbsNode {
     private volatile Integer status;
     private String errMessage;
 
+    /** Lock-free CAS updater for status, used to atomically claim node execution. */
+    private static final AtomicReferenceFieldUpdater<AbsNode, Integer> STATUS_UPDATER =
+            AtomicReferenceFieldUpdater.newUpdater(AbsNode.class, Integer.class, "status");
+
     public AbsNode(String id, JSONObject properties) {
         this.id = id;
         this.properties = properties;
@@ -47,6 +52,21 @@ public abstract class AbsNode {
         this.answerText = "";
         this.status = NodeStatus.READY.getStatus();
         this.errMessage = "";
+    }
+
+    /**
+     * Atomically claim the right to execute this node by transitioning its status from
+     * READY (or INTERRUPT) to STARTED via a CAS. Returns true if this thread won the
+     * claim and should proceed to execute; returns false if another thread already
+     * claimed or executed it (e.g. diamond-join siblings concurrently reaching the same
+     * node), in which case the caller must skip execution to avoid a duplicate run.
+     */
+    public boolean tryClaimRunning() {
+        Integer current = this.status;
+        if (NodeStatus.READY.getStatus() == current || NodeStatus.INTERRUPT.getStatus() == current) {
+            return STATUS_UPDATER.compareAndSet(this, current, NodeStatus.STARTED.getStatus());
+        }
+        return false;
     }
 
     public JSONObject getNodeData() {

@@ -95,6 +95,12 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
     protected List<AbsNode> runChainNode(Workflow workflow, AbsNode node) {
         if (workflow.execution().dependenciesExecuted(node)) {
+            // Atomically claim READY/INTERRUPT -> STARTED. A diamond-join may reach this
+            // node concurrently from two upstream branches; without the CAS the node could
+            // execute twice (doubled LLM / knowledge writes).
+            if (!node.tryClaimRunning()) {
+                return List.of();
+            }
             NodeResultFuture nodeResultFuture = runNodeFuture(workflow, node);
             node.setStatus(nodeResultFuture.getStatus());
             NodeResult nodeResult = nodeResultFuture.getResult();
@@ -119,6 +125,9 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * 不阻塞 workflowTaskExecutor 线程，流式回调完成后自动推进
      */
     protected CompletableFuture<List<AbsNode>> runAsyncChainNode(Workflow workflow, AbsNode node) {
+        if (!node.tryClaimRunning()) {
+            return CompletableFuture.completedFuture(List.of());
+        }
         onNodeStart(workflow, node);
         workflow.execution().recordExecution(node);
         INodeHandler nodeHandler = nodeCenter.getHandler(node.getType());
