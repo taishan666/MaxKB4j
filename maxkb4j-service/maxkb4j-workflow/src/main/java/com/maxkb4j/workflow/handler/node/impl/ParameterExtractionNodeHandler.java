@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.core.assistant.ParameterExtractionAssistant;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
@@ -33,21 +34,21 @@ public class ParameterExtractionNodeHandler extends AbsNodeHandler {
         ParameterExtractionNode.NodeParams params = parseParams(node, ParameterExtractionNode.NodeParams.class);
         ModelConfig modelConfig = resolveModelConfig(workflow, params);
         ChatModel chatModel = modelFactory.buildChatModel(modelConfig.getModelId(), modelConfig.getModelParamsSetting());
-        Object query = workflow.getReferenceField(params.getInputVariable());
+        Object request = workflow.getReferenceField(params.getInputVariable());
 
         ParameterExtractionAssistant assistant = AiServiceFactory.builder(ParameterExtractionAssistant.class)
                 .chatModel(chatModel)
                 .build();
 
         String extractInfo = format(params.getVariableList());
-        Result<Map<String, Object>> result = assistant.extract(extractInfo, query.toString());
+        Result<Map<String, Object>> result = assistant.extract(extractInfo, String.valueOf(request));
 
-        putDetail(node, "question", query);
+        putDetail(node, "request", request);
         recordTokenUsage(node, result.tokenUsage());
 
         Map<String, Object> nodeVariable = new HashMap<>();
         Map<String, Object> arguments = result.content();
-        nodeVariable.put("result", new com.alibaba.fastjson.JSONObject(arguments));
+        nodeVariable.put("result", new JSONObject(arguments));
         nodeVariable.putAll(arguments);
         return new NodeResult(nodeVariable);
     }

@@ -1,9 +1,10 @@
 package com.maxkb4j.knowledge.handler;
 
-import com.alibaba.fastjson.JSONObject;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.knowledge.entity.DocumentEntity;
@@ -173,7 +174,7 @@ public class KnowledgeExportHandler {
         knowledgeJson.put("meta", meta != null ? meta : new JSONObject());
         knowledgeJson.put("file_size_limit", fileSizeLimit != null ? fileSizeLimit : 100);
         knowledgeJson.put("file_count_limit", fileCountLimit != null ? fileCountLimit : 50);
-        knowledgeJson.put("tags", new com.alibaba.fastjson.JSONArray());
+        knowledgeJson.put("tags", new JSONArray());
         byte[] jsonBytes = knowledgeJson.toJSONString().getBytes(StandardCharsets.UTF_8);
         
         // 创建 ZIP 并写入响应
