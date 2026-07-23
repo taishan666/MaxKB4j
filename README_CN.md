@@ -11,9 +11,13 @@
   <a href="https://www.gnu.org/licenses/gpl-3.0.html#license-text"><img src="https://img.shields.io/badge/License-GPL%20v3-blue" alt="License: GPL v3"></a>
   <a href=""><img src="https://img.shields.io/badge/Java-21+-green" alt="Java 21+"></a>
   <a href=""><img src="https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen" alt="Spring Boot 3.x"></a>    
-  <a href=""><img src="https://img.shields.io/badge/Langchain4J-1.x-green" alt="LangChain4j"></a><br/>
+  <a href=""><img src="https://img.shields.io/badge/Langchain4J-1.x-green" alt="LangChain4j"></a>
+  <a href="https://github.com/taishan666/MaxKB4j"><img src="https://img.shields.io/github/stars/taishan666/MaxKB4j?style=social" alt="GitHub Stars"></a>
+  <a href="https://github.com/taishan666/MaxKB4j"><img src="https://img.shields.io/github/last-commit/taishan666/MaxKB4j" alt="Last Commit"></a><br/>
  [<a href="/README_CN.md">中文(简体)</a>] | [<a href="/README.md">English</a>] 
 </p>
+
+> 🚀 **快速开始**：`docker-compose up -d` -> 访问 `http://localhost:8080`  ·  🌐 [在线 Demo](http://43.143.235.194:8080/)（账号 `demo` / 密码 `demo@123456`）
 
 > 💖 **支持本项目** — 如果 MaxKB4j 对你有帮助，欢迎在文末【💖 支持与赞助】请作者喝杯咖啡，每一份支持都是项目持续迭代的动力！☕
 
@@ -28,6 +32,22 @@
 **MaxKB4j 为您提供一站式解决方案：**
 
 基于 **Java 21 + Spring Boot 3 + 虚拟线程** 构建，完美融合 **RAG（检索增强生成）** 与 **可视化工作流**。无需改造原有系统，即可赋予您的应用“理解、推理、执行”的 AI 能力。
+
+### 📊 MaxKB4j 与同类方案对比（能力矩阵）
+
+| 能力 | **MaxKB4j** | Dify | MaxKB | FastGPT | RAGFlow |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 后端技术栈 | **Java 21 + Spring Boot 3** | Python + TS | Python（Django） | TypeScript（Node.js） | Python（Flask） |
+| 高并发架构 | ✅ 虚拟线程 + 响应式 | ⚠️ 异步 worker | ⚠️ WSGI worker | ⚠️ Node 事件循环 | ⚠️ Python worker |
+| RAG 知识库 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 可视化工作流 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 多 Agent 协作 | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
+| MCP 协议 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 多模态（ASR/TTS/OCR） | ✅ | ⚠️ | ✅ | ⚠️ | ✅ |
+| 触发器（Cron / Webhook） | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
+| 权限管理 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 嵌入现有系统 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Java 团队接入** | ✅ **原生，零 Python/TS 依赖** | ⚠️ 需 Python/TS | ⚠️ 需 Python | ⚠️ 需 TS | ⚠️ 需 Python |
 
 ---
 
@@ -229,13 +249,6 @@ MaxKB4j/
 
 > **🌟 开源不易，坚持更难**
 > MaxKB4j 由个人开发者与社区成员**维护**，无商业公司背书。您的支持将直接用于服务器成本、Token 测试消耗、API 测试、Bug 修复与新功能研发，让项目持续前行！
-
-**赞助，你将获得：**
-- 🛠 **持续迭代** - Bug 修复、新模型 / 新工具适配优先排期
-- 📞 **直达作者** - 1 对 1 微信沟通，问题快速响应
-- 🎁 **专属权益** - 前端源码、知识星球、企业级售后支持
-- 🏅 **品牌曝光** - 企业赞助方可展示于官网赞助墙
-
 > 📌 **早鸟提示**：企业伙伴 / 战略合作档位**持续涨价中**，当前为历史最低价，越早锁定权益越多。
 
 ### 赞助档位
@@ -297,7 +310,6 @@ Copyright © 2025–2035 洛阳泰山 TARZAN. All rights reserved.
 - 🌐 [Skills 中心](https://modelscope.cn/skills)
 
 >  🌟 **Star 本项目，助力国产开源 AI 生态！** </br>
-> 🎯 **看看这个！👉 [点击了解 AI 大模型应用开发实战！🔥](https://example.com/ai-guide)**
 
 ---
 

@@ -10,9 +10,13 @@
   <a href="https://www.gnu.org/licenses/gpl-3.0.html#license-text"><img src="https://img.shields.io/badge/License-GPL%20v3-blue" alt="License: GPL v3"></a>
   <a href=""><img src="https://img.shields.io/badge/Java-21+-green" alt="Java 21+"></a>
   <a href=""><img src="https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen" alt="Spring Boot 3.x"></a>
-  <a href=""><img src="https://img.shields.io/badge/Langchain4J-1.x-green" alt="LangChain4j"></a><br/>
+  <a href=""><img src="https://img.shields.io/badge/Langchain4J-1.x-green" alt="LangChain4j"></a>
+  <a href="https://github.com/taishan666/MaxKB4j"><img src="https://img.shields.io/github/stars/taishan666/MaxKB4j?style=social" alt="GitHub Stars"></a>
+  <a href="https://github.com/taishan666/MaxKB4j"><img src="https://img.shields.io/github/last-commit/taishan666/MaxKB4j" alt="Last Commit"></a><br/>
  [<a href="/README_CN.md">中文(简体)</a>] | [<a href="/README.md">English</a>]
 </p>
+
+> 🚀 **Quick Start**: `docker-compose up -d` -> open `http://localhost:8080`  ·  🌐 [Live Demo](http://43.143.235.194:8080/) (`demo` / `demo@123456`)
 
 > 💖 **Sponsor this project** — if MaxKB4j helps you, consider supporting us in the **💖 Support & Sponsorship** section at the bottom. Every ☕ keeps the project growing!
 
@@ -27,6 +31,22 @@ In today's AI application boom, are you facing these challenges?
 **MaxKB4j Provides You with a One-Stop Solution:**
 
 Built on **Java 21 + Spring Boot 3 + Virtual Threads**, perfectly integrating **RAG (Retrieval-Augmented Generation)** with **visual workflow**. Empower your applications with AI capabilities of "understanding, reasoning, and execution" without modifying your existing systems.
+
+### 📊 How MaxKB4j Compares (Capability Matrix)
+
+| Capability | **MaxKB4j** | Dify | MaxKB | FastGPT | RAGFlow |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Backend Stack | **Java 21 + Spring Boot 3** | Python + TS | Python (Django) | TypeScript (Node.js) | Python (Flask) |
+| High-Concurrency Arch | ✅ Virtual Threads + Reactive | ⚠️ Async workers | ⚠️ WSGI workers | ⚠️ Node event loop | ⚠️ Python workers |
+| RAG Knowledge Base | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Visual Workflow | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Multi-Agent Collaboration | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
+| MCP Protocol | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Multimodal (ASR/TTS/OCR) | ✅ | ⚠️ | ✅ | ⚠️ | ✅ |
+| Triggers (Cron / Webhook) | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
+| Permission Management | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Embed into Existing Systems | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Java-Team Adoption** | ✅ **Native - zero Python/TS** | ⚠️ Needs Python/TS | ⚠️ Needs Python | ⚠️ Needs TS | ⚠️ Needs Python |
 
 ---
 
@@ -228,13 +248,6 @@ We welcome community contributions! If you have suggestions, bug reports, or new
 
 > **🌟 Open source is not easy, persistence is harder**
 > MaxKB4j is **maintained** by individual developers and community members, with no corporate backing. Your support goes directly to server costs, token testing, API testing, bug fixes, and new feature development - keeping the project moving forward!
-
-**What you get by sponsoring:**
-- 🛠 **Sustained iteration** - prioritized bug fixes and adaptation to new models / tools
-- 📞 **Direct line to the author** - 1-on-1 WeChat communication, fast responses
-- 🎁 **Exclusive perks** - frontend source code, Knowledge Planet, enterprise-grade support
-- 🏅 **Brand exposure** - enterprise sponsors can be listed on the official sponsor wall
-
 > 📌 **Early-bird note**: the Enterprise / Strategic tiers **continue to rise in price** - current pricing is the lowest it will ever be, so lock in benefits early.
 
 ### Sponsorship Tiers
@@ -296,7 +309,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 - 🌐 [Skills Center](https://modelscope.cn/skills)
 
 >  🌟 **Star this project to support China's open-source AI ecosystem!** </br>
-> 🎯 **Check this out! 👉 [Learn about AI large model application development in practice! 🔥](https://example.com/ai-guide)**
 
 ---
 
