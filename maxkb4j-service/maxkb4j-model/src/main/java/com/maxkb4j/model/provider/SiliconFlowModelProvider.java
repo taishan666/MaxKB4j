@@ -12,7 +12,7 @@ import java.util.List;
  * Silicon Flow Model Provider - OpenAI compatible API
  */
 @Component
-@ModelProviderType(provider = "SiliconFlow", name = "Silicon Flow", icon = "silicon_flow.svg")
+@ModelProviderType(provider = "SiliconFlow", name = "Silicon Flow", icon = "silicon_flow_icon.svg")
 public class SiliconFlowModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = "https://api.siliconflow.cn/v1";
