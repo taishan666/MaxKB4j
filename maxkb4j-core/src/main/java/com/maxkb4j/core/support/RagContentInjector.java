@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * <p>通过 {@link RagContent} 最小契约与具体业务 VO 解耦，不依赖任何业务模块。
  */
 public class RagContentInjector {
-    public static final PromptTemplate DEFAULT_PROMPT_TEMPLATE = PromptTemplate.from("{{userMessage}}\n\nAnswer using the following information:\n{{contents}}");
+    public static final PromptTemplate DEFAULT_PROMPT_TEMPLATE = PromptTemplate.from("question:\n{{userMessage}}\nanswer using the following information:\n{{contents}}\nOutput Requirements:\nIf the knowledge base content contains image URLs, they must be output in the following Markdown format exactly as they are. ! [](image address)");
     private final PromptTemplate promptTemplate;
 
     public RagContentInjector() {

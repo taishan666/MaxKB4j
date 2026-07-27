@@ -110,8 +110,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     @Transactional
     public boolean createModel(ModelEntity model) {
         String userId = userContext.getUserId();
-        long count = this.lambdaQuery().eq(ModelEntity::getName, model.getName()).eq(ModelEntity::getUserId, userId).count();
-        if (count > 0) {
+        if (checkModelExists(model.getName(),model.getProvider(),userId)) {
             throw new ApiException("model.name.exists");
         }
         if (model.getModelParamsForm() == null){
@@ -126,6 +125,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
         save(model);
         return userResourcePermissionService.ownerSave(AuthTargetType.MODEL, model.getId(), model.getUserId());
     }
+
 
     private JSONObject extractDefaultModelParams(JSONArray modelParamsForm) {
         JSONObject defaultModelParams = new JSONObject();
@@ -149,8 +149,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
 
     public ModelEntity updateModel(String id, ModelEntity model) {
         String userId = userContext.getUserId();
-        long count = this.lambdaQuery().eq(ModelEntity::getName, model.getName()).eq(ModelEntity::getUserId, userId).ne(ModelEntity::getId, id).count();
-        if (count > 0) {
+        if (checkModelExists(model.getName(),model.getProvider(),userId)) {
             throw new ApiException("model.name.exists");
         }
         model.setId(id);
@@ -273,6 +272,12 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
                 .last("limit 1")
                 .one();
         return embeddingModel != null ? embeddingModel.getId() : null;
+    }
+
+
+    private boolean checkModelExists(String name,String provider, String userId) {
+        long count = this.lambdaQuery().eq(ModelEntity::getName, name).eq(ModelEntity::getProvider, provider).eq(ModelEntity::getUserId, userId).count();
+        return count > 0;
     }
 }
 
