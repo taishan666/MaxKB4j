@@ -224,7 +224,7 @@ public class WorkflowImpl implements Workflow {
      */
     @Override
     public ChatParams getChatParams() {
-        return configuration.getChatParams();
+        return configuration.getChatParams()==null?new ChatParams():configuration.getChatParams();
     }
 
     /**

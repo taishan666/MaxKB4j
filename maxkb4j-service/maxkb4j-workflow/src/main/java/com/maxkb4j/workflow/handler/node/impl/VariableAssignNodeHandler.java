@@ -2,6 +2,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
+import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.ValueType;
@@ -83,8 +84,9 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         result.put("input_value", inputValue);
         result.put("output_value", value);
         // Update chat variables
-        if (workflow.getChatParams() != null && workflow.getChatParams().getChatId() != null) {
-            ChatInfo chatInfo = ChatCache.get(workflow.getChatParams().getChatId());
+        ChatParams chatParams = workflow.getChatParams();
+        if (chatParams!= null && chatParams.getChatId() != null) {
+            ChatInfo chatInfo = ChatCache.get(chatParams.getChatId());
             if (chatInfo != null && chatInfo.getChatVariables() != null) {
                 chatInfo.getChatVariables().put(varName,value);
             }

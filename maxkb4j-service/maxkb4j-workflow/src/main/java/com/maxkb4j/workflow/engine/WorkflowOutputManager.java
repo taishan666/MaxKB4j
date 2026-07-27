@@ -34,7 +34,7 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
      *
      * @return 是否需要输出
      */
-    private boolean needsSink() {
+    public boolean needsSink() {
         WorkflowMode mode = configuration.getWorkflowMode();
         return mode == WorkflowMode.APPLICATION || mode == WorkflowMode.APPLICATION_LOOP;
     }

@@ -2,6 +2,7 @@ package com.maxkb4j.workflow.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.common.util.MimeTypeUtils;
 import com.maxkb4j.model.service.IModelProviderService;
@@ -137,9 +138,10 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * @param reasoning 推理内容
      */
     protected void emitMessage(Workflow workflow, AbsNode node, String content, String reasoning) {
+        ChatParams chatParams=workflow.getChatParams();
         ChatMessageVO vo = node.toChatMessageVO(
-                workflow.getChatParams().getChatId(),
-                workflow.getChatParams().getChatRecordId(),
+                chatParams.getChatId(),
+                chatParams.getChatRecordId(),
                 content,
                 reasoning,
                 null,
@@ -182,7 +184,6 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
         AtomicReference<String> errorMessage = new AtomicReference<>("");
         boolean isResult = options.isResult();
         CompletableFuture<NodeResult> resultFuture = new CompletableFuture<>();
-
         tokenStream.onPartialThinking(thinking -> {
                     if (isResult && options.reasoningContentEnable()) {
                         emitMessage(workflow, node, "", thinking.text());

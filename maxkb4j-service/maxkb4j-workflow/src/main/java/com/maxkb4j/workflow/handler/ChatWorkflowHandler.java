@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.handler;
 
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.engine.KnowledgeWorkflow;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.model.NodeResultFuture;
@@ -44,15 +45,14 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
      * @param ex       the exception that occurred
      */
     protected void emitErrorToSink(Workflow workflow, AbsNode node, Exception ex) {
-        if (workflow.getChatParams() != null) {
-            ChatMessageVO errMessage = node.toChatMessageVO(
-                    workflow.getChatParams().getChatId(),
-                    workflow.getChatParams().getChatRecordId(),
-                    String.format("Exception: %s", ex.getMessage()),
-                    "",
-                    null,
-                    true);
-            workflow.output().emit(errMessage);
-        }
+        ChatParams chatParams = workflow.getChatParams();
+        ChatMessageVO errMessage = node.toChatMessageVO(
+                chatParams.getChatId(),
+                chatParams.getChatRecordId(),
+                String.format("Exception: %s", ex.getMessage()),
+                "",
+                null,
+                true);
+        workflow.output().emit(errMessage);
     }
 }

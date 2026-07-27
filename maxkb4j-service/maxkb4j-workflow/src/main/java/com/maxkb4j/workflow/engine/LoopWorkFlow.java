@@ -2,6 +2,7 @@ package com.maxkb4j.workflow.engine;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.LoopParams;
@@ -53,8 +54,8 @@ public class LoopWorkFlow extends WorkflowImpl {
         // 3. 初始化执行控制器（覆盖 startNode 以返回 LoopStart 节点）
         this.executionAccessor = new LoopExecutionAccessor(this.configuration, this.workflowContext, new EdgeNavigator(edges));
         if (details!=null&&!details.isEmpty()) {
-            this.executionAccessor.loadNodeState(this, details,
-                    workflow.getChatParams().getRuntimeNodeId(), workflow.getChatParams().getNodeData());
+            ChatParams chatParams = workflow.getChatParams();
+            this.executionAccessor.loadNodeState(this, details, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
         }
 
         // 4. 初始化输出管理器

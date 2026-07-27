@@ -284,9 +284,10 @@ public class LoopNodeHandler extends AbsNodeHandler {
      */
     private ChatMessageVO buildLoopMessageVO(ChatMessageVO source, Workflow workflow,
                                              AbsNode node, ChildNode childNode) {
+        ChatParams chatParams = workflow.getChatParams();
         ChatMessageVO vo = node.toChatMessageVO(
-                workflow.getChatParams().getChatId(),
-                workflow.getChatParams().getChatRecordId(),
+                chatParams.getChatId(),
+                chatParams.getChatRecordId(),
                 source.getContent(),
                 source.getReasoningContent(),
                 childNode,
@@ -300,9 +301,10 @@ public class LoopNodeHandler extends AbsNodeHandler {
      * 发送迭代结束标记
      */
     private void emitIterationEnd(Workflow workflow, AbsNode node, AtomicReference<ChildNode> childNodeRef) {
+        ChatParams chatParams = workflow.getChatParams();
         ChatMessageVO vo = node.toChatMessageVO(
-                workflow.getChatParams().getChatId(),
-                workflow.getChatParams().getChatRecordId(),
+                chatParams.getChatId(),
+                chatParams.getChatRecordId(),
                 "",
                 "",
                 childNodeRef.get(),
