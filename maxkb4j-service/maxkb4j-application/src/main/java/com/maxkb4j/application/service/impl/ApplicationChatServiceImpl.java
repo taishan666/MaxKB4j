@@ -134,6 +134,10 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
             chatParams.setChatRecordId(IdWorker.get32UUID());
         }
         ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatContext.getDebug());
+        if (Objects.isNull(application)) {
+            sink.tryEmitError(new ApiException("application.not.found"));
+            return new ChatResponse(List.of(), null);
+        }
         IChatService chatService = ChatServiceBuilder.getChatService(application.getType());
         ChatResponse chatResponse = chatService.chatMessage(application, chatParams, chatContext, sink);
         postResponseHandler.handler(chatParams, chatContext, chatResponse, startTime);

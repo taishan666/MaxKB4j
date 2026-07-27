@@ -68,6 +68,7 @@ application:
         required: 非法访问，请联系管理员添加白名单
   not:
     published: 应用未发布，请发布后使用。
+    found: 未找到应用
   app:
     not:
       found: 未找到应用

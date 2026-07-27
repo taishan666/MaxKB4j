@@ -3,7 +3,6 @@ package com.maxkb4j.core.listener;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.observability.api.event.AiServiceCompletedEvent;
 import dev.langchain4j.observability.api.listener.AiServiceCompletedListener;
-import dev.langchain4j.service.Result;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
@@ -14,9 +13,8 @@ public class AssistantCompletedListener implements AiServiceCompletedListener {
     public void onEvent(AiServiceCompletedEvent event) {
         Optional<Object> optional = event.result();
         optional.ifPresent(e -> {
-            if (e instanceof Result<?> result) {
-                ChatResponse chatResponse = result.finalResponse();
-                log.info(chatResponse.toString());
+           if (e instanceof ChatResponse chatResponse) {
+                log.info(chatResponse.aiMessage().toString());
             } else {
                 log.info(e.toString());
             }

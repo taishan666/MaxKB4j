@@ -68,6 +68,7 @@ application:
         required: Illegal access. Please contact the administrator to add the whitelist.
   not:
     published: The application has not been published. Please publish it before use.
+    found: Application not found
   app:
     not:
       found: No app was found
