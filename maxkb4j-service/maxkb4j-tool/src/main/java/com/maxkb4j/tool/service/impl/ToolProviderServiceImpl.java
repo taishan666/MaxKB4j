@@ -74,7 +74,6 @@ public class ToolProviderServiceImpl implements IToolProviderService {
         return toolProviders;
     }
 
-
     @Override
     public ShellSkills getShellSkills(List<String> toolIds) throws ApiException {
         List<ToolEntity> tools = queryActiveTools(toolIds, ToolConstants.ToolType.SKILL);

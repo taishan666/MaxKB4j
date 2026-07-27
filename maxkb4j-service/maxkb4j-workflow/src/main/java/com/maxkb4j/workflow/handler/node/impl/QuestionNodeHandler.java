@@ -46,7 +46,7 @@ public class QuestionNodeHandler extends AbsNodeHandler {
 
         Assistant assistant = AiServiceFactory.builder(Assistant.class)
                 .systemMessage(systemPrompt)
-                .chatMemory(AiChatMemory.withMessages(historyMessages))
+                .chatMemory(AiChatMemory.withMessages(workflow.getChatParams().getChatId(),historyMessages))
                 .chatModel(chatModel)
                 .build();
 

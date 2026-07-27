@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.handler.node;
 
+import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.common.util.MimeTypeUtils;
@@ -155,7 +156,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * @param modelSetting 模型设置 JSONObject，可为 null
      * @return 是否启用推理内容输出，默认 false
      */
-    protected boolean resolveReasoningContentEnable(com.alibaba.fastjson.JSONObject modelSetting) {
+    protected boolean resolveReasoningContentEnable(JSONObject modelSetting) {
         return Optional.ofNullable(modelSetting)
                 .map(setting -> setting.getBooleanValue("reasoningContentEnable"))
                 .orElse(false);

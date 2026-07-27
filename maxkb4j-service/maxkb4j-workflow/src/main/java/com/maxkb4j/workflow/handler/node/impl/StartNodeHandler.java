@@ -69,7 +69,7 @@ public class StartNodeHandler extends AbsNodeHandler {
         resultMap.put("chatId", chatParams.getChatId());
         resultMap.put("chatUserId", workflow.getContext().getChatUserId());
         resultMap.put("chatUserType", workflow.getContext().getChatUserType());
-        resultMap.put("chatUser", new JSONObject(Map.of("username", "游客")));
+        resultMap.put("chatUser", workflow.getContext().getChatUser());
         if (chatParams.getFormData() != null){
             resultMap.putAll(chatParams.getFormData());
         }

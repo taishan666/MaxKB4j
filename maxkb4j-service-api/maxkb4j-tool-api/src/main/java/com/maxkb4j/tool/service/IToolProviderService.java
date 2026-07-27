@@ -12,7 +12,4 @@ public interface IToolProviderService {
     ShellSkills getShellSkills(List<String> toolIds) throws ApiException;
     List<AiServiceTool> getTools(String userMessage, List<String> toolIds, List<String> applicationIds) throws ApiException;
     List<ToolProvider> getToolProviders(List<String> toolIds, List<String> applicationIds) throws ApiException;
-
-
-
 }

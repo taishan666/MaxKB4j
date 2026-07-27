@@ -1,7 +1,9 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.maxkb4j.common.util.MessageConverter;
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.OssFile;
+import com.maxkb4j.common.util.MessageConverter;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AiChatMemory;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
@@ -15,7 +17,6 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.Workflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.ImageUnderstandNode;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -55,7 +56,7 @@ public class ImageUnderStandNodeHandler extends AbstractChatStreamNodeHandler {
 
         ModelConfig modelConfig = resolveModelConfig(workflow, params);
         // 构建 AI 服务
-        Assistant assistant = buildAiServices(modelConfig.getModelId(), modelConfig.getModelParamsSetting(),
+        Assistant assistant = buildAiServices(modelConfig.getModelId(), workflow.getChatParams().getChatId(),modelConfig.getModelParamsSetting(),
                 systemPrompt, historyMessages);
 
         TokenStream tokenStream = assistant.chatStream(userPrompt, contents);
@@ -74,7 +75,7 @@ public class ImageUnderStandNodeHandler extends AbstractChatStreamNodeHandler {
         putDetail(node, "imageList", imageFiles);
     }
 
-    private Assistant buildAiServices(String modelId, com.alibaba.fastjson.JSONObject modelParamsSetting,
+    private Assistant buildAiServices(String modelId,String chatId,JSONObject modelParamsSetting,
                                       String systemPrompt, List<ChatMessage> historyMessages) {
         AiServices<Assistant> builder = AiServiceFactory.builder(Assistant.class);
 
@@ -82,7 +83,7 @@ public class ImageUnderStandNodeHandler extends AbstractChatStreamNodeHandler {
             builder.systemMessage(systemPrompt);
         }
         if (CollectionUtils.isNotEmpty(historyMessages)) {
-            builder.chatMemory(AiChatMemory.withMessages(historyMessages));
+            builder.chatMemory(AiChatMemory.withMessages(chatId,historyMessages));
         }
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, modelParamsSetting);
         return builder.streamingChatModel(chatModel).build();

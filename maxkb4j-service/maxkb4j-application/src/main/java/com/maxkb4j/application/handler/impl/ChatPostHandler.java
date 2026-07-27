@@ -3,6 +3,7 @@ package com.maxkb4j.application.handler.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.entity.ApplicationChatUserStatsEntity;
@@ -10,13 +11,11 @@ import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.service.ApplicationChatUserStatsService;
-import com.maxkb4j.application.service.IApplicationLongTermMemoryService;
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
-import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.util.BeanUtil;
@@ -33,7 +32,6 @@ import java.util.Map;
 public class ChatPostHandler implements PostResponseHandler {
 
     private final ApplicationChatUserStatsService chatUserStatsService;
-    private final IApplicationLongTermMemoryService longTermMemoryService;
     private final ApplicationChatMapper chatMapper;
     private final ApplicationChatRecordMapper chatRecordMapper;
 
@@ -58,9 +56,9 @@ public class ChatPostHandler implements PostResponseHandler {
         chatRecordEntity.setId(chatRecordId);
         chatRecordEntity.setChatId(chatId);
         chatRecordEntity.setProblemText(problemText);
+        chatRecordEntity.setAnswerText(answerText);
+        chatRecordEntity.setAnswerTextList(answerTextList);
         if (chatRecord != null) {
-            chatRecordEntity.setAnswerText(answerText);
-            chatRecordEntity.setAnswerTextList(answerTextList);
             chatRecordEntity.setIndex(chatRecord.getIndex());
             chatRecordEntity.setMessageTokens(messageTokens);
             chatRecordEntity.setAnswerTokens(answerTokens);
@@ -68,8 +66,6 @@ public class ChatPostHandler implements PostResponseHandler {
             chatRecordEntity.setRunTime(runTime + chatRecord.getRunTime());
             chatRecordEntity.setVoteStatus(chatRecord.getVoteStatus());
         } else {
-            chatRecordEntity.setAnswerText(answerText);
-            chatRecordEntity.setAnswerTextList(answerTextList);
             if (chatInfo!=null){
                 chatRecordEntity.setIndex(chatInfo.getChatRecordList().size() + 1);
             }else {
@@ -107,7 +103,7 @@ public class ChatPostHandler implements PostResponseHandler {
                 chatEntity.setChatUserId(chatUserId);
                 chatEntity.setChatUserType(StringUtils.isBlank(chatUserType) ? ChatUserType.CHAT_USER.name() : chatUserType);
                 chatEntity.setIsDeleted(false);
-                chatEntity.setAsker(new JSONObject(Map.of("username", "游客")));
+                chatEntity.setAsker(chatContext.getChatUser());
                 chatEntity.setMeta(new JSONObject());
                 chatEntity.setStarNum(0);
                 chatEntity.setTrampleNum(0);

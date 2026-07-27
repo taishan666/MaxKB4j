@@ -4,6 +4,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.service.memory.ChatMemoryService;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,8 +76,15 @@ public class AiChatMemory implements ChatMemory {
     }
 
     public static AiChatMemory withMessages(List<ChatMessage> messages) {
+        return withMessages(null,messages);
+    }
+
+    public static AiChatMemory withMessages(String chatId,List<ChatMessage> messages) {
         List<ChatMessage> historyMessages = new ArrayList<>(messages.size());
         historyMessages.addAll(messages);
+        if (StringUtils.isNotBlank(chatId)){
+            return builder().id(chatId).messages(historyMessages).build();
+        }
         return builder().messages(historyMessages).build();
     }
 }

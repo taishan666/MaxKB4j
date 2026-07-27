@@ -15,27 +15,36 @@ import java.util.Map;
 
 public class AgentExecutor extends AbsToolExecutor {
 
+    private final String chatUserId;
     private final String appId;
     private final IApplicationChatService chatService;
 
     public AgentExecutor(String appId, IApplicationChatService chatService) {
+        this.chatUserId = IdWorker.get32UUID();
         this.appId = appId;
         this.chatService = chatService;
     }
+
+    public AgentExecutor(String chatUserId, String appId, IApplicationChatService chatService) {
+        this.chatUserId = chatUserId;
+        this.appId = appId;
+        this.chatService = chatService;
+    }
+
 
     @Override
     public String execute(ToolExecutionRequest toolExecutionRequest, Object memoryId) {
         Map<String, Object> args = argumentsAsMap(toolExecutionRequest.arguments());
         String message = (String) args.getOrDefault("message","");
         ChatParams params = ChatParams.builder()
+                .chatId("agent_"+ memoryId)
                 .message(message)
                 .reChat(false)
                 .stream(false)
-                .chatId(String.valueOf(memoryId))
                 .build();
         ChatContext chatContext = ChatContext.builder()
                 .appId(appId)
-                .chatUserId(IdWorker.get32UUID())
+                .chatUserId(chatUserId)
                 .chatUserType(ChatUserType.ANONYMOUS_USER.name())
                 .source(ChatSource.ONLINE)
                 .debug(false)

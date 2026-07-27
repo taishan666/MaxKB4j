@@ -68,7 +68,8 @@ public class ChatStep extends AbsChatStep {
             manage.sink.tryEmitError(e);
             return "";
         }
-        Assistant assistant = aiServicesBuilder.chatMemory(AiChatMemory.withMessages(historyMessages)).streamingChatModel(chatModel).build();
+        aiServicesBuilder.chatMemory(AiChatMemory.withMessages(chatId,historyMessages));
+        Assistant assistant = aiServicesBuilder.streamingChatModel(chatModel).build();
         Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
         TokenStream tokenStream = assistant.chatStream(userPrompt);
         CompletableFuture<ChatResponse> future = new CompletableFuture<>();

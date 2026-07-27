@@ -113,7 +113,7 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
             builder.systemMessage(systemPrompt);
         }
         if (CollectionUtils.isNotEmpty(historyMessages)) {
-            builder.chatMemory(AiChatMemory.withMessages(historyMessages));
+            builder.chatMemory(AiChatMemory.withMessages(workflow.getChatParams().getChatId(),historyMessages));
         }
         try {
             builder.toolProviders(toolProviderService.getToolProviders(toolIds, applicationIds));

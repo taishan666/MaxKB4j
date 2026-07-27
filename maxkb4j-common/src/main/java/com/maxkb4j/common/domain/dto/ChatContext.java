@@ -1,5 +1,6 @@
 package com.maxkb4j.common.domain.dto;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.maxkb4j.common.enums.ChatSource;
@@ -9,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 对话执行上下文：服务端在请求处理过程中解析/加载的运行时状态。
@@ -41,6 +43,8 @@ public class ChatContext {
     private String chatUserId;
     @Schema(description = "聊天用户类型")
     private String chatUserType;
+    @Schema(description = "聊天用户信息")
+    private JSONObject chatUser;
     @Schema(description = "对话来源")
     private ChatSource source;
     @Schema(description = "客户端ip地址")
@@ -58,5 +62,9 @@ public class ChatContext {
 
     public String getChatUserType() {
         return StringUtils.isBlank(chatUserType) ? ChatUserType.ANONYMOUS_USER.name() : chatUserType;
+    }
+
+    public JSONObject getChatUser() {
+        return ChatUserType.ANONYMOUS_USER.name().equals(chatUserType) ? new JSONObject(Map.of("username", "游客")) : new JSONObject();
     }
 }
