@@ -22,6 +22,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 @Slf4j
@@ -75,11 +76,11 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
     private List<String> getExcludeParagraphIds(Workflow workflow, String runtimeNodeId, String question) {
         List<String> excludeParagraphIds = new ArrayList<>();
         for (ChatRecordDTO chatRecord : workflow.getHistoryChatRecords()) {
-            if (chatRecord.getProblemText().equals(workflow.getChatParams().getMessage())) {
+            if (Objects.equals(chatRecord.getProblemText(), workflow.getChatParams().getMessage())) {
                 JSONObject details = chatRecord.getDetails();
-                if (!details.isEmpty()) {
+                if (details != null && !details.isEmpty()) {
                     JSONObject detail = details.getJSONObject(runtimeNodeId);
-                    if (question.equals(detail.getString("question"))) {
+                    if (detail != null && Objects.equals(question, detail.getString("question"))) {
                         List<ParagraphVO> paragraphList = (List<ParagraphVO>) detail.get("paragraphList");
                         if (!CollectionUtils.isEmpty(paragraphList)) {
                             excludeParagraphIds.addAll(paragraphList.stream().map(ParagraphVO::getId).toList());

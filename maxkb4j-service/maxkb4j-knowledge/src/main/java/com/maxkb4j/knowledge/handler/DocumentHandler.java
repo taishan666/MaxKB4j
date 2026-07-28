@@ -78,6 +78,20 @@ public class DocumentHandler {
     }
 
     /**
+     * 检测 CSV 文件编码，检测失败时回退为 UTF-8。
+     */
+    private String detectCsvCharset(byte[] bytes) {
+        try (TikaInputStream tikaStream = TikaInputStream.get(bytes)) {
+            EncodingDetector detector = new UniversalEncodingDetector();
+            Charset charset = detector.detect(tikaStream, new Metadata());
+            return charset != null ? charset.name() : "UTF-8";
+        } catch (IOException e) {
+            log.warn("无法检测 CSV 编码，使用 UTF-8 默认", e);
+            return "UTF-8";
+        }
+    }
+
+    /**
      * 处理QA文件（Excel或CSV）
      *
      * @return 解析后的文档列表
@@ -98,39 +112,32 @@ public class DocumentHandler {
             docSimple.setSourceFileId(fileId);
             List<ParagraphSimple> paragraphs = new ArrayList<>();
             // === 处理 CSV 文件 ===
-            TikaInputStream tikaStream = TikaInputStream.get(bytes);
-            EncodingDetector detector = new UniversalEncodingDetector();
-            Charset charset;
-            try {
-                charset = detector.detect(tikaStream, new Metadata());
-                String charsetName = charset != null ? charset.name() : "UTF-8";
-                log.info("检测到 CSV 文件编码: {}", charsetName);
-                // 重要：重置流，因为 detect() 可能已读取部分内容
-                tikaStream.reset();
-                // 使用检测到的编码读取 CSV
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(tikaStream, Charset.forName(charsetName)))) {
-                    CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
-                            .setHeader().setSkipHeaderRecord(true)
-                            .setIgnoreEmptyLines(true)
-                            .setTrim(true)
-                            .get();
-                    CSVParser csvParser = csvFormat.parse(reader);
-                    for (CSVRecord record : csvParser) {
-                        ParagraphSimple paragraph = ParagraphSimple.builder()
-                                .title(record.get(0))
-                                .content(record.get(1))
-                                .build();
-                        if (StringUtils.isNotBlank(record.get(2))) {
-                            String[] problems = record.get(2).split("\n");
-                            paragraph.setProblemList(new ArrayList<>(Arrays.asList(problems)));
-                        }
-                        paragraphs.add(paragraph);
+            String charsetName = detectCsvCharset(bytes);
+            log.info("检测到 CSV 文件编码: {}", charsetName);
+            // 使用检测到的编码读取 CSV（检测失败时已回退为 UTF-8）
+            try (TikaInputStream tikaStream = TikaInputStream.get(bytes);
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(tikaStream, Charset.forName(charsetName)))) {
+                CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                        .setHeader().setSkipHeaderRecord(true)
+                        .setIgnoreEmptyLines(true)
+                        .setTrim(true)
+                        .get();
+                CSVParser csvParser = csvFormat.parse(reader);
+                for (CSVRecord record : csvParser) {
+                    ParagraphSimple paragraph = ParagraphSimple.builder()
+                            .title(record.get(0))
+                            .content(record.get(1))
+                            .build();
+                    if (StringUtils.isNotBlank(record.get(2))) {
+                        String[] problems = record.get(2).split("\n");
+                        paragraph.setProblemList(new ArrayList<>(Arrays.asList(problems)));
                     }
-                    docSimple.setParagraphs(paragraphs);
-                    docs.add(docSimple);
+                    paragraphs.add(paragraph);
                 }
+                docSimple.setParagraphs(paragraphs);
+                docs.add(docSimple);
             } catch (IOException e) {
-                log.warn("无法检测 CSV 编码，使用 UTF-8 默认", e);
+                log.warn("CSV 文件解析失败: {}", e.getMessage(), e);
             }
         } else {
             // === 原有 Excel 逻辑保持不变 ===
@@ -192,40 +199,33 @@ public class DocumentHandler {
         List<ParagraphSimple> paragraphs = new ArrayList<>();
         if (isCsv) {
             // === 处理 CSV 文件 ===
-            TikaInputStream tikaStream = TikaInputStream.get(bytes);
-            EncodingDetector detector = new UniversalEncodingDetector();
-            Charset charset;
-            try {
-                charset = detector.detect(tikaStream, new Metadata());
-                String charsetName = charset != null ? charset.name() : "UTF-8";
-                log.info("检测到 CSV 文件编码: {}", charsetName);
-                // 重要：重置流，因为 detect() 可能已读取部分内容
-                tikaStream.reset();
-                // 使用检测到的编码读取 CSV
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(tikaStream, Charset.forName(charsetName)))) {
-                    CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
-                            .setHeader().setSkipHeaderRecord(true)
-                            .setIgnoreEmptyLines(true)
-                            .setTrim(true)
-                            .get();
-                    CSVParser csvParser = csvFormat.parse(reader);
-                    List<String> headerNames =csvParser.getHeaderNames();
-                    for (CSVRecord record : csvParser) {
-                        List<String> row = new ArrayList<>();
-                        for (String headerName : headerNames) {
-                            row.add(headerName+":"+record.get(headerName));
-                        }
-                        ParagraphSimple paragraph = ParagraphSimple.builder()
-                                .title("")
-                                .content(String.join("|", row))
-                                .build();
-                        paragraphs.add(paragraph);
+            String charsetName = detectCsvCharset(bytes);
+            log.info("检测到 CSV 文件编码: {}", charsetName);
+            // 使用检测到的编码读取 CSV（检测失败时已回退为 UTF-8）
+            try (TikaInputStream tikaStream = TikaInputStream.get(bytes);
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(tikaStream, Charset.forName(charsetName)))) {
+                CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                        .setHeader().setSkipHeaderRecord(true)
+                        .setIgnoreEmptyLines(true)
+                        .setTrim(true)
+                        .get();
+                CSVParser csvParser = csvFormat.parse(reader);
+                List<String> headerNames =csvParser.getHeaderNames();
+                for (CSVRecord record : csvParser) {
+                    List<String> row = new ArrayList<>();
+                    for (String headerName : headerNames) {
+                        row.add(headerName+":"+record.get(headerName));
                     }
-                    docSimple.setParagraphs(paragraphs);
-                    docs.add(docSimple);
+                    ParagraphSimple paragraph = ParagraphSimple.builder()
+                            .title("")
+                            .content(String.join("|", row))
+                            .build();
+                    paragraphs.add(paragraph);
                 }
+                docSimple.setParagraphs(paragraphs);
+                docs.add(docSimple);
             } catch (IOException e) {
-                log.warn("无法检测 CSV 编码，使用 UTF-8 默认", e);
+                log.warn("CSV 文件解析失败: {}", e.getMessage(), e);
             }
         } else {
             // === 原有 Excel 逻辑保持不变 ===

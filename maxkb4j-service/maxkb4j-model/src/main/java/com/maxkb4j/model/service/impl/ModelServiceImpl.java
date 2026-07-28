@@ -154,6 +154,9 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
         }
         model.setId(id);
         ModelEntity entity = this.getById(id);
+        if (entity == null) {
+            throw new ApiException("model.name.not.found");
+        }
         ModelCredential credential = entity.getCredential();
         String maskApiKey = DataMaskUtil.maskApiKey(credential.getApiKey());
         if (maskApiKey != null && maskApiKey.equals(model.getCredential().getApiKey())) {
@@ -254,6 +257,9 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
 
     public void updateModelParamsForm(String id, JSONArray paramsForm) {
         ModelEntity entity = this.getById(id);
+        if (entity == null) {
+            throw new ApiException("model.name.not.found");
+        }
         AbsModelProvider  modelProvider= providerRegistry.get(entity.getProvider());
         JSONObject params = extractDefaultModelParams(paramsForm);
         modelProvider.modelIsValid(entity.getModelType(),entity.getModelName(),entity.getCredential(),params);

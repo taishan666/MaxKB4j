@@ -30,18 +30,19 @@ public class HttpNodeHandler extends AbsNodeHandler {
         Map<String, Object> variables = workflow.getPromptVariables();
         String code = JSON.toJSONString(params);
         ToolHttpRequest  request = JSONObject.parseObject(code, ToolHttpRequest.class);
-        HttpResponse response = toolService.httpExecute(JSON.toJSONString(params),variables);
-        int resStatus = response.getStatus();
-        String resBody = response.body();
-        // 使用辅助方法写入详情
-        putDetails(node, Map.of(
-                "url", request.getUrl(),
-                "method", request.getMethod(),
-                "headers", request.getHeaders(),
-                "requestBody", request,
-                "params", request.getParams(),
-                "timeout", request.getTimeout()
-        ));
-        return new NodeResult(Map.of("status", resStatus, "body", resBody));
+        try (HttpResponse response = toolService.httpExecute(JSON.toJSONString(params), variables)) {
+            int resStatus = response.getStatus();
+            String resBody = response.body();
+            // 使用辅助方法写入详情
+            putDetails(node, Map.of(
+                    "url", request.getUrl(),
+                    "method", request.getMethod(),
+                    "headers", request.getHeaders(),
+                    "requestBody", request,
+                    "params", request.getParams(),
+                    "timeout", request.getTimeout()
+            ));
+            return new NodeResult(Map.of("status", resStatus, "body", resBody));
+        }
     }
 }

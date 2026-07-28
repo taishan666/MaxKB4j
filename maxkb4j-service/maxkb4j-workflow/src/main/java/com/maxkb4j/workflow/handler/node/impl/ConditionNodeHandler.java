@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
@@ -25,7 +26,9 @@ public class ConditionNodeHandler extends AbsNodeHandler {
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         ConditionNodeParams params= parseParams(node, ConditionNodeParams.class);
         ConditionNodeParams.Branch branch = executeBranch(workflow, params.getBranch());
-        assert branch != null;
+        if (branch == null) {
+            throw new ApiException("workflow.condition.no.match");
+        }
         return new NodeResult(Map.of("branchId", branch.getId(), "branchName", branch.getType()));
     }
 

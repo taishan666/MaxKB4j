@@ -29,12 +29,18 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
     protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
         VariableAggregationNode.NodeParams params = parseParams(node, VariableAggregationNode.NodeParams.class);
         String strategyName = params.getStrategy();
+        StrategyFunction strategy = STRATEGY_MAP.get(strategyName);
+        if (strategy == null) {
+            throw new IllegalArgumentException("Unknown variable aggregation strategy: " + strategyName);
+        }
         Map<String, Object> nodeVariable = new HashMap<>();
         List<VariableAggregationNode.Group> groupList = params.getGroupList();
+        if (groupList == null) {
+            return new NodeResult(nodeVariable);
+        }
 
         for (VariableAggregationNode.Group group : groupList) {
             List<VariableAggregationNode.Variable> variableList = group.getVariableList();
-            StrategyFunction strategy = STRATEGY_MAP.get(strategyName);
             resetVariable(variableList, workflow);
             group.setValue(strategy.apply(variableList));
             nodeVariable.put(group.getField(), group.getValue());

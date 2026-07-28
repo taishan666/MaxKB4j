@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.ResourceType;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.system.service.IResourceMappingService;
@@ -81,6 +82,9 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
 
     public void toolExport(String id, HttpServletResponse response) {
         ToolEntity entity = this.getById(id);
+        if (entity == null) {
+            throw new ApiException("tool.not.found");
+        }
         importExportHandler.exportTool(entity, response);
     }
 
@@ -102,6 +106,9 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
     @Transactional
     public boolean removeToolById(String id) {
         ToolEntity entity = this.getById(id);
+        if (entity == null) {
+            throw new ApiException("tool.not.found");
+        }
         skillHandler.onDelete(entity);
         resourceMappingService.deleteBySourceId(ResourceType.TOOL, id);
         userResourcePermissionService.remove(AuthTargetType.TOOL, id);

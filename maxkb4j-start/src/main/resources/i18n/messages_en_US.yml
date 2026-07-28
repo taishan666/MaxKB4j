@@ -133,3 +133,7 @@ trigger:
   token:
     auth:
       failed: Token authentication failed
+workflow:
+  condition:
+    no:
+      match: The condition node did not match any branch

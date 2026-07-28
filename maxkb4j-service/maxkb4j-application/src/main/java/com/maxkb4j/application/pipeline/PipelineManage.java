@@ -52,8 +52,9 @@ public class PipelineManage {
             try {
                 step.run(this);
             } catch (Exception e) {
-                assert sink != null;
-                sink.tryEmitError(e);
+                if (sink != null) {
+                    sink.tryEmitError(e);
+                }
                 throw new RuntimeException(e);
             }
         }

@@ -133,3 +133,7 @@ trigger:
   token:
     auth:
       failed: token鉴权失败
+workflow:
+  condition:
+    no:
+      match: 条件节点未匹配到任何分支

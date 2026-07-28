@@ -52,17 +52,20 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         }
         long timeoutMinutes = workflow.getNodeExecutionTimeoutMinutes();
         List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
+        List<AbsNode> scheduledNodes = new ArrayList<>();
         for (AbsNode node : nodeList) {
             if (NodeStatus.READY.getStatus() == node.getStatus() || NodeStatus.INTERRUPT.getStatus() == node.getStatus()) {
                 INodeHandler handler = nodeCenter.getHandler(node.getType());
                 if (handler.isAsync()) {
                     // 异步节点：直接使用其返回的 CompletableFuture，不占用 workflowTaskExecutor 线程
                     futureList.add(runAsyncChainNode(workflow, node));
+                    scheduledNodes.add(node);
                 } else {
                     // 同步节点：在 workflowTaskExecutor 上执行
                     futureList.add(CompletableFuture.supplyAsync(
                             () -> runChainNode(workflow, node),
                             workflowTaskExecutor));
+                    scheduledNodes.add(node);
                 }
             } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
                 List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(Map.of()));
@@ -72,11 +75,12 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                     }
                 });
                 futureList.add(CompletableFuture.completedFuture(nextNodeList));
+                scheduledNodes.add(node);
             }
         }
         for (int i = 0; i < futureList.size(); i++) {
             CompletableFuture<List<AbsNode>> future = futureList.get(i);
-            AbsNode node = nodeList.get(i);
+            AbsNode node = scheduledNodes.get(i);
             try {
                 List<AbsNode> nextNodeList = future.get(timeoutMinutes, TimeUnit.MINUTES);
                 runChainNodes(workflow, nextNodeList);

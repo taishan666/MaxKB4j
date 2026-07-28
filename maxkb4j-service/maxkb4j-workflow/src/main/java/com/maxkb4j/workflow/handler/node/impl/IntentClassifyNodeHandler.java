@@ -39,6 +39,7 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
         ModelConfig modelConfig = resolveModelConfig(workflow, params);
         ChatModel chatModel = modelFactory.buildChatModel(modelConfig.getModelId(), modelConfig.getModelParamsSetting());
         Object query = workflow.getReferenceField(params.getContentList());
+        String queryStr = query == null ? "" : query.toString();
         Map<String, String> branchMap = new HashMap<>();
         List<IntentClassifyNode.Branch> branches = params.getBranch();
 
@@ -57,21 +58,25 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
                 .chatModel(chatModel)
                 .build();
 
-        Result<String> result = assistant.route(options, chatMemory, query.toString());
+        Result<String> result = assistant.route(options, chatMemory, queryStr);
 
         Collection<Integer> classificationIds = parse(result.content());
         int classificationId = classificationIds.stream().findFirst().orElse(0);
         String branchId = idToClassification.get(classificationId);
         String category = branchMap.get(branchId);
 
-        putDetails(node, Map.of(
-                "system", IntentClassifyAssistant.SYSTEM_MESSAGE,
-                "question", query,
-                "answer", category
-        ));
+        Map<String, Object> details = new HashMap<>();
+        details.put("system", IntentClassifyAssistant.SYSTEM_MESSAGE);
+        details.put("question", queryStr);
+        details.put("answer", category);
+        putDetails(node, details);
         recordTokenUsage(node, result.tokenUsage());
 
-        return new NodeResult(Map.of("branchId", branchId, "category", category, "reason", ""));
+        Map<String, Object> nodeVariable = new HashMap<>();
+        nodeVariable.put("branchId", branchId);
+        nodeVariable.put("category", category);
+        nodeVariable.put("reason", "");
+        return new NodeResult(nodeVariable);
     }
 
     protected String optionsFormat(Map<Integer, String> idToClassification, List<IntentClassifyNode.Branch> branches) {
@@ -92,6 +97,20 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
     }
 
     protected Collection<Integer> parse(String choices) {
-        return Arrays.stream(choices.split(",")).map(String::trim).map(Integer::parseInt).toList();
+        if (choices == null) {
+            return List.of();
+        }
+        return Arrays.stream(choices.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(s -> {
+                    try {
+                        return Integer.parseInt(s);
+                    } catch (NumberFormatException e) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 }
