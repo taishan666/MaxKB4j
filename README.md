@@ -21,6 +21,14 @@
 > 💖 **Sponsor this project** — if MaxKB4j helps you, consider supporting us in the **💖 Support & Sponsorship** section at the bottom. Every ☕ keeps the project growing!
 
 ---
+
+## 📚 Documentation
+
+- 📄 [MaxKB4j Business Value Whitepaper](./docs/MaxKB4j-商业价值白皮书.md)
+- 🧪 [MaxKB4j Regression Test Report](./docs/MaxKB4j-回归测试报告.md)
+
+---
+
 ## 💡 Why Choose MaxKB4j?
 In today's AI application boom, are you facing these challenges?
 - ❌ Complex Integration: Existing solutions rely on the Python ecosystem, making it costly for Java teams to get started?

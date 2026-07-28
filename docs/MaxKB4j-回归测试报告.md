@@ -12,16 +12,16 @@
 
 **结论摘要**
 
-- 回归测试集现覆盖 **22 个测试类、158 个测试用例**，分布在 `maxkb4j-common` 与 `maxkb4j-service/maxkb4j-workflow` 两个模块。
-- 第二轮扩展新增 **6 个测试类、57 个测试用例**：日期时间工具、空安全/类型判断、Bean 拷贝与分页、字符串列表 `TypeHandler`、历史消息管理。
+- 回归测试集现覆盖 **33 个测试类、239 个测试用例**，分布在 `maxkb4j-common` 与 `maxkb4j-service/maxkb4j-workflow` 两个模块。
+- 累计扩展 **17 个测试类、138 个测试用例**：公共工具（日期时间/空安全/Bean 拷贝与分页/IO 流/RSA）、统一返回 `R`、持久层 `TypeHandler`（StringList/JSONB/Embedding/LlmModelSetting/ToolInputParams/DatasetSetting）、工作流历史消息管理、输出管理、配置管理与异常解析链。
 - 全部用例 **通过**（0 失败、0 错误、0 跳过）。
 - 编写与验证过程中发现并修复 **2 处实现层面的问题**（1 处契约违反、1 处不可达死代码），均附回归用例守护。
 
 | 指标 | 数值 |
 | --- | --- |
-| 测试类数 | 22 |
-| 测试用例总数 | 158 |
-| 通过 | 158 |
+| 测试类数 | 33 |
+| 测试用例总数 | 239 |
+| 通过 | 239 |
 | 失败 / 错误 / 跳过 | 0 / 0 / 0 |
 | 通过率 | 100% |
 
@@ -63,6 +63,9 @@
 | 模板渲染（`{{var}}` 替换、覆盖、空安全、缺省抛错） | `TemplateRendererTest` | 6 |
 | 工作流上下文管理（节点追加/替换、查找、转发） | `WorkflowContextTest` | 3 |
 | 工作流图导航（上下游边查找、空安全） | `EdgeNavigatorTest` | 4 |
+| 工作流输出管理（响应式输出判定、答案收集、运行时详情聚合、Sink 安全发射） | `WorkflowOutputManagerTest` | 11 |
+| 工作流配置管理（不可变拷贝、节点映射去重、按 ID 查找、空安全） | `WorkflowConfigurationTest` | 5 |
+| 异常解析责任链（order 排序、continue/break、解析器异常吞掉、详情记录） | `ExceptionResolverChainTest` | 7 |
 | 节点生命周期与 CAS 抢占（防菱形汇聚重复执行） | `AbsNodeTest`、`NodeIdGeneratorTest` | 12 |
 | 历史消息转换（成对裁剪、多模态、标签清理、最近 N 轮） | `MessageConverterTest` | 10 |
 | 敏感数据脱敏（手机/身份证/邮箱/银行卡/API Key） | `DataMaskUtilTest` | 12 |
@@ -75,7 +78,15 @@
 | 分页对象拷贝与记录类型转换 | `PageUtilTest` | 3 |
 | 持久层字符串列表 TypeHandler（数组 <-> List） | `StringListTypeHandlerTest` | 8 |
 | 历史消息管理（节点/全局装配、多模态、空安全） | `HistoryManagerTest` | 7 |
-| **合计** |  | **158** |
+| 统一返回结构 R（success/fail/data/status，I18nUtil 空上下文回退） | `RTest` | 13 |
+| IO 流读取与静默关闭（flush/close、IOException 吞掉） | `IoUtilTest` | 7 |
+| RSA 密钥生成 / Base64 导入导出 / 加解密往返 | `RSAUtilTest` | 6 |
+| 持久层 JSONB TypeHandler（字符串 <-> JSON、jsonb 绑定） | `JSONBTypeHandlerTest` | 7 |
+| 持久层向量 Embedding TypeHandler（字符串 <-> List<Float>、PGvector 绑定） | `EmbeddingTypeHandlerTest` | 7 |
+| 持久层 LLM 模型设置 TypeHandler（jsonb <-> LlmModelSetting） | `LlmModelSettingTypeHandlerTest` | 6 |
+| 持久层工具输入参数 TypeHandler（jsonb <-> List<ToolInputField>） | `ToolInputParamsTypeHandlerTest` | 6 |
+| 持久层数据集设置 TypeHandler（jsonb <-> KnowledgeSetting） | `DatasetSettingTypeHandlerTest` | 6 |
+| **合计** |  | **239** |
 
 ---
 
@@ -83,9 +94,9 @@
 
 | 模块 | 测试类数 | 用例数 | 通过 | 失败 | 错误 | 跳过 |
 | --- | --- | --- | --- | --- | --- | --- |
-| `maxkb4j-common` | 11 | 94 | 94 | 0 | 0 | 0 |
-| `maxkb4j-service/maxkb4j-workflow` | 11 | 64 | 64 | 0 | 0 | 0 |
-| **合计** | **22** | **158** | **158** | **0** | **0** | **0** |
+| `maxkb4j-common` | 19 | 152 | 152 | 0 | 0 | 0 |
+| `maxkb4j-service/maxkb4j-workflow` | 14 | 87 | 87 | 0 | 0 | 0 |
+| **合计** | **33** | **239** | **239** | **0** | **0** | **0** |
 
 构建状态：`BUILD SUCCESS`（`mvn test` 退出码 0）。
 
@@ -93,7 +104,7 @@
 
 ## 五、详细用例清单
 
-### 5.1 maxkb4j-common（94 用例）
+### 5.1 maxkb4j-common（152 用例）
 
 #### `BatchUtilTest`（8）— `com.maxkb4j.common.util.BatchUtil`
 | 用例 | 覆盖点 |
@@ -229,7 +240,91 @@
 | setNonNullParameter_bindsArrayFromList | List 写入绑定数组 |
 | setNonNullParameter_nullListBindsNull | null 列表绑定 null |
 
-### 5.2 maxkb4j-service/maxkb4j-workflow（64 用例）
+#### `RTest`（13）— `com.maxkb4j.common.api.R`
+| 用例 | 覆盖点 |
+| --- | --- |
+| success_defaultHasSuccessCodeAndKeyMessage | 默认成功（message 为 i18n key） |
+| success_withDataCarriesPayload | 携带 data |
+| success_byResultCodeUsesItsCodeAndMessage | 按 ResultCode 取码与消息 |
+| success_byResultCodeOverridesMessage | 按 ResultCode 覆盖消息 |
+| data_nonNullKeepsGivenMessage | data 非空保留消息 |
+| data_nullFallsBackToNoDataMessage | data 为空回退无数据消息 |
+| fail_byMessageUsesFailureCode | fail 按消息（FAILURE 码） |
+| fail_byCodeAndMessage | fail 指定码与消息 |
+| fail_byResultCodeUsesItsCodeAndMessage | fail 按 ResultCode |
+| status_trueIsSuccess_falseIsFailure | 状态标志路由 |
+| pkIsNullAndNotExistsUseFailureCodeWithKeyMessage | pkIsNull / notExists |
+| gettersAndSettersRoundTrip | getter/setter 往返 |
+| toStringContainsCodeAndData | toString 含码与数据 |
+#### `IoUtilTest`（7）— `com.maxkb4j.common.util.IoUtil`
+| 用例 | 覆盖点 |
+| --- | --- |
+| readToString_readsUtf8Content | 读取 UTF-8 并关闭流 |
+| readToString_withExplicitCharset | 指定字符集读取 |
+| readToString_emptyStreamReturnsEmpty | 空流返回空 |
+| readToString_swallowsIOExceptionAndReturnsEmpty | 读异常吞掉返回空 |
+| closeQuietly_flushesAndCloses | flush 后关闭 |
+| closeQuietly_nullIsNoOp | null 安全 |
+| closeQuietly_swallowsIOExceptionOnClose | close 异常吞掉 |
+#### `RSAUtilTest`（6）— `com.maxkb4j.common.util.RSAUtil`
+| 用例 | 覆盖点 |
+| --- | --- |
+| byteToBase64_encodesBytes | Base64 编码 |
+| generateRSAKeyPair_returnsValidPair | 生成有效密钥对 |
+| importKeys_recoversFromBase64 | Base64 导入还原密钥 |
+| encryptThenDecrypt_roundTripsWithKeyObjects | 密钥对象加解密往返 |
+| encryptThenDecrypt_roundTripsWithBase64Keys | Base64 密钥加解密往返 |
+| importPublicKey_invalidBase64Throws | 非法 Base64 抛异常 |
+#### `JSONBTypeHandlerTest`（7）— `com.maxkb4j.common.typehandler.JSONBTypeHandler`
+| 用例 | 覆盖点 |
+| --- | --- |
+| getNullableResult_byName_parsesJson | 按列名解析 JSON |
+| getNullableResult_byIndex_parsesJson | 按列序号解析 JSON |
+| getNullableResult_nullReturnsNull | null 返回 null |
+| getNullableResult_emptyReturnsNull | 空串返回 null |
+| getNullableResult_callableStatement | CallableStatement 读取 |
+| setNonNullParameter_bindsJsonbPgobject | 绑定 jsonb PGobject |
+| toJson_serializesCompactJson | 紧凑 JSON 序列化 |
+#### `EmbeddingTypeHandlerTest`（7）— `com.maxkb4j.common.typehandler.EmbeddingTypeHandler`
+| 用例 | 覆盖点 |
+| --- | --- |
+| getNullableResult_byName_parsesBracketedList | 带括号向量解析 |
+| getNullableResult_parsesWithoutBrackets | 无括号解析 |
+| getNullableResult_trimsWhitespace | 元素空白裁剪 |
+| getNullableResult_emptyBracketsReturnsEmpty | 空括号返回空 |
+| getNullableResult_nullAndEmptyReturnEmpty | null/空返回空 |
+| getNullableResult_byIndexAndCallable | 按序号/Callable 读取 |
+| setNonNullParameter_bindsPgvector | 绑定 PGvector |
+
+#### `LlmModelSettingTypeHandlerTest`（6）— `com.maxkb4j.common.typehandler.LlmModelSettingTypeHandler`
+| 用例 | 覆盖点 |
+| --- | --- |
+| getNullableResult_byName_parsesToObject | 按列名解析为对象 |
+| getNullableResult_byIndex_parsesToObject | 按列序号解析 |
+| getNullableResult_nullAndEmptyReturnNull | null/空返回 null |
+| getNullableResult_callableStatement | CallableStatement 读取 |
+| setNonNullParameter_bindsJsonbPgobject | 绑定 jsonb PGobject |
+| toJson_roundTripsFieldsAndWritesNulls | 字段往返 + 空串序列化 |
+#### `ToolInputParamsTypeHandlerTest`（6）— `com.maxkb4j.common.typehandler.ToolInputParamsTypeHandler`
+| 用例 | 覆盖点 |
+| --- | --- |
+| getNullableResult_byName_parsesToArray | 按列名解析为数组 |
+| getNullableResult_byIndex_parsesToArray | 按列序号解析 |
+| getNullableResult_nullAndEmptyReturnNull | null/空返回 null |
+| getNullableResult_callableStatement | CallableStatement 读取 |
+| setNonNullParameter_bindsJsonbPgobject | 绑定 jsonb PGobject |
+| toJson_roundTripsList | 列表往返序列化 |
+#### `DatasetSettingTypeHandlerTest`（6）— `com.maxkb4j.common.typehandler.DatasetSettingTypeHandler`
+| 用例 | 覆盖点 |
+| --- | --- |
+| getNullableResult_byName_parsesToObject | 按列名解析为对象 |
+| getNullableResult_byIndex_parsesToObject | 按列序号解析 |
+| getNullableResult_nullAndEmptyReturnNull | null/空返回 null |
+| getNullableResult_callableStatement | CallableStatement 读取 |
+| setNonNullParameter_bindsJsonbPgobject | 绑定 jsonb PGobject |
+| toJson_roundTripsFields | 字段往返序列化 |
+
+### 5.2 maxkb4j-service/maxkb4j-workflow（87 用例）
 
 #### `HistoryManagerTest`（7）— `com.maxkb4j.workflow.engine.HistoryManager`
 | 用例 | 覆盖点 |
@@ -307,6 +402,41 @@
 | findUpstreamNodeIds_returnsSourceNodes | 上游节点查找 |
 | nullEdgesYieldsEmptyNavigator | null 边列表安全 |
 | sizeAndEmptyReflectEdgeCount | 计数与空判定 |
+
+#### `WorkflowOutputManagerTest`（11）— `com.maxkb4j.workflow.engine.WorkflowOutputManager`
+| 用例 | 覆盖点 |
+| --- | --- |
+| needsSink_trueForApplicationModes | APPLICATION / APPLICATION_LOOP 需输出 |
+| needsSink_falseForKnowledgeModes | KNOWLEDGE / KNOWLEDGE_LOOP 不输出 |
+| answers_emptyWhenNoConfiguredNodes | 无配置节点返回空 |
+| answers_emptyWhenChatRecordIdNull | chatRecordId 为空返回空 |
+| answers_collectsOnlyFromConfiguredNodesWithAnswer | 仅收集已配置节点答案 |
+| emit_whenNeedsSink_emitsToSink | 需输出时发射到 Sink |
+| emit_whenNotNeedsSink_skipsEmit | 知识库模式跳过发射 |
+| emit_nullMessage_skipsSafely | null 消息安全跳过 |
+| runtimeDetails_buildsPerNodeDetail | 逐节点聚合运行时详情 |
+| runtimeDetails_nameFallsBackToTypeWhenPropertiesNull | properties 为空时名称回退到类型 |
+| runtimeDetails_emptyWhenNoValidNodes | 无有效节点返回空 |
+
+#### `WorkflowConfigurationTest`（5）— `com.maxkb4j.workflow.engine.WorkflowConfiguration`
+| 用例 | 覆盖点 |
+| --- | --- |
+| constructor_nullNodesAndEdges_yieldsEmptyImmutableCollections | null 节点/边空安全 |
+| nodesAndEdgesAreUnmodifiable | 列表不可变 |
+| getNode_returnsByNodeIdOrNull | 按 ID 查找 / 缺失返回 null |
+| nodeMap_deduplicatesByKeepingFirstOnDuplicateIds | 重复 ID 保留首个 |
+| chatParamsSetterAndGettersRoundTrip | 模式与聊天参数读写 |
+
+#### `ExceptionResolverChainTest`（7）— `com.maxkb4j.workflow.exception.ExceptionResolverChain`
+| 用例 | 覆盖点 |
+| --- | --- |
+| constructor_sortsResolversByOrderAscending | 按 order 升序排序 |
+| resolve_runsAllResolversWhenAllReturnTrue | 全 true 逐一执行 |
+| resolve_stopsChainWhenResolverReturnsFalse | false 中断链 |
+| resolve_swallowsResolverExceptionAndContinues | 解析器异常被吞掉 |
+| detailRecordingResolver_recordsErrorOnNode | 详情记录错误信息 |
+| chainWithRealResolvers_executesBothAndRecordsError | 真实解析器协同 |
+| emptyChain_resolvesWithoutEffect | 空链无副作用 |
 
 #### `ConditionUtilTest`（7）— `com.maxkb4j.workflow.util.ConditionUtil`
 | 用例 | 覆盖点 |
@@ -399,14 +529,14 @@ mvn test -pl maxkb4j-service/maxkb4j-workflow -am -Dtest=ConditionUtilTest
 ### 当前局限
 
 - **层级为单元测试**：聚焦纯逻辑（算法 / 解析 / 转换 / 校验），尚未覆盖集成与端到端流程。
-- **未覆盖外部依赖**：数据库（MyBatis-Plus / pgvector）、LLM 调用（langchain4j）、HTTP 节点、OSS、Spring 容器装配等链路未纳入。 本轮已通过 Mockito 打桩覆盖自定义 `TypeHandler`（`StringListTypeHandler`）的转换逻辑，但尚未接入真实数据库 / Mapper。
+- **未覆盖外部依赖**：数据库（MyBatis-Plus / pgvector）、LLM 调用（langchain4j）、HTTP 节点、OSS、Spring 容器装配等链路未纳入。 本轮已通过 Mockito 打桩覆盖自定义 `TypeHandler`（`StringListTypeHandler`、`JSONBTypeHandler`、`EmbeddingTypeHandler`、`LlmModelSettingTypeHandler`、`ToolInputParamsTypeHandler`、`DatasetSettingTypeHandler`）的转换逻辑（`ModelCredentialTypeHandler` 耦合 `SystemCache` 与 RSA 加解密，需集成测试，暂未纳入）；尚未接入真实数据库 / Mapper。
 - **未覆盖 Web 层**：Controller / 鉴权（Sa-Token）/ 全局异常处理 / 拦截器等暂无测试。
 
 ### 后续建议（按优先级）
 
 1. **补 Service 层切片测试**：对知识库检索、模型调用、工具执行等核心 Service，用 `@SpringBootTest` + 嵌入式 / Testcontainers PostgreSQL 覆盖。
 2. **补 Web 层 `MockMvc` 测试**：覆盖鉴权、参数校验、统一返回结构（`R`）、全局异常处理。
-3. **补持久层测试**：本轮已覆盖 `StringListTypeHandler` 的数组 <-> List 转换；待补 `JSONBTypeHandler` / `EmbeddingTypeHandler` 等其余 TypeHandler，并接入真实 Mapper 做数据正确性验证。
+3. **补持久层测试**：本轮已覆盖 `StringListTypeHandler` / `JSONBTypeHandler` / `EmbeddingTypeHandler` / `LlmModelSettingTypeHandler` / `ToolInputParamsTypeHandler` / `DatasetSettingTypeHandler` 的转换逻辑；待补 `ModelCredentialTypeHandler`（耦合 `SystemCache` 与 RSA 加解密）并接入真实 Mapper 做数据正确性验证。
 4. **引入覆盖率度量**：接入 JaCoCo，设定核心模块行/分支覆盖率基线，纳入 CI 门禁。
 5. **补端到端工作流冒烟**：构造最小工作流（Start → AiChat → DirectReply）验证引擎编排链路，配合 Mock 模型。
 6. **修复 Mockito agent 告警**：将 mockito agent 显式加入构建，面向未来 JDK 兼容。
@@ -415,20 +545,24 @@ mvn test -pl maxkb4j-service/maxkb4j-workflow -am -Dtest=ConditionUtilTest
 
 ## 九、文件清单
 
-### 新增测试文件（22）
+### 新增测试文件（33）
 
 - `maxkb4j-common/src/test/java/com/maxkb4j/common/util/`
   - `BatchUtilTest.java`、`DataMaskUtilTest.java`、`MD5UtilTest.java`
   - `MessageConverterTest.java`、`MimeTypeUtilsTest.java`、`RenderTagsTest.java`
   - `DateTimeUtilTest.java`、`ObjectUtilTest.java`、`BeanUtilTest.java`、`PageUtilTest.java`
+  - `IoUtilTest.java`、`RSAUtilTest.java`
+- `maxkb4j-common/src/test/java/com/maxkb4j/common/api/`
+  - `RTest.java`
 - `maxkb4j-common/src/test/java/com/maxkb4j/common/typehandler/`
-  - `StringListTypeHandlerTest.java`
+  - `StringListTypeHandlerTest.java`、`JSONBTypeHandlerTest.java`、`EmbeddingTypeHandlerTest.java`、`LlmModelSettingTypeHandlerTest.java`、`ToolInputParamsTypeHandlerTest.java`、`DatasetSettingTypeHandlerTest.java`
 - `maxkb4j-service/maxkb4j-workflow/src/test/java/com/maxkb4j/workflow/`
   - `compare/CompareImplTest.java`
   - `builder/CompareBuilderTest.java`
   - `enums/CompareOperatorTest.java`
   - `engine/VariableResolverTest.java`、`engine/TemplateRendererTest.java`
-  - `engine/WorkflowContextTest.java`、`engine/EdgeNavigatorTest.java`、`engine/HistoryManagerTest.java`
+  - `engine/WorkflowContextTest.java`、`engine/EdgeNavigatorTest.java`、`engine/HistoryManagerTest.java`、`engine/WorkflowOutputManagerTest.java`、`engine/WorkflowConfigurationTest.java`
+  - `exception/ExceptionResolverChainTest.java`
   - `util/ConditionUtilTest.java`、`util/NodeIdGeneratorTest.java`
   - `node/AbsNodeTest.java`
 
