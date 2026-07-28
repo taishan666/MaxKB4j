@@ -36,24 +36,21 @@ public class VariableResolver {
         // Global variables: global.xxx
         if (context.getGlobalContext() != null) {
             for (Map.Entry<String, Object> entry : context.getGlobalContext().entrySet()) {
-                Object value = entry.getValue();
-                result.put("global." + entry.getKey(), value == null ? "*" : value);
+                result.put("global." + entry.getKey(), entry.getValue());
             }
         }
 
         // Chat variables: chat.xxx
         if (context.getChatContext() != null) {
             for (Map.Entry<String, Object> entry : context.getChatContext().entrySet()) {
-                Object value = entry.getValue();
-                result.put("chat." + entry.getKey(), value == null ? "*" : value);
+                result.put("chat." + entry.getKey(), entry.getValue());
             }
         }
 
         // Loop variables: loop.xxx
         if (context.getLoopContext()  != null) {
             for (Map.Entry<String, Object> entry : context.getLoopContext().entrySet()) {
-                Object value = entry.getValue();
-                result.put("loop." + entry.getKey(), value == null ? "*" : value);
+                result.put("loop." + entry.getKey(), entry.getValue());
             }
         }
         // Node variables

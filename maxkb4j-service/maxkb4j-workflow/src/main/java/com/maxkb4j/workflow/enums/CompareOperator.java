@@ -54,6 +54,6 @@ public enum CompareOperator {
      * @return CompareOperator or null if not found
      */
     public static CompareOperator fromCode(String code) {
-        return CODE_MAP.get(code);
+        return code == null ? null : CODE_MAP.get(code);
     }
 }
