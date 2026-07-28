@@ -50,7 +50,7 @@ public class ApplicationApiKeyServiceImpl extends ServiceImpl<ApplicationApiKeyM
     }
 
     public ApplicationApiKeyDTO getBySecretKey(String secretKey) {
-        ApplicationApiKeyEntity entity = new ApplicationApiKeyEntity(); this.lambdaQuery().eq(ApplicationApiKeyEntity::getSecretKey, secretKey).one();
+        ApplicationApiKeyEntity entity = this.lambdaQuery().eq(ApplicationApiKeyEntity::getSecretKey, secretKey).last("limit 1").one();
         return BeanUtil.copy(entity, ApplicationApiKeyDTO.class);
     }
 }
