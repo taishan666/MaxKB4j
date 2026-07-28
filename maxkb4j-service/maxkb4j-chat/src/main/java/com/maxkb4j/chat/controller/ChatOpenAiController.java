@@ -36,6 +36,7 @@ public class ChatOpenAiController {
 
     @Operation(summary = "聊天对话", description = "兼容 OpenAI Chat Completions API 格式")
     @PostMapping("/{appId}/chat/completions")
+    @SuppressWarnings("ReactiveStreamsUnusedPublisher")
     public Object chatCompletion(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
         String chatId = chatService.chatOpen(appId, false);
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
