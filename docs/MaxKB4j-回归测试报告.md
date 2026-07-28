@@ -1,7 +1,7 @@
 # MaxKB4j 回归测试报告
 
 > 报告日期：2026-07-28
-> 范围：工作流引擎核心流程 + 公共工具链回归测试集
+> 范围：工作流引擎核心流程 + 公共工具链 + 持久层 TypeHandler + 历史消息管理回归测试集
 > 测试类型：纯单元测试（JUnit 5 + AssertJ + Mockito），不依赖数据库 / LLM / HTTP / Spring 容器
 
 ---
@@ -12,15 +12,16 @@
 
 **结论摘要**
 
-- 新增 **16 个测试类、101 个测试用例**，分布在 `maxkb4j-common` 与 `maxkb4j-service/maxkb4j-workflow` 两个模块。
+- 回归测试集现覆盖 **22 个测试类、158 个测试用例**，分布在 `maxkb4j-common` 与 `maxkb4j-service/maxkb4j-workflow` 两个模块。
+- 第二轮扩展新增 **6 个测试类、57 个测试用例**：日期时间工具、空安全/类型判断、Bean 拷贝与分页、字符串列表 `TypeHandler`、历史消息管理。
 - 全部用例 **通过**（0 失败、0 错误、0 跳过）。
 - 编写与验证过程中发现并修复 **2 处实现层面的问题**（1 处契约违反、1 处不可达死代码），均附回归用例守护。
 
 | 指标 | 数值 |
 | --- | --- |
-| 测试类数 | 16 |
-| 测试用例总数 | 101 |
-| 通过 | 101 |
+| 测试类数 | 22 |
+| 测试用例总数 | 158 |
+| 通过 | 158 |
 | 失败 / 错误 / 跳过 | 0 / 0 / 0 |
 | 通过率 | 100% |
 
@@ -68,7 +69,13 @@
 | 批量分片处理（999 分片、自定义批、Consumer/Function） | `BatchUtilTest` | 8 |
 | 聊天渲染标签清理（tool_calls / form_render） | `RenderTagsTest` | 6 |
 | 摘要与 MIME 映射 | `MD5UtilTest`、`MimeTypeUtilsTest` | 8 |
-| **合计** |  | **101** |
+| 日期时间工具（格式化/解析/转换/下一周期时间点/参数校验） | `DateTimeUtilTest` | 19 |
+| 空安全相等与简单类型判断（含基本类型数组） | `ObjectUtilTest` | 11 |
+| Bean 拷贝 / 列表分页拷贝 / 对象转 Map | `BeanUtilTest` | 9 |
+| 分页对象拷贝与记录类型转换 | `PageUtilTest` | 3 |
+| 持久层字符串列表 TypeHandler（数组 <-> List） | `StringListTypeHandlerTest` | 8 |
+| 历史消息管理（节点/全局装配、多模态、空安全） | `HistoryManagerTest` | 7 |
+| **合计** |  | **158** |
 
 ---
 
@@ -76,9 +83,9 @@
 
 | 模块 | 测试类数 | 用例数 | 通过 | 失败 | 错误 | 跳过 |
 | --- | --- | --- | --- | --- | --- | --- |
-| `maxkb4j-common` | 6 | 44 | 44 | 0 | 0 | 0 |
-| `maxkb4j-service/maxkb4j-workflow` | 10 | 57 | 57 | 0 | 0 | 0 |
-| **合计** | **16** | **101** | **101** | **0** | **0** | **0** |
+| `maxkb4j-common` | 11 | 94 | 94 | 0 | 0 | 0 |
+| `maxkb4j-service/maxkb4j-workflow` | 11 | 64 | 64 | 0 | 0 | 0 |
+| **合计** | **22** | **158** | **158** | **0** | **0** | **0** |
 
 构建状态：`BUILD SUCCESS`（`mvn test` 退出码 0）。
 
@@ -86,7 +93,7 @@
 
 ## 五、详细用例清单
 
-### 5.1 maxkb4j-common（44 用例）
+### 5.1 maxkb4j-common（94 用例）
 
 #### `BatchUtilTest`（8）— `com.maxkb4j.common.util.BatchUtil`
 | 用例 | 覆盖点 |
@@ -156,7 +163,84 @@
 | containsFormRender_detectsTag | form_render 识别 |
 | containsFormRender_isNullSafeAndNegative | null 安全与阴性 |
 
-### 5.2 maxkb4j-service/maxkb4j-workflow（57 用例）
+#### `DateTimeUtilTest`（19）— `com.maxkb4j.common.util.DateTimeUtil`
+| 用例 | 覆盖点 |
+| --- | --- |
+| format_appliesCustomPattern | 自定义格式化 |
+| parseDateTime_defaultFormatRoundTrips | 默认格式往返 |
+| parseDateTime_withPattern | 自定义 pattern 解析 |
+| parseDate_defaultFormat | 日期解析 |
+| parseTime_defaultFormat | 时间解析 |
+| toInstantAndToDateTime_roundTrip | Instant <-> LocalDateTime 往返 |
+| toDateAndToLocalDate_roundTrip | Date <-> LocalDate 往返 |
+| between_temporalReturnsDuration | 时间差 Duration |
+| between_datesReturnsPeriod | 日期差 Period |
+| getNextDay_returnsTomorrowAtGivenTime | 次日指定时间 |
+| getNextDayAtTime_picksTodayOrTomorrowInFuture | 今天/明天取未来点 |
+| getSameDayNextWeek_matchesDayOfWeekAndIsInFuture | 按周几取下一未来点 |
+| getSameDayNextWeek_invalidDayThrows | 周几越界抛异常 |
+| getSameDayNextMonth_matchesDayClampedToMonthLengthAndIsInFuture | 按日取下一月点（月末钳制） |
+| getSameDayNextMonth_invalidDayThrows | 日越界抛异常 |
+| getSameDayNextInterval_hoursAdvancesIntoFuture | 小时周期推进 |
+| getSameDayNextInterval_minutesAdvancesIntoFuture | 分钟周期推进 |
+| getSameDayNextInterval_invalidUnitThrows | 非法单位抛异常 |
+| getSameDayNextInterval_invalidNumberThrows | 非数字抛 NumberFormatException |
+#### `ObjectUtilTest`（11）— `com.maxkb4j.common.util.ObjectUtil`
+| 用例 | 覆盖点 |
+| --- | --- |
+| nullSafeEquals_bothNullAreEqual | 双 null 相等 |
+| nullSafeEquals_oneNullIsNotEqual | 单侧 null 不等 |
+| nullSafeEquals_sameReferenceIsEqual | 同引用相等 |
+| nullSafeEquals_equalAndUnequalStrings | 字符串等/不等 |
+| nullSafeEquals_objectArrays | 对象数组比较 |
+| nullSafeEquals_primitiveArrays | 基本类型数组比较 |
+| nullSafeEquals_mixedArrayTypesAreNotEqual | 异构数组不等 |
+| isSimpleType_nullIsFalse | null 判否 |
+| isSimpleType_wrappersAndStringAreTrue | 包装类与 String 判是 |
+| isSimpleType_enumIsTrue | 枚举判是 |
+| isSimpleType_collectionAndCustomObjectAreFalse | 集合/数组/自定义对象判否 |
+#### `BeanUtilTest`（9）— `com.maxkb4j.common.util.BeanUtil`
+| 用例 | 覆盖点 |
+| --- | --- |
+| copy_createsNewInstanceWithCopiedProperties | 属性拷贝到新实例 |
+| copyList_copiesAllElementsInOrder | 列表逐条拷贝保序 |
+| copyList_nullAndEmptyReturnEmptyList | null / 空返回空 |
+| copyList_withMapperTransformsElements | Function 映射 |
+| copyPropertiesExcludeNull_keepsExistingTargetValuesForNullSource | null 属性不覆盖目标 |
+| toMap_collectsNonNullNonBlankFieldsOnly | 仅收集非空非空白字段 |
+| toMap_nullReturnsEmpty | null 入参返回空 |
+| copyPage_preservesMetadataAndCopiesRecords | 分页元数据与记录拷贝 |
+| copyPage_nullReturnsEmptyPage | null 返回空分页 |
+#### `PageUtilTest`（3）— `com.maxkb4j.common.util.PageUtil`
+| 用例 | 覆盖点 |
+| --- | --- |
+| copy_byClass_copiesRecordsAndMetadata | 按类型拷贝记录与元数据 |
+| copy_byClassAndList_usesProvidedList | 使用传入列表拷贝 |
+| copy_byMapper_transformsRecords | Function 转换记录 |
+#### `StringListTypeHandlerTest`（8）— `com.maxkb4j.common.typehandler.StringListTypeHandler`
+| 用例 | 覆盖点 |
+| --- | --- |
+| getNullableResult_byName_convertsArrayToList | 按列名转 List（含 null 元素） |
+| getNullableResult_byIndex_convertsArrayToList | 按列序号转 List |
+| getNullableResult_nullArrayReturnsNull | null 数组返回 null |
+| getNullableResult_nullRawReturnsNull | 原始值 null 返回 null |
+| getNullableResult_nonArrayRawBecomesSingleElementList | 非数组原始值单元素列表 |
+| getNullableResult_callableStatement | CallableStatement 读取 |
+| setNonNullParameter_bindsArrayFromList | List 写入绑定数组 |
+| setNonNullParameter_nullListBindsNull | null 列表绑定 null |
+
+### 5.2 maxkb4j-service/maxkb4j-workflow（64 用例）
+
+#### `HistoryManagerTest`（7）— `com.maxkb4j.workflow.engine.HistoryManager`
+| 用例 | 覆盖点 |
+| --- | --- |
+| constructor_nullHistory_initializesEmptyList | null 历史初始化空列表 |
+| getHistoryMessages_nodeType_buildsMessagesFromStringQuestion | 节点级字符串问题装配 |
+| getHistoryMessages_nodeType_buildsMultimodalFromListQuestion | 节点级多模态（文本+图片）装配 |
+| getHistoryMessages_nodeType_skipsImageWithoutUrl | 缺 url 图片项跳过 |
+| getHistoryMessages_nodeType_missingNodeReturnsEmpty | 缺失节点返回空 |
+| getHistoryMessages_nodeType_absentQuestionStillRecordsAnswer | 无问题仍记录答案 |
+| getHistoryMessages_workflowType_delegatesToGlobalHistory | 全局级历史委派 |
 
 #### `CompareImplTest`（11）— `com.maxkb4j.workflow.compare.impl.*`
 | 用例 | 覆盖点 |
@@ -315,14 +399,14 @@ mvn test -pl maxkb4j-service/maxkb4j-workflow -am -Dtest=ConditionUtilTest
 ### 当前局限
 
 - **层级为单元测试**：聚焦纯逻辑（算法 / 解析 / 转换 / 校验），尚未覆盖集成与端到端流程。
-- **未覆盖外部依赖**：数据库（MyBatis-Plus / pgvector）、LLM 调用（langchain4j）、HTTP 节点、OSS、Spring 容器装配等链路未纳入。
+- **未覆盖外部依赖**：数据库（MyBatis-Plus / pgvector）、LLM 调用（langchain4j）、HTTP 节点、OSS、Spring 容器装配等链路未纳入。 本轮已通过 Mockito 打桩覆盖自定义 `TypeHandler`（`StringListTypeHandler`）的转换逻辑，但尚未接入真实数据库 / Mapper。
 - **未覆盖 Web 层**：Controller / 鉴权（Sa-Token）/ 全局异常处理 / 拦截器等暂无测试。
 
 ### 后续建议（按优先级）
 
 1. **补 Service 层切片测试**：对知识库检索、模型调用、工具执行等核心 Service，用 `@SpringBootTest` + 嵌入式 / Testcontainers PostgreSQL 覆盖。
 2. **补 Web 层 `MockMvc` 测试**：覆盖鉴权、参数校验、统一返回结构（`R`）、全局异常处理。
-3. **补持久层测试**：针对自定义 `TypeHandler`（JSONB / Embedding / StringList 等）与关键 Mapper 做数据正确性验证。
+3. **补持久层测试**：本轮已覆盖 `StringListTypeHandler` 的数组 <-> List 转换；待补 `JSONBTypeHandler` / `EmbeddingTypeHandler` 等其余 TypeHandler，并接入真实 Mapper 做数据正确性验证。
 4. **引入覆盖率度量**：接入 JaCoCo，设定核心模块行/分支覆盖率基线，纳入 CI 门禁。
 5. **补端到端工作流冒烟**：构造最小工作流（Start → AiChat → DirectReply）验证引擎编排链路，配合 Mock 模型。
 6. **修复 Mockito agent 告警**：将 mockito agent 显式加入构建，面向未来 JDK 兼容。
@@ -331,17 +415,20 @@ mvn test -pl maxkb4j-service/maxkb4j-workflow -am -Dtest=ConditionUtilTest
 
 ## 九、文件清单
 
-### 新增测试文件（16）
+### 新增测试文件（22）
 
 - `maxkb4j-common/src/test/java/com/maxkb4j/common/util/`
   - `BatchUtilTest.java`、`DataMaskUtilTest.java`、`MD5UtilTest.java`
   - `MessageConverterTest.java`、`MimeTypeUtilsTest.java`、`RenderTagsTest.java`
+  - `DateTimeUtilTest.java`、`ObjectUtilTest.java`、`BeanUtilTest.java`、`PageUtilTest.java`
+- `maxkb4j-common/src/test/java/com/maxkb4j/common/typehandler/`
+  - `StringListTypeHandlerTest.java`
 - `maxkb4j-service/maxkb4j-workflow/src/test/java/com/maxkb4j/workflow/`
   - `compare/CompareImplTest.java`
   - `builder/CompareBuilderTest.java`
   - `enums/CompareOperatorTest.java`
   - `engine/VariableResolverTest.java`、`engine/TemplateRendererTest.java`
-  - `engine/WorkflowContextTest.java`、`engine/EdgeNavigatorTest.java`
+  - `engine/WorkflowContextTest.java`、`engine/EdgeNavigatorTest.java`、`engine/HistoryManagerTest.java`
   - `util/ConditionUtilTest.java`、`util/NodeIdGeneratorTest.java`
   - `node/AbsNodeTest.java`
 
