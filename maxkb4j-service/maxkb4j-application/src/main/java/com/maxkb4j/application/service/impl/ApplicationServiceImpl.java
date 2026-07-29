@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxkb4j.application.dto.ApplicationDTO;
 import com.maxkb4j.application.dto.ApplicationQuery;
 import com.maxkb4j.application.dto.ApplicationSimple;
@@ -44,6 +46,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.maxkb4j.workflow.enums.NodeType.BASE;
 import static com.maxkb4j.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
@@ -69,6 +72,12 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     private final ApplicationResourceMappingService applicationResourceMappingService;
     private final ApplicationChatShareLinkService applicationChatShareLinkService;
     private final ApplicationLongTermMemoryServiceImpl applicationLongTermMemoryService;
+
+    private static final Cache<String, ApplicationVO> PUBLISHED_APP_CACHE = Caffeine.newBuilder()
+            .initialCapacity(64)
+            .maximumSize(1000)
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .build();
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
         Page<ApplicationEntity> appPage = new Page<>(page, size);
@@ -118,6 +127,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
 
     @Transactional
     public boolean deleteByAppId(String appId) {
+        PUBLISHED_APP_CACHE.invalidate(appId);
         accessTokenService.remove(Wrappers.<ApplicationAccessTokenEntity>lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId));
         applicationApiKeyService.remove(Wrappers.<ApplicationApiKeyEntity>lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId));
         chatUserStatsService.remove(Wrappers.<ApplicationChatUserStatsEntity>lambdaQuery().eq(ApplicationChatUserStatsEntity::getApplicationId, appId));
@@ -257,11 +267,11 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     }
 
     private ApplicationVO getPublishedDetail(String id) {
-        ApplicationVO vo = applicationVersionService.getAppLatestOne(id);
-        if (vo == null) {
-            return null;
-        }
-        return wrapVo(vo);
+        ApplicationVO cached = PUBLISHED_APP_CACHE.get(id, appId -> {
+            ApplicationVO vo = applicationVersionService.getAppLatestOne(appId);
+            return vo == null ? null : wrapVo(vo);
+        });
+        return cached == null ? null : BeanUtil.copy(cached, ApplicationVO.class);
     }
 
 
@@ -372,6 +382,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         entity.setPublishUserId(userId);
         entity.setPublishUserName(userService.getUsername(userId));
         applicationVersionService.save(entity);
+        PUBLISHED_APP_CACHE.invalidate(id);
         return application;
     }
 

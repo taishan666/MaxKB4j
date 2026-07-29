@@ -64,8 +64,9 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
         return chatRecord;
     }
 
+    @Override
     public List<ChatRecordDTO> getChatRecords(String chatId) {
-        List<ApplicationChatRecordEntity> chatRecordList = this.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
+        List<ApplicationChatRecordEntity> chatRecordList = this.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).last("limit 100").list();
         if (CollectionUtils.isEmpty(chatRecordList)) {
              return Collections.emptyList();
         }
