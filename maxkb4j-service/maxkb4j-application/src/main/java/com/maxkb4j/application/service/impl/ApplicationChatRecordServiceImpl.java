@@ -65,16 +65,11 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     }
 
     public List<ChatRecordDTO> getChatRecords(String chatId) {
-        ChatInfo chatInfo = ChatCache.get(chatId);
-        List<ChatRecordDTO> chatRecords = new ArrayList<>();
-        if (Objects.nonNull(chatInfo)) {
-            chatRecords = chatInfo.getChatRecordList();
+        List<ApplicationChatRecordEntity> chatRecordList = this.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
+        if (CollectionUtils.isEmpty(chatRecordList)) {
+             return Collections.emptyList();
         }
-        if (CollectionUtils.isEmpty(chatRecords)) {
-           List<ApplicationChatRecordEntity> chatRecordList = this.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
-            chatRecords=BeanUtil.copyList(chatRecordList, ChatRecordDTO.class);
-        }
-        return chatRecords;
+        return BeanUtil.copyList(chatRecordList, ChatRecordDTO.class);
     }
 
     public ApplicationChatRecordVO getChatRecordInfo(String chatId, String chatRecordId) {
