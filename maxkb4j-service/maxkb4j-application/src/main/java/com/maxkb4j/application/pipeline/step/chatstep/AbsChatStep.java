@@ -25,7 +25,7 @@ public abstract class AbsChatStep extends AbsStep {
         String chatId = manage.chatParams.getChatId();
         List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
         ApplicationVO application = manage.application;
-        String userPrompt = (String) manage.context.get("user_prompt");
+        String userPrompt = (String) manage.context.get("userPrompt");
         String chatRecordId =manage.chatParams.getChatRecordId();
         int dialogueNumber = application.getDialogueNumber();
         List<ChatMessage> historyMessages = manage.getHistoryMessages(dialogueNumber);

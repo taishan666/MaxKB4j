@@ -120,12 +120,12 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
 
     public ChatResponse chatMessage(ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
         long startTime = System.currentTimeMillis();
-        ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatContext.getAppId());
         if (visitCountOver(chatContext)) {
             sink.tryEmitError(new AccessNumLimitException());
             return new ChatResponse(List.of(), null);
         }
-        List<ChatRecordDTO> historyChatRecordList = chatRecordService.getChatRecords(chatParams.getChatId());
+        ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatContext.getAppId());
+        List<ChatRecordDTO> historyChatRecordList = chatInfo.getChatRecordList();
         chatContext.setHistoryChatRecords(historyChatRecordList);
         if (StringUtils.isNotBlank(chatParams.getChatRecordId())) {
             ChatRecordDTO chatRecord = historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);

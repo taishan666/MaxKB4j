@@ -21,7 +21,7 @@ public abstract class AbsGenerateHumanMessageStep extends AbsStep {
         LlmModelSetting llmModelSetting = application.getModelSetting();
         KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
         String prompt = execute(llmModelSetting, knowledgeSetting,problemText, paragraphList);
-        manage.context.put("user_prompt", prompt);
+        manage.context.put("userPrompt", prompt);
     }
 
     protected abstract String execute(LlmModelSetting llmModelSetting , KnowledgeSetting knowledgeSetting, String problemText, List<ParagraphVO> paragraphList);
