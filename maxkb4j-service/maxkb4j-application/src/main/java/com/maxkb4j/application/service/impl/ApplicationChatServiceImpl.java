@@ -110,8 +110,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
                 }
             }
             chatInfo = new ChatInfo(chatId, appId);
-            List<ApplicationChatRecordEntity> chatRecordList = chatRecordService.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).list();
-            chatInfo.setChatRecordList(BeanUtil.copyList(chatRecordList, ChatRecordDTO.class));
+            chatInfo.setChatRecordList(chatRecordService.getChatRecords(appId));
             ChatCache.put(chatInfo.getChatId(), chatInfo);
             return chatInfo;
         }
