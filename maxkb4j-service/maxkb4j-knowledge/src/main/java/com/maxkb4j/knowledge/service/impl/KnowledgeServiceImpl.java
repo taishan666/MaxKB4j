@@ -212,9 +212,9 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
     }
 
     @Override
-    public List<KnowledgeSimple> listNameAndDescByIds(List<String> knowledgeIds) {
+    public List<KnowledgeSimple> listSimpleKnowledgeByIds(List<String> knowledgeIds) {
         List<KnowledgeEntity> list = this.lambdaQuery()
-                .select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc)
+                .select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc, KnowledgeEntity::getType)
                 .in(KnowledgeEntity::getId, knowledgeIds)
                 .orderByDesc(KnowledgeEntity::getCreateTime)
                 .list();

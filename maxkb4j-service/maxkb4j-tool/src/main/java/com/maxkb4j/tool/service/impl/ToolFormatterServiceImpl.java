@@ -3,6 +3,7 @@ package com.maxkb4j.tool.service.impl;
 import com.maxkb4j.core.util.MessageUtils;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IAgentToolMetaResolver;
+import com.maxkb4j.tool.service.IKnowledgeToolMetaResolver;
 import com.maxkb4j.tool.service.IToolFormatterService;
 import com.maxkb4j.tool.util.ToolNaming;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
@@ -22,6 +23,7 @@ public class ToolFormatterServiceImpl implements IToolFormatterService {
 
     private final ToolServiceImpl toolService;
     private final Optional<IAgentToolMetaResolver> agentMetaResolver;
+    private final Optional<IKnowledgeToolMetaResolver> knowledgeToolMetaResolver;
 
     @Override
     public String format(ToolExecution toolExecute) {
@@ -39,6 +41,7 @@ public class ToolFormatterServiceImpl implements IToolFormatterService {
         RenderMeta meta = ref == null ? null : resolveMeta(ref.type(), ref.id());
         if (meta == null) {
             meta = RenderMeta.fallback(request.name());
+          //  return "";
         }
         return MessageUtils.buildToolCallRender(
                 request.id(), status, meta.icon(), meta.name(), meta.toolType(),
@@ -52,6 +55,7 @@ public class ToolFormatterServiceImpl implements IToolFormatterService {
         return switch (type) {
             case ToolNaming.TOOL_TYPE -> resolveToolMeta(id);
             case ToolNaming.AGENT_TYPE -> resolveAgentMeta(id);
+            case ToolNaming.KNOWLEDGE_TYPE -> resolveKnowledgeMeta(id);
             default -> null;
         };
     }
@@ -66,6 +70,13 @@ public class ToolFormatterServiceImpl implements IToolFormatterService {
 
     private RenderMeta resolveAgentMeta(String id) {
         return agentMetaResolver
+                .map(resolver -> resolver.resolve(id))
+                .map(meta -> new RenderMeta(meta.icon(), meta.name(), ""))
+                .orElse(null);
+    }
+
+    private RenderMeta resolveKnowledgeMeta(String id) {
+        return knowledgeToolMetaResolver
                 .map(resolver -> resolver.resolve(id))
                 .map(meta -> new RenderMeta(meta.icon(), meta.name(), ""))
                 .orElse(null);

@@ -19,10 +19,10 @@ public interface IAgentToolService {
     /**
      * 根据应用 ID 列表构建 AiServiceTool 列表
      */
-    List<AiServiceTool> buildTools(List<String> applicationIds);
+    List<AiServiceTool> buildTools(List<String> ids);
 
     /**
      * 根据应用 ID 列表构建 ToolProvider
      */
-    ToolProvider buildToolProvider(List<String> applicationIds);
+    ToolProvider buildToolProvider(List<String> ids);
 }

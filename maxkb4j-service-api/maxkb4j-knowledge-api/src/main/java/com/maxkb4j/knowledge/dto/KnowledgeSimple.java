@@ -7,4 +7,5 @@ public class KnowledgeSimple {
     private String id;
     private String name;
     private String desc;
+    private String type;
 }

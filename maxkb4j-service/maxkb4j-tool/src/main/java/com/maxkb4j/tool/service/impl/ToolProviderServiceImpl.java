@@ -2,11 +2,13 @@ package com.maxkb4j.tool.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.provider.AbsToolHandler;
 import com.maxkb4j.tool.registry.ToolHandlerRegistry;
 import com.maxkb4j.tool.service.IAgentToolService;
+import com.maxkb4j.tool.service.IKnowledgeToolService;
 import com.maxkb4j.tool.service.IToolProviderService;
 import com.maxkb4j.tool.service.SkillToolService;
 import dev.langchain4j.service.tool.AiServiceTool;
@@ -38,6 +40,7 @@ public class ToolProviderServiceImpl implements IToolProviderService {
     private final ToolServiceImpl toolService;
     private final SkillToolService skillToolService;
     private final IAgentToolService agentToolService;
+    private final IKnowledgeToolService knowledgeToolService;
     private final ToolHandlerRegistry toolHandlerRegistry;
 
 
@@ -72,6 +75,16 @@ public class ToolProviderServiceImpl implements IToolProviderService {
             }
         }
         return toolProviders;
+    }
+
+    @Override
+    public List<AiServiceTool> getAppTools(List<String> applicationIds) throws ApiException {
+        return agentToolService.buildTools(applicationIds);
+    }
+
+    @Override
+    public List<AiServiceTool> getKnowledgeTools(List<String> knowledgeIds, KnowledgeSetting knowledgeSetting) throws ApiException {
+        return knowledgeToolService.buildTools(knowledgeIds,knowledgeSetting);
     }
 
     @Override

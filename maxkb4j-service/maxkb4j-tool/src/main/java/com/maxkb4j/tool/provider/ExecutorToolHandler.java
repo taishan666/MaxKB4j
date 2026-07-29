@@ -39,14 +39,16 @@ public abstract class ExecutorToolHandler extends AbsToolHandler {
 
     @Override
     public List<ToolProvider> buildToolProviders(List<ToolEntity> tools) {
-        List<AiServiceTool> aiServiceTools = new ArrayList<>();
-        for (ToolEntity tool : tools) {
-            aiServiceTools.add(buildTool(tool));
-        }
-        return List.of(wrapAsToolProvider(aiServiceTools));
+        return List.of(wrapAsToolProvider(tools));
     }
 
-    protected ToolProvider wrapAsToolProvider(List<AiServiceTool> aiServiceTools) {
-        return request -> ToolProviderResult.builder().addAll(aiServiceTools).build();
+    protected ToolProvider wrapAsToolProvider(List<ToolEntity> tools) {
+        return ToolProviderRequest ->{
+            List<AiServiceTool> aiServiceTools = new ArrayList<>();
+            for (ToolEntity tool : tools) {
+                aiServiceTools.add(buildTool(tool));
+            }
+            return ToolProviderResult.builder().addAll(aiServiceTools).build();
+        };
     }
 }

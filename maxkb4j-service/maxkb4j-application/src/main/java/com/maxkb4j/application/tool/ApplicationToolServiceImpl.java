@@ -38,29 +38,10 @@ public class ApplicationToolServiceImpl implements IAgentToolService {
      */
     @Override
     public List<AiServiceTool> buildTools(List<String> applicationIds) {
-        return buildAiServiceTools(applicationIds);
-    }
-
-    /**
-     * 根据应用 ID 列表构建 ToolProvider
-     */
-    @Override
-    public ToolProvider buildToolProvider(List<String> applicationIds) {
-        List<AiServiceTool> tools = buildAiServiceTools(applicationIds);
-        if (tools.isEmpty()) {
-            return null;
-        }
-        return toolProviderRequest -> ToolProviderResult.builder().addAll(tools).build();
-    }
-
-    /**
-     * 查询应用列表并构建 AiServiceTool 列表
-     */
-    private List<AiServiceTool> buildAiServiceTools(List<String> applicationIds) {
         if (applicationIds == null || applicationIds.isEmpty()) {
             return Collections.emptyList();
         }
-        List<ApplicationSimple> applications = queryApplications(applicationIds);
+        List<ApplicationSimple> applications = applicationService.listAppSimpleByIds(applicationIds);
         if (applications.isEmpty()) {
             return Collections.emptyList();
         }
@@ -70,10 +51,17 @@ public class ApplicationToolServiceImpl implements IAgentToolService {
     }
 
     /**
-     * 查询指定 ID 的应用列表（仅选取构建工具所需的字段）
+     * 根据应用 ID 列表构建 ToolProvider
      */
-    private List<ApplicationSimple> queryApplications(List<String> applicationIds) {
-        return applicationService.listAppSimpleByIds(applicationIds);
+    @Override
+    public ToolProvider buildToolProvider(List<String> applicationIds) {
+        return toolProviderRequest -> {
+            List<AiServiceTool> tools = buildTools(applicationIds);
+            if (tools.isEmpty()) {
+                return null;
+            }
+            return ToolProviderResult.builder().addAll(tools).build();
+        };
     }
 
     /**
@@ -94,7 +82,7 @@ public class ApplicationToolServiceImpl implements IAgentToolService {
      */
     private ToolSpecification buildAgentSpecification(ApplicationSimple app) {
         JsonObjectSchema parameters = JsonObjectSchema.builder()
-                .addStringProperty("message")
+                .addStringProperty("message","user input")
                 .required("message")
                 .build();
         return ToolSpecification.builder()

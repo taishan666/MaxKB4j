@@ -292,7 +292,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
                                 if (knowledgeIdListJson != null) {
                                     List<String> nodeKnowledgeIds = knowledgeIdListJson.toJavaList(String.class);
                                     if (!CollectionUtils.isEmpty(nodeKnowledgeIds)) {
-                                        nodeData.put("knowledgeList", knowledgeService.listNameAndDescByIds(nodeKnowledgeIds));
+                                        nodeData.put("knowledgeList", knowledgeService.listSimpleKnowledgeByIds(nodeKnowledgeIds));
                                     }
                                 }
                             }
@@ -303,7 +303,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         } else {
             List<String> knowledgeIds = vo.getKnowledgeIds();
             if (!CollectionUtils.isEmpty(knowledgeIds)) {
-                List<KnowledgeSimple> knowledgeList = knowledgeService.listNameAndDescByIds( knowledgeIds);
+                List<KnowledgeSimple> knowledgeList = knowledgeService.listSimpleKnowledgeByIds( knowledgeIds);
                 vo.setKnowledgeList(BeanUtil.copyList(knowledgeList, KnowledgeVO.class));
             } else {
                 vo.setKnowledgeList(List.of());

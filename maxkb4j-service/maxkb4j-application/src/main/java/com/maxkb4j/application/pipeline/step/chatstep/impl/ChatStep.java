@@ -6,6 +6,7 @@ import com.maxkb4j.application.pipeline.step.chatstep.AbsChatStep;
 import com.maxkb4j.application.service.IApplicationLongTermMemoryService;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AiChatMemory;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
@@ -62,8 +63,13 @@ public class ChatStep extends AbsChatStep {
                 aiServicesBuilder.systemMessageTransformer(systemMessage -> systemMessage==null?memory:systemMessage+"\n" + memory);
             }
         }
+        KnowledgeSetting datasetSetting = Optional.ofNullable(application.getKnowledgeSetting()).orElse(new KnowledgeSetting());
         try {
             aiServicesBuilder.toolProviders(toolProvider.getToolProviders(toolIds, applicationIds));
+            if(Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
+                List<String> knowledgeIds = Optional.ofNullable(application.getKnowledgeIds()).orElse(List.of());
+                aiServicesBuilder.tools(toolProvider.getKnowledgeTools(knowledgeIds, datasetSetting));
+            }
         } catch (ApiException e) {
             manage.sink.tryEmitError(e);
             return "";

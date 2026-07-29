@@ -6,5 +6,10 @@ import java.util.List;
 
 public interface IKnowledgeService {
 
-    List<KnowledgeSimple> listNameAndDescByIds(List<String> knowledgeIds);
+    List<KnowledgeSimple> listSimpleKnowledgeByIds(List<String> knowledgeIds);
+
+    default KnowledgeSimple getSimpleKnowledgeById(String knowledgeId) {
+        List<KnowledgeSimple> list = listSimpleKnowledgeByIds(List.of(knowledgeId));
+        return list.isEmpty() ? null : list.getFirst();
+    }
 }

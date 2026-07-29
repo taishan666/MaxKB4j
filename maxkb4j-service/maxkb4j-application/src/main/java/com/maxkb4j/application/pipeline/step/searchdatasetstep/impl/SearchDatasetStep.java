@@ -4,18 +4,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.searchdatasetstep.AbsSearchDatasetStep;
-import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
-import com.maxkb4j.core.assistant.RouterAssistant;
-import com.maxkb4j.core.langchain4j.AiServiceFactory;
-import com.maxkb4j.knowledge.dto.KnowledgeSimple;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
 import com.maxkb4j.knowledge.service.IRetrieveService;
 import com.maxkb4j.knowledge.vo.ParagraphVO;
 import com.maxkb4j.model.service.IModelProviderService;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.output.TokenUsage;
-import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -40,7 +33,7 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
         long startTime = System.currentTimeMillis();
         List<ParagraphVO> paragraphList= new ArrayList<>();
         if (CollectionUtils.isNotEmpty(knowledgeIds)){
-            if(Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
+    /*        if(Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
                 ApplicationVO application = manage.application;
                 String modelId = application.getModelId();
                 JSONObject modelParams = application.getModelParamsSetting();
@@ -49,7 +42,7 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
                         .chatModel(chatModel)
                         .build();
                 List<String> options=new ArrayList<>();
-                List<KnowledgeSimple> knowledgeList =knowledgeService.listNameAndDescByIds(knowledgeIds);
+                List<KnowledgeSimple> knowledgeList =knowledgeService.listSimpleKnowledgeByIds(knowledgeIds);
                 Map<String, String> idToClassification=new HashMap<>();
                 for (int i = 0; i < knowledgeList.size(); i++) {
                     KnowledgeSimple knowledge=knowledgeList.get(i);
@@ -70,9 +63,11 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
                 TokenUsage tokenUsage=result.tokenUsage();
                 super.context.put("messageTokens", tokenUsage.inputTokenCount());
                 super.context.put("answerTokens", tokenUsage.outputTokenCount());
+            }*/
+            if(!Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
+                List<String> excludeParagraphIds = reChat ? manage.getExcludeParagraphIds(problemText) : List.of();
+                paragraphList = retrieval(knowledgeIds,datasetSetting, problemText, paddingProblemText, reChat,excludeParagraphIds);
             }
-            List<String> excludeParagraphIds = reChat ? manage.getExcludeParagraphIds(problemText) : List.of();
-            paragraphList = retrieval(knowledgeIds,datasetSetting, problemText, paddingProblemText, reChat,excludeParagraphIds);
         }
         log.info("dataset search 耗时 {} ms", System.currentTimeMillis() - startTime);
         super.context.put("paragraphList", paragraphList);

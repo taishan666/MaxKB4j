@@ -13,6 +13,7 @@ public final class ToolNaming {
     public static final String SEPARATOR = "_";
     public static final String TOOL_TYPE = "tool";
     public static final String AGENT_TYPE = "agent";
+    public static final String KNOWLEDGE_TYPE = "knowledge";
 
     private ToolNaming() {
     }
@@ -29,6 +30,13 @@ public final class ToolNaming {
      */
     public static String buildAgentName(String id) {
         return AGENT_TYPE + SEPARATOR + id;
+    }
+
+    /**
+     * 构建知识库作为工具的调用名称：knowledge_<id>
+     */
+    public static String buildKnowledgeName(String id) {
+        return KNOWLEDGE_TYPE + SEPARATOR + id;
     }
 
     /**
