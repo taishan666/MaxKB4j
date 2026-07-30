@@ -34,9 +34,6 @@ public class KnowledgeExecutor extends AbsToolExecutor {
         Map<String, Object> args = argumentsAsMap(toolExecutionRequest.arguments());
         @SuppressWarnings("unchecked")
         List<String> queries = (List<String>) args.getOrDefault("queries", List.of());
-
-        int maxCharNumber = knowledgeSetting.getMaxParagraphCharNumber();
-
         // 并行检索每个 query
         List<CompletableFuture<List<ParagraphRagVO>>> futures = queries.stream()
                 .map(query -> CompletableFuture.supplyAsync(() ->
@@ -53,7 +50,8 @@ public class KnowledgeExecutor extends AbsToolExecutor {
                 .flatMap(List::stream)
                 .filter(p -> seenIds.add(p.getId()))
                 .toList();
-        return contentInjector.formatJson(paragraphList);
+        int maxCharNumber = knowledgeSetting.getMaxParagraphCharNumber();
+        return contentInjector.formatJson(paragraphList,maxCharNumber);
     }
 
 }
