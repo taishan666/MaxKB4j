@@ -56,7 +56,7 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
         List<ParagraphRagVO> paragraphList = retrieveService.paragraphSearch(
                 question, knowledgeIds, excludeParagraphIds, knowledgeSetting);
         List<ParagraphRagVO> isHitHandlingMethodList = paragraphList.stream()
-                .filter(ParagraphRagVO::shouldDirectlyReturn)
+                .filter(ParagraphRagVO::returnIfSatisfied)
                 .toList();
         // 使用辅助方法写入详情
         putDetails(node, Map.of(
