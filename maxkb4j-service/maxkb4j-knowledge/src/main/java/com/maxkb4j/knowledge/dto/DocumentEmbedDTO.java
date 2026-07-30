@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class DocumentEmbedDTO {
-    @NotEmpty(message = "ID列表不能为空")
     private List<String> idList;
+    @NotEmpty(message = "state列表不能为空")
     private List<String> stateList;
 }

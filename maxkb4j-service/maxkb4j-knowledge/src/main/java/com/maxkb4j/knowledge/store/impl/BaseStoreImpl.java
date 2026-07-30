@@ -5,14 +5,27 @@ import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
+import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
+import dev.langchain4j.store.embedding.filter.Filter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
+import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metadataKey;
+
 /**
  * 检索/写入 store 的抽象基类，承担参数校验、结果去重排序等模板职责
  */
+@Slf4j
+@RequiredArgsConstructor
 public abstract class BaseStoreImpl implements IDataStore {
+
+    /** 召回放大倍数：langchain4j 检索 topK*RECALL_MULTIPLIER 条后在内存里做 paragraphId 去重 */
+    private static final int RECALL_MULTIPLIER = 10;
+
 
     /**
      * 汇总搜索时需要排除的 paragraphId 集合：
@@ -44,6 +57,27 @@ public abstract class BaseStoreImpl implements IDataStore {
             return true;
         }
         return StringUtils.isBlank(request.getQuery());
+    }
+
+    protected EmbeddingSearchRequest buildSearchRequest(SearchRequest request,Embedding queryEmbedding,List<String> excludeParagraphIds) {
+
+        Filter filter = metadataKey("knowledgeId").isIn(request.getKnowledgeIds());
+        if (CollectionUtils.isNotEmpty(request.getExcludeDocumentIds())) {
+            filter = filter.and(metadataKey("documentId").isNotIn(request.getExcludeDocumentIds()));
+        }
+        if (CollectionUtils.isNotEmpty(excludeParagraphIds)) {
+            filter = filter.and(metadataKey("paragraphId").isNotIn(excludeParagraphIds));
+        }
+        // 归一化，langchain4j的搜索结果是归一化的
+        double normalizedMinScore = (request.getMinScore() + 1.0) / 2.0;
+        return EmbeddingSearchRequest.builder()
+                .filter(filter)
+                .query(request.getQuery().trim())
+                .queryEmbedding(queryEmbedding)
+                .maxResults(request.getTopK() * RECALL_MULTIPLIER)
+                .minScore(normalizedMinScore)
+                .build();
+
     }
 
     /**

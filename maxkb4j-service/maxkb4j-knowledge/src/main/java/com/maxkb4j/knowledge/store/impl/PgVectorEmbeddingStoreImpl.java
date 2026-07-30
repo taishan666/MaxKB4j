@@ -1,6 +1,5 @@
 package com.maxkb4j.knowledge.store.impl;
 
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.util.BatchUtil;
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
@@ -64,6 +63,7 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
      * 这里改为实例字段 + {@link ConcurrentHashMap#computeIfAbsent} 保证原子初始化与缓存命中。</p>
      */
     private final Map<Integer, EmbeddingStore<TextSegment>> stores = new ConcurrentHashMap<>();
+
 
 
     private EmbeddingStore<TextSegment> build(int dimension) {
@@ -237,26 +237,11 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
             log.warn("No embedding model found for knowledge: {}", request.getKnowledgeIds().getFirst());
             return Collections.emptyList();
         }
-        List<String> excludeParagraphIds = resolveExcludeParagraphIds(request, paragraphServiceProvider.getObject());
         Response<Embedding> res = embeddingModel.embed(request.getQuery().trim());
         Embedding queryEmbedding = res.content();
+        List<String> excludeParagraphIds = resolveExcludeParagraphIds(request, paragraphServiceProvider.getObject());
+        EmbeddingSearchRequest searchRequest = buildSearchRequest(request, queryEmbedding,excludeParagraphIds);
         EmbeddingStore<TextSegment> store = get(queryEmbedding.dimension());
-        Filter filter = metadataKey("knowledgeId").isIn(request.getKnowledgeIds());
-        if (CollectionUtils.isNotEmpty(request.getExcludeDocumentIds())) {
-            filter = filter.and(metadataKey("documentId").isNotIn(request.getExcludeDocumentIds()));
-        }
-        if (CollectionUtils.isNotEmpty(excludeParagraphIds)) {
-            filter = filter.and(metadataKey("paragraphId").isNotIn(excludeParagraphIds));
-        }
-        // 归一化，langchain4j的搜索结果是归一化的
-        double normalizedMinScore = (request.getMinScore() + 1.0) / 2.0;
-        EmbeddingSearchRequest searchRequest = EmbeddingSearchRequest.builder()
-                .filter(filter)
-                .query(request.getQuery().trim())
-                .queryEmbedding(queryEmbedding)
-                .maxResults(request.getTopK() * RECALL_MULTIPLIER)
-                .minScore(normalizedMinScore)
-                .build();
         EmbeddingSearchResult<TextSegment> searchResult = store.search(searchRequest);
         List<TextChunkVO> results = searchResult.matches().stream().map(match -> {
             TextSegment segment = match.embedded();
