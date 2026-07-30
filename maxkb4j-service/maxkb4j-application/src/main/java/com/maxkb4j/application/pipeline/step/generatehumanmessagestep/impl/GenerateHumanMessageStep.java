@@ -6,7 +6,7 @@ import com.maxkb4j.application.pipeline.step.generatehumanmessagestep.AbsGenerat
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.common.mp.entity.LlmModelSetting;
 import com.maxkb4j.core.support.RagContentInjector;
-import com.maxkb4j.knowledge.vo.ParagraphVO;
+import com.maxkb4j.knowledge.vo.ParagraphRagVO;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public class GenerateHumanMessageStep extends AbsGenerateHumanMessageStep {
 
     public static final RagContentInjector contentInjector = new RagContentInjector();
     @Override
-    protected String execute(LlmModelSetting llmModelSetting, KnowledgeSetting knowledgeSetting, String problemText, List<ParagraphVO> paragraphList) {
+    protected String execute(LlmModelSetting llmModelSetting, KnowledgeSetting knowledgeSetting, String problemText, List<ParagraphRagVO> paragraphList) {
         String safeProblemText = problemText != null ? problemText : "";
         int maxCharNumber = knowledgeSetting.getMaxParagraphCharNumber();
         if (!CollectionUtils.isEmpty(paragraphList)) {

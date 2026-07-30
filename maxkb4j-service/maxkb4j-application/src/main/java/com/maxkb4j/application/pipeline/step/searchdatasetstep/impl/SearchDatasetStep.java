@@ -7,7 +7,7 @@ import com.maxkb4j.application.pipeline.step.searchdatasetstep.AbsSearchDatasetS
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
 import com.maxkb4j.knowledge.service.IRetrieveService;
-import com.maxkb4j.knowledge.vo.ParagraphVO;
+import com.maxkb4j.knowledge.vo.ParagraphRagVO;
 import com.maxkb4j.model.service.IModelProviderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +29,9 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
     private final TaskExecutor taskExecutor;
 
     @Override
-    protected List<ParagraphVO> execute(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat, PipelineManage manage) {
+    protected List<ParagraphRagVO> execute(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat, PipelineManage manage) {
         long startTime = System.currentTimeMillis();
-        List<ParagraphVO> paragraphList= new ArrayList<>();
+        List<ParagraphRagVO> paragraphList= new ArrayList<>();
         if (CollectionUtils.isNotEmpty(knowledgeIds)){
     /*        if(Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
                 ApplicationVO application = manage.application;
@@ -75,29 +75,29 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
         return paragraphList;
     }
 
-    protected List<ParagraphVO> retrieval(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat,List<String> excludeParagraphIds) {
-        List<CompletableFuture<List<ParagraphVO>>> futureList = new ArrayList<>();
-        CompletableFuture<List<ParagraphVO>> future = CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(problemText, knowledgeIds, excludeParagraphIds, datasetSetting), taskExecutor);
+    protected List<ParagraphRagVO> retrieval(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat,List<String> excludeParagraphIds) {
+        List<CompletableFuture<List<ParagraphRagVO>>> futureList = new ArrayList<>();
+        CompletableFuture<List<ParagraphRagVO>> future = CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(problemText, knowledgeIds, excludeParagraphIds, datasetSetting), taskExecutor);
         futureList.add(future);
         if (StringUtils.isNotBlank(paddingProblemText) && !problemText.equals(paddingProblemText)) {
             futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(paddingProblemText, knowledgeIds, excludeParagraphIds, datasetSetting)));
         }
-        List<ParagraphVO> paragraphList= futureList.stream().flatMap(f -> f.join().stream()).toList();
+        List<ParagraphRagVO> paragraphList= futureList.stream().flatMap(f -> f.join().stream()).toList();
         //当有优化的问题时
         if (paragraphList.size() > datasetSetting.getTopN()) {
-            Map<String, ParagraphVO> map = new LinkedHashMap<>();
+            Map<String, ParagraphRagVO> map = new LinkedHashMap<>();
             //融合排序
-            for (ParagraphVO paragraph : paragraphList) {
+            for (ParagraphRagVO paragraph : paragraphList) {
                 if (map.containsKey(paragraph.getId())) {
-                    if (map.get(paragraph.getId()).getComprehensiveScore() < paragraph.getComprehensiveScore()) {
+                    if (map.get(paragraph.getId()).getSimilarity() < paragraph.getSimilarity()) {
                         map.put(paragraph.getId(), paragraph);
                     }
                 } else {
                     map.put(paragraph.getId(), paragraph);
                 }
             }
-            List<ParagraphVO> results = new ArrayList<>(map.values());
-            results.sort(Comparator.comparing(ParagraphVO::getComprehensiveScore).reversed());
+            List<ParagraphRagVO> results = new ArrayList<>(map.values());
+            results.sort(Comparator.comparing(ParagraphRagVO::getSimilarity).reversed());
             int endIndex = Math.min(datasetSetting.getTopN(), results.size());
             return results.subList(0, endIndex);
         }

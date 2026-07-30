@@ -40,9 +40,13 @@
         </foreach>
     </update>
 
-    <select id="retrievalParagraph" resultType="com.maxkb4j.knowledge.vo.ParagraphVO">
+    <select id="retrievalParagraph" resultType="com.maxkb4j.knowledge.vo.ParagraphRagVO">
         SELECT
-            ph.*,
+            ph.ID,
+            ph.title,
+            ph.content,
+            ph.position,
+            ph.is_active,
             doc."name" AS document_name,
             doc."hit_handling_method",
             doc."directly_return_similarity",

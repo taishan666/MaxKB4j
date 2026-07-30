@@ -5,9 +5,9 @@ import com.maxkb4j.application.pipeline.AbsStep;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.util.MessageConverter;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
-import com.maxkb4j.knowledge.vo.ParagraphVO;
+import com.maxkb4j.common.util.MessageConverter;
+import com.maxkb4j.knowledge.vo.ParagraphRagVO;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -23,7 +23,7 @@ public abstract class AbsChatStep extends AbsStep {
     @SuppressWarnings("unchecked")
     protected void _run(PipelineManage manage) throws Exception {
         String chatId = manage.chatParams.getChatId();
-        List<ParagraphVO> paragraphList = (List<ParagraphVO>) manage.context.get("paragraphList");
+        List<ParagraphRagVO> paragraphList = (List<ParagraphRagVO>) manage.context.get("paragraphList");
         ApplicationVO application = manage.application;
         String userPrompt = (String) manage.context.get("userPrompt");
         String chatRecordId =manage.chatParams.getChatRecordId();
@@ -34,7 +34,7 @@ public abstract class AbsChatStep extends AbsStep {
             paragraphList = new ArrayList<>();
         }
         List<AiMessage> directlyReturnChunkList = new ArrayList<>();
-        for (ParagraphVO paragraph : paragraphList) {
+        for (ParagraphRagVO paragraph : paragraphList) {
             if ("directlyReturn".equals(paragraph.getHitHandlingMethod()) && paragraph.getSimilarity() >= paragraph.getDirectlyReturnSimilarity()) {
                 directlyReturnChunkList.add(AiMessage.from(paragraph.getContent()));
             }

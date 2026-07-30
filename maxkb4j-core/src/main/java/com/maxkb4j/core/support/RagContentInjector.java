@@ -1,11 +1,13 @@
 package com.maxkb4j.core.support;
 
+import com.alibaba.fastjson.JSON;
 import com.maxkb4j.common.domain.RagContent;
 import dev.langchain4j.internal.Utils;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.input.PromptTemplate;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,13 +30,6 @@ public class RagContentInjector {
         this.promptTemplate = Utils.getOrDefault(promptTemplate, DEFAULT_PROMPT_TEMPLATE);
     }
 
-    public String inject(List<? extends RagContent> contents, String problemText) {
-        if (contents == null || contents.isEmpty()) {
-            return problemText;
-        }
-        return this.createPrompt(problemText, contents).text();
-    }
-
     public String inject(List<? extends RagContent> contents, String problemText, int maxCharNumber) {
         if (contents == null || contents.isEmpty()) {
             return problemText;
@@ -42,22 +37,19 @@ public class RagContentInjector {
         return this.createPrompt(problemText, contents, maxCharNumber).text();
     }
 
-    private Prompt createPrompt(String problemText, List<? extends RagContent> contents) {
-        Map<String, Object> variables = new HashMap<>();
-        variables.put("userMessage", problemText);
-        variables.put("contents", this.format(contents));
-        return this.promptTemplate.apply(variables);
-    }
 
     private Prompt createPrompt(String problemText, List<? extends RagContent> contents, int maxCharNumber) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("userMessage", problemText);
-        variables.put("contents", this.format(contents, maxCharNumber));
+        variables.put("contents", this.formatJson(contents));
         return this.promptTemplate.apply(variables);
     }
 
-    private String format(List<? extends RagContent> contents) {
-        return contents.stream().map(this::formatContent).collect(Collectors.joining("\n\n"));
+
+
+    private String formatJson(List<? extends RagContent> contents) {
+        List<RagContent> ragContents = new ArrayList<>(contents);
+        return JSON.toJSONString(ragContents);
     }
 
     public String format(List<? extends RagContent> contents, int maxCharNumber) {
@@ -66,6 +58,10 @@ public class RagContentInjector {
             return data.substring(0, maxCharNumber);
         }
         return data;
+    }
+
+    private String format(List<? extends RagContent> contents) {
+        return contents.stream().map(this::formatContent).collect(Collectors.joining("\n\n"));
     }
 
     private String formatContent(RagContent content) {

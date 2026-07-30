@@ -2,19 +2,18 @@ package com.maxkb4j.knowledge.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.annotation.SaCheckPerm;
-import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.api.R;
-import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.knowledge.dto.ProblemDTO;
-import com.maxkb4j.knowledge.entity.ParagraphEntity;
-import com.maxkb4j.knowledge.vo.ParagraphVO;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.service.IKnowledgeInternalService;
 import com.maxkb4j.knowledge.service.IProblemService;
 import com.maxkb4j.knowledge.vo.ProblemVO;
-import lombok.RequiredArgsConstructor;
+import com.maxkb4j.knowledge.vo.RelationParagraphVO;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -71,8 +70,8 @@ public class ProblemController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_PROBLEM_READ)
     @GetMapping("/knowledge/{id}/problem/{problemId}/paragraph")
-    public R<List<ParagraphVO>> getParagraphByProblemId(@PathVariable String id, @PathVariable("problemId") String problemId) {
-        return R.data(BeanUtil.copyList(datasetService.getParagraphByProblemId(problemId), ParagraphVO.class));
+    public R<List<RelationParagraphVO>> getParagraphByProblemId(@PathVariable String id, @PathVariable("problemId") String problemId) {
+        return R.data(BeanUtil.copyList(datasetService.getParagraphByProblemId(problemId), RelationParagraphVO.class));
     }
 
 

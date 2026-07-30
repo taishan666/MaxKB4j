@@ -3,9 +3,9 @@ package com.maxkb4j.workflow.handler.node.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
-import com.maxkb4j.knowledge.service.IRetrieveService;
 import com.maxkb4j.core.support.RagContentInjector;
-import com.maxkb4j.knowledge.vo.ParagraphVO;
+import com.maxkb4j.knowledge.service.IRetrieveService;
+import com.maxkb4j.knowledge.vo.ParagraphRagVO;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.ValueType;
@@ -53,10 +53,10 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
         if (workflow.getChatParams().getReChat()) {
             excludeParagraphIds = getExcludeParagraphIds(workflow, node.getRuntimeNodeId(), question);
         }
-        List<ParagraphVO> paragraphList = retrieveService.paragraphSearch(
+        List<ParagraphRagVO> paragraphList = retrieveService.paragraphSearch(
                 question, knowledgeIds, excludeParagraphIds, knowledgeSetting);
-        List<ParagraphVO> isHitHandlingMethodList = paragraphList.stream()
-                .filter(ParagraphVO::shouldDirectlyReturn)
+        List<ParagraphRagVO> isHitHandlingMethodList = paragraphList.stream()
+                .filter(ParagraphRagVO::shouldDirectlyReturn)
                 .toList();
         // 使用辅助方法写入详情
         putDetails(node, Map.of(
@@ -81,9 +81,9 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
                 if (details != null && !details.isEmpty()) {
                     JSONObject detail = details.getJSONObject(runtimeNodeId);
                     if (detail != null && Objects.equals(question, detail.getString("question"))) {
-                        List<ParagraphVO> paragraphList = (List<ParagraphVO>) detail.get("paragraphList");
+                        List<ParagraphRagVO> paragraphList = (List<ParagraphRagVO>) detail.get("paragraphList");
                         if (!CollectionUtils.isEmpty(paragraphList)) {
-                            excludeParagraphIds.addAll(paragraphList.stream().map(ParagraphVO::getId).toList());
+                            excludeParagraphIds.addAll(paragraphList.stream().map(ParagraphRagVO::getId).toList());
                         }
                     }
                 }
@@ -92,9 +92,9 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
         return excludeParagraphIds;
     }
 
-    public String directlyReturns(List<ParagraphVO> isHitHandlingMethodList) {
+    public String directlyReturns(List<ParagraphRagVO> isHitHandlingMethodList) {
         StringBuilder result = new StringBuilder();
-        for (ParagraphVO paragraph : isHitHandlingMethodList) {
+        for (ParagraphRagVO paragraph : isHitHandlingMethodList) {
             String content = paragraph.getContent();
             if (content != null && !content.isEmpty()) {
                 result.append("\n").append(content);

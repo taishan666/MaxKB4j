@@ -3,7 +3,7 @@ package com.maxkb4j.knowledge.executor;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.core.support.RagContentInjector;
 import com.maxkb4j.knowledge.service.IRetrieveService;
-import com.maxkb4j.knowledge.vo.ParagraphVO;
+import com.maxkb4j.knowledge.vo.ParagraphRagVO;
 import com.maxkb4j.tool.executor.AbsToolExecutor;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 
@@ -38,7 +38,7 @@ public class KnowledgeExecutor extends AbsToolExecutor {
         int maxCharNumber = knowledgeSetting.getMaxParagraphCharNumber();
 
         // 并行检索每个 query
-        List<CompletableFuture<List<ParagraphVO>>> futures = queries.stream()
+        List<CompletableFuture<List<ParagraphRagVO>>> futures = queries.stream()
                 .map(query -> CompletableFuture.supplyAsync(() ->
                         retrieveService.paragraphSearch(
                                 query,
@@ -48,7 +48,7 @@ public class KnowledgeExecutor extends AbsToolExecutor {
                 .toList();
         // 等待所有任务完成并合并结果
         Set<String> seenIds = new HashSet<>();
-        List<ParagraphVO> paragraphList = futures.stream()
+        List<ParagraphRagVO> paragraphList = futures.stream()
                 .map(CompletableFuture::join)
                 .flatMap(List::stream)
                 .filter(p -> seenIds.add(p.getId()))

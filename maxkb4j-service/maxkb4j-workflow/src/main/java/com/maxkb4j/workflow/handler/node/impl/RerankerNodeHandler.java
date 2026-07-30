@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.maxkb4j.knowledge.vo.ParagraphVO;
+import com.maxkb4j.knowledge.vo.ParagraphRagVO;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -99,7 +99,7 @@ public class RerankerNodeHandler extends AbsNodeHandler {
         List<TextSegment> textSegments = new ArrayList<>();
         for (List<String> reference : rerankerReferenceList) {
             Object value = workflow.getReferenceField(reference);
-            List<ParagraphVO> paragraphs = (List<ParagraphVO>) value;
+            List<ParagraphRagVO> paragraphs = (List<ParagraphRagVO>) value;
             textSegments.addAll(paragraphs.stream()
                     .filter(paragraph -> paragraph != null && paragraph.getContent() != null && !paragraph.getContent().isBlank())
                     .map(paragraph -> {

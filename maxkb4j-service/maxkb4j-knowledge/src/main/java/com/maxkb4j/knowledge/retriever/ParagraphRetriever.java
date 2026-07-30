@@ -4,7 +4,7 @@ import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.knowledge.dto.DataSearchDTO;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
 import com.maxkb4j.knowledge.service.IRetrieveService;
-import com.maxkb4j.knowledge.vo.ParagraphVO;
+import com.maxkb4j.knowledge.vo.ParagraphRagVO;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,8 @@ public class ParagraphRetriever implements IRetrieveService {
     private final ParagraphMapper paragraphMapper;
     private final DataRetriever dataRetriever;
 
-    public List<ParagraphVO> paragraphSearch(String question, List<String> knowledgeIds, List<String> excludeParagraphIds, KnowledgeSetting datasetSetting) {
+    @Override
+    public List<ParagraphRagVO> paragraphSearch(String question, List<String> knowledgeIds, List<String> excludeParagraphIds, KnowledgeSetting datasetSetting) {
         DataSearchDTO dto = new DataSearchDTO();
         dto.setQueryText(question);
         dto.setSearchMode(datasetSetting.getSearchMode());
@@ -34,7 +35,7 @@ public class ParagraphRetriever implements IRetrieveService {
         return paragraphSearch(knowledgeIds, dto);
     }
 
-    public List<ParagraphVO> paragraphSearch(List<String> knowledgeIds, DataSearchDTO dto) {
+    public List<ParagraphRagVO> paragraphSearch(List<String> knowledgeIds, DataSearchDTO dto) {
         if (CollectionUtils.isEmpty(knowledgeIds)) {
             return Collections.emptyList();
         }
@@ -45,17 +46,16 @@ public class ParagraphRetriever implements IRetrieveService {
             return Collections.emptyList();
         }
         List<String> paragraphIds = chunks.stream().map(TextChunkVO::getParagraphId).toList();
-        Map<String, ParagraphVO> paragraphMap = paragraphMapper.retrievalParagraph(paragraphIds).stream()
-                .collect(Collectors.toMap(ParagraphVO::getId, Function.identity()));
+        Map<String, ParagraphRagVO> paragraphMap = paragraphMapper.retrievalParagraph(paragraphIds).stream()
+                .collect(Collectors.toMap(ParagraphRagVO::getId, Function.identity()));
         // 按检索结果的原始顺序回填得分并组装结果
         return chunks.stream()
                 .map(chunk -> {
-                    ParagraphVO paragraph = paragraphMap.get(chunk.getParagraphId());
+                    ParagraphRagVO paragraph = paragraphMap.get(chunk.getParagraphId());
                     if (paragraph == null) {
                         return null;
                     }
                     paragraph.setSimilarity(chunk.getScore());
-                    paragraph.setComprehensiveScore(chunk.getScore());
                     if (paragraph.getDocumentName() == null) {
                         paragraph.setDocumentName("");
                     }

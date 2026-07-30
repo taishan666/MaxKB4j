@@ -2,7 +2,7 @@ package com.maxkb4j.knowledge.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
-import com.maxkb4j.knowledge.vo.ParagraphVO;
+import com.maxkb4j.knowledge.vo.ParagraphRagVO;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ import java.util.List;
  */
 public interface ParagraphMapper extends BaseMapper<ParagraphEntity>{
 
-    List<ParagraphVO> retrievalParagraph(List<String> paragraphIds);
+    List<ParagraphRagVO> retrievalParagraph(List<String> paragraphIds);
 
     void updateStatusByIds(List<String> paragraphIds, int type, int status,int up,int next);
 

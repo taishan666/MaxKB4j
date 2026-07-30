@@ -18,4 +18,8 @@ public interface RagContent {
      * 内容正文。
      */
     String getContent();
+    /**
+     * 文档名称。
+     */
+    String getDocumentName();
 }

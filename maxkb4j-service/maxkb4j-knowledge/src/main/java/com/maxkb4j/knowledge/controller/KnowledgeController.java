@@ -4,30 +4,26 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.maxkb4j.common.annotation.SaCheckPerm;
-import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.api.R;
-import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.DataSearchDTO;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
-import com.maxkb4j.knowledge.dto.WebKnowledgeDTO;
 import com.maxkb4j.knowledge.dto.KnowledgeQuery;
+import com.maxkb4j.knowledge.dto.WebKnowledgeDTO;
 import com.maxkb4j.knowledge.entity.KnowledgeActionEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeVersionEntity;
-import com.maxkb4j.knowledge.vo.KnowledgeActionVO;
-import com.maxkb4j.knowledge.vo.KnowledgeVersionVO;
 import com.maxkb4j.knowledge.handler.KnowledgeImportHandler;
+import com.maxkb4j.knowledge.retriever.ParagraphRetriever;
 import com.maxkb4j.knowledge.service.IKnowledgeInternalService;
 import com.maxkb4j.knowledge.service.KnowledgeExportService;
-import com.maxkb4j.knowledge.service.KnowledgeWorkflowService;
 import com.maxkb4j.knowledge.service.KnowledgePublishService;
-import com.maxkb4j.knowledge.retriever.ParagraphRetriever;
-import com.maxkb4j.knowledge.vo.KnowledgeListVO;
-import com.maxkb4j.knowledge.vo.KnowledgeVO;
-import com.maxkb4j.knowledge.vo.ParagraphVO;
+import com.maxkb4j.knowledge.service.KnowledgeWorkflowService;
+import com.maxkb4j.knowledge.vo.*;
 import com.maxkb4j.workflow.model.KnowledgeParams;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -100,7 +96,7 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_HIT_TEST_READ)
     @PutMapping("/knowledge/{id}/hit_test")
-    public R<List<ParagraphVO>> hitTest(@PathVariable("id") String id, @Valid @RequestBody DataSearchDTO dto) {
+    public R<List<ParagraphRagVO>> hitTest(@PathVariable("id") String id, @Valid @RequestBody DataSearchDTO dto) {
         return R.data(retrieveService.paragraphSearch(List.of(id), dto));
     }
 
