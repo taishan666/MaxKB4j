@@ -1,11 +1,14 @@
 package com.maxkb4j.knowledge.vo;
 
+import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.RagContent;
 import com.maxkb4j.knowledge.consts.HitHandlingMethod;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class ParagraphRagVO implements RagContent {
+public class ParagraphRagVO extends RagContent {
     private String id;
     private String title;
     private String content;
@@ -15,6 +18,7 @@ public class ParagraphRagVO implements RagContent {
     private String hitHandlingMethod;
     private Double directlyReturnSimilarity;
     private String documentName;
+    private JSONObject meta;
     private String knowledgeName;
     private Integer knowledgeType;
 

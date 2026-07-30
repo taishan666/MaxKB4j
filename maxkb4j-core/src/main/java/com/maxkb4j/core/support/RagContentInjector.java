@@ -1,16 +1,15 @@
 package com.maxkb4j.core.support;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.PropertyFilter;
 import com.maxkb4j.common.domain.RagContent;
 import dev.langchain4j.internal.Utils;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.input.PromptTemplate;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -47,9 +46,18 @@ public class RagContentInjector {
 
 
 
-    private String formatJson(List<? extends RagContent> contents) {
-        List<RagContent> ragContents = new ArrayList<>(contents);
-        return JSON.toJSONString(ragContents);
+    public String formatJson(List<? extends RagContent> contents) {
+        // 获取 RagContent 自身声明的所有字段名
+        Set<String> allowedFields = Arrays.stream(RagContent.class.getDeclaredFields())
+                .map(Field::getName)
+                .collect(Collectors.toSet());
+
+        PropertyFilter filter = (object, name, value) -> {
+            // 只序列化 RagContent 中声明的字段
+            return allowedFields.contains(name);
+        };
+
+        return JSON.toJSONString(contents, filter);
     }
 
     public String format(List<? extends RagContent> contents, int maxCharNumber) {

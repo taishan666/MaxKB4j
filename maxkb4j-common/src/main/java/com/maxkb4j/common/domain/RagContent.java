@@ -1,5 +1,7 @@
 package com.maxkb4j.common.domain;
 
+import lombok.Data;
+
 /**
  * RAG 注入内容的最小契约。
  *
@@ -7,19 +9,10 @@ package com.maxkb4j.common.domain;
  * 通过该接口与具体业务 VO（如 knowledge 的 {@code ParagraphVO}）解耦，
  * 使 core 无需依赖任何业务 api 模块。
  */
-public interface RagContent {
-
-    /**
-     * 内容标题，可为空。
-     */
-    String getTitle();
-
-    /**
-     * 内容正文。
-     */
-    String getContent();
-    /**
-     * 文档名称。
-     */
-    String getDocumentName();
+@Data
+public abstract class RagContent {
+    private String title;
+    private String content;
+    private Integer position;
+    private String documentName;
 }
