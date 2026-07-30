@@ -35,7 +35,7 @@ public abstract class AbsChatStep extends AbsStep {
         }
         List<AiMessage> directlyReturnChunkList = new ArrayList<>();
         for (ParagraphRagVO paragraph : paragraphList) {
-            if ("directlyReturn".equals(paragraph.getHitHandlingMethod()) && paragraph.getSimilarity() >= paragraph.getDirectlyReturnSimilarity()) {
+            if (paragraph.returnIfSatisfied()) {
                 directlyReturnChunkList.add(AiMessage.from(paragraph.getContent()));
             }
         }
