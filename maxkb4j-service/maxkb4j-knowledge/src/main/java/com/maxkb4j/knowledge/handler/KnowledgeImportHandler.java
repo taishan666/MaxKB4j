@@ -145,14 +145,14 @@ public class KnowledgeImportHandler {
         JSONObject meta = knowledgeJson.getJSONObject("meta");
         knowledge.setMeta(Objects.requireNonNullElseGet(meta, JSONObject::new));
         
-        Integer fileSizeLimit = knowledgeJson.getInteger("file_size_limit");
+        Integer fileSizeLimit = knowledgeJson.getInteger("fileSizeLimit");
         knowledge.setFileSizeLimit(Objects.requireNonNullElse(fileSizeLimit, 100));
         
-        Integer fileCountLimit = knowledgeJson.getInteger("file_count_limit");
+        Integer fileCountLimit = knowledgeJson.getInteger("fileCountLimit");
         knowledge.setFileCountLimit(Objects.requireNonNullElse(fileCountLimit, 50));
         
         // 设置embedding_model_id，默认为向量模型的第一个
-        String embeddingModelId = knowledgeJson.getString("embedding_model_id");
+        String embeddingModelId = knowledgeJson.getString("embeddingModelId");
         if (embeddingModelId == null || embeddingModelId.isEmpty()) {
             embeddingModelId = modelService.getLastModelId(ModelType.EMBEDDING.name(),userContext.getUserId());
         }

@@ -172,8 +172,8 @@ public class KnowledgeExportHandler {
         knowledgeJson.put("desc", knowledgeDesc);
         knowledgeJson.put("type", knowledgeType);
         knowledgeJson.put("meta", meta != null ? meta : new JSONObject());
-        knowledgeJson.put("file_size_limit", fileSizeLimit != null ? fileSizeLimit : 100);
-        knowledgeJson.put("file_count_limit", fileCountLimit != null ? fileCountLimit : 50);
+        knowledgeJson.put("fileSizeLimit", fileSizeLimit != null ? fileSizeLimit : 100);
+        knowledgeJson.put("fileCountLimit", fileCountLimit != null ? fileCountLimit : 50);
         knowledgeJson.put("tags", new JSONArray());
         byte[] jsonBytes = knowledgeJson.toJSONString().getBytes(StandardCharsets.UTF_8);
         
