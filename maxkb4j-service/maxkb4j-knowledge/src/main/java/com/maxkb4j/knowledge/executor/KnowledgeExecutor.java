@@ -53,7 +53,7 @@ public class KnowledgeExecutor extends AbsToolExecutor {
                 .flatMap(List::stream)
                 .filter(p -> seenIds.add(p.getId()))
                 .toList();
-        return contentInjector.format(paragraphList, maxCharNumber);
+        return contentInjector.formatJson(paragraphList);
     }
 
 }
