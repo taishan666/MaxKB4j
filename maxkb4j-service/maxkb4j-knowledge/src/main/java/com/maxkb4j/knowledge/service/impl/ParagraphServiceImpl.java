@@ -83,7 +83,6 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
             EmbeddingEntity paragraphEmbed = EmbeddingEntity.builder()
                     .knowledgeId(paragraph.getKnowledgeId())
                     .documentId(paragraph.getDocumentId())
-                    .paragraphId(paragraph.getId())
                     .sourceId(paragraph.getId())
                     .sourceType(SourceType.PARAGRAPH)
                     .content(title + content)

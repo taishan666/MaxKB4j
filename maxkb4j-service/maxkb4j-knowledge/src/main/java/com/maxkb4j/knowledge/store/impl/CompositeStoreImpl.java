@@ -45,11 +45,6 @@ public class CompositeStoreImpl extends BaseStoreImpl {
         dualWrite("upsert", s -> s.upsert(model, entities));
     }
 
-    @Override
-    public void deleteByProblemIdAndParagraphId(String knowledgeId, String problemId, String paragraphId) {
-        dualWrite("deleteByProblemIdAndParagraphId",
-                s -> s.deleteByProblemIdAndParagraphId(knowledgeId, problemId, paragraphId));
-    }
 
     @Override
     public void deleteByProblemIds(String knowledgeId, List<String> problemIds) {

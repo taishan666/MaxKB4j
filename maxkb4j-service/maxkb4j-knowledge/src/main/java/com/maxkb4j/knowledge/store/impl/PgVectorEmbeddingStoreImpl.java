@@ -14,7 +14,6 @@ import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
-import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.filter.Filter;
@@ -47,8 +46,12 @@ import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metad
 @RequiredArgsConstructor
 public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
 
-    /** 召回放大倍数：langchain4j 检索 topK*RECALL_MULTIPLIER 条后在内存里做 paragraphId 去重 */
-    private static final int RECALL_MULTIPLIER = 10;
+    /** 写入/检索 metadata 使用的字段名，与 {@link BaseStoreImpl} 的 filter 保持一致。 */
+    private static final String META_KNOWLEDGE_ID = "knowledgeId";
+    private static final String META_DOCUMENT_ID = "documentId";
+    private static final String META_SOURCE_ID = "sourceId";
+    private static final String META_SOURCE_TYPE = "sourceType";
+
     @Value("${vector.store.batch-size:10}")
     private int batchSize = 10;
     @Value("${vector.store.retry-times:3}")
@@ -68,8 +71,6 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
      * 这里改为实例字段 + {@link ConcurrentHashMap#computeIfAbsent} 保证原子初始化与缓存命中。</p>
      */
     private final Map<Integer, EmbeddingStore<TextSegment>> stores = new ConcurrentHashMap<>();
-
-
 
     private EmbeddingStore<TextSegment> build(int dimension) {
         return PgVectorEmbeddingStore.datasourceBuilder()
@@ -93,7 +94,6 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         if (entities == null || entities.isEmpty()) {
             return;
         }
-        // Filter valid entities
         List<EmbeddingEntity> validEntities = entities.stream()
                 .filter(e -> e != null && StringUtils.isNotBlank(e.getContent()))
                 .toList();
@@ -102,61 +102,57 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         }
         EmbeddingStore<TextSegment> store = get(model.dimension());
         log.debug("Processing {} valid entities for embedding", validEntities.size());
-        // Track successfully processed entities
-        List<EmbeddingEntity> processedEntities = new CopyOnWriteArrayList<>();
         List<EmbeddingEntity> failedEntities = new CopyOnWriteArrayList<>();
         BatchUtil.protectBach(validEntities, batchSize, batch -> {
             try {
-                processBatchWithRetry(model,store, batch, processedEntities);
+                processBatchWithRetry(model, store, batch);
             } catch (Exception e) {
                 log.error("Failed to process batch after retries: {}", e.getMessage(), e);
                 failedEntities.addAll(batch);
             }
         });
-        // Log failed entities for later processing
         if (!failedEntities.isEmpty()) {
             log.warn("Failed to process {} entities. They can be retried later.", failedEntities.size());
         }
     }
 
     /**
-     * Process a batch with retry mechanism
+     * 分批处理并在失败时按指数退避重试。
      */
-    private void processBatchWithRetry(EmbeddingModel model,EmbeddingStore<TextSegment> store, List<EmbeddingEntity> batch,
-                                       List<EmbeddingEntity> processedEntities) {
+    private void processBatchWithRetry(EmbeddingModel model, EmbeddingStore<TextSegment> store, List<EmbeddingEntity> batch) {
         Exception lastException = null;
-
         for (int attempt = 1; attempt <= retryTimes; attempt++) {
             try {
-                List<TextSegment> textSegments = batch.stream().map(entity -> {
-                    Metadata metadata = new Metadata();
-                    metadata.put("knowledgeId", entity.getKnowledgeId());
-                    if (entity.getDocumentId() != null){
-                        metadata.put("documentId", entity.getDocumentId());
-                    }
-                    metadata.put("sourceId", entity.getSourceId());
-                    metadata.put("sourceType", entity.getSourceType());
-                    return TextSegment.from(entity.getContent().trim(), metadata);
-                }).toList();
+                List<TextSegment> textSegments = batch.stream().map(this::toTextSegment).toList();
                 Response<List<Embedding>> res = model.embedAll(textSegments);
-                List<Embedding> embeddings = res.content();
-                store.addAll(embeddings, textSegments);
-                processedEntities.addAll(batch);
+                store.addAll(res.content(), textSegments);
                 return;
             } catch (Exception e) {
                 lastException = e;
                 log.warn("Batch processing attempt {} failed: {}", attempt, e.getMessage());
-
                 if (attempt < retryTimes && !backoff(attempt)) {
                     break;
                 }
             }
         }
-
         if (lastException != null) {
             log.error("All {} retry attempts failed for batch of size {}", retryTimes, batch.size());
             throw new RuntimeException("Batch processing failed after retries", lastException);
         }
+    }
+
+    /**
+     * 将 {@link EmbeddingEntity} 转换为带 metadata 的 {@link TextSegment}。
+     */
+    private TextSegment toTextSegment(EmbeddingEntity entity) {
+        Metadata metadata = new Metadata();
+        metadata.put(META_KNOWLEDGE_ID, entity.getKnowledgeId());
+        if (entity.getDocumentId() != null) {
+            metadata.put(META_DOCUMENT_ID, entity.getDocumentId());
+        }
+        metadata.put(META_SOURCE_ID, entity.getSourceId());
+        metadata.put(META_SOURCE_TYPE, entity.getSourceType());
+        return TextSegment.from(entity.getContent().trim(), metadata);
     }
 
     /**
@@ -176,22 +172,15 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         }
     }
 
-    @Override
-    public void deleteByProblemIdAndParagraphId(String knowledgeId, String problemId, String paragraphId) {
-        Filter filter = metadataKey("knowledgeId").isEqualTo(knowledgeId)
-                .and(metadataKey("paragraphId").isEqualTo(paragraphId))
-                .and(metadataKey("sourceId").isEqualTo(problemId));
-        removeAllStores(filter);
-    }
 
     @Override
     public void deleteByProblemIds(String knowledgeId, List<String> problemIds) {
         if (problemIds == null || problemIds.isEmpty()) {
             return;
         }
-        Filter filter = metadataKey("knowledgeId").isEqualTo(knowledgeId)
-                .and(metadataKey("sourceType").isEqualTo(String.valueOf(SourceType.PROBLEM)))
-                .and(metadataKey("sourceId").isIn(problemIds));
+        Filter filter = metadataKey(META_KNOWLEDGE_ID).isEqualTo(knowledgeId)
+                .and(metadataKey(META_SOURCE_TYPE).isEqualTo(String.valueOf(SourceType.PROBLEM)))
+                .and(metadataKey(META_SOURCE_ID).isIn(problemIds));
         removeAllStores(filter);
     }
 
@@ -200,8 +189,9 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         if (paragraphIds == null || paragraphIds.isEmpty()) {
             return;
         }
-        Filter filter = metadataKey("knowledgeId").isEqualTo(knowledgeId)
-                .and(metadataKey("paragraphId").isIn(paragraphIds));
+        Filter filter = metadataKey(META_KNOWLEDGE_ID).isEqualTo(knowledgeId)
+                .and(metadataKey(META_SOURCE_TYPE).isEqualTo(String.valueOf(SourceType.PARAGRAPH)))
+                .and(metadataKey(META_SOURCE_ID).isIn(paragraphIds));
         removeAllStores(filter);
     }
 
@@ -210,8 +200,8 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         if (documentIds == null || documentIds.isEmpty()) {
             return;
         }
-        Filter filter = metadataKey("knowledgeId").isEqualTo(knowledgeId)
-                .and(metadataKey("documentId").isIn(documentIds));
+        Filter filter = metadataKey(META_KNOWLEDGE_ID).isEqualTo(knowledgeId)
+                .and(metadataKey(META_DOCUMENT_ID).isIn(documentIds));
         removeAllStores(filter);
     }
 
@@ -220,18 +210,10 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         if (knowledgeId == null) {
             return;
         }
-        Filter filter = metadataKey("knowledgeId").isEqualTo(knowledgeId);
+        Filter filter = metadataKey(META_KNOWLEDGE_ID).isEqualTo(knowledgeId);
         removeAllStores(filter);
     }
 
-    @Override
-    public void deleteByKnowledgeIds(List<String> knowledgeIds) {
-        if (knowledgeIds == null || knowledgeIds.isEmpty()) {
-            return;
-        }
-        Filter filter = metadataKey("knowledgeId").isIn(knowledgeIds);
-        removeAllStores(filter);
-    }
 
     @Override
     public List<TextChunkVO> search(SearchRequest request) {
@@ -243,30 +225,67 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
             log.warn("No embedding model found for knowledge: {}", request.getKnowledgeIds().getFirst());
             return Collections.emptyList();
         }
-        Response<Embedding> res = embeddingModel.embed(request.getQuery().trim());
-        Embedding queryEmbedding = res.content();
-        List<String> excludeParagraphIds = resolveExcludeParagraphIds(request, paragraphServiceProvider.getObject());
-        EmbeddingSearchRequest searchRequest = buildParagraphSearchRequest(request, queryEmbedding,excludeParagraphIds);
+        Embedding queryEmbedding = embeddingModel.embed(request.getQuery().trim()).content();
         EmbeddingStore<TextSegment> store = get(queryEmbedding.dimension());
-        EmbeddingSearchResult<TextSegment> searchResult = store.search(searchRequest);
-        List<TextChunkVO> paragraphResults = searchResult.matches().stream().map(match -> {
-            TextSegment segment = match.embedded();
-            double cosineSimilarity = 2.0 * match.score() - 1.0;
-            return new TextChunkVO(segment.metadata().getString("sourceId"), cosineSimilarity);
-        }).toList();
-        List<TextChunkVO> results = new ArrayList<>(paragraphResults);
-        EmbeddingSearchResult<TextSegment> searchResult1 = store.search(buildProblemSearchRequest(request, queryEmbedding));
-        List<TextChunkVO> results1 = searchResult1.matches().stream().map(match -> {
-            TextSegment segment = match.embedded();
-            double cosineSimilarity = 2.0 * match.score() - 1.0;
-            return new TextChunkVO(segment.metadata().getString("sourceId"), cosineSimilarity);
-        }).toList();
-        Map<String, Double> problemMap = results1.stream().collect(Collectors.toMap(TextChunkVO::getSourceId, TextChunkVO::getScore));
-        List<ProblemParagraphEntity> problemParagraphs = problemParagraphServiceProvider.getObject().getActivePPbyProblemIds(results1.stream().map(TextChunkVO::getSourceId).toList());
-        for (ProblemParagraphEntity problemParagraph : problemParagraphs) {
-            results.add(new TextChunkVO(problemParagraph.getParagraphId(), problemMap.get(problemParagraph.getProblemId())));
-        }
+        resolveExcludeParagraphIds(request, paragraphServiceProvider.getObject());
+
+        List<TextChunkVO> results = new ArrayList<>();
+        results.addAll(searchParagraphs(request, queryEmbedding, store, request.getExcludeParagraphIds()));
+        results.addAll(searchProblemParagraphs(request, queryEmbedding, store));
         return dedupAndRank(results, request.getTopK());
+    }
+
+    /**
+     * 段落路召回：直接按段落向量检索，命中结果即目标段落。
+     */
+    private List<TextChunkVO> searchParagraphs(SearchRequest request, Embedding queryEmbedding,
+                                               EmbeddingStore<TextSegment> store, List<String> excludeParagraphIds) {
+        EmbeddingSearchResult<TextSegment> searchResult =
+                store.search(buildParagraphSearchRequest(request, queryEmbedding, excludeParagraphIds));
+        return toTextChunkVOs(searchResult);
+    }
+
+    /**
+     * 问题路召回：先按问题向量检索命中的 problemId，再经 problem_paragraph 映射表
+     * 转换为其关联段落，分值沿用命中问题的相似度。
+     */
+    private List<TextChunkVO> searchProblemParagraphs(SearchRequest request, Embedding queryEmbedding,
+                                                     EmbeddingStore<TextSegment> store) {
+        EmbeddingSearchResult<TextSegment> problemResult =
+                store.search(buildProblemSearchRequest(request, queryEmbedding));
+        List<TextChunkVO> problemHits = toTextChunkVOs(problemResult);
+        if (problemHits.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Map<String, Double> problemScoreById = problemHits.stream()
+                .collect(Collectors.toMap(TextChunkVO::getSourceId, TextChunkVO::getScore));
+        List<ProblemParagraphEntity> problemParagraphs = problemParagraphServiceProvider.getObject()
+                .getActivePPbyProblemIds(problemHits.stream().map(TextChunkVO::getSourceId).toList());
+        List<TextChunkVO> results = new ArrayList<>(problemParagraphs.size());
+        for (ProblemParagraphEntity problemParagraph : problemParagraphs) {
+            results.add(new TextChunkVO(problemParagraph.getParagraphId(),
+                    problemScoreById.get(problemParagraph.getProblemId())));
+        }
+        return results;
+    }
+
+    /**
+     * 将检索命中统一转换为 {@link TextChunkVO}，并用 {@link #denormalizeScore} 把
+     * langchain4j 归一化得分还原为余弦相似度。
+     */
+    private List<TextChunkVO> toTextChunkVOs(EmbeddingSearchResult<TextSegment> searchResult) {
+        return searchResult.matches().stream().map(match -> {
+            TextSegment segment = match.embedded();
+            return new TextChunkVO(segment.metadata().getString(META_SOURCE_ID), denormalizeScore(match.score()));
+        }).toList();
+    }
+
+    /**
+     * 将 langchain4j 归一化到 {@code [0,1]} 的相似度还原为 {@code [-1,1]} 的余弦相似度，
+     * 与 {@link BaseStoreImpl} 中 {@code (minScore + 1.0) / 2.0} 的归一化互为逆运算。
+     */
+    private static double denormalizeScore(double score) {
+        return 2.0 * score - 1.0;
     }
 
     private void removeAllStores(Filter filter) {

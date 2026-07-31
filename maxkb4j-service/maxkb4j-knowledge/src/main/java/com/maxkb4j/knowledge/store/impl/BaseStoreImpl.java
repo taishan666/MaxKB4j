@@ -34,7 +34,7 @@ public abstract class BaseStoreImpl implements IDataStore {
      * <p>主要给不支持就地更新 metadata 的向量后端（如 langchain4j 的 PgVectorEmbeddingStore）使用，
      * 在检索时通过 filter 过滤掉 isActive=false 的段落。</p>
      */
-    protected List<String> resolveExcludeParagraphIds(SearchRequest request, ParagraphServiceImpl paragraphService) {
+    protected void resolveExcludeParagraphIds(SearchRequest request, ParagraphServiceImpl paragraphService) {
         List<String> excludeParagraphIds = new ArrayList<>();
         List<String> noActiveParagraphIds = paragraphService.getNoActiveParagraphIds(
                 request.getKnowledgeIds(), request.getExcludeDocumentIds());
@@ -44,7 +44,7 @@ public abstract class BaseStoreImpl implements IDataStore {
         if (CollectionUtils.isNotEmpty(request.getExcludeParagraphIds())) {
             excludeParagraphIds.addAll(request.getExcludeParagraphIds());
         }
-        return excludeParagraphIds;
+        request.setExcludeParagraphIds(excludeParagraphIds);
     }
 
     /**
@@ -60,35 +60,15 @@ public abstract class BaseStoreImpl implements IDataStore {
         return StringUtils.isBlank(request.getQuery());
     }
 
-    protected EmbeddingSearchRequest buildSearchRequest(SearchRequest request,Embedding queryEmbedding,List<String> excludeParagraphIds) {
-
-        Filter filter = metadataKey("knowledgeId").isIn(request.getKnowledgeIds());
-        if (CollectionUtils.isNotEmpty(request.getExcludeDocumentIds())) {
-            filter = filter.and(metadataKey("documentId").isNotIn(request.getExcludeDocumentIds()));
-        }
-        if (CollectionUtils.isNotEmpty(excludeParagraphIds)) {
-            filter = filter.and(metadataKey("paragraphId").isNotIn(excludeParagraphIds));
-        }
-        // 归一化，langchain4j的搜索结果是归一化的
-        double normalizedMinScore = (request.getMinScore() + 1.0) / 2.0;
-        return EmbeddingSearchRequest.builder()
-                .filter(filter)
-                .query(request.getQuery().trim())
-                .queryEmbedding(queryEmbedding)
-                .maxResults(request.getTopK() * RECALL_MULTIPLIER)
-                .minScore(normalizedMinScore)
-                .build();
-    }
-
     protected EmbeddingSearchRequest buildParagraphSearchRequest(SearchRequest request,Embedding queryEmbedding,List<String> excludeParagraphIds) {
         Filter filter = metadataKey("knowledgeId").isIn(request.getKnowledgeIds());
+        filter = filter.and(metadataKey("sourceType").isEqualTo(String.valueOf(SourceType.PARAGRAPH)));
         if (CollectionUtils.isNotEmpty(request.getExcludeDocumentIds())) {
             filter = filter.and(metadataKey("documentId").isNotIn(request.getExcludeDocumentIds()));
         }
         if (CollectionUtils.isNotEmpty(excludeParagraphIds)) {
-            filter = filter.and(metadataKey("paragraphId").isNotIn(excludeParagraphIds));
+            filter = filter.and(metadataKey("sourceId").isNotIn(excludeParagraphIds));
         }
-        filter = filter.and(metadataKey("sourceType").isEqualTo(String.valueOf(SourceType.PARAGRAPH)));
         // 归一化，langchain4j的搜索结果是归一化的
         double normalizedMinScore = (request.getMinScore() + 1.0) / 2.0;
         return EmbeddingSearchRequest.builder()

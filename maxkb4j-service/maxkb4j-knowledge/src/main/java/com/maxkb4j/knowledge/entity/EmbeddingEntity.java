@@ -30,7 +30,6 @@ public class EmbeddingEntity {
 	private Integer sourceType;
 	private String knowledgeId;
 	private String documentId;
-	private String paragraphId;
 	@TextIndexed
 	@TableField(exist = false)
 	private String content;

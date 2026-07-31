@@ -51,7 +51,6 @@ public class ProblemParagraphServiceImpl extends ServiceImpl<ProblemParagraphMap
 
     @Transactional
     public boolean unAssociation(String knowledgeId, String docId, String paragraphId, String problemId) {
-        compositeStore.deleteByProblemIdAndParagraphId(knowledgeId,problemId,paragraphId);
         return this.lambdaUpdate()
                 .eq(ProblemParagraphEntity::getParagraphId, paragraphId)
                 .eq(ProblemParagraphEntity::getProblemId, problemId)

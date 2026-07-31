@@ -19,9 +19,6 @@ public interface IDataStore {
      */
     void upsert(EmbeddingModel model, List<EmbeddingEntity> entities);
 
-
-    void deleteByProblemIdAndParagraphId(String knowledgeId, String problemId, String paragraphId);
-
     /**
      * Delete embeddings by problem IDs
      * @param knowledgeId knowledge base ID

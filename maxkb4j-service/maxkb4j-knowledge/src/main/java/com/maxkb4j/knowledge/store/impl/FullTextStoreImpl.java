@@ -2,8 +2,10 @@ package com.maxkb4j.knowledge.store.impl;
 
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
+import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
+import com.maxkb4j.knowledge.service.impl.ProblemParagraphServiceImpl;
 import com.maxkb4j.knowledge.util.Tokenizer;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -20,8 +22,11 @@ import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * MongoDB implementation of VectorStore for full-text search
@@ -42,6 +47,7 @@ public class FullTextStoreImpl extends BaseStoreImpl {
     private final MongoTemplate mongoTemplate;
     /** 延迟解析以避免与 ParagraphService 之间的构造期循环依赖，仅在 search() 中使用。 */
     private final ObjectProvider<ParagraphServiceImpl> paragraphServiceProvider;
+    private final ObjectProvider<ProblemParagraphServiceImpl> problemParagraphServiceProvider;
 
     @Override
     public void upsert(EmbeddingModel model, List<EmbeddingEntity> entities) {
@@ -56,13 +62,6 @@ public class FullTextStoreImpl extends BaseStoreImpl {
         log.debug("Inserted {} embedding entities into MongoDB", entities.size());
     }
 
-    @Override
-    public void deleteByProblemIdAndParagraphId(String knowledgeId, String problemId, String paragraphId) {
-        Query query = new Query(Criteria.where("knowledgeId").is(knowledgeId)
-                .and("paragraphId").is(paragraphId)
-                .and("sourceId").is(problemId));
-        mongoTemplate.remove(query, EmbeddingEntity.class);
-    }
 
     @Override
     public void deleteByProblemIds(String knowledgeId, List<String> problemIds) {
@@ -80,9 +79,10 @@ public class FullTextStoreImpl extends BaseStoreImpl {
         if (paragraphIds == null || paragraphIds.isEmpty()) {
             return;
         }
-        Query query = new Query(Criteria.where("knowledgeId").is(knowledgeId).and("paragraphId").in(paragraphIds));
+        Query query = new Query(Criteria.where("knowledgeId").is(knowledgeId)
+                .and("sourceType").is(SourceType.PARAGRAPH)
+                .and("sourceId").in(paragraphIds));
         mongoTemplate.remove(query, EmbeddingEntity.class);
-        log.debug("Deleted embeddings from MongoDB by paragraph IDs: {}", paragraphIds);
     }
 
     @Override
@@ -106,31 +106,21 @@ public class FullTextStoreImpl extends BaseStoreImpl {
     }
 
     @Override
-    public void deleteByKnowledgeIds(List<String> knowledgeIds) {
-        if (knowledgeIds == null || knowledgeIds.isEmpty()) {
-            return;
-        }
-        Query query = new Query(Criteria.where("knowledgeId").in(knowledgeIds));
-        mongoTemplate.remove(query, EmbeddingEntity.class);
-        log.debug("Deleted embeddings from MongoDB for {} knowledge IDs", knowledgeIds.size());
-    }
-
-    @Override
     public List<TextChunkVO> search(SearchRequest request) {
         if (shouldShortCircuit(request)) {
             return Collections.emptyList();
         }
+        resolveExcludeParagraphIds(request, paragraphServiceProvider.getObject());
+        List<TextChunkVO> results = new ArrayList<>();
+        results.addAll(searchParagraphs(request));
+        results.addAll(searchProblemParagraphs(request));
+        return dedupAndRank(results, request.getTopK());
+    }
+
+    public List<TextChunkVO> search(SearchRequest request,Criteria baseCriteria) {
         try {
-            List<String> excludeParagraphIds = resolveExcludeParagraphIds(request, paragraphServiceProvider.getObject());
             TextCriteria textCriteria = TextCriteria.forDefaultLanguage()
                     .matching(Tokenizer.segment(request.getQuery()));
-            Criteria baseCriteria = Criteria.where("knowledgeId").in(request.getKnowledgeIds());
-            if (!CollectionUtils.isEmpty(request.getExcludeDocumentIds())) {
-                baseCriteria.and("documentId").nin(request.getExcludeDocumentIds());
-            }
-            if (!CollectionUtils.isEmpty(excludeParagraphIds)) {
-                baseCriteria.and("paragraphId").nin(excludeParagraphIds);
-            }
             Aggregation aggregation = Aggregation.newAggregation(
                     Aggregation.match(textCriteria),
                     Aggregation.match(baseCriteria),
@@ -139,9 +129,7 @@ public class FullTextStoreImpl extends BaseStoreImpl {
                             .withValueOf(MongoExpression.create("{$meta: 'textScore'}"))
                             .build(),
                     Aggregation.sort(Sort.Direction.DESC, "score"),
-                    Aggregation.group("paragraphId").first("$$ROOT").as("highestScoreDoc"),
-                    Aggregation.replaceRoot("highestScoreDoc"),
-                    Aggregation.sort(Sort.Direction.DESC, "score"),
+                    Aggregation.project("sourceId", "score"),
                     Aggregation.limit(request.getTopK())
             );
             List<EmbeddingEntity> result = mongoTemplate.aggregate(
@@ -155,7 +143,7 @@ public class FullTextStoreImpl extends BaseStoreImpl {
             double topScore = result.getFirst() == null ? 0 : result.getFirst().getScore();
             double maxScore = Math.max(topScore, SCORE_NORMALIZE_CEILING);
             return result.stream()
-                    .map(entity -> new TextChunkVO("", entity.getScore() / maxScore))
+                    .map(entity -> new TextChunkVO(entity.getSourceId(), entity.getScore() / maxScore))
                     .filter(vo -> vo.getScore() >= request.getMinScore())
                     .toList();
         } catch (Exception e) {
@@ -163,4 +151,37 @@ public class FullTextStoreImpl extends BaseStoreImpl {
             return Collections.emptyList();
         }
     }
+
+    protected List<TextChunkVO> searchParagraphs(SearchRequest request) {
+        Criteria baseCriteria = Criteria.where("knowledgeId").in(request.getKnowledgeIds());
+        baseCriteria.and("sourceType").is(SourceType.PARAGRAPH);
+        if (!CollectionUtils.isEmpty(request.getExcludeDocumentIds())) {
+            baseCriteria.and("documentId").nin(request.getExcludeDocumentIds());
+        }
+        if (!CollectionUtils.isEmpty(request.getExcludeParagraphIds())) {
+            baseCriteria.and("sourceId").nin(request.getExcludeParagraphIds());
+        }
+        return search(request,baseCriteria);
+    }
+
+    protected List<TextChunkVO> searchProblemParagraphs(SearchRequest request) {
+        Criteria baseCriteria = Criteria.where("knowledgeId").in(request.getKnowledgeIds());
+        baseCriteria.and("sourceType").is(SourceType.PROBLEM);
+        List<TextChunkVO> problemHits =  search(request,baseCriteria);
+        if (problemHits.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Map<String, Double> problemScoreById = problemHits.stream()
+                .collect(Collectors.toMap(TextChunkVO::getSourceId, TextChunkVO::getScore));
+        List<ProblemParagraphEntity> problemParagraphs = problemParagraphServiceProvider.getObject()
+                .getActivePPbyProblemIds(problemHits.stream().map(TextChunkVO::getSourceId).toList());
+        List<TextChunkVO> results = new ArrayList<>(problemParagraphs.size());
+        for (ProblemParagraphEntity problemParagraph : problemParagraphs) {
+            results.add(new TextChunkVO(problemParagraph.getParagraphId(),
+                    problemScoreById.get(problemParagraph.getProblemId())));
+        }
+        return results;
+    }
+
+
 }
