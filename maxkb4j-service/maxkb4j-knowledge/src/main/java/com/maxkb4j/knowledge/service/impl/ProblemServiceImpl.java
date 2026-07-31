@@ -136,10 +136,17 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
         return true;
     }
 
+    public void reIndexBatch( String knowledgeId, List<String> problemIds) {
+        // problemParagraphService.reVector(problem);
+        EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(knowledgeId);
+        compositeStore.deleteByProblemIds(knowledgeId,problemIds);
+        createIndexBatch(problemIds,embeddingModel);
+    }
+
     /**
      * Batch create index for multiple paragraphs with optimized processing
      */
-    public void createIndexBatch(List<String> problemIds, EmbeddingModel embeddingModel) {
+    private void createIndexBatch(List<String> problemIds, EmbeddingModel embeddingModel) {
         List<ProblemEntity> problems = this.listByIds(problemIds);
         if (CollectionUtils.isEmpty(problems)) {
             return;
@@ -281,10 +288,8 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
 
     @Transactional
     public boolean updateProblemById(ProblemEntity problem) {
-        // problemParagraphService.reVector(problem);
-        EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(problem.getKnowledgeId());
         compositeStore.deleteByProblemIds(problem.getKnowledgeId(),List.of(problem.getId()));
-        createIndexBatch(List.of(problem.getId()),embeddingModel);
+        reIndexBatch(problem.getKnowledgeId(),List.of(problem.getId()));
         return this.updateById(problem);
     }
 }

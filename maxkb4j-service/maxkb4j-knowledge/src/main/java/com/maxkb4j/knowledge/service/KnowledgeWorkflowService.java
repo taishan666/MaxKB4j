@@ -5,16 +5,10 @@ import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.domain.form.BaseField;
 import com.maxkb4j.common.domain.form.LocalFileUpload;
 import com.maxkb4j.common.domain.form.TextInputField;
-import com.maxkb4j.knowledge.event.GenerateProblemEvent;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
-import com.maxkb4j.knowledge.entity.DocumentEntity;
-import com.maxkb4j.knowledge.entity.KnowledgeActionEntity;
-import com.maxkb4j.knowledge.entity.KnowledgeEntity;
-import com.maxkb4j.knowledge.entity.KnowledgeVersionEntity;
-import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
-import com.maxkb4j.knowledge.service.impl.KnowledgeActionServiceImpl;
-import com.maxkb4j.knowledge.service.impl.KnowledgeServiceImpl;
-import com.maxkb4j.knowledge.service.impl.KnowledgeVersionServiceImpl;
+import com.maxkb4j.knowledge.entity.*;
+import com.maxkb4j.knowledge.event.GenerateProblemEvent;
+import com.maxkb4j.knowledge.service.impl.*;
 import com.maxkb4j.user.service.IUserService;
 import com.maxkb4j.workflow.builder.NodeBuilder;
 import com.maxkb4j.workflow.logic.LogicFlow;
@@ -57,6 +51,7 @@ public class KnowledgeWorkflowService {
     private final IUserService userService;
     private final TaskExecutor workflowTaskExecutor;
     private final ApplicationEventPublisher eventPublisher;
+    private final ProblemServiceImpl problemService;
 
     /**
      * 数据源表单列表
@@ -157,6 +152,10 @@ public class KnowledgeWorkflowService {
                 .select(DocumentEntity::getId)
                 .eq(DocumentEntity::getKnowledgeId, knowledgeId).list();
         documentService.embedByDocIds(knowledgeId, documents.stream().map(DocumentEntity::getId).toList(), List.of("0", "1", "2", "3", "n"));
+        List<ProblemEntity> problems = problemService.lambdaQuery()
+                .select(ProblemEntity::getId)
+                .eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
+        problemService.reIndexBatch(knowledgeId,problems.stream().map(ProblemEntity::getId).toList());
         return true;
     }
 

@@ -59,40 +59,4 @@ public class ProblemParagraphServiceImpl extends ServiceImpl<ProblemParagraphMap
                 .remove();
     }
 
-/*    @Transactional
-    public void reVector(ProblemEntity problem) {
-        List<ProblemParagraphEntity> ppList=this.lambdaQuery().eq(ProblemParagraphEntity::getProblemId, problem.getId()).eq(ProblemParagraphEntity::getKnowledgeId, problem.getKnowledgeId()).list();
-       if (CollectionUtils.isNotEmpty(ppList)){
-           List<EmbeddingEntity> embeddingEntities=new ArrayList<>();
-           for (ProblemParagraphEntity pp : ppList) {
-               EmbeddingEntity embeddingEntity = EmbeddingEntity.builder()
-                       .knowledgeId(pp.getKnowledgeId())
-                       .documentId(pp.getDocumentId())
-                       .paragraphId(pp.getParagraphId())
-                       .sourceId(pp.getProblemId())
-                       .sourceType(SourceType.PROBLEM)
-                       .content(problem.getContent())
-                       .isActive(true)
-                       .build();
-               embeddingEntities.add(embeddingEntity);
-           }
-           compositeStore.deleteByProblemIds(problem.getKnowledgeId(),List.of(problem.getId()));
-           EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(problem.getKnowledgeId());
-           compositeStore.upsert(embeddingModel,embeddingEntities);
-       }
-    }*/
-
-/*    public boolean createProblemsIndex(List<ProblemParagraphVO> associations , EmbeddingModel embeddingModel) {
-        List<EmbeddingEntity> embeddingEntities=associations.stream().map(e -> EmbeddingEntity.builder()
-                .knowledgeId(e.getKnowledgeId())
-                .documentId(e.getDocumentId())
-                .paragraphId(e.getParagraphId())
-                .sourceId(e.getProblemId())
-                .sourceType(SourceType.PROBLEM)
-                .content(e.getContent())
-                .isActive(true)
-                .build()).toList();
-        compositeStore.upsert(embeddingModel,embeddingEntities);
-        return true;
-    }*/
 }
