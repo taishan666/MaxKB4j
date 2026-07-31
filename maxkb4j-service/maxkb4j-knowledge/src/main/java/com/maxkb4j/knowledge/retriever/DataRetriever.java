@@ -25,15 +25,18 @@ public class DataRetriever {
     private final IDataStore fullTextStore;
     private final IDataStore compositeStore;
     private final DocumentServiceImpl documentService;
+    private final SearchOrchestrator searchOrchestrator;
 
     public DataRetriever(@Qualifier("vectorStore") IDataStore vectorStore,
                          @Qualifier("fullTextStore") IDataStore fullTextStore,
                          @Qualifier("compositeStore") IDataStore compositeStore,
-                         DocumentServiceImpl documentService) {
+                         DocumentServiceImpl documentService,
+                         SearchOrchestrator searchOrchestrator) {
         this.vectorStore = vectorStore;
         this.fullTextStore = fullTextStore;
         this.compositeStore = compositeStore;
         this.documentService = documentService;
+        this.searchOrchestrator = searchOrchestrator;
     }
 
     private static final Map<String, SearchMode> SEARCH_MODE_MAP = Map.of(
@@ -56,7 +59,7 @@ public class DataRetriever {
         if (CollectionUtils.isNotEmpty(excludeDocIds)){
             request.setExcludeDocumentIds(excludeDocIds);
         }
-        return getStore(searchMode).search(request);
+        return searchOrchestrator.search(getStore(searchMode), request);
     }
 
     private IDataStore getStore(String searchMode) {

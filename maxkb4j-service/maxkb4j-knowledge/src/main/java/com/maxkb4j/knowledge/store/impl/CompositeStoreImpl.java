@@ -19,9 +19,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 /**
- * 组合 store：同时写入向量与全文两路，搜索时混合两路结果。
+ * 组合 store：同时写入向量与全文两路，搜索时按来源类型混合两路结果。
  * <p>写操作通过 {@link #dualWrite} 串行委托并对失败做统一日志/异常包装；
  * 搜索通过 {@link #safeSearchAsync} 并发执行并支持单路降级（一路故障仍返回另一路结果）。</p>
+ * <p>段落路与问题路的编排、问题到段落的映射以及去重排序由
+ * {@link com.maxkb4j.knowledge.retriever.SearchOrchestrator} 负责，本类只做同源两后端融合。</p>
  */
 @Slf4j
 @Component("compositeStore")
@@ -75,16 +77,14 @@ public class CompositeStoreImpl extends BaseStoreImpl {
     }
 
     /**
-     * 同时检索向量库与全文库，按 paragraphId 取较高分融合后排序截断到 topK。
+     * 同时检索向量库与全文库的同一来源类型，按 sourceId 取较高分融合后排序截断到 topK。
      * 任意一路检索异常会被降级为空列表，另一路结果仍然返回。
      */
     @Override
-    public List<TextChunkVO> search(SearchRequest request) {
-        CompletableFuture<List<TextChunkVO>> vectorFuture = safeSearchAsync(vectorStore, request, "vector");
-        CompletableFuture<List<TextChunkVO>> fullTextFuture = safeSearchAsync(fullTextStore, request, "fullText");
-        List<TextChunkVO> vectorHits = vectorFuture.join();
-        List<TextChunkVO> fullTextHits = fullTextFuture.join();
-        return mergeByMaxScore(vectorHits, fullTextHits, request.getTopK());
+    public List<TextChunkVO> searchBySource(SearchRequest request, int sourceType) {
+        CompletableFuture<List<TextChunkVO>> vectorFuture = safeSearchAsync(vectorStore, request, sourceType, "vector");
+        CompletableFuture<List<TextChunkVO>> fullTextFuture = safeSearchAsync(fullTextStore, request, sourceType, "fullText");
+        return mergeByMaxScore(vectorFuture.join(), fullTextFuture.join(), request.getTopK());
     }
 
     /**
@@ -104,10 +104,10 @@ public class CompositeStoreImpl extends BaseStoreImpl {
     /**
      * 把单路检索包装成异步任务，异常时返回空列表并打日志，绝不抛给 join()。
      */
-    private CompletableFuture<List<TextChunkVO>> safeSearchAsync(IDataStore store, SearchRequest request, String tag) {
+    private CompletableFuture<List<TextChunkVO>> safeSearchAsync(IDataStore store, SearchRequest request, int sourceType, String tag) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return store.search(request);
+                return store.searchBySource(request, sourceType);
             } catch (Exception e) {
                 log.error("Composite sub-search [{}] failed, fallback to empty: {}", tag, e.getMessage(), e);
                 return Collections.<TextChunkVO>emptyList();
@@ -116,7 +116,7 @@ public class CompositeStoreImpl extends BaseStoreImpl {
     }
 
     /**
-     * 按 paragraphId 取两路结果中的较高 score，按 score 降序后截断到 topK。
+     * 按 sourceId 取两路结果中的较高 score，按 score 降序后截断到 topK。
      */
     private List<TextChunkVO> mergeByMaxScore(List<TextChunkVO> vectorHits, List<TextChunkVO> fullTextHits, int topK) {
         Map<String, Double> maxScoreByParagraphId = new LinkedHashMap<>();

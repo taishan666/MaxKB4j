@@ -3,17 +3,15 @@ package com.maxkb4j.knowledge.store.impl;
 import com.maxkb4j.common.util.BatchUtil;
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
-import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
-import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
-import com.maxkb4j.knowledge.service.impl.ProblemParagraphServiceImpl;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.filter.Filter;
@@ -23,30 +21,31 @@ import dev.langchain4j.store.embedding.pgvector.PgVectorEmbeddingStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.sql.DataSource;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 
 import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metadataKey;
 
 /**
  * Langchain4j {@link PgVectorEmbeddingStore} 实现的向量后端。
+ * <p>检索结果得分与 minScore 阈值统一采用 langchain4j 的 {@code [0,1]} 归一化区间
+ * （即 {@code (余弦相似度 + 1) / 2}），与 {@link FullTextStoreImpl} 保持同一量纲，
+ * 便于 {@link CompositeStoreImpl} 跨后端融合。</p>
  */
 @Slf4j
 @Component("vectorStore")
 @RequiredArgsConstructor
 public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
 
-    /** 写入/检索 metadata 使用的字段名，与 {@link BaseStoreImpl} 的 filter 保持一致。 */
+    /** 写入/检索 metadata 使用的字段名，与检索过滤条件保持一致。 */
     private static final String META_KNOWLEDGE_ID = "knowledgeId";
     private static final String META_DOCUMENT_ID = "documentId";
     private static final String META_SOURCE_ID = "sourceId";
@@ -61,9 +60,6 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
 
     private final KnowledgeModelService knowledgeModelService;
     private final DataSource dataSource;
-    /** 延迟解析以避免与 ParagraphService 之间的构造期循环依赖，仅在 search() 中使用。 */
-    private final ObjectProvider<ParagraphServiceImpl> paragraphServiceProvider;
-    private final ObjectProvider<ProblemParagraphServiceImpl> problemParagraphServiceProvider;
 
     /**
      * 按 embedding 维度缓存 PgVectorEmbeddingStore 实例。
@@ -215,8 +211,13 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
     }
 
 
+    /**
+     * 按来源类型做向量检索：仅依据 {@link SearchRequest} 入参构造 langchain4j {@link Filter}，
+     * 不再自行解析排除段落（该策略已上移到 {@link com.maxkb4j.knowledge.retriever.SearchOrchestrator}）。
+     * <p>段落路按 excludeDocumentIds / excludeParagraphIds 过滤；问题路不应用这两类排除。</p>
+     */
     @Override
-    public List<TextChunkVO> search(SearchRequest request) {
+    public List<TextChunkVO> searchBySource(SearchRequest request, int sourceType) {
         if (shouldShortCircuit(request)) {
             return Collections.emptyList();
         }
@@ -227,51 +228,37 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         }
         Embedding queryEmbedding = embeddingModel.embed(request.getQuery().trim()).content();
         EmbeddingStore<TextSegment> store = get(queryEmbedding.dimension());
-        resolveExcludeParagraphIds(request, paragraphServiceProvider.getObject());
-
-        List<TextChunkVO> results = new ArrayList<>();
-        results.addAll(searchParagraphs(request, queryEmbedding, store, request.getExcludeParagraphIds()));
-        results.addAll(searchProblemParagraphs(request, queryEmbedding, store));
-        return dedupAndRank(results, request.getTopK());
-    }
-
-    /**
-     * 段落路召回：直接按段落向量检索，命中结果即目标段落。
-     */
-    private List<TextChunkVO> searchParagraphs(SearchRequest request, Embedding queryEmbedding,
-                                               EmbeddingStore<TextSegment> store, List<String> excludeParagraphIds) {
-        EmbeddingSearchResult<TextSegment> searchResult =
-                store.search(buildParagraphSearchRequest(request, queryEmbedding, excludeParagraphIds));
+        EmbeddingSearchResult<TextSegment> searchResult = store.search(buildSearchRequest(request, queryEmbedding, sourceType));
         return toTextChunkVOs(searchResult);
     }
 
     /**
-     * 问题路召回：先按问题向量检索命中的 problemId，再经 problem_paragraph 映射表
-     * 转换为其关联段落，分值沿用命中问题的相似度。
+     * 构造 langchain4j 检索请求：按 sourceType 组装过滤条件。minScore 阈值与检索结果得分
+     * 统一采用 langchain4j 的 {@code [0,1]} 归一化区间，无需额外换算。
      */
-    private List<TextChunkVO> searchProblemParagraphs(SearchRequest request, Embedding queryEmbedding,
-                                                     EmbeddingStore<TextSegment> store) {
-        EmbeddingSearchResult<TextSegment> problemResult =
-                store.search(buildProblemSearchRequest(request, queryEmbedding));
-        List<TextChunkVO> problemHits = toTextChunkVOs(problemResult);
-        if (problemHits.isEmpty()) {
-            return Collections.emptyList();
+    private EmbeddingSearchRequest buildSearchRequest(SearchRequest request, Embedding queryEmbedding, int sourceType) {
+        Filter filter = metadataKey(META_KNOWLEDGE_ID).isIn(request.getKnowledgeIds());
+        filter = filter.and(metadataKey(META_SOURCE_TYPE).isEqualTo(String.valueOf(sourceType)));
+        if (sourceType == SourceType.PARAGRAPH) {
+            if (!CollectionUtils.isEmpty(request.getExcludeDocumentIds())) {
+                filter = filter.and(metadataKey(META_DOCUMENT_ID).isNotIn(request.getExcludeDocumentIds()));
+            }
+            if (!CollectionUtils.isEmpty(request.getExcludeParagraphIds())) {
+                filter = filter.and(metadataKey(META_SOURCE_ID).isNotIn(request.getExcludeParagraphIds()));
+            }
         }
-        Map<String, Double> problemScoreById = problemHits.stream()
-                .collect(Collectors.toMap(TextChunkVO::getSourceId, TextChunkVO::getScore));
-        List<ProblemParagraphEntity> problemParagraphs = problemParagraphServiceProvider.getObject()
-                .getActivePPbyProblemIds(problemHits.stream().map(TextChunkVO::getSourceId).toList());
-        List<TextChunkVO> results = new ArrayList<>(problemParagraphs.size());
-        for (ProblemParagraphEntity problemParagraph : problemParagraphs) {
-            results.add(new TextChunkVO(problemParagraph.getParagraphId(),
-                    problemScoreById.get(problemParagraph.getProblemId())));
-        }
-        return results;
+        return EmbeddingSearchRequest.builder()
+                .filter(filter)
+                .query(request.getQuery().trim())
+                .queryEmbedding(queryEmbedding)
+                .maxResults(request.getTopK())
+                .minScore(normalizeScore(request.getMinScore()))
+                .build();
     }
 
     /**
-     * 将检索命中统一转换为 {@link TextChunkVO}，并用 {@link #denormalizeScore} 把
-     * langchain4j 归一化得分还原为余弦相似度。
+     * 将检索命中统一转换为 {@link TextChunkVO}，score 直接采用 langchain4j 的 {@code [0,1]} 归一化得分，
+     * 与全文库保持同一量纲。
      */
     private List<TextChunkVO> toTextChunkVOs(EmbeddingSearchResult<TextSegment> searchResult) {
         return searchResult.matches().stream().map(match -> {
@@ -286,6 +273,10 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
      */
     private static double denormalizeScore(double score) {
         return 2.0 * score - 1.0;
+    }
+
+    private static double normalizeScore(double score) {
+        return (score + 1.0) / 2.0;
     }
 
     private void removeAllStores(Filter filter) {

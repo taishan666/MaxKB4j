@@ -68,11 +68,16 @@ public interface IDataStore {
     }
 
     /**
-     * Perform vector similarity search
-     * @param request search request parameters
-     * @return list of matching text chunks
+     * 按来源类型检索原始命中，score 统一归一化到 {@code [0,1]} 区间，
+     * 向量库与全文库同量纲，便于 {@link com.maxkb4j.knowledge.store.impl.CompositeStoreImpl} 跨后端融合。
+     * <p>排除非激活段落的 ID 由调用方（{@link com.maxkb4j.knowledge.retriever.SearchOrchestrator}）
+     * 预先解析后填入 {@link SearchRequest#getExcludeParagraphIds()}，store 不再依赖任何 service，
+     * 仅依据入参构造过滤条件。</p>
+     * @param request 检索请求（minScore 与结果得分同处 {@code [0,1]} 量纲）
+     * @param sourceType 来源类型，取 {@link com.maxkb4j.knowledge.consts.SourceType#PARAGRAPH} 或 {@link com.maxkb4j.knowledge.consts.SourceType#PROBLEM}
+     * @return 命中的 {@link TextChunkVO} 列表，sourceId 为对应来源 ID（段落路为 paragraphId，问题路为 problemId）
      */
-    List<TextChunkVO> search(SearchRequest request);
+    List<TextChunkVO> searchBySource(SearchRequest request, int sourceType);
 
 
 }

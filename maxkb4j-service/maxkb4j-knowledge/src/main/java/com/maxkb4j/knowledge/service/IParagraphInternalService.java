@@ -19,6 +19,14 @@ public interface IParagraphInternalService extends IParagraphService, IService<P
 
     Boolean deleteBatchByIds(String knowledgeId, String docId, List<String> paragraphIds);
 
+    /**
+     * 查询指定知识库下 isActive=false 的段落 ID，供检索时排除。
+     * @param knowledgeIds 知识库 ID 列表
+     * @param excludeDocIds 需要排除的文档 ID（可选）
+     * @return 非激活段落 ID 列表
+     */
+    List<String> getNoActiveParagraphIds(List<String> knowledgeIds, List<String> excludeDocIds);
+
     boolean saveParagraphAndProblem(String knowledgeId, String docId, ParagraphAddDTO addDTO);
 
     IPage<ParagraphEntity> pageParagraphByDocId(String docId, int current, int size, String title, String content);
