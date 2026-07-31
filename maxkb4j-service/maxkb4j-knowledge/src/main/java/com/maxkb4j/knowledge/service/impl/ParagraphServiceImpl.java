@@ -22,6 +22,7 @@ import com.maxkb4j.knowledge.mapper.DocumentMapper;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
 import com.maxkb4j.knowledge.service.IParagraphInternalService;
 import com.maxkb4j.knowledge.store.IDataStore;
+import com.maxkb4j.knowledge.vo.ProblemSimpleVO;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -88,21 +89,6 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
                     .content(title + content)
                     .build();
             allEmbeddingEntities.add(paragraphEmbed);
-/*
-            // Create problem embeddings
-            List<ProblemEntity> problems = problemParagraphService.getProblemsByParagraphId(paragraph.getId());
-            for (ProblemEntity problem : problems) {
-                EmbeddingEntity problemEmbed = EmbeddingEntity.builder()
-                        .knowledgeId(paragraph.getKnowledgeId())
-                        .documentId(paragraph.getDocumentId())
-                        .paragraphId(paragraph.getId())
-                        .sourceId(problem.getId())
-                        .sourceType(SourceType.PROBLEM)
-                        .content(content)
-                        .isActive(paragraph.getIsActive())
-                        .build();
-                allEmbeddingEntities.add(problemEmbed);
-            }*/
         }
 
         // Batch insert all embeddings
@@ -256,12 +242,13 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
         return this.page(paragraphPage, wrapper);
     }
 
-    public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {
+    public List<ProblemSimpleVO> getProblemsByParagraphId(String paragraphId) {
         List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery()
                 .select(ProblemParagraphEntity::getProblemId).eq(ProblemParagraphEntity::getParagraphId, paragraphId).list();
         if (!CollectionUtils.isEmpty(list)) {
             List<String> problemIds = list.stream().map(ProblemParagraphEntity::getProblemId).toList();
-            return problemService.lambdaQuery().in(ProblemEntity::getId, problemIds).list();
+            List<ProblemEntity> problems = problemService.lambdaQuery().in(ProblemEntity::getId, problemIds).list();
+            return BeanUtil.copyList(problems, ProblemSimpleVO.class);
         }
         return Collections.emptyList();
     }
@@ -311,16 +298,79 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
     @Transactional
-    public boolean adjustPosition(String knowledgeId, String documentId, String paragraphId, Integer newPosition) {
-        ParagraphEntity paragraph = this.getById(paragraphId);
-        if (paragraph == null) {
+    public boolean adjustPosition(String knowledgeId, String documentId, String paragraphId, Integer targetIndex) {
+        // 1. 参数校验与转换：将0-based的targetIndex转为1-based的newPosition
+        if (targetIndex == null || targetIndex < 0) {
             return false;
         }
-        int oldPosition = paragraph.getPosition();
-        this.lambdaUpdate().set(ParagraphEntity::getPosition, oldPosition).eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, documentId).eq(ParagraphEntity::getPosition, newPosition).update();
-        paragraph.setPosition(newPosition);
-        return this.updateById(paragraph);
+        int newPosition = targetIndex + 1;
+
+        // 2. 一次性查询所需数据，避免二次查库
+        List<ParagraphEntity> paragraphs = this.lambdaQuery()
+                .select(ParagraphEntity::getId, ParagraphEntity::getPosition)
+                .eq(ParagraphEntity::getKnowledgeId, knowledgeId)
+                .eq(ParagraphEntity::getDocumentId, documentId)
+                .orderByAsc(ParagraphEntity::getPosition)
+                .list();
+
+        if (CollectionUtils.isEmpty(paragraphs)) {
+            return false;
+        }
+
+        // 3. 从已查询的列表中查找目标段落，替代额外的 getById
+        ParagraphEntity target = paragraphs.stream()
+                .filter(p -> paragraphId.equals(p.getId()))
+                .findFirst()
+                .orElse(null);
+
+        if (target == null) {
+            return false;
+        }
+
+        int oldPosition = target.getPosition();
+
+        // 4. 位置未变化，直接返回
+        if (oldPosition == newPosition) {
+            return true;
+        }
+
+        // 5. 边界检查：防止targetIndex超出实际段落范围
+        int maxPosition = paragraphs.size();
+        if (newPosition > maxPosition) {
+            newPosition = maxPosition;
+        }
+        if (oldPosition == newPosition) {
+            return true;
+        }
+
+        // 6. 精确构建需要更新的实体列表，只修改受影响的记录
+        List<ParagraphEntity> changeList = new ArrayList<>();
+        boolean isMoveUp = oldPosition > newPosition;
+
+        for (ParagraphEntity p : paragraphs) {
+            int pos = p.getPosition();
+            if (p.getId().equals(paragraphId)) {
+                // 目标段落：直接设置新位置
+                p.setPosition(newPosition);
+                changeList.add(p);
+            } else if (isMoveUp && pos >= newPosition && pos < oldPosition) {
+                // 上移：新旧位置之间的段落整体后移一位
+                p.setPosition(pos + 1);
+                changeList.add(p);
+            } else if (!isMoveUp && pos > oldPosition && pos <= newPosition) {
+                // 下移：新旧位置之间的段落整体前移一位
+                p.setPosition(pos - 1);
+                changeList.add(p);
+            }
+        }
+
+        if (changeList.isEmpty()) {
+            return true;
+        }
+
+        return this.updateBatchById(changeList);
     }
+
 
     //type 1 向量化 2 问题生成 3 网络同步
     public List<String> listParagraphIdsByStates(String docId,int type, List<String> stateList) {

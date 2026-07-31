@@ -17,7 +17,9 @@ public class ParagraphRagVO extends RagContent {
     private String hitHandlingMethod;
     @JsonIgnore
     private Double directlyReturnSimilarity;
+    private String documentId;
     private JSONObject meta;
+    private String knowledgeId;
     private String knowledgeName;
     private Integer knowledgeType;
 

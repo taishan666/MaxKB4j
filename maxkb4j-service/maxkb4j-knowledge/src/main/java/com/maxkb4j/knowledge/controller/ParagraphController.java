@@ -14,7 +14,7 @@ import com.maxkb4j.knowledge.service.IParagraphInternalService;
 import com.maxkb4j.knowledge.service.IProblemParagraphService;
 import com.maxkb4j.knowledge.vo.ParagraphBaseVO;
 import com.maxkb4j.knowledge.vo.ParagraphPageVO;
-import com.maxkb4j.knowledge.vo.ProblemVO;
+import com.maxkb4j.knowledge.vo.ProblemSimpleVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -80,8 +80,8 @@ public class ParagraphController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document/{docId}/paragraph/{paragraphId}/problem")
-    public R<List<ProblemVO>> getProblemsByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId) {
-        return R.data(BeanUtil.copyList(paragraphService.getProblemsByParagraphId(paragraphId), ProblemVO.class));
+    public R<List<ProblemSimpleVO>> getProblemsByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId) {
+        return R.data(paragraphService.getProblemsByParagraphId(paragraphId));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
@@ -98,8 +98,8 @@ public class ParagraphController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{documentId}/paragraph/adjust_position")
-    public R<Boolean> adjustPosition(@PathVariable String id, @PathVariable String documentId, String paragraphId, Integer newPosition) {
-        return R.status(paragraphService.adjustPosition(id, documentId, paragraphId, newPosition));
+    public R<Boolean> adjustPosition(@PathVariable String id, @PathVariable String documentId, String paragraphId, Integer newPosition, Integer targetIndex) {
+        return R.status(paragraphService.adjustPosition(id, documentId, paragraphId,targetIndex));
     }
 
 }

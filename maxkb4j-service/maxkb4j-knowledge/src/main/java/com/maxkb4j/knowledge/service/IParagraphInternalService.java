@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.dto.ParagraphAddDTO;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
-import com.maxkb4j.knowledge.entity.ProblemEntity;
+import com.maxkb4j.knowledge.vo.ProblemSimpleVO;
 
 import java.util.List;
 
@@ -23,11 +23,11 @@ public interface IParagraphInternalService extends IParagraphService, IService<P
 
     IPage<ParagraphEntity> pageParagraphByDocId(String docId, int current, int size, String title, String content);
 
-    List<ProblemEntity> getProblemsByParagraphId(String paragraphId);
+    List<ProblemSimpleVO> getProblemsByParagraphId(String paragraphId);
 
     Boolean batchGenerateRelated(String knowledgeId, String docId, GenerateProblemDTO dto);
 
     Boolean paragraphMigrate(String sourceKnowledgeId, String sourceDocId, String targetKnowledgeId, String targetDocId, List<String> paragraphIds);
 
-    boolean adjustPosition(String knowledgeId, String documentId, String paragraphId, Integer newPosition);
+    boolean adjustPosition(String knowledgeId, String documentId, String paragraphId, Integer targetIndex);
 }

@@ -46,6 +46,8 @@
             ph.title,
             ph.content,
             ph.position,
+            ph.document_id,
+            ph.knowledge_id,
             ph.is_active,
             doc."name" AS document_name,
             doc."hit_handling_method",
