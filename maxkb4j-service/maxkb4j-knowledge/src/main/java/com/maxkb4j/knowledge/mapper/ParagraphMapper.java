@@ -19,4 +19,5 @@ public interface ParagraphMapper extends BaseMapper<ParagraphEntity>{
     void updateStatusByDocIds(List<String> docIds, int type, int status,int up,int next);
 
     List<ParagraphEntity> listByStateIds(String docId,int fromIndex, List<String> stateList);
+    List<String> listParagraphIdsByStates(String docId,int fromIndex, List<String> stateList);
 }

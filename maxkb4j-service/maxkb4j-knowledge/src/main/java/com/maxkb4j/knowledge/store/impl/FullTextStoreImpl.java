@@ -155,7 +155,7 @@ public class FullTextStoreImpl extends BaseStoreImpl {
             double topScore = result.getFirst() == null ? 0 : result.getFirst().getScore();
             double maxScore = Math.max(topScore, SCORE_NORMALIZE_CEILING);
             return result.stream()
-                    .map(entity -> new TextChunkVO(entity.getParagraphId(), entity.getScore() / maxScore))
+                    .map(entity -> new TextChunkVO("", entity.getScore() / maxScore))
                     .filter(vo -> vo.getScore() >= request.getMinScore())
                     .toList();
         } catch (Exception e) {

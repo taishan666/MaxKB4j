@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface ProblemGenerateAssistant {
 
-    @SystemMessage("You are an expert at generating questions.")
+    @SystemMessage("你是一个问题生成助手，可以根据给定的内容生成相关的问题。")
     @UserMessage("""
              Generate {{n}} questions based on the content summary.
              These questions will be used to retrieve relevant documents.

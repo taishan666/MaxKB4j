@@ -75,4 +75,16 @@
             #{state}
         </foreach>
     </select>
+    <select id="listParagraphIdsByStates" resultType="java.lang.String">
+        SELECT
+        ID
+        FROM
+        paragraph
+        WHERE
+        document_id=#{docId}
+        AND SUBSTRING(status FROM #{fromIndex} FOR 1) IN
+        <foreach item="state" collection="stateList" open="(" separator="," close=")">
+            #{state}
+        </foreach>
+    </select>
 </mapper>

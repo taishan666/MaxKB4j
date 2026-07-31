@@ -1,4 +1,4 @@
-package com.maxkb4j.start.listener;
+package com.maxkb4j.knowledge.listener;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
@@ -40,13 +40,13 @@ public class GenerateProblemListener {
         List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, event.getKnowledgeId()).list();
         for (String docId : event.getDocumentIdList()) {
             try {
-                List<ParagraphEntity> paragraphs = paragraphService.listByStateIds(docId, 2, event.getStateList());
-                if (CollectionUtils.isNotEmpty(paragraphs)) {
+                List<String> paragraphIds = paragraphService.listParagraphIdsByStates(docId, 2, event.getStateList());
+                if (CollectionUtils.isNotEmpty(paragraphIds)) {
                     log.info("开始--->文档问题生成:{}", docId);
-                    List<String> paragraphIds = paragraphs.stream().map(ParagraphEntity::getId).toList();
                     //重置完成分段数量
                     paragraphService.updateStatusByIds(paragraphIds, 2, 1);
                     documentService.updateStatusById(docId, 2, 1);
+                    List<ParagraphEntity> paragraphs = paragraphService.listByIds(paragraphIds);
                     paragraphs.forEach(paragraph -> {
                         try {
                             problemService.generateRelated(chatModel, embeddingModel, event.getKnowledgeId(), docId, paragraph, knowledgeProblems, event.getNumber());

@@ -25,14 +25,31 @@
             </if>
         </where>
     </select>
-    <select id="getProblemsByParagraphId" resultType="com.maxkb4j.knowledge.entity.ProblemEntity">
+    <select id="getProblemsByParagraphIds" resultType="com.maxkb4j.knowledge.entity.ProblemEntity">
         SELECT
             P.ID,
             P."content"
         FROM
             problem_paragraph_mapping ppm
                 INNER  JOIN problem P ON P.ID = ppm.problem_id
-        WHERE ppm.paragraph_id =   #{paragraphId}
+        WHERE ppm.paragraph_id IN
+        <foreach item="paragraphId" collection="paragraphIds" open="(" separator="," close=")">
+            #{paragraphId}
+        </foreach>
+    </select>
+    <select id="getActivePPbyProblemIds" resultType="com.maxkb4j.knowledge.entity.ProblemParagraphEntity">
+        SELECT
+            ppm.knowledge_id,
+            ppm.paragraph_id,
+            ppm.problem_id
+        FROM
+            problem_paragraph_mapping ppm
+        LEFT JOIN paragraph P ON P.ID = ppm.paragraph_id
+        WHERE P.is_active = true
+        AND ppm.problem_id IN
+        <foreach item="problemId" collection="problemIds" open="(" separator="," close=")">
+            #{problemId}
+        </foreach>
     </select>
 
 </mapper>

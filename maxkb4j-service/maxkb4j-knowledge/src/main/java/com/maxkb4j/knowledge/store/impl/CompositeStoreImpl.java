@@ -127,7 +127,7 @@ public class CompositeStoreImpl extends BaseStoreImpl {
         Map<String, Double> maxScoreByParagraphId = new LinkedHashMap<>();
         for (List<TextChunkVO> hits : List.of(vectorHits, fullTextHits)) {
             for (TextChunkVO hit : hits) {
-                maxScoreByParagraphId.merge(hit.getParagraphId(), hit.getScore(), Math::max);
+                maxScoreByParagraphId.merge(hit.getSourceId(), hit.getScore(), Math::max);
             }
         }
         List<TextChunkVO> merged = new ArrayList<>(maxScoreByParagraphId.size());

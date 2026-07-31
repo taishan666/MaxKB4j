@@ -15,5 +15,11 @@ public interface ProblemParagraphMapper extends BaseMapper<ProblemParagraphEntit
 
     List<ProblemParagraphVO> getProblems(String knowledgeId, List<String>  docIds);
 
-    List<ProblemEntity> getProblemsByParagraphId(String paragraphId);
+    List<ProblemEntity> getProblemsByParagraphIds(List<String> paragraphIds);
+
+    default List<ProblemEntity> getProblemsByParagraphId(String id){
+        return getProblemsByParagraphIds(List.of(id));
+    }
+
+    List<ProblemParagraphEntity> getActivePPbyProblemIds(List<String> problemIds);
 }

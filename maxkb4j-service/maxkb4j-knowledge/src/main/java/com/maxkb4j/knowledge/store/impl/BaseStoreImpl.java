@@ -1,6 +1,7 @@
 package com.maxkb4j.knowledge.store.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
 import com.maxkb4j.knowledge.store.IDataStore;
@@ -77,7 +78,40 @@ public abstract class BaseStoreImpl implements IDataStore {
                 .maxResults(request.getTopK() * RECALL_MULTIPLIER)
                 .minScore(normalizedMinScore)
                 .build();
+    }
 
+    protected EmbeddingSearchRequest buildParagraphSearchRequest(SearchRequest request,Embedding queryEmbedding,List<String> excludeParagraphIds) {
+        Filter filter = metadataKey("knowledgeId").isIn(request.getKnowledgeIds());
+        if (CollectionUtils.isNotEmpty(request.getExcludeDocumentIds())) {
+            filter = filter.and(metadataKey("documentId").isNotIn(request.getExcludeDocumentIds()));
+        }
+        if (CollectionUtils.isNotEmpty(excludeParagraphIds)) {
+            filter = filter.and(metadataKey("paragraphId").isNotIn(excludeParagraphIds));
+        }
+        filter = filter.and(metadataKey("sourceType").isEqualTo(String.valueOf(SourceType.PARAGRAPH)));
+        // 归一化，langchain4j的搜索结果是归一化的
+        double normalizedMinScore = (request.getMinScore() + 1.0) / 2.0;
+        return EmbeddingSearchRequest.builder()
+                .filter(filter)
+                .query(request.getQuery().trim())
+                .queryEmbedding(queryEmbedding)
+                .maxResults(request.getTopK())
+                .minScore(normalizedMinScore)
+                .build();
+    }
+
+    protected EmbeddingSearchRequest buildProblemSearchRequest(SearchRequest request,Embedding queryEmbedding) {
+        Filter filter = metadataKey("knowledgeId").isIn(request.getKnowledgeIds());
+        filter = filter.and(metadataKey("sourceType").isEqualTo(String.valueOf(SourceType.PROBLEM)));
+        // 归一化，langchain4j的搜索结果是归一化的
+        double normalizedMinScore = (request.getMinScore() + 1.0) / 2.0;
+        return EmbeddingSearchRequest.builder()
+                .filter(filter)
+                .query(request.getQuery().trim())
+                .queryEmbedding(queryEmbedding)
+                .maxResults(request.getTopK())
+                .minScore(normalizedMinScore)
+                .build();
     }
 
     /**
@@ -96,7 +130,7 @@ public abstract class BaseStoreImpl implements IDataStore {
 
         Map<String, Double> totalScoreByParagraphId = new HashMap<>();
         for (TextChunkVO result : raw) {
-            totalScoreByParagraphId.merge(result.getParagraphId(), result.getScore(), Double::sum);
+            totalScoreByParagraphId.merge(result.getSourceId(), result.getScore(), Double::sum);
         }
 
         List<TextChunkVO> sorted = new ArrayList<>(raw);
@@ -105,7 +139,7 @@ public abstract class BaseStoreImpl implements IDataStore {
         List<TextChunkVO> distinct = new ArrayList<>();
         Set<String> seen = new HashSet<>();
         for (TextChunkVO item : sorted) {
-            if (seen.add(item.getParagraphId())) {
+            if (seen.add(item.getSourceId())) {
                 distinct.add(item);
             }
         }
@@ -115,8 +149,8 @@ public abstract class BaseStoreImpl implements IDataStore {
             if (scoreCompare != 0) {
                 return scoreCompare;
             }
-            double totalA = totalScoreByParagraphId.getOrDefault(a.getParagraphId(), 0.0);
-            double totalB = totalScoreByParagraphId.getOrDefault(b.getParagraphId(), 0.0);
+            double totalA = totalScoreByParagraphId.getOrDefault(a.getSourceId(), 0.0);
+            double totalB = totalScoreByParagraphId.getOrDefault(b.getSourceId(), 0.0);
             return Double.compare(totalB, totalA);
         });
 

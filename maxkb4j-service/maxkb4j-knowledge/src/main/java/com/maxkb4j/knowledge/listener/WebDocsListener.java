@@ -1,4 +1,4 @@
-package com.maxkb4j.start.listener;
+package com.maxkb4j.knowledge.listener;
 
 import com.maxkb4j.knowledge.event.CreateWebDocsEvent;
 import com.maxkb4j.knowledge.consts.KnowledgeType;

@@ -1,12 +1,11 @@
-package com.maxkb4j.start.listener;
+package com.maxkb4j.knowledge.listener;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.event.DocumentIndexEvent;
-import com.maxkb4j.knowledge.event.ParagraphIndexEvent;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
 import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
+import com.maxkb4j.knowledge.service.impl.ProblemServiceImpl;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,11 +18,12 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DataIndexListener {
+public class DocumentIndexListener {
 
     private final KnowledgeModelService knowledgeModelService;
     private final DocumentServiceImpl documentService;
     private final ParagraphServiceImpl paragraphService;
+    private final ProblemServiceImpl problemService;
 
     @Async
     @EventListener
@@ -33,8 +33,8 @@ public class DataIndexListener {
         documentService.updateStatusByIds(event.getDocIds(), 1, 0);
         for (String docId : event.getDocIds()) {
             try {
-                List<ParagraphEntity> paragraphs = paragraphService.listByStateIds(docId, 1, event.getStateList());
-                embedBatch(embeddingModel, docId, paragraphs);
+                List<String> paragraphIds = paragraphService.listParagraphIdsByStates(docId, 1, event.getStateList());
+                embedBatch(embeddingModel,event.getKnowledgeId(), docId, paragraphIds);
             } catch (Exception e) {
                 log.error("文档索引失败: {}, 错误: {}", docId, e.getMessage(), e);
                 // 单个文档失败不影响其他文档继续处理
@@ -42,36 +42,21 @@ public class DataIndexListener {
         }
     }
 
-    @Async
-    @EventListener
-    public void handleEvent(ParagraphIndexEvent event) {
-        log.info("收到段落向量化事件消息: {}", event.getParagraphIds());
-        List<ParagraphEntity> paragraphs = paragraphService.listByIds(event.getParagraphIds());
-        EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
-        try {
-            embedBatch(embeddingModel, event.getDocId(), paragraphs);
-        } catch (Exception e) {
-            log.error("段落索引失败: docId={}, paragraphIds={}, 错误: {}",
-                event.getDocId(), event.getParagraphIds(), e.getMessage(), e);
-        }
-    }
-
     /**
      * Batch embed paragraphs with optimized processing
      */
-    private void embedBatch(EmbeddingModel embeddingModel, String docId, List<ParagraphEntity> paragraphs) {
+    private void embedBatch(EmbeddingModel embeddingModel,String knowledgeId,  String docId, List<String> paragraphIds) {
         documentService.updateStatusById(docId, 1, 0);
 
-        if (CollectionUtils.isNotEmpty(paragraphs)) {
+        if (CollectionUtils.isNotEmpty(paragraphIds)) {
             log.info("开始--->文档索引: {}", docId);
             documentService.updateStatusById(docId, 1, 1);
 
-            List<String> paragraphIds = paragraphs.stream().map(ParagraphEntity::getId).toList();
             paragraphService.updateStatusByIds(paragraphIds, 1, 0);
 
             try {
                 // Use batch indexing instead of processing one by one
-                paragraphService.createIndexBatch(paragraphs, embeddingModel);
+                paragraphService.createIndexBatch(knowledgeId,paragraphIds, embeddingModel);
 
                 // Update all paragraph statuses to completed
                 paragraphService.updateStatusByIds(paragraphIds, 1, 2);
@@ -79,7 +64,7 @@ public class DataIndexListener {
                 // Update document status
                 documentService.updateStatusMetaById(docId);
 
-                log.info("结束--->文档索引: {} (处理了 {} 个段落)", docId, paragraphs.size());
+                log.info("结束--->文档索引: {} (处理了 {} 个段落)", docId, paragraphIds.size());
 
             } catch (Exception e) {
                 log.error("文档索引失败: {}, 错误: {}", docId, e.getMessage(), e);
@@ -90,5 +75,6 @@ public class DataIndexListener {
 
         documentService.updateStatusById(docId, 1, 2);
     }
+
 
 }

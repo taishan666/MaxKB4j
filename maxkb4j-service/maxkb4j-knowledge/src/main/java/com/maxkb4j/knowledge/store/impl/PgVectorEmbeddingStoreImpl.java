@@ -3,9 +3,11 @@ package com.maxkb4j.knowledge.store.impl;
 import com.maxkb4j.common.util.BatchUtil;
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
+import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
+import com.maxkb4j.knowledge.service.impl.ProblemParagraphServiceImpl;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
@@ -27,11 +29,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metadataKey;
 
@@ -56,6 +60,7 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
     private final DataSource dataSource;
     /** 延迟解析以避免与 ParagraphService 之间的构造期循环依赖，仅在 search() 中使用。 */
     private final ObjectProvider<ParagraphServiceImpl> paragraphServiceProvider;
+    private final ObjectProvider<ProblemParagraphServiceImpl> problemParagraphServiceProvider;
 
     /**
      * 按 embedding 维度缓存 PgVectorEmbeddingStore 实例。
@@ -126,8 +131,9 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
                 List<TextSegment> textSegments = batch.stream().map(entity -> {
                     Metadata metadata = new Metadata();
                     metadata.put("knowledgeId", entity.getKnowledgeId());
-                    metadata.put("documentId", entity.getDocumentId());
-                    metadata.put("paragraphId", entity.getParagraphId());
+                    if (entity.getDocumentId() != null){
+                        metadata.put("documentId", entity.getDocumentId());
+                    }
                     metadata.put("sourceId", entity.getSourceId());
                     metadata.put("sourceType", entity.getSourceType());
                     return TextSegment.from(entity.getContent().trim(), metadata);
@@ -184,7 +190,7 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
             return;
         }
         Filter filter = metadataKey("knowledgeId").isEqualTo(knowledgeId)
-                .and(metadataKey("sourceType").isEqualTo(SourceType.PROBLEM))
+                .and(metadataKey("sourceType").isEqualTo(String.valueOf(SourceType.PROBLEM)))
                 .and(metadataKey("sourceId").isIn(problemIds));
         removeAllStores(filter);
     }
@@ -240,14 +246,26 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         Response<Embedding> res = embeddingModel.embed(request.getQuery().trim());
         Embedding queryEmbedding = res.content();
         List<String> excludeParagraphIds = resolveExcludeParagraphIds(request, paragraphServiceProvider.getObject());
-        EmbeddingSearchRequest searchRequest = buildSearchRequest(request, queryEmbedding,excludeParagraphIds);
+        EmbeddingSearchRequest searchRequest = buildParagraphSearchRequest(request, queryEmbedding,excludeParagraphIds);
         EmbeddingStore<TextSegment> store = get(queryEmbedding.dimension());
         EmbeddingSearchResult<TextSegment> searchResult = store.search(searchRequest);
-        List<TextChunkVO> results = searchResult.matches().stream().map(match -> {
+        List<TextChunkVO> paragraphResults = searchResult.matches().stream().map(match -> {
             TextSegment segment = match.embedded();
             double cosineSimilarity = 2.0 * match.score() - 1.0;
-            return new TextChunkVO(segment.metadata().getString("paragraphId"), cosineSimilarity);
+            return new TextChunkVO(segment.metadata().getString("sourceId"), cosineSimilarity);
         }).toList();
+        List<TextChunkVO> results = new ArrayList<>(paragraphResults);
+        EmbeddingSearchResult<TextSegment> searchResult1 = store.search(buildProblemSearchRequest(request, queryEmbedding));
+        List<TextChunkVO> results1 = searchResult1.matches().stream().map(match -> {
+            TextSegment segment = match.embedded();
+            double cosineSimilarity = 2.0 * match.score() - 1.0;
+            return new TextChunkVO(segment.metadata().getString("sourceId"), cosineSimilarity);
+        }).toList();
+        Map<String, Double> problemMap = results1.stream().collect(Collectors.toMap(TextChunkVO::getSourceId, TextChunkVO::getScore));
+        List<ProblemParagraphEntity> problemParagraphs = problemParagraphServiceProvider.getObject().getActivePPbyProblemIds(results1.stream().map(TextChunkVO::getSourceId).toList());
+        for (ProblemParagraphEntity problemParagraph : problemParagraphs) {
+            results.add(new TextChunkVO(problemParagraph.getParagraphId(), problemMap.get(problemParagraph.getProblemId())));
+        }
         return dedupAndRank(results, request.getTopK());
     }
 

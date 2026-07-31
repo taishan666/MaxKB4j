@@ -57,52 +57,11 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
         baseMapper.updateStatusByIds(paragraphIds,type,status,type-1,type+1);
     }
 
-
-    public void createIndex(ParagraphEntity paragraph, EmbeddingModel embeddingModel) {
-        if (paragraph != null) {
-            //清除之前向量
-            compositeStore.deleteByParagraphId(paragraph.getKnowledgeId(),paragraph.getId());
-            List<EmbeddingEntity> embeddingEntities = new ArrayList<>();
-            log.info("开始---->向量化段落:{}", paragraph.getId());
-            String title = paragraph.getTitle() != null ? paragraph.getTitle() : "";
-            String content = paragraph.getContent() != null ? paragraph.getContent() : "";
-            EmbeddingEntity paragraphEmbed = EmbeddingEntity.builder()
-                    .knowledgeId(paragraph.getKnowledgeId())
-                    .documentId(paragraph.getDocumentId())
-                    .paragraphId(paragraph.getId())
-                    .sourceId(paragraph.getId())
-                    .sourceType(SourceType.PARAGRAPH)
-                    .content(title + content)
-                    .isActive(paragraph.getIsActive())
-                    .build();
-            embeddingEntities.add(paragraphEmbed);
-            List<ProblemEntity> problems=problemParagraphService.getProblemsByParagraphId(paragraph.getId());
-            for (ProblemEntity problem : problems) {
-                EmbeddingEntity problemEmbed = EmbeddingEntity.builder()
-                        .knowledgeId(paragraph.getKnowledgeId())
-                        .documentId(paragraph.getDocumentId())
-                        .paragraphId(paragraph.getId())
-                        .sourceId(problem.getId())
-                        .sourceType(SourceType.PROBLEM)
-                        .content(content)
-                        .isActive(paragraph.getIsActive())
-                        .build();
-                embeddingEntities.add(problemEmbed);
-            }
-            compositeStore.upsert(embeddingModel,embeddingEntities);
-            log.info("结束---->向量化段落:{}", paragraph.getId());
-        }
-    }
-    public void createIndexBatch1(List<ParagraphEntity> paragraphs, EmbeddingModel embeddingModel) {
-        for (ParagraphEntity paragraph : paragraphs) {
-            createIndex(paragraph, embeddingModel);
-        }
-    }
-
     /**
      * Batch create index for multiple paragraphs with optimized processing
      */
-    public void createIndexBatch(List<ParagraphEntity> paragraphs, EmbeddingModel embeddingModel) {
+    public void createIndexBatch(String knowledgeId,List<String> paragraphIds, EmbeddingModel embeddingModel) {
+        List<ParagraphEntity> paragraphs = this.listByIds(paragraphIds);
         if (CollectionUtils.isEmpty(paragraphs)) {
             return;
         }
@@ -111,12 +70,10 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
 
         // Collect all embedding entities for batch processing
         List<EmbeddingEntity> allEmbeddingEntities = new ArrayList<>();
-
+        // Clear previous vectors
+        compositeStore.deleteByParagraphIds(knowledgeId, paragraphIds);
         for (ParagraphEntity paragraph : paragraphs) {
             if (paragraph == null) continue;
-
-            // Clear previous vectors
-            compositeStore.deleteByParagraphId(paragraph.getKnowledgeId(), paragraph.getId());
 
             String title = paragraph.getTitle() != null ? paragraph.getTitle() : "";
             String content = paragraph.getContent() != null ? paragraph.getContent() : "";
@@ -129,10 +86,9 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
                     .sourceId(paragraph.getId())
                     .sourceType(SourceType.PARAGRAPH)
                     .content(title + content)
-                    .isActive(paragraph.getIsActive())
                     .build();
             allEmbeddingEntities.add(paragraphEmbed);
-
+/*
             // Create problem embeddings
             List<ProblemEntity> problems = problemParagraphService.getProblemsByParagraphId(paragraph.getId());
             for (ProblemEntity problem : problems) {
@@ -146,7 +102,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
                         .isActive(paragraph.getIsActive())
                         .build();
                 allEmbeddingEntities.add(problemEmbed);
-            }
+            }*/
         }
 
         // Batch insert all embeddings
@@ -367,15 +323,8 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
     //type 1 向量化 2 问题生成 3 网络同步
-    public List<ParagraphEntity> listByStateIds(String docId,int type, List<String> stateList) {
-        if (type==1){
-            return baseMapper.listByStateIds(docId, 3,stateList);
-        }else if (type==2){
-            return baseMapper.listByStateIds(docId, 2,stateList);
-        }else {
-            return baseMapper.listByStateIds(docId, 1,stateList);
-        }
-
+    public List<String> listParagraphIdsByStates(String docId,int type, List<String> stateList) {
+        return baseMapper.listParagraphIdsByStates(docId, (4-type),stateList);
     }
 
     @Override

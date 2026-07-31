@@ -45,13 +45,13 @@ public class ParagraphRetriever implements IRetrieveService {
         if (CollectionUtils.isEmpty(chunks)) {
             return Collections.emptyList();
         }
-        List<String> paragraphIds = chunks.stream().map(TextChunkVO::getParagraphId).toList();
+        List<String> paragraphIds = chunks.stream().map(TextChunkVO::getSourceId).toList();
         Map<String, ParagraphRagVO> paragraphMap = paragraphMapper.retrievalParagraph(paragraphIds).stream()
                 .collect(Collectors.toMap(ParagraphRagVO::getId, Function.identity()));
         // 按检索结果的原始顺序回填得分并组装结果
         return chunks.stream()
                 .map(chunk -> {
-                    ParagraphRagVO paragraph = paragraphMap.get(chunk.getParagraphId());
+                    ParagraphRagVO paragraph = paragraphMap.get(chunk.getSourceId());
                     if (paragraph == null) {
                         return null;
                     }

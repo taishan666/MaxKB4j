@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TextChunkVO {
-    private String paragraphId;
+    private String sourceId;
     private Double score;
 }
