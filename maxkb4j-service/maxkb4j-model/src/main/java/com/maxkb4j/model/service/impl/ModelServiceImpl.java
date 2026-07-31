@@ -282,19 +282,17 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     }
 
     @Override
-    public String getSafeModelId(String modelId,ModelType modelType) {
-        if (modelId == null || modelId.isEmpty()) {
-            return  this.getLastModelId(modelType);
+    public String getSafeModelId(String modelId, ModelType modelType) {
+        if (StringUtils.isNotBlank(modelId)) {
+            LambdaQueryWrapper<ModelEntity> wrapper = Wrappers.lambdaQuery();
+            wrapper.select(ModelEntity::getId);
+            wrapper.eq(ModelEntity::getId, modelId);
+            applyDataPermission(wrapper);
+            if (this.getOne(wrapper) != null) {
+                return modelId;
+            }
         }
-        LambdaQueryWrapper<ModelEntity> wrapper= new LambdaQueryWrapper<>();
-        wrapper.eq(ModelEntity::getId, modelId);
-        applyDataPermission(wrapper);
-        long count =this.count(wrapper);
-        if (count > 0){
-            return modelId;
-        }else {
-            return  this.getLastModelId(modelType);
-        }
+        return getLastModelId(modelType);
     }
 
 

@@ -151,8 +151,9 @@ public class KnowledgeImportHandler {
         Integer fileCountLimit = knowledgeJson.getInteger("fileCountLimit");
         knowledge.setFileCountLimit(Objects.requireNonNullElse(fileCountLimit, 50));
         
-        // 设置embedding_model_id，默认为向量模型的第一个
+
         String embeddingModelId = knowledgeJson.getString("embeddingModelId");
+        // 设置embedding_model_id，默认为向量模型的第一个
         knowledge.setEmbeddingModelId(modelService.getSafeModelId(embeddingModelId,ModelType.EMBEDDING));
         knowledge.setFolderId("default");
         

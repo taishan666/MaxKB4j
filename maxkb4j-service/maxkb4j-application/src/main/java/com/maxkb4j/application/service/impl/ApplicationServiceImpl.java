@@ -20,13 +20,11 @@ import com.maxkb4j.application.service.*;
 import com.maxkb4j.application.util.ResourceUtil;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
+import com.maxkb4j.application.vo.KnowledgeVO;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.context.UserContext;
-import com.maxkb4j.application.vo.KnowledgeVO;
-import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
-import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.knowledge.dto.KnowledgeSimple;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
@@ -42,9 +40,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -68,10 +64,10 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationVersionService applicationVersionService;
     private final IUserResourcePermissionService userResourcePermissionService;
-    private final IToolService toolService;
     private final ApplicationResourceMappingService applicationResourceMappingService;
     private final ApplicationChatShareLinkService applicationChatShareLinkService;
     private final ApplicationLongTermMemoryServiceImpl applicationLongTermMemoryService;
+    private final IToolService toolService;
 
     private static final Cache<String, ApplicationVO> PUBLISHED_APP_CACHE = Caffeine.newBuilder()
             .initialCapacity(64)
@@ -173,33 +169,32 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         return application;
     }
 
-    @Transactional
-    public boolean appImport(InputStream inputStream) {
-        MaxKb4J maxKb4j = ResourceUtil.parseMk(inputStream);
-        return saveMk(maxKb4j);
+    public boolean saveMk(MaxKb4J maxKb4j) {
+        if (maxKb4j == null) {
+            return false;
+        }
+        Date now = new Date();
+        ApplicationEntity application = maxKb4j.getApplication();
+        application.setId(null);
+        application.setIsPublish(false);
+        application.setCreateTime(now);
+        application.setUpdateTime(now);
+        application.setUserId(userContext.getUserId());
+        List<ToolDTO> toolList = maxKb4j.getToolList();
+        if (!CollectionUtils.isEmpty(toolList)) {
+            toolList.forEach(e -> {
+                e.setUserId(userContext.getUserId());
+                e.setIsActive(true);
+            });
+            toolService.saveOrUpdateBatch(toolList);
+            List<String> toolIds = toolList.stream().map(ToolDTO::getId).toList();
+            application.setToolIds(toolIds);
+        }
+        return this.saveApp(application);
     }
 
-    /**
-     * 从上传文件导入应用，校验文件格式后委托给 {@link #appImport(InputStream)}。
-     *
-     * @param file 上传的 .mk 文件
-     * @return 是否导入成功
-     */
     @Transactional
-    public boolean appImport(MultipartFile file) {
-        String filename = file.getOriginalFilename();
-        if (filename == null || !filename.endsWith(".mk")) {
-            throw new ApiException(I18nUtil.get("application.file.format.error"));
-        }
-        try {
-            return appImport(file.getInputStream());
-        } catch (java.io.IOException e) {
-            throw new ApiException(e.getMessage());
-        }
-    }
-
-    @Transactional
-    protected boolean saveApp(ApplicationEntity application) {
+    public boolean saveApp(ApplicationEntity application) {
         this.save(application);
         ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
         accessToken.setApplicationId(application.getId());
@@ -405,30 +400,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> BeanUtil.copy(e, ApplicationListVO.class)).toList();
     }
 
-    @Transactional
-    boolean saveMk(MaxKb4J maxKb4j) {
-        if (maxKb4j == null) {
-            return false;
-        }
-        Date now = new Date();
-        ApplicationEntity application = maxKb4j.getApplication();
-        application.setId(null);
-        application.setIsPublish(false);
-        application.setCreateTime(now);
-        application.setUpdateTime(now);
-        application.setUserId(userContext.getUserId());
-        List<ToolDTO> toolList = maxKb4j.getToolList();
-        if (!CollectionUtils.isEmpty(toolList)) {
-            toolList.forEach(e -> {
-                e.setUserId(userContext.getUserId());
-                e.setIsActive(true);
-            });
-            toolService.saveOrUpdateBatch(toolList);
-            List<String> toolIds = toolList.stream().map(ToolDTO::getId).toList();
-            application.setToolIds(toolIds);
-        }
-        return this.saveApp(application);
-    }
+
 
     @Transactional
     public boolean deleteBatch(List<String> idList) {

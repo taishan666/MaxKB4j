@@ -8,9 +8,7 @@ import com.maxkb4j.application.dto.ApplicationQuery;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -24,10 +22,6 @@ public interface IApplicationInternalService extends IApplicationService, IServi
     boolean deleteByAppId(String appId);
 
     ApplicationEntity createApp(ApplicationDTO application);
-
-    boolean appImport(InputStream inputStream);
-
-    boolean appImport(MultipartFile file);
 
     ApplicationVO getDetail(String id);
 

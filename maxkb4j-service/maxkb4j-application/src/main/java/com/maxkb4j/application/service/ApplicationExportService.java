@@ -6,12 +6,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.dto.MaxKb4J;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.service.impl.ApplicationServiceImpl;
+import com.maxkb4j.application.util.ResourceUtil;
+import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.workflow.enums.NodeType;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,9 +29,30 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Service
 public class ApplicationExportService {
-
     private final ApplicationServiceImpl applicationService;
     private final IToolService toolService;
+
+    /**
+     * 从上传文件导入应用。
+     *
+     * @param file 上传的 .mk 文件
+     * @return 是否导入成功
+     */
+    @Transactional
+    public boolean appImport(MultipartFile file) {
+        String filename = file.getOriginalFilename();
+        if (filename == null || !filename.endsWith(".mk")) {
+            throw new ApiException(I18nUtil.get("application.file.format.error"));
+        }
+        try {
+            MaxKb4J maxKb4j = ResourceUtil.parseMk(file.getInputStream());
+            return applicationService.saveMk(maxKb4j);
+        } catch (IOException e) {
+            throw new ApiException(e.getMessage());
+        }
+    }
+
+
 
     public void appExport(String id, HttpServletResponse response) throws IOException {
         ApplicationEntity app = applicationService.getById(id);
