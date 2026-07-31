@@ -194,8 +194,15 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
     }
 
     public List<String> getTargetIds(String authTargetType, String userId) {
-        List<UserResourcePermissionEntity> userResourcePermissions = this.lambdaQuery().select(UserResourcePermissionEntity::getTargetId, UserResourcePermissionEntity::getPermissionList).eq(UserResourcePermissionEntity::getUserId, userId).eq(UserResourcePermissionEntity::getAuthTargetType, authTargetType).list();
-        return userResourcePermissions.stream().filter(permission -> CollectionUtils.isNotEmpty(permission.getPermissionList()) && permission.getPermissionList().contains(Permission.VIEW)).map(UserResourcePermissionEntity::getTargetId).toList();
+        List<UserResourcePermissionEntity> userResourcePermissions = this.lambdaQuery()
+                .select(UserResourcePermissionEntity::getTargetId, UserResourcePermissionEntity::getPermissionList)
+                .eq(UserResourcePermissionEntity::getUserId, userId)
+                .eq(UserResourcePermissionEntity::getAuthTargetType, authTargetType)
+                .list();
+        return userResourcePermissions.stream()
+                .filter(permission -> CollectionUtils.isNotEmpty(permission.getPermissionList()) && permission.getPermissionList().contains(Permission.VIEW))
+                .map(UserResourcePermissionEntity::getTargetId)
+                .toList();
     }
 
 

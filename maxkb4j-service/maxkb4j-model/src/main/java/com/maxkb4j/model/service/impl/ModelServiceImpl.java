@@ -15,6 +15,7 @@ import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DataMaskUtil;
 import com.maxkb4j.model.entity.ModelEntity;
+import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.registry.ModelProviderRegistry;
 import com.maxkb4j.model.enums.ModelStatus;
 import com.maxkb4j.model.mapper.ModelMapper;
@@ -224,11 +225,11 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
             wrapper.last(" limit 0");
             return;
         }
-        if (!roles.contains(RoleType.USER)) {
+        if (roles.contains(RoleType.ADMIN)) {
             return;
         }
         List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.MODEL, loginId);
-        if (org.springframework.util.CollectionUtils.isEmpty(targetIds)) {
+        if (CollectionUtils.isEmpty(targetIds)) {
             wrapper.last(" limit 0");
         } else {
             wrapper.in(ModelEntity::getId, targetIds);
@@ -270,14 +271,30 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     }
 
     @Override
-    public String getLastModelId(String modelType,String userId) {
-        ModelEntity embeddingModel = this.lambdaQuery()
-                .eq(ModelEntity::getModelType, modelType)
-                .eq(ModelEntity::getUserId, userId)
-                .orderByDesc(ModelEntity::getCreateTime)
-                .last("limit 1")
-                .one();
+    public String getLastModelId(ModelType modelType) {
+        LambdaQueryWrapper<ModelEntity> wrapper= new LambdaQueryWrapper<>();
+        wrapper.eq(ModelEntity::getModelType, modelType.getKey());
+        applyDataPermission(wrapper);
+        wrapper.orderByDesc(ModelEntity::getCreateTime);
+        wrapper.last("limit 1");
+        ModelEntity embeddingModel = this.getOne(wrapper);
         return embeddingModel != null ? embeddingModel.getId() : null;
+    }
+
+    @Override
+    public String getSafeModelId(String modelId,ModelType modelType) {
+        if (modelId == null || modelId.isEmpty()) {
+            return  this.getLastModelId(modelType);
+        }
+        LambdaQueryWrapper<ModelEntity> wrapper= new LambdaQueryWrapper<>();
+        wrapper.eq(ModelEntity::getId, modelId);
+        applyDataPermission(wrapper);
+        long count =this.count(wrapper);
+        if (count > 0){
+            return modelId;
+        }else {
+            return  this.getLastModelId(modelType);
+        }
     }
 
 
