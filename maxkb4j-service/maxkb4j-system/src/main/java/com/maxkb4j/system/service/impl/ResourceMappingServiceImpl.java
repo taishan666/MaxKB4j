@@ -18,6 +18,7 @@ import com.maxkb4j.system.mapper.UserMapper;
 import com.maxkb4j.system.service.IResourceMappingInternalService;
 import com.maxkb4j.system.strategy.SourceResourceResolver;
 import com.maxkb4j.system.vo.ResourceUseVO;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,14 @@ import java.util.stream.Collectors;
 public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMapper, ResourceMappingEntity> implements IResourceMappingInternalService {
 
     private final UserMapper userMapper;
-    private final Map<String, SourceResourceResolver> resolverMap;
+    private final List<SourceResourceResolver> resolvers;
+    private Map<String, SourceResourceResolver> resolverMap;
+
+    @PostConstruct
+    private void initResolverMap() {
+        this.resolverMap = resolvers.stream()
+                .collect(Collectors.toMap(SourceResourceResolver::resourceType, Function.identity()));
+    }
 
     @Transactional
     @Override
