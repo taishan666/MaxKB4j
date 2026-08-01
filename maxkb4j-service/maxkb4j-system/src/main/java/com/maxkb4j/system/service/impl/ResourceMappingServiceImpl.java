@@ -72,11 +72,13 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
     }
 
 
-    public IPage<ResourceUseVO> selectPage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType) {
+    @Override
+    public IPage<ResourceUseVO> selectDependOnPage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType) {
         return doPage(resourceType, resourceId, current, size, resourceName, userName, sourceType, Direction.TARGET_TO_SOURCE);
     }
 
-    public IPage<ResourceUseVO> selectMappingResourcePage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType) {
+    @Override
+    public IPage<ResourceUseVO> selectBeDependedOnPage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType) {
         return doPage(resourceType, resourceId, current, size, resourceName, userName, sourceType, Direction.SOURCE_TO_TARGET);
     }
 

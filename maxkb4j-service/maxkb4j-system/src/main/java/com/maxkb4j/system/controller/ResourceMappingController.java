@@ -24,22 +24,6 @@ public class ResourceMappingController {
     private final IResourceMappingInternalService resourceMappingService;
 
     /**
-     * 获取资源被依赖关联的资源
-     *
-     * @param resourceType
-     * @param resourceId
-     * @param current
-     * @param size
-     * @param resourceName
-     * @param userName
-     * @param sourceType
-     * @return
-     */
-    @GetMapping("/resource_mapping/{resourceType}/{resourceId}/{current}/{size}")
-    public R<IPage<ResourceUseVO>> resourceMappingKnowledgePage(@PathVariable String resourceType, @PathVariable String resourceId, @PathVariable int current, @PathVariable int size, String resourceName, String userName, String[] sourceType) {
-        return R.data(resourceMappingService.selectPage(resourceType, resourceId, current, size, resourceName, userName, sourceType));
-    }
-    /**
      * 获取资源依赖关联的资源
      *
      * @param resourceType
@@ -52,8 +36,26 @@ public class ResourceMappingController {
      * @return
      */
     @GetMapping("/mapping_resource/{resourceType}/{resourceId}/{current}/{size}")
-    public R<IPage<ResourceUseVO>> mappingResourceKnowledgePage(@PathVariable String resourceType, @PathVariable String resourceId, @PathVariable int current, @PathVariable int size, String resourceName, String userName, String[] sourceType) {
-        return R.data(resourceMappingService.selectMappingResourcePage(resourceType, resourceId, current, size, resourceName, userName, sourceType));
+    public R<IPage<ResourceUseVO>> mappingResourcePage(@PathVariable String resourceType, @PathVariable String resourceId, @PathVariable int current, @PathVariable int size, String resourceName, String userName, String[] sourceType) {
+        return R.data(resourceMappingService.selectDependOnPage(resourceType, resourceId, current, size, resourceName, userName, sourceType));
+    }
+
+
+    /**
+     * 获取资源被依赖关联的资源
+     *
+     * @param resourceType
+     * @param resourceId
+     * @param current
+     * @param size
+     * @param resourceName
+     * @param userName
+     * @param sourceType
+     * @return
+     */
+    @GetMapping("/resource_mapping/{resourceType}/{resourceId}/{current}/{size}")
+    public R<IPage<ResourceUseVO>> resourceMappingPage(@PathVariable String resourceType, @PathVariable String resourceId, @PathVariable int current, @PathVariable int size, String resourceName, String userName, String[] sourceType) {
+        return R.data(resourceMappingService.selectBeDependedOnPage(resourceType, resourceId, current, size, resourceName, userName, sourceType));
     }
 
 }

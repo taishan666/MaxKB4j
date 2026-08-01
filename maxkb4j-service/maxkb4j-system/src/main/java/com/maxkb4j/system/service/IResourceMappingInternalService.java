@@ -14,7 +14,7 @@ import com.maxkb4j.system.vo.ResourceUseVO;
  */
 public interface IResourceMappingInternalService extends IResourceMappingService, IService<ResourceMappingEntity> {
 
-    IPage<ResourceUseVO> selectPage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType);
+    IPage<ResourceUseVO> selectDependOnPage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType);
 
-    IPage<ResourceUseVO> selectMappingResourcePage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType);
+    IPage<ResourceUseVO> selectBeDependedOnPage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType);
 }
