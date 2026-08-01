@@ -32,7 +32,7 @@ public class ModelSourceResolver implements SourceResourceResolver {
                 .in(userIdFilter != null, ModelEntity::getUserId, userIdFilter)
                 .in(ModelEntity::getId, ids));
         return list.stream()
-                .map(e -> new SourceResource(e.getId(), e.getName(), "", e.getProvider(), e.getModelType(), e.getUserId()))
+                .map(e -> new SourceResource(e.getId(), e.getName(), "", e.getProvider(), ResourceType.MODEL, e.getUserId()))
                 .toList();
     }
 }

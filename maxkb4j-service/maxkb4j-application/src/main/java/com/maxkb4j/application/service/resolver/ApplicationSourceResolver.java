@@ -32,7 +32,7 @@ public class ApplicationSourceResolver implements SourceResourceResolver {
                 .in(userIdFilter != null, ApplicationEntity::getUserId, userIdFilter)
                 .in(ApplicationEntity::getId, ids));
         return apps.stream()
-                .map(e -> new SourceResource(e.getId(), e.getName(), e.getDesc(), e.getIcon(), e.getType(), e.getUserId()))
+                .map(e -> new SourceResource(e.getId(), e.getName(), e.getDesc(), e.getIcon(), ResourceType.APPLICATION, e.getUserId()))
                 .toList();
     }
 }

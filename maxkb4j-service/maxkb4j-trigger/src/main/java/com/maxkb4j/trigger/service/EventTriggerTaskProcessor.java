@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -49,9 +50,9 @@ public class EventTriggerTaskProcessor {
         List<ToolTaskVO> toolsList = toolIds.isEmpty() ? List.of() : BeanUtil.copyList(toolService.listDtoByIds(toolIds), ToolTaskVO.class);
 
         Map<String, ApplicationTaskVO> appMap = appsList.stream()
-                .collect(Collectors.toMap(ApplicationTaskVO::getId, a -> a));
+                .collect(Collectors.toMap(ApplicationTaskVO::getId, Function.identity()));
         Map<String, ToolTaskVO> toolMap = toolsList.stream()
-                .collect(Collectors.toMap(ToolTaskVO::getId, t -> t));
+                .collect(Collectors.toMap(ToolTaskVO::getId, Function.identity()));
 
         List<EventTriggerTaskVO> result = tasks.stream()
                 .map(task -> enrichTask(task, appMap, toolMap))

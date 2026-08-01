@@ -32,7 +32,7 @@ public class ToolSourceResolver implements SourceResourceResolver {
                 .in(userIdFilter != null, ToolEntity::getUserId, userIdFilter)
                 .in(ToolEntity::getId, ids));
         return tools.stream()
-                .map(e -> new SourceResource(e.getId(), e.getName(), e.getDesc(), e.getIcon(), e.getToolType(), e.getUserId()))
+                .map(e -> new SourceResource(e.getId(), e.getName(), e.getDesc(), e.getIcon(), ResourceType.TOOL, e.getUserId()))
                 .toList();
     }
 }

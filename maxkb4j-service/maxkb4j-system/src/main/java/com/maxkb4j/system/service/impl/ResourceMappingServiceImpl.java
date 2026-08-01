@@ -41,8 +41,7 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
 
     @PostConstruct
     private void initResolverMap() {
-        this.resolverMap = resolvers.stream()
-                .collect(Collectors.toMap(SourceResourceResolver::resourceType, Function.identity()));
+        this.resolverMap = resolvers.stream().collect(Collectors.toMap(SourceResourceResolver::resourceType, Function.identity()));
     }
 
     @Transactional
@@ -127,7 +126,7 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
                         .in(UserEntity::getId, allUserIds)).stream()
                 .collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
         Map<String, SourceResource> resourceMaps = filterSources.stream()
-                .collect(Collectors.toMap(SourceResource::getId, e -> e));
+                .collect(Collectors.toMap(SourceResource::getId, Function.identity()));
         return PageUtil.copy(resourcePage, resource -> {
             ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
             SourceResource sourceResource = resourceMaps.get(direction.otherIdGetter.apply(resource));
