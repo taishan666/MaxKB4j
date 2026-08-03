@@ -8,9 +8,10 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.ResourceType;
-import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.core.support.permission.DataPermissionScope;
+import com.maxkb4j.core.support.permission.DataPermissionSupport;
 import com.maxkb4j.knowledge.dto.KnowledgeQuery;
 import com.maxkb4j.knowledge.dto.KnowledgeSimple;
 import com.maxkb4j.knowledge.dto.WebKnowledgeDTO;
@@ -29,7 +30,6 @@ import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.system.dto.TargetResource;
 import com.maxkb4j.system.service.IResourceMappingService;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
-import com.maxkb4j.user.service.IUserService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,8 +58,8 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
     private final ParagraphMapper paragraphMapper;
     private final ProblemParagraphMapper problemParagraphMapper;
     private final DocumentServiceImpl documentService;
-    private final IUserService userService;
     private final IUserResourcePermissionService userResourcePermissionService;
+    private final DataPermissionSupport dataPermissionSupport;
     private final ApplicationEventPublisher eventPublisher;
     private final IDataStore compositeStore;
     private final KnowledgeActionServiceImpl knowledgeActionService;
@@ -82,16 +82,10 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
     }
 
 
-    public IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
-        String loginId = userContext.getUserId();
-        List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, loginId);
-        Set<String> role = userService.getRoleById(loginId);
-        query.setIsAdmin(role.contains(RoleType.ADMIN));
-        query.setTargetIds(targetIds);
-        IPage<KnowledgeVO> page = baseMapper.selectKnowledgePage(knowledgePage, query);
-        Map<String, String> nicknameMap = userService.getNicknameMap();
-        page.getRecords().forEach(vo -> vo.setNickname(nicknameMap.get(vo.getUserId())));
-        return page;
+    @Override
+    public IPage<KnowledgeVO> pageList(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query) {
+        dataPermissionSupport.fill(query, AuthTargetType.KNOWLEDGE);
+        return baseMapper.pageList(knowledgePage, query);
     }
 
 
@@ -196,17 +190,15 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
 
 
     public List<KnowledgeListVO> listKnowledge() {
-        String userId = userContext.getUserId();
-        Set<String> role = userService.getRoleById(userId);
+        DataPermissionScope scope = dataPermissionSupport.resolve(AuthTargetType.KNOWLEDGE);
+        if (scope.isEmptyResult()) {
+            return Collections.emptyList();
+        }
         List<KnowledgeEntity> list;
-        if (role.contains(RoleType.ADMIN)) {
+        if (scope.isAdmin()) {
             list = this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc, KnowledgeEntity::getType, KnowledgeEntity::getFolderId).orderByDesc(KnowledgeEntity::getCreateTime).list();
         } else {
-            List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.KNOWLEDGE, userId);
-            if (targetIds.isEmpty()) {
-                return Collections.emptyList();
-            }
-            list = this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc, KnowledgeEntity::getType, KnowledgeEntity::getFolderId).in(KnowledgeEntity::getId, targetIds).orderByDesc(KnowledgeEntity::getCreateTime).list();
+            list = this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc, KnowledgeEntity::getType, KnowledgeEntity::getFolderId).in(KnowledgeEntity::getId, scope.getTargetIds()).orderByDesc(KnowledgeEntity::getCreateTime).list();
         }
         return BeanUtil.copyList(list, KnowledgeListVO.class);
     }

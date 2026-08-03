@@ -8,10 +8,9 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.ResourceType;
-import com.maxkb4j.common.constant.RoleType;
-import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.core.support.permission.DataPermissionSupport;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.system.service.IResourceMappingService;
 import com.maxkb4j.tool.consts.ToolConstants;
@@ -28,7 +27,6 @@ import com.maxkb4j.tool.util.McpToolUtil;
 import com.maxkb4j.tool.vo.McpToolVO;
 import com.maxkb4j.tool.vo.ToolVO;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
-import com.maxkb4j.user.service.IUserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +36,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * 工具服务：仅负责编排，具体职责委托给各 Handler。
@@ -59,16 +60,11 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
     private final ToolSkillHandler skillHandler;
     private final ToolAssembleHandler assembleHandler;
     private final IResourceMappingService resourceMappingService;
-    private final UserContext userContext;
-    private final IUserService userService;
+    private final DataPermissionSupport dataPermissionSupport;
 
     public IPage<ToolVO> pageList(int current, int size, ToolQuery query) {
         IPage<ToolEntity> page = new Page<>(current, size);
-        String loginId = userContext.getUserId();
-        List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.TOOL, loginId);
-        Set<String> role = userService.getRoleById(loginId);
-        query.setIsAdmin(role.contains(RoleType.ADMIN));
-        query.setTargetIds(targetIds);
+        dataPermissionSupport.fill(query, AuthTargetType.TOOL);
         return baseMapper.pageList(page, query);
     }
 

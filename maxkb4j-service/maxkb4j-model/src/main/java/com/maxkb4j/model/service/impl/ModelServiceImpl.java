@@ -8,11 +8,12 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.common.util.DataMaskUtil;
+import com.maxkb4j.core.support.permission.DataPermissionScope;
+import com.maxkb4j.core.support.permission.DataPermissionSupport;
 import com.maxkb4j.model.dto.ModelQuery;
 import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.enums.ModelStatus;
@@ -24,14 +25,12 @@ import com.maxkb4j.model.service.IModelInternalService;
 import com.maxkb4j.model.vo.ModelVO;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
-import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -43,9 +42,9 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> implements IModelInternalService {
 
-    private final IUserService userService;
     private final IUserResourcePermissionService userResourcePermissionService;
     private final UserContext userContext;
+    private final DataPermissionSupport dataPermissionSupport;
     private final ModelProviderRegistry providerRegistry;
 
     private static final Cache<String, ModelEntity> MODEL_CACHE = Caffeine.newBuilder()
@@ -171,26 +170,19 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     }
 
     /**
-     * 搴旂敤鏁版嵁鏉冮檺锛?
-     * - 鏅€氱敤鎴凤細浠呭彲瑙佸凡鎺堟潈鐨勬ā鍨嬶紝鏃犳巿鏉冨垯寮哄埗绌虹粨鏋?
-     * - 鏃犱换浣曡鑹诧細寮哄埗绌虹粨鏋?
-     * - 鍏朵粬瑙掕壊锛堝绠＄悊鍛橈級锛氫笉闄勫姞闄愬埗
+     * 应用数据权限：
+     * - 管理员：不附加限制；
+     * - 普通用户：仅可见已授权的模型，无授权则强制空结果；
+     * - 无角色：强制空结果。
      */
     private void applyDataPermission(LambdaQueryWrapper<ModelEntity> wrapper) {
-        String loginId = userContext.getUserId();
-        Set<String> roles = userService.getRoleById(loginId);
-        if (CollectionUtils.isEmpty(roles)) {
+        DataPermissionScope scope = dataPermissionSupport.resolve(AuthTargetType.MODEL);
+        if (scope.isEmptyResult()) {
             wrapper.last(" limit 0");
             return;
         }
-        if (roles.contains(RoleType.ADMIN)) {
-            return;
-        }
-        List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.MODEL, loginId);
-        if (CollectionUtils.isEmpty(targetIds)) {
-            wrapper.last(" limit 0");
-        } else {
-            wrapper.in(ModelEntity::getId, targetIds);
+        if (!scope.isAdmin()) {
+            wrapper.in(ModelEntity::getId, scope.getTargetIds());
         }
     }
 

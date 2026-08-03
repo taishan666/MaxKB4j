@@ -21,11 +21,12 @@ import com.maxkb4j.application.util.ResourceUtil;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.application.vo.KnowledgeVO;
-import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.common.util.PageUtil;
+import com.maxkb4j.core.support.permission.DataPermissionScope;
+import com.maxkb4j.core.support.permission.DataPermissionSupport;
 import com.maxkb4j.knowledge.dto.KnowledgeSimple;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
 import com.maxkb4j.system.constant.AuthTargetType;
@@ -64,6 +65,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationVersionService applicationVersionService;
     private final IUserResourcePermissionService userResourcePermissionService;
+    private final DataPermissionSupport dataPermissionSupport;
     private final ApplicationResourceMappingService applicationResourceMappingService;
     private final ApplicationChatShareLinkService applicationChatShareLinkService;
     private final ApplicationLongTermMemoryServiceImpl applicationLongTermMemoryService;
@@ -90,25 +92,17 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         if (Objects.nonNull(query.getCreateUser())) {
             wrapper.eq(ApplicationEntity::getUserId, query.getCreateUser());
         }
-        String loginId = userContext.getUserId();
-        Set<String> role = userService.getRoleById(loginId);
-        if (!CollectionUtils.isEmpty(role)) {
-            if (role.contains(RoleType.USER)) {
-                List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, loginId);
-                if (!CollectionUtils.isEmpty(targetIds)) {
-                    wrapper.in(ApplicationEntity::getId, targetIds);
-                } else {
-                    wrapper.last(" limit 0");
-                }
+        DataPermissionScope scope = dataPermissionSupport.resolve(AuthTargetType.APPLICATION);
+        if (scope.isAdmin()) {
+            if (StringUtils.isNotBlank(query.getFolderId())) {
+                wrapper.eq(ApplicationEntity::getFolderId, query.getFolderId());
             } else {
-                if (StringUtils.isNotBlank(query.getFolderId())) {
-                    wrapper.eq(ApplicationEntity::getFolderId, query.getFolderId());
-                } else {
-                    wrapper.eq(ApplicationEntity::getFolderId, "default");
-                }
+                wrapper.eq(ApplicationEntity::getFolderId, "default");
             }
-        } else {
+        } else if (scope.isEmptyResult()) {
             wrapper.last(" limit 0");
+        } else {
+            wrapper.in(ApplicationEntity::getId, scope.getTargetIds());
         }
         wrapper.orderByDesc(ApplicationEntity::getCreateTime);
         this.page(appPage, wrapper);
@@ -382,17 +376,15 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     }
 
     public List<ApplicationListVO> listApps(String folderId) {
-        String userId = userContext.getUserId();
-        Set<String> role = userService.getRoleById(userId);
+        DataPermissionScope scope = dataPermissionSupport.resolve(AuthTargetType.APPLICATION);
+        if (scope.isEmptyResult()) {
+            return Collections.emptyList();
+        }
         List<ApplicationEntity> list;
-        if (role.contains(RoleType.ADMIN)) {
+        if (scope.isAdmin()) {
             list = this.lambdaQuery().eq(ApplicationEntity::getIsPublish, true).orderByDesc(ApplicationEntity::getCreateTime).list();
         } else {
-            List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.APPLICATION, userId);
-            if (targetIds.isEmpty()) {
-                return Collections.emptyList();
-            }
-            list = this.lambdaQuery().in(ApplicationEntity::getId, targetIds).eq(ApplicationEntity::getIsPublish, true).orderByDesc(ApplicationEntity::getCreateTime).list();
+            list = this.lambdaQuery().in(ApplicationEntity::getId, scope.getTargetIds()).eq(ApplicationEntity::getIsPublish, true).orderByDesc(ApplicationEntity::getCreateTime).list();
         }
         if (StringUtils.isBlank(folderId)) {
             return Collections.emptyList();

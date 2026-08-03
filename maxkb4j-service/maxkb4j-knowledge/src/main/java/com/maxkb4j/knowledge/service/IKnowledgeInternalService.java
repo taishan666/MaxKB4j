@@ -18,7 +18,7 @@ import java.util.List;
  */
 public interface IKnowledgeInternalService extends IKnowledgeService, IService<KnowledgeEntity> {
 
-    IPage<KnowledgeVO> selectKnowledgePage(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query);
+    IPage<KnowledgeVO> pageList(Page<KnowledgeVO> knowledgePage, KnowledgeQuery query);
 
     KnowledgeVO getKnowledgeById(String id);
 

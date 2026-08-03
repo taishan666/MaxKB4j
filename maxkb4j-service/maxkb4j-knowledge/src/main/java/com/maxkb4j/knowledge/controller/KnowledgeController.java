@@ -135,7 +135,7 @@ public class KnowledgeController {
     @GetMapping("/knowledge/{current}/{size}")
     public R<IPage<KnowledgeVO>> knowledgePage(@PathVariable("current") int current, @PathVariable("size") int size, KnowledgeQuery query) {
         Page<KnowledgeVO> knowledgePage = new Page<>(current, size);
-        return R.data(knowledgeService.selectKnowledgePage(knowledgePage, query));
+        return R.data(knowledgeService.pageList(knowledgePage, query));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_EXPORT)

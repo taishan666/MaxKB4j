@@ -7,13 +7,14 @@
                 typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler"/>
     </resultMap>
 
-    <select id="selectKnowledgePage" resultMap="knowledgeResultMap">
+    <select id="pageList" resultMap="knowledgeResultMap">
         SELECT
         k.ID,
         k.name,
         k.desc,
         k.type,
         k.user_id,
+        u.nickname,
         k.create_time,
         COALESCE(doc_stats.document_count, 0) AS document_count,
         COALESCE(doc_stats.char_length, 0) AS char_length,
@@ -27,6 +28,7 @@
         0
         ) AS resource_count
         FROM knowledge k
+        LEFT JOIN "user" u ON t.user_id = u.id
         LEFT JOIN (
         SELECT
         d.knowledge_id,

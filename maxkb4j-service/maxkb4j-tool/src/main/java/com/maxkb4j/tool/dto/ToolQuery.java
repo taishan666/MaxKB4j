@@ -1,11 +1,12 @@
 package com.maxkb4j.tool.dto;
 
+import com.maxkb4j.core.support.permission.PermissionScopeAware;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class ToolQuery{
+public class ToolQuery implements PermissionScopeAware {
     private String name;
     private String createUser;
     private String folderId;
