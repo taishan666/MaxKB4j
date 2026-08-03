@@ -22,7 +22,6 @@
         <result property="knowledgeIds" column="knowledge_ids"
                 typeHandler="com.maxkb4j.common.typehandler.StringListTypeHandler"/>
     </resultMap>
-
     <select id="pageList" resultMap="applicationResultMap">
         SELECT
         a.id,
