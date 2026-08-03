@@ -4,16 +4,23 @@ import com.alibaba.fastjson.JSONArray;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.model.dto.ModelQuery;
 import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.service.IModelInternalService;
 import com.maxkb4j.model.vo.ModelVO;
+import com.maxkb4j.system.constant.AuthTargetType;
+import com.maxkb4j.user.service.IUserResourcePermissionService;
+import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author tarzan
@@ -25,6 +32,9 @@ import java.util.Map;
 public class ModelController{
 
 	private final IModelInternalService modelService;
+	private final UserContext userContext;
+	private final IUserResourcePermissionService userResourcePermissionService;
+	private final IUserService userService;
 
 	@SaCheckPerm(PermissionEnum.MODEL_CREATE)
 	@PostMapping("/model")
@@ -35,14 +45,24 @@ public class ModelController{
 
 	@SaCheckPerm(PermissionEnum.MODEL_READ)
 	@GetMapping("/model")
-	public R<List<ModelVO>> models(String name, String createUser, String modelType, String provider){
-		return R.data(modelService.models(name,createUser,modelType,provider));
+	public R<List<ModelVO>> models(ModelQuery  query){
+		String loginId = userContext.getUserId();
+		List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.MODEL, loginId);
+		Set<String> role = userService.getRoleById(loginId);
+		query.setIsAdmin(role.contains(RoleType.ADMIN));
+		query.setTargetIds(targetIds);
+		return R.data(modelService.modelList(query));
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_READ)
 	@GetMapping("/model_list")
-	public R<Map<String, List<ModelVO>>> modelList(String name, String modelName, String modelType, String provider){
-		List<ModelVO> models=modelService.modelList(name,modelName,modelType,provider);
+	public R<Map<String, List<ModelVO>>> modelList(ModelQuery query){
+		String loginId = userContext.getUserId();
+		List<String> targetIds = userResourcePermissionService.getTargetIds(AuthTargetType.MODEL, loginId);
+		Set<String> role = userService.getRoleById(loginId);
+		query.setIsAdmin(role.contains(RoleType.ADMIN));
+		query.setTargetIds(targetIds);
+		List<ModelVO> models=modelService.modelList(query);
 		return R.data(Map.of("model", models, "shared_model",List.of()));
 	}
 

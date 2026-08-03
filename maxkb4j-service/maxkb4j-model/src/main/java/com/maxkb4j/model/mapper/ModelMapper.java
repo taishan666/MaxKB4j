@@ -1,8 +1,13 @@
 package com.maxkb4j.model.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.maxkb4j.model.dto.ModelQuery;
 import com.maxkb4j.model.entity.ModelEntity;
+import com.maxkb4j.model.vo.ModelVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 
 /**
@@ -12,4 +17,5 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface ModelMapper extends BaseMapper<ModelEntity>{
 
+    List<ModelVO> modelList(@Param("query") ModelQuery query);
 }

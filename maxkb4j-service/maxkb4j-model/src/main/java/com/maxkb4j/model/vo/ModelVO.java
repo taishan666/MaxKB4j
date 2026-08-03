@@ -8,4 +8,5 @@ import lombok.EqualsAndHashCode;
 @Data
 public class ModelVO extends ModelEntity {
     private String nickname;
+    private int resourceCount;
 }

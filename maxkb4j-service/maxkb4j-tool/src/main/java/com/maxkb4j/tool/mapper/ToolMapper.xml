@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.maxkb4j.tool.mapper.ToolMapper">
+
+    <select id="pageList" resultType="com.maxkb4j.tool.vo.ToolVO">
+        SELECT
+        t.ID,
+        t.name,
+        t.desc,
+        t.icon,
+        t.tool_type,
+        t.user_id,
+        u.nickname,
+        t.is_active,
+        t.create_time,
+        COALESCE(
+        (
+        SELECT COUNT(*)
+        FROM resource_mapping rm
+        WHERE rm.target_id = t.ID
+        AND rm.target_type = 'TOOL'
+        ),
+        0
+        ) AS resource_count
+        FROM tool t
+        LEFT JOIN "user" u ON t.user_id = u.id
+        <where>
+            <if test="query.createUser != null and query.createUser != ''">
+                AND t.user_id = #{query.createUser}
+            </if>
+            <if test="query.name != null and query.name!= ''">
+                AND t.name LIKE '%' || #{query.name} || '%'
+            </if>
+            <if test="query.folderId != null and query.folderId!= ''">
+                AND t.folder_id = #{query.folderId}
+            </if>
+            <if test="query.toolType != null and query.toolType!= ''">
+                AND t.tool_type = #{query.toolType}
+            </if>
+            <if test="query.isActive != null">
+                AND t.is_active = #{query.isActive}
+            </if>
+            <choose>
+                <when test="query.isAdmin != null and !query.isAdmin">
+                    <choose>
+                        <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                            AND t.ID IN
+                            <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                                #{targetId}
+                            </foreach>
+                        </when>
+                        <otherwise>
+                            AND t.ID=''
+                        </otherwise>
+                    </choose>
+                </when>
+            </choose>
+        </where>
+        ORDER BY t.create_time DESC
+    </select>
+</mapper>

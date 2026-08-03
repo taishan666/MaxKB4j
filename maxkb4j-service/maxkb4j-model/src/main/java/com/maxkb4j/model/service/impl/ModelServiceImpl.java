@@ -12,14 +12,14 @@ import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.mp.entity.ModelCredential;
-import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DataMaskUtil;
+import com.maxkb4j.model.dto.ModelQuery;
 import com.maxkb4j.model.entity.ModelEntity;
-import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.registry.ModelProviderRegistry;
 import com.maxkb4j.model.enums.ModelStatus;
+import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.mapper.ModelMapper;
 import com.maxkb4j.model.provider.AbsModelProvider;
+import com.maxkb4j.model.registry.ModelProviderRegistry;
 import com.maxkb4j.model.service.IModelInternalService;
 import com.maxkb4j.model.vo.ModelVO;
 import com.maxkb4j.system.constant.AuthTargetType;
@@ -30,9 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -52,61 +50,21 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
 
     private static final Cache<String, ModelEntity> MODEL_CACHE = Caffeine.newBuilder()
             .initialCapacity(100)
-            // 瓒呭嚭鏈€澶у閲忔椂娣樻卑
             .maximumSize(10000)
-            //璁剧疆鍐欑紦瀛樺悗n绉掗挓杩囨湡
             .expireAfterWrite(1, TimeUnit.MINUTES)
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build();
 
-    public List<ModelVO> modelList(String name, String modelName, String modelType, String provider) {
-        LambdaQueryWrapper<ModelEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.select(ModelEntity::getId,
-                ModelEntity::getName,
-                ModelEntity::getModelName,
-                ModelEntity::getProvider,
-                ModelEntity::getModelParamsForm,
-                ModelEntity::getStatus
-        );
-        applyCommonFilters(wrapper, name, modelType, provider);
-        if (StringUtils.isNotBlank(modelName)) {
-            wrapper.eq(ModelEntity::getModelName, modelName);
-        }
-        applyDataPermission(wrapper);
-        wrapper.orderByDesc(ModelEntity::getCreateTime);
-        List<ModelEntity> modelEntities = this.list(wrapper);
-        if (CollectionUtils.isNotEmpty(modelEntities)) {
-            return BeanUtil.copyList(modelEntities, ModelVO.class);
-        }
-        return Collections.emptyList();
+    @Override
+    public List<ModelVO> modelList(ModelQuery query) {
+        return baseMapper.modelList(query);
     }
 
-    public List<ModelVO> models(String name, String createUserId, String modelType, String provider) {
-        LambdaQueryWrapper<ModelEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.select(ModelEntity::getId,
-                ModelEntity::getName,
-                ModelEntity::getModelName,
-                ModelEntity::getModelType,
-                ModelEntity::getProvider,
-                ModelEntity::getUserId,
-                ModelEntity::getStatus,
-                ModelEntity::getCreateTime
-        );
-        applyCommonFilters(wrapper, name, modelType, provider);
-        if (StringUtils.isNotBlank(createUserId)) {
-            wrapper.eq(ModelEntity::getUserId, createUserId);
-        }
-        applyDataPermission(wrapper);
-        wrapper.orderByDesc(ModelEntity::getCreateTime);
-        List<ModelEntity> modelEntities = this.list(wrapper);
-        if (CollectionUtils.isEmpty(modelEntities)) {
-            return Collections.emptyList();
-        }
-        Map<String, String> userMap = userService.getNicknameMap();
-        List<ModelVO> models = BeanUtil.copyList(modelEntities, ModelVO.class);
-        models.forEach(model -> model.setNickname(userMap.get(model.getUserId())));
-        return models;
+    @Override
+    public List<ModelVO> models(ModelQuery query) {
+        return baseMapper.modelList(query);
     }
+
 
     @Transactional
     public boolean createModel(ModelEntity model) {

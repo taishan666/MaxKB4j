@@ -2,6 +2,7 @@ package com.maxkb4j.model.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.maxkb4j.model.dto.ModelQuery;
 import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.vo.ModelVO;
 
@@ -20,9 +21,9 @@ import java.util.List;
  */
 public interface IModelInternalService extends IModelService, IService<ModelEntity> {
 
-    List<ModelVO> modelList(String name, String modelName, String modelType, String provider);
+    List<ModelVO> modelList(ModelQuery  query);
 
-    List<ModelVO> models(String name, String createUserId, String modelType, String provider);
+    List<ModelVO> models(ModelQuery  query);
 
     boolean createModel(ModelEntity model);
 

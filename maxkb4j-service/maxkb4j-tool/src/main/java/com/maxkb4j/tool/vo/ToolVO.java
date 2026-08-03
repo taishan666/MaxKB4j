@@ -10,5 +10,6 @@ import java.util.List;
 @Data
 public class ToolVO extends ToolEntity {
     private String nickname;
+    private int resourceCount;
     private List<ToolFileVO> fileList;
 }
