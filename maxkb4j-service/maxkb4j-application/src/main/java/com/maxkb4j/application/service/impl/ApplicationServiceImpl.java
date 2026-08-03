@@ -24,7 +24,6 @@ import com.maxkb4j.application.vo.KnowledgeVO;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
-import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.core.support.permission.DataPermissionScope;
 import com.maxkb4j.core.support.permission.DataPermissionSupport;
 import com.maxkb4j.knowledge.dto.KnowledgeSimple;
@@ -78,40 +77,8 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
             .build();
 
     public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
-        Page<ApplicationEntity> appPage = new Page<>(page, size);
-        LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery();
-        if (StringUtils.isNotBlank(query.getName())) {
-            wrapper.like(ApplicationEntity::getName, query.getName());
-        }
-        if (StringUtils.isNotBlank(query.getPublishStatus())) {
-            wrapper.eq(ApplicationEntity::getIsPublish, "published".equals(query.getPublishStatus()));
-        }
-        if (StringUtils.isNotBlank(query.getType())) {
-            wrapper.eq(ApplicationEntity::getType, query.getType());
-        }
-        if (Objects.nonNull(query.getCreateUser())) {
-            wrapper.eq(ApplicationEntity::getUserId, query.getCreateUser());
-        }
-        DataPermissionScope scope = dataPermissionSupport.resolve(AuthTargetType.APPLICATION);
-        if (scope.isAdmin()) {
-            if (StringUtils.isNotBlank(query.getFolderId())) {
-                wrapper.eq(ApplicationEntity::getFolderId, query.getFolderId());
-            } else {
-                wrapper.eq(ApplicationEntity::getFolderId, "default");
-            }
-        } else if (scope.isEmptyResult()) {
-            wrapper.last(" limit 0");
-        } else {
-            wrapper.in(ApplicationEntity::getId, scope.getTargetIds());
-        }
-        wrapper.orderByDesc(ApplicationEntity::getCreateTime);
-        this.page(appPage, wrapper);
-        Map<String, String> nicknameMap = userService.getNicknameMap();
-        return PageUtil.copy(appPage, app -> {
-            ApplicationVO vo = BeanUtil.copy(app, ApplicationVO.class);
-            vo.setNickname(nicknameMap.get(app.getUserId()));
-            return vo;
-        });
+        dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
+        return baseMapper.pageList(new Page<>(page, size), query);
     }
 
 

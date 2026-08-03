@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.maxkb4j.application.mapper.ApplicationMapper">
+
+    <resultMap id="applicationResultMap" type="com.maxkb4j.application.vo.ApplicationVO">
+        <result property="knowledgeSetting" column="knowledge_setting"
+                typeHandler="com.maxkb4j.common.typehandler.DatasetSettingTypeHandler"/>
+        <result property="modelSetting" column="model_setting"
+                typeHandler="com.maxkb4j.common.typehandler.LlmModelSettingTypeHandler"/>
+        <result property="workFlow" column="work_flow"
+                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+        <result property="modelParamsSetting" column="model_params_setting"
+                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+        <result property="ttsModelParamsSetting" column="tts_model_params_setting"
+                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+        <result property="fileUploadSetting" column="file_upload_setting"
+                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+        <result property="toolIds" column="tool_ids"
+                typeHandler="com.maxkb4j.common.typehandler.StringListTypeHandler"/>
+        <result property="applicationIds" column="application_ids"
+                typeHandler="com.maxkb4j.common.typehandler.StringListTypeHandler"/>
+        <result property="knowledgeIds" column="knowledge_ids"
+                typeHandler="com.maxkb4j.common.typehandler.StringListTypeHandler"/>
+    </resultMap>
+
+    <select id="pageList" resultMap="applicationResultMap">
+        SELECT
+        a.id,
+        a.name,
+        a."desc",
+        a.icon,
+        a.type,
+        a.is_publish,
+        a.create_time,
+        a.update_time,
+        u.nickname
+        FROM application a
+        LEFT JOIN "user" u ON a.user_id = u.id
+        <where>
+            <if test="query.name != null and query.name != ''">
+                AND a.name LIKE '%' || #{query.name} || '%'
+            </if>
+            <if test="query.publishStatus != null and query.publishStatus != ''">
+                <choose>
+                    <when test="query.publishStatus == 'published'">
+                        AND a.is_publish = true
+                    </when>
+                    <otherwise>
+                        AND a.is_publish = false
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="query.type != null and query.type != ''">
+                AND a.type = #{query.type}
+            </if>
+            <if test="query.createUser != null and query.createUser != ''">
+                AND a.user_id = #{query.createUser}
+            </if>
+            <choose>
+                <when test="query.isAdmin != null and query.isAdmin">
+                    <choose>
+                        <when test="query.folderId != null and query.folderId != ''">
+                            AND a.folder_id = #{query.folderId}
+                        </when>
+                        <otherwise>
+                            AND a.folder_id = 'default'
+                        </otherwise>
+                    </choose>
+                </when>
+                <otherwise>
+                    <choose>
+                        <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                            AND a.id IN
+                            <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                                #{targetId}
+                            </foreach>
+                        </when>
+                        <otherwise>
+                            AND a.id = ''
+                        </otherwise>
+                    </choose>
+                </otherwise>
+            </choose>
+        </where>
+        ORDER BY a.create_time DESC
+    </select>
+
+</mapper>
