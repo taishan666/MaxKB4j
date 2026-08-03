@@ -17,5 +17,7 @@ import java.util.List;
 @Mapper
 public interface ModelMapper extends BaseMapper<ModelEntity>{
 
+    List<ModelVO> models(@Param("query") ModelQuery query);
+
     List<ModelVO> modelList(@Param("query") ModelQuery query);
 }

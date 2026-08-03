@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.maxkb4j.model.mapper.ModelMapper">
 
-    <select id="modelList" resultType="com.maxkb4j.model.vo.ModelVO">
+    <select id="models" resultType="com.maxkb4j.model.vo.ModelVO">
         SELECT
         m.ID,
         m.name,
@@ -31,14 +31,42 @@
             <if test="query.name != null and query.name!= ''">
                 AND m.name LIKE '%' || #{query.name} || '%'
             </if>
-            <if test="query.modelName != null and query.modelName!= ''">
-                AND m.model_name LIKE '%' || #{query.modelName} || '%'
-            </if>
             <if test="query.modelType != null and query.modelType!= ''">
                 AND m.model_type = #{query.modelType}
             </if>
             <if test="query.provider != null and query.provider!= ''">
                 AND m.provider = #{query.provider}
+            </if>
+            <choose>
+                <when test="query.isAdmin != null and !query.isAdmin">
+                    <choose>
+                        <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                            AND m.ID IN
+                            <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                                #{targetId}
+                            </foreach>
+                        </when>
+                        <otherwise>
+                            AND m.ID=''
+                        </otherwise>
+                    </choose>
+                </when>
+            </choose>
+        </where>
+        ORDER BY m.create_time DESC
+    </select>
+    <select id="modelList" resultType="com.maxkb4j.model.vo.ModelVO">
+        SELECT
+        m.ID,
+        m.name,
+        m.model_name,
+        m.provider,
+        m.model_type,
+        m.status
+        FROM model m
+        <where>
+            <if test="query.modelType != null">
+                AND m.model_type = #{query.modelType}
             </if>
             <choose>
                 <when test="query.isAdmin != null and !query.isAdmin">

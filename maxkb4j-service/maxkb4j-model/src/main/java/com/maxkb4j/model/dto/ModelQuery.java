@@ -8,7 +8,6 @@ import java.util.List;
 @Data
 public class ModelQuery implements PermissionScopeAware {
     private String name;
-    private String modelName;
     private String provider;
     private String modelType;
     private String createUser;

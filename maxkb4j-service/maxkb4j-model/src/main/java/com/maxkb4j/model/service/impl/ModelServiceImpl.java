@@ -3,7 +3,6 @@ package com.maxkb4j.model.service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -55,14 +54,16 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
             .build();
 
     @Override
+    public List<ModelVO> models(ModelQuery query) {
+        return baseMapper.models(query);
+    }
+
+    @Override
     public List<ModelVO> modelList(ModelQuery query) {
         return baseMapper.modelList(query);
     }
 
-    @Override
-    public List<ModelVO> models(ModelQuery query) {
-        return baseMapper.modelList(query);
-    }
+
 
 
     @Transactional

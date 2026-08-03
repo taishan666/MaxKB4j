@@ -41,7 +41,7 @@ public class ModelController{
 	@GetMapping("/model")
 	public R<List<ModelVO>> models(ModelQuery  query){
 		dataPermissionSupport.fill(query, AuthTargetType.MODEL);
-		return R.data(modelService.modelList(query));
+		return R.data(modelService.models(query));
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_READ)
