@@ -15,6 +15,7 @@ import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolInternalService;
+import com.maxkb4j.tool.vo.ToolListVO;
 import com.maxkb4j.tool.vo.ToolVO;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -48,14 +49,14 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool")
-    public R<Map<String, List<ToolVO>>> list(String folderId, String[] toolTypeList) {
+    public R<Map<String, List<ToolVO>>> tools(String folderId, String[] toolTypeList) {
         return R.data(Map.of("folders", List.of(), "tools", toolService.listTools(folderId,ToolConstants.Scope.WORKSPACE, toolTypeList)));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool/tool_list")
-    public R<Map<String, List<ToolVO>>> toolList(String scope, String toolType) {
-        return R.data(Map.of("shared_tools", List.of(), "tools", BeanUtil.copyList(toolService.toolList(scope, toolType), ToolVO.class)));
+    public R<Map<String, List<ToolListVO>>> toolList(String scope, String toolType) {
+        return R.data(Map.of("shared_tools", List.of(), "tools", toolService.toolList(scope, toolType)));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)

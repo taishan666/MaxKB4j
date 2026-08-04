@@ -21,6 +21,7 @@ import com.maxkb4j.model.mapper.ModelMapper;
 import com.maxkb4j.model.provider.AbsModelProvider;
 import com.maxkb4j.model.registry.ModelProviderRegistry;
 import com.maxkb4j.model.service.IModelInternalService;
+import com.maxkb4j.model.vo.ModelListVO;
 import com.maxkb4j.model.vo.ModelVO;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
@@ -59,7 +60,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     }
 
     @Override
-    public List<ModelVO> modelList(ModelQuery query) {
+    public List<ModelListVO> modelList(ModelQuery query) {
         return baseMapper.modelList(query);
     }
 

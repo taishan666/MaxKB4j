@@ -25,6 +25,7 @@ import com.maxkb4j.tool.mapper.ToolMapper;
 import com.maxkb4j.tool.service.IToolInternalService;
 import com.maxkb4j.tool.util.McpToolUtil;
 import com.maxkb4j.tool.vo.McpToolVO;
+import com.maxkb4j.tool.vo.ToolListVO;
 import com.maxkb4j.tool.vo.ToolVO;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -128,18 +129,17 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
     }
 
     /** 轻量字段版本：供前端列表展示使用。 */
-    public List<ToolEntity> toolList(String scope, String toolType) {
+    public List<ToolListVO> toolList(String scope, String toolType) {
         LambdaQueryWrapper<ToolEntity> wrapper = buildListWrapper(null, scope, null)
                 .eq(StringUtils.isNotBlank(toolType),ToolEntity::getToolType, toolType)
                 .select(
                         ToolEntity::getId,
                         ToolEntity::getName,
-                        ToolEntity::getDesc,
                         ToolEntity::getIcon,
                         ToolEntity::getToolType,
                         ToolEntity::getIsActive
                 );
-        return this.list(wrapper);
+        return BeanUtil.copyList(this.list(wrapper), ToolListVO.class);
     }
 
     /**

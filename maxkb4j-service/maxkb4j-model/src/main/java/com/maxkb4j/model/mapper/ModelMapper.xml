@@ -55,13 +55,11 @@
         </where>
         ORDER BY m.create_time DESC
     </select>
-    <select id="modelList" resultType="com.maxkb4j.model.vo.ModelVO">
+    <select id="modelList" resultType="com.maxkb4j.model.vo.ModelListVO">
         SELECT
         m.ID,
         m.name,
-        m.model_name,
         m.provider,
-        m.model_type,
         m.status
         FROM model m
         <where>

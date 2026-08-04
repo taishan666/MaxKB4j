@@ -10,6 +10,7 @@ import com.maxkb4j.core.support.permission.DataPermissionSupport;
 import com.maxkb4j.model.dto.ModelQuery;
 import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.service.IModelInternalService;
+import com.maxkb4j.model.vo.ModelListVO;
 import com.maxkb4j.model.vo.ModelVO;
 import com.maxkb4j.system.constant.AuthTargetType;
 import lombok.RequiredArgsConstructor;
@@ -46,9 +47,9 @@ public class ModelController{
 
 	@SaCheckPerm(PermissionEnum.MODEL_READ)
 	@GetMapping("/model_list")
-	public R<Map<String, List<ModelVO>>> modelList(ModelQuery query){
+	public R<Map<String, List<ModelListVO>>> modelList(ModelQuery query){
 		dataPermissionSupport.fill(query, AuthTargetType.MODEL);
-		List<ModelVO> models=modelService.modelList(query);
+		List<ModelListVO> models=modelService.modelList(query);
 		return R.data(Map.of("model", models, "shared_model",List.of()));
 	}
 

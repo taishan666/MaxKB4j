@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.model.dto.ModelQuery;
 import com.maxkb4j.model.entity.ModelEntity;
+import com.maxkb4j.model.vo.ModelListVO;
 import com.maxkb4j.model.vo.ModelVO;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public interface IModelInternalService extends IModelService, IService<ModelEnti
 
     List<ModelVO> models(ModelQuery  query);
 
-    List<ModelVO> modelList(ModelQuery  query);
+    List<ModelListVO> modelList(ModelQuery  query);
 
     boolean createModel(ModelEntity model);
 

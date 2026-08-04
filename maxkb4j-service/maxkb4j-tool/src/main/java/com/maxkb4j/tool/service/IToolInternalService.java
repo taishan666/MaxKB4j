@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;
+import com.maxkb4j.tool.vo.ToolListVO;
 import com.maxkb4j.tool.vo.ToolVO;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,7 +37,7 @@ public interface IToolInternalService extends IToolService, IService<ToolEntity>
 
     List<ToolVO> listTools(String folderId, String scope, String[] toolTypeList);
 
-    List<ToolEntity> toolList(String scope, String toolType);
+    List<ToolListVO> toolList(String scope, String toolType);
 
     ToolVO updateTool(ToolEntity dto) throws IOException;
 
