@@ -15,6 +15,7 @@ import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolInternalService;
+import com.maxkb4j.tool.vo.ToolCardVO;
 import com.maxkb4j.tool.vo.ToolListVO;
 import com.maxkb4j.tool.vo.ToolVO;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,13 +44,13 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool/{current}/{size}")
-    public R<IPage<ToolVO>> page(@PathVariable int current, @PathVariable int size, ToolQuery query) {
+    public R<IPage<ToolCardVO>> page(@PathVariable int current, @PathVariable int size, ToolQuery query) {
         return R.data(toolService.pageList(current, size, query));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool")
-    public R<Map<String, List<ToolVO>>> tools(String folderId, String[] toolTypeList) {
+    public R<Map<String, List<ToolCardVO>>> tools(String folderId, String[] toolTypeList) {
         return R.data(Map.of("folders", List.of(), "tools", toolService.listTools(folderId,ToolConstants.Scope.WORKSPACE, toolTypeList)));
     }
 

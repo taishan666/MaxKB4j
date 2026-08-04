@@ -25,6 +25,7 @@ import com.maxkb4j.tool.mapper.ToolMapper;
 import com.maxkb4j.tool.service.IToolInternalService;
 import com.maxkb4j.tool.util.McpToolUtil;
 import com.maxkb4j.tool.vo.McpToolVO;
+import com.maxkb4j.tool.vo.ToolCardVO;
 import com.maxkb4j.tool.vo.ToolListVO;
 import com.maxkb4j.tool.vo.ToolVO;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
@@ -63,7 +64,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
     private final IResourceMappingService resourceMappingService;
     private final DataPermissionSupport dataPermissionSupport;
 
-    public IPage<ToolVO> pageList(int current, int size, ToolQuery query) {
+    public IPage<ToolCardVO> pageList(int current, int size, ToolQuery query) {
         IPage<ToolEntity> page = new Page<>(current, size);
         dataPermissionSupport.fill(query, AuthTargetType.TOOL);
         return baseMapper.pageList(page, query);
@@ -116,7 +117,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
     }
 
     /** 完整字段版本：供需要 code / initParams / inputFieldList 等执行所需信息的场景使用。 */
-    public List<ToolVO> listTools(String folderId, String scope, String[] toolTypeList) {
+    public List<ToolCardVO> listTools(String folderId, String scope, String[] toolTypeList) {
         ToolQuery query = new ToolQuery();
         query.setFolderId(folderId);
         query.setScope(scope);

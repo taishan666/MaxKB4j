@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;
+import com.maxkb4j.tool.vo.ToolCardVO;
 import com.maxkb4j.tool.vo.ToolListVO;
 import com.maxkb4j.tool.vo.ToolVO;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,7 +22,7 @@ import java.util.List;
  */
 public interface IToolInternalService extends IToolService, IService<ToolEntity> {
 
-    IPage<ToolVO> pageList(int current, int size, ToolQuery query);
+    IPage<ToolCardVO> pageList(int current, int size, ToolQuery query);
 
     boolean saveTool(ToolEntity entity);
 
@@ -35,7 +36,7 @@ public interface IToolInternalService extends IToolService, IService<ToolEntity>
 
     boolean removeToolById(String id);
 
-    List<ToolVO> listTools(String folderId, String scope, String[] toolTypeList);
+    List<ToolCardVO> listTools(String folderId, String scope, String[] toolTypeList);
 
     List<ToolListVO> toolList(String scope, String toolType);
 

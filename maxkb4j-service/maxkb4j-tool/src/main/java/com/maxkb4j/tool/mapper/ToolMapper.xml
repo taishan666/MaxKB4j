@@ -2,16 +2,17 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.maxkb4j.tool.mapper.ToolMapper">
 
-    <select id="pageList" resultType="com.maxkb4j.tool.vo.ToolVO">
+    <select id="pageList" resultType="com.maxkb4j.tool.vo.ToolCardVO">
         SELECT
         t.ID,
         t.name,
         t.desc,
         t.icon,
         t.tool_type,
-        t.user_id,
         u.nickname,
         t.is_active,
+        t.template_id,
+        t.version,
         t.create_time,
         COALESCE(
         (
@@ -59,26 +60,14 @@
         ORDER BY t.create_time DESC
     </select>
 
-    <resultMap id="toolVoResultMap" type="com.maxkb4j.tool.vo.ToolVO">
-        <result property="initFieldList" column="init_field_list"
-                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
-        <result property="initParams" column="init_params"
-                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
-        <result property="inputFieldList" column="input_field_list"
-                typeHandler="com.maxkb4j.common.typehandler.ToolInputParamsTypeHandler"/>
-    </resultMap>
 
-    <select id="listTools" resultMap="toolVoResultMap">
+    <select id="listTools" resultType="com.maxkb4j.tool.vo.ToolCardVO">
         SELECT
         t.id,
         t.name,
         t."desc",
         t.icon,
         t.tool_type,
-        t.code,
-        t.init_field_list,
-        t.init_params,
-        t.input_field_list,
         t.is_active,
         t.create_time,
         u.nickname
