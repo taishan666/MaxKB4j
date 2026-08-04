@@ -5,8 +5,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.maxkb4j.knowledge.dto.KnowledgeQuery;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
+import com.maxkb4j.knowledge.vo.KnowledgeListVO;
 import com.maxkb4j.knowledge.vo.KnowledgeVO;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * @author tarzan
@@ -15,4 +18,6 @@ import org.apache.ibatis.annotations.Param;
 public interface KnowledgeMapper extends BaseMapper<KnowledgeEntity>{
 
     IPage<KnowledgeVO> pageList(Page<KnowledgeVO> page, @Param("query") KnowledgeQuery query);
+
+    List<KnowledgeListVO> listKnowledge(@Param("query")  KnowledgeQuery query);
 }

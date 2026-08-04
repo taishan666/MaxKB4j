@@ -28,13 +28,11 @@ public interface IKnowledgeInternalService extends IKnowledgeService, IService<K
 
     Boolean delMulApplication(List<String> idList);
 
-    List<KnowledgeEntity> list(String userId, String folderId);
-
     KnowledgeEntity createKnowledge(KnowledgeEntity knowledge);
 
     KnowledgeEntity createKnowledgeWeb(WebKnowledgeDTO knowledge);
 
-    List<KnowledgeListVO> listKnowledge();
+    List<KnowledgeListVO> listKnowledge(KnowledgeQuery query);
 
-    Boolean updateKnowledge(String id, KnowledgeEntity knowledge);
+    void updateKnowledge(String id, KnowledgeEntity knowledge);
 }

@@ -68,5 +68,53 @@
         </where>
         ORDER BY k.create_time DESC
     </select>
+    <select id="listKnowledge" resultType="com.maxkb4j.knowledge.vo.KnowledgeListVO">
+        SELECT
+        k.ID,
+        k.name,
+        k.desc,
+        k.type,
+        k.embedding_model_id,
+        k.user_id,
+        k.folder_id,
+        u.nickname,
+        k.create_time,
+        COALESCE(doc_stats.document_count, 0) AS document_count,
+        COALESCE(doc_stats.char_length, 0) AS char_length
+        FROM knowledge k
+        LEFT JOIN "user" u ON k.user_id = u.id
+        LEFT JOIN (
+        SELECT
+        d.knowledge_id,
+        COUNT(*) AS document_count,
+        SUM(d.char_length) AS char_length
+        FROM "document" d
+        GROUP BY d.knowledge_id
+        ) doc_stats ON k.id = doc_stats.knowledge_id
+        <where>
+            <if test="query.name != null and query.name!= ''">
+                AND k.name LIKE '%' || #{query.name} || '%'
+            </if>
+            <if test="query.folderId != null and query.folderId!= ''">
+                AND k.folder_id = #{query.folderId}
+            </if>
+            <choose>
+                <when test="query.isAdmin != null and !query.isAdmin">
+                    <choose>
+                        <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                            AND k.ID IN
+                            <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                                #{targetId}
+                            </foreach>
+                        </when>
+                        <otherwise>
+                            AND k.ID=''
+                        </otherwise>
+                    </choose>
+                </when>
+            </choose>
+        </where>
+        ORDER BY k.create_time DESC
+    </select>
 
 </mapper>

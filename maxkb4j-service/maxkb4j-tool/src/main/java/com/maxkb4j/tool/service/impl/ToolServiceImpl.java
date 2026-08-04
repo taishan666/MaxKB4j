@@ -127,7 +127,8 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
                         ToolEntity::getInitFieldList,
                         ToolEntity::getInitParams,
                         ToolEntity::getInputFieldList,
-                        ToolEntity::getIsActive
+                        ToolEntity::getIsActive,
+                        ToolEntity::getCreateTime
                 );
         return this.list(wrapper);
     }

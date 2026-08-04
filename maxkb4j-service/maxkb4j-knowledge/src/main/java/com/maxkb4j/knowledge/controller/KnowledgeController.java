@@ -53,8 +53,8 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_READ)
     @GetMapping("/knowledge")
-    public R<List<KnowledgeListVO>> listKnowledge(String folderId) {
-        return R.data(knowledgeService.listKnowledge());
+    public R<List<KnowledgeListVO>> listKnowledge(KnowledgeQuery query) {
+        return R.data(knowledgeService.listKnowledge(query));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)

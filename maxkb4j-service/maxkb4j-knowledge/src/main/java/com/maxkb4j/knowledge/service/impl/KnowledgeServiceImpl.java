@@ -10,7 +10,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.core.support.permission.DataPermissionScope;
 import com.maxkb4j.core.support.permission.DataPermissionSupport;
 import com.maxkb4j.knowledge.dto.KnowledgeQuery;
 import com.maxkb4j.knowledge.dto.KnowledgeSimple;
@@ -158,10 +157,6 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
     }
 
 
-    public List<KnowledgeEntity> list(String userId, String folderId) {
-        return this.lambdaQuery().eq(KnowledgeEntity::getUserId, userId).eq(KnowledgeEntity::getFolderId, folderId).list();
-    }
-
     @Transactional
     public KnowledgeEntity createKnowledge(KnowledgeEntity knowledge) {
         knowledge.setMeta(new JSONObject());
@@ -189,18 +184,9 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
     }
 
 
-    public List<KnowledgeListVO> listKnowledge() {
-        DataPermissionScope scope = dataPermissionSupport.resolve(AuthTargetType.KNOWLEDGE);
-        if (scope.isEmptyResult()) {
-            return Collections.emptyList();
-        }
-        List<KnowledgeEntity> list;
-        if (scope.isAdmin()) {
-            list = this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc, KnowledgeEntity::getType, KnowledgeEntity::getFolderId).orderByDesc(KnowledgeEntity::getCreateTime).list();
-        } else {
-            list = this.lambdaQuery().select(KnowledgeEntity::getId, KnowledgeEntity::getName, KnowledgeEntity::getDesc, KnowledgeEntity::getType, KnowledgeEntity::getFolderId).in(KnowledgeEntity::getId, scope.getTargetIds()).orderByDesc(KnowledgeEntity::getCreateTime).list();
-        }
-        return BeanUtil.copyList(list, KnowledgeListVO.class);
+    public List<KnowledgeListVO> listKnowledge(KnowledgeQuery query) {
+        dataPermissionSupport.fill(query, AuthTargetType.KNOWLEDGE);
+        return baseMapper.listKnowledge(query);
     }
 
     @Override
@@ -262,10 +248,9 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
      * 更新知识库并同步保存资源映射关系。
      */
     @Transactional(rollbackFor = Exception.class)
-    public Boolean updateKnowledge(String id, KnowledgeEntity knowledge) {
+    public void updateKnowledge(String id, KnowledgeEntity knowledge) {
         knowledge.setId(id);
         this.updateById(knowledge);
         this.saveResourceMappings(knowledge);
-        return true;
     }
 }
