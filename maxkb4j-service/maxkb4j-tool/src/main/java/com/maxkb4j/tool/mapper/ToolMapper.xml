@@ -58,4 +58,60 @@
         </where>
         ORDER BY t.create_time DESC
     </select>
+
+    <resultMap id="toolVoResultMap" type="com.maxkb4j.tool.vo.ToolVO">
+        <result property="initFieldList" column="init_field_list"
+                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+        <result property="initParams" column="init_params"
+                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+        <result property="inputFieldList" column="input_field_list"
+                typeHandler="com.maxkb4j.common.typehandler.ToolInputParamsTypeHandler"/>
+    </resultMap>
+
+    <select id="listTools" resultMap="toolVoResultMap">
+        SELECT
+        t.id,
+        t.name,
+        t."desc",
+        t.icon,
+        t.tool_type,
+        t.code,
+        t.init_field_list,
+        t.init_params,
+        t.input_field_list,
+        t.is_active,
+        t.create_time,
+        u.nickname
+        FROM tool t
+        LEFT JOIN "user" u ON t.user_id = u.id
+        <where>
+            AND t.is_active = #{query.isActive}
+            AND t.scope = #{query.scope}
+            <if test="query.folderId != null and query.folderId != ''">
+                AND t.folder_id = #{query.folderId}
+            </if>
+            <if test="query.toolTypeList != null and !query.toolTypeList.isEmpty()">
+                AND t.tool_type IN
+                <foreach collection="query.toolTypeList" item="toolType" open="(" separator="," close=")">
+                    #{toolType}
+                </foreach>
+            </if>
+            <choose>
+                <when test="query.isAdmin != null and !query.isAdmin">
+                    <choose>
+                        <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                            AND t.id IN
+                            <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                                #{targetId}
+                            </foreach>
+                        </when>
+                        <otherwise>
+                            AND t.id = ''
+                        </otherwise>
+                    </choose>
+                </when>
+            </choose>
+        </where>
+        ORDER BY t.create_time DESC
+    </select>
 </mapper>

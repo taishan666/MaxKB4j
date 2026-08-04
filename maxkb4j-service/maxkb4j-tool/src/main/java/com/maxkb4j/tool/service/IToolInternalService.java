@@ -34,7 +34,7 @@ public interface IToolInternalService extends IToolService, IService<ToolEntity>
 
     boolean removeToolById(String id);
 
-    List<ToolEntity> listTools(String folderId, String scope, String[] toolTypeList);
+    List<ToolVO> listTools(String folderId, String scope, String[] toolTypeList);
 
     List<ToolEntity> toolList(String scope, String toolType);
 

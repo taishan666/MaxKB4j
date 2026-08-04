@@ -12,6 +12,7 @@ public class ToolQuery implements PermissionScopeAware {
     private String folderId;
     private String scope;
     private String toolType;
+    private List<String> toolTypeList;
     private Boolean isActive;
     private List<String> targetIds;
     private Boolean isAdmin=false;

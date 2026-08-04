@@ -115,22 +115,16 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
     }
 
     /** 完整字段版本：供需要 code / initParams / inputFieldList 等执行所需信息的场景使用。 */
-    public List<ToolEntity> listTools(String folderId, String scope, String[] toolTypeList) {
-        LambdaQueryWrapper<ToolEntity> wrapper = buildListWrapper(folderId, scope, toolTypeList)
-                .select(
-                        ToolEntity::getId,
-                        ToolEntity::getName,
-                        ToolEntity::getDesc,
-                        ToolEntity::getIcon,
-                        ToolEntity::getToolType,
-                        ToolEntity::getCode,
-                        ToolEntity::getInitFieldList,
-                        ToolEntity::getInitParams,
-                        ToolEntity::getInputFieldList,
-                        ToolEntity::getIsActive,
-                        ToolEntity::getCreateTime
-                );
-        return this.list(wrapper);
+    public List<ToolVO> listTools(String folderId, String scope, String[] toolTypeList) {
+        ToolQuery query = new ToolQuery();
+        query.setFolderId(folderId);
+        query.setScope(scope);
+        query.setIsActive(ToolConstants.Status.ACTIVE);
+        if (toolTypeList != null && toolTypeList.length > 0) {
+            query.setToolTypeList(Arrays.asList(toolTypeList));
+        }
+        dataPermissionSupport.fill(query, AuthTargetType.TOOL);
+        return baseMapper.listTools(query);
     }
 
     /** 轻量字段版本：供前端列表展示使用。 */

@@ -49,7 +49,7 @@ public class ToolController {
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool")
     public R<Map<String, List<ToolVO>>> list(String folderId, String[] toolTypeList) {
-        return R.data(Map.of("folders", List.of(), "tools", BeanUtil.copyList(toolService.listTools(folderId,ToolConstants.Scope.WORKSPACE, toolTypeList), ToolVO.class)));
+        return R.data(Map.of("folders", List.of(), "tools", toolService.listTools(folderId,ToolConstants.Scope.WORKSPACE, toolTypeList)));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
