@@ -84,4 +84,35 @@
         ORDER BY a.create_time DESC
     </select>
 
+    <select id="listApps" resultType="com.maxkb4j.application.vo.ApplicationListVO">
+        SELECT
+        a.id,
+        a.name,
+        a."desc",
+        a.icon,
+        a.type,
+        a.is_publish,
+        a.create_time,
+        a.update_time,
+        u.nickname
+        FROM application a
+        LEFT JOIN "user" u ON a.user_id = u.id
+        WHERE a.is_publish = true
+        AND a.folder_id = #{query.folderId}
+        <if test="query.isAdmin == null or !query.isAdmin">
+            <choose>
+                <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                    AND a.id IN
+                    <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                        #{targetId}
+                    </foreach>
+                </when>
+                <otherwise>
+                    AND a.id = ''
+                </otherwise>
+            </choose>
+        </if>
+        ORDER BY a.create_time DESC
+    </select>
+
 </mapper>

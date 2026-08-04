@@ -1,120 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.maxkb4j.knowledge.mapper.KnowledgeMapper">
-    <!-- 多个字段中某个字段的类型处理器配置 -->
+    <!-- 需要类型处理器的字段配置，其余字段按驼峰规则自动映射 -->
     <resultMap id="knowledgeResultMap" type="com.maxkb4j.knowledge.vo.KnowledgeVO">
         <result property="meta" column="meta"
                 typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler"/>
     </resultMap>
 
+    <!-- 文档统计：每个知识库的文档数与总字符数 -->
+    <sql id="docStatsJoin">
+        LEFT JOIN (
+            SELECT
+                d.knowledge_id,
+                COUNT(*) AS document_count,
+                SUM(d.char_length) AS char_length
+            FROM "document" d
+            GROUP BY d.knowledge_id
+        ) doc_stats ON k.id = doc_stats.knowledge_id
+    </sql>
+
+    <!-- 非管理员数据权限过滤：仅返回授权范围内的知识库 -->
+    <sql id="permissionScope">
+        <if test="query.isAdmin != null and !query.isAdmin">
+            <choose>
+                <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                    AND k.id IN
+                    <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                        #{targetId}
+                    </foreach>
+                </when>
+                <otherwise>
+                    AND 1 = 0
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+
     <select id="pageList" resultMap="knowledgeResultMap">
         SELECT
-        k.ID,
-        k.name,
-        k.desc,
-        k.type,
-        k.user_id,
-        u.nickname,
-        k.create_time,
-        COALESCE(doc_stats.document_count, 0) AS document_count,
-        COALESCE(doc_stats.char_length, 0) AS char_length,
-        COALESCE(
-        (
-        SELECT COUNT(*)
-        FROM resource_mapping m
-        WHERE m.target_id = k.ID
-        AND m.target_type = 'KNOWLEDGE'
-        ),
-        0
-        ) AS resource_count
+            k.id,
+            k.name,
+            k.desc,
+            k.type,
+            k.user_id,
+            u.nickname,
+            k.create_time,
+            COALESCE(doc_stats.document_count, 0) AS document_count,
+            COALESCE(doc_stats.char_length, 0) AS char_length,
+            COALESCE(res_stats.resource_count, 0) AS resource_count
         FROM knowledge k
         LEFT JOIN "user" u ON k.user_id = u.id
+        <include refid="docStatsJoin"/>
         LEFT JOIN (
-        SELECT
-        d.knowledge_id,
-        COUNT(*) AS document_count,
-        SUM(d.char_length) AS char_length
-        FROM "document" d
-        GROUP BY d.knowledge_id
-        ) doc_stats ON k.id = doc_stats.knowledge_id
+            SELECT
+                m.target_id,
+                COUNT(*) AS resource_count
+            FROM resource_mapping m
+            WHERE m.target_type = 'KNOWLEDGE'
+            GROUP BY m.target_id
+        ) res_stats ON k.id = res_stats.target_id
         <where>
             <if test="query.createUser != null and query.createUser != ''">
                 AND k.user_id = #{query.createUser}
             </if>
-            <if test="query.name != null and query.name!= ''">
-                AND k.name LIKE '%' || #{query.name} || '%'
+            <if test="query.name != null and query.name != ''">
+                AND k.name LIKE CONCAT('%', #{query.name}, '%')
             </if>
-            <if test="query.folderId != null and query.folderId!= ''">
+            <if test="query.folderId != null and query.folderId != ''">
                 AND k.folder_id = #{query.folderId}
             </if>
             <if test="query.type != null">
                 AND k.type = #{query.type}
             </if>
-            <choose>
-                <when test="query.isAdmin != null and !query.isAdmin">
-                  <choose>
-                      <when test="query.targetIds != null and !query.targetIds.isEmpty()">
-                          AND k.ID IN
-                          <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
-                              #{targetId}
-                          </foreach>
-                      </when>
-                      <otherwise>
-                          AND k.ID=''
-                      </otherwise>
-                  </choose>
-                </when>
-            </choose>
-        </where>
-        ORDER BY k.create_time DESC
-    </select>
-    <select id="listKnowledge" resultType="com.maxkb4j.knowledge.vo.KnowledgeListVO">
-        SELECT
-        k.ID,
-        k.name,
-        k.desc,
-        k.type,
-        k.embedding_model_id,
-        k.user_id,
-        k.folder_id,
-        u.nickname,
-        k.create_time,
-        COALESCE(doc_stats.document_count, 0) AS document_count,
-        COALESCE(doc_stats.char_length, 0) AS char_length
-        FROM knowledge k
-        LEFT JOIN "user" u ON k.user_id = u.id
-        LEFT JOIN (
-        SELECT
-        d.knowledge_id,
-        COUNT(*) AS document_count,
-        SUM(d.char_length) AS char_length
-        FROM "document" d
-        GROUP BY d.knowledge_id
-        ) doc_stats ON k.id = doc_stats.knowledge_id
-        <where>
-            <if test="query.name != null and query.name!= ''">
-                AND k.name LIKE '%' || #{query.name} || '%'
-            </if>
-            <if test="query.folderId != null and query.folderId!= ''">
-                AND k.folder_id = #{query.folderId}
-            </if>
-            <choose>
-                <when test="query.isAdmin != null and !query.isAdmin">
-                    <choose>
-                        <when test="query.targetIds != null and !query.targetIds.isEmpty()">
-                            AND k.ID IN
-                            <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
-                                #{targetId}
-                            </foreach>
-                        </when>
-                        <otherwise>
-                            AND k.ID=''
-                        </otherwise>
-                    </choose>
-                </when>
-            </choose>
+            <include refid="permissionScope"/>
         </where>
         ORDER BY k.create_time DESC
     </select>
 
+    <select id="listKnowledge" resultType="com.maxkb4j.knowledge.vo.KnowledgeListVO">
+        SELECT
+            k.id,
+            k.name,
+            k.desc,
+            k.type,
+            k.embedding_model_id,
+            k.user_id,
+            k.folder_id,
+            u.nickname,
+            k.create_time,
+            COALESCE(doc_stats.document_count, 0) AS document_count,
+            COALESCE(doc_stats.char_length, 0) AS char_length
+        FROM knowledge k
+        LEFT JOIN "user" u ON k.user_id = u.id
+        <include refid="docStatsJoin"/>
+        <where>
+            <if test="query.name != null and query.name != ''">
+                AND k.name LIKE CONCAT('%', #{query.name}, '%')
+            </if>
+            <if test="query.folderId != null and query.folderId != ''">
+                AND k.folder_id = #{query.folderId}
+            </if>
+            <include refid="permissionScope"/>
+        </where>
+        ORDER BY k.create_time DESC
+    </select>
 </mapper>

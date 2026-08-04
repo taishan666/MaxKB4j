@@ -24,7 +24,6 @@ import com.maxkb4j.application.vo.KnowledgeVO;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
-import com.maxkb4j.core.support.permission.DataPermissionScope;
 import com.maxkb4j.core.support.permission.DataPermissionSupport;
 import com.maxkb4j.knowledge.dto.KnowledgeSimple;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
@@ -343,20 +342,13 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     }
 
     public List<ApplicationListVO> listApps(String folderId) {
-        DataPermissionScope scope = dataPermissionSupport.resolve(AuthTargetType.APPLICATION);
-        if (scope.isEmptyResult()) {
-            return Collections.emptyList();
-        }
-        List<ApplicationEntity> list;
-        if (scope.isAdmin()) {
-            list = this.lambdaQuery().eq(ApplicationEntity::getIsPublish, true).orderByDesc(ApplicationEntity::getCreateTime).list();
-        } else {
-            list = this.lambdaQuery().in(ApplicationEntity::getId, scope.getTargetIds()).eq(ApplicationEntity::getIsPublish, true).orderByDesc(ApplicationEntity::getCreateTime).list();
-        }
         if (StringUtils.isBlank(folderId)) {
             return Collections.emptyList();
         }
-        return list.stream().filter(e -> folderId.equals(e.getFolderId())).map(e -> BeanUtil.copy(e, ApplicationListVO.class)).toList();
+        ApplicationQuery query = new ApplicationQuery();
+        query.setFolderId(folderId);
+        dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
+        return baseMapper.listApps(query);
     }
 
 

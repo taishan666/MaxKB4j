@@ -5,9 +5,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.maxkb4j.application.dto.ApplicationQuery;
 import com.maxkb4j.application.entity.ApplicationEntity;
+import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * @author tarzan
@@ -17,4 +20,6 @@ import org.apache.ibatis.annotations.Param;
 public interface ApplicationMapper extends BaseMapper<ApplicationEntity>{
 
     IPage<ApplicationVO> pageList(Page<ApplicationVO> page, @Param("query") ApplicationQuery query);
+
+    List<ApplicationListVO> listApps(@Param("query") ApplicationQuery query);
 }
