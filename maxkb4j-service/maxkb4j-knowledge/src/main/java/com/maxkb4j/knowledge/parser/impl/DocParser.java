@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.jsoup.parser.Parser.xmlParser;
+
 @RequiredArgsConstructor
 @Component
 public class DocParser implements DocumentParser {
@@ -99,7 +101,7 @@ public class DocParser implements DocumentParser {
 
     private String convertXhtmlToMarkdown(String xhtml, Map<String, byte[]> embeddedImages) {
         // 使用 jsoup 解析 XHTML
-        Document doc = Jsoup.parse(xhtml, "", org.jsoup.parser.Parser.xmlParser());
+        Document doc = Jsoup.parse(xhtml, "", xmlParser());
         Element body = doc.body();
         // 使用 flexmark 或手动转换（这里用简易规则模拟）
         return simpleXhtmlToMarkdown(body, embeddedImages);

@@ -59,7 +59,7 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
         List<ParagraphSimple> result = new ArrayList<>();
 
         // 阶段1：按标题切分（跳过6次正则扫描，无标题时直接作为整体）
-        boolean hasHeadings = text.startsWith("# ") || text.contains("\n# ");
+        boolean hasHeadings = text.contains("\n\n#");
         List<ParagraphSimple> parts;
         if (!hasHeadings) {
             // 无标题：跳过正则扫描，整体作为一段
