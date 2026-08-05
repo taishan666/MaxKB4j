@@ -75,7 +75,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
             .expireAfterWrite(10, TimeUnit.MINUTES)
             .build();
 
-    public IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query) {
+    public IPage<ApplicationListVO> selectAppPage(int page, int size, ApplicationQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         return baseMapper.pageList(new Page<>(page, size), query);
     }

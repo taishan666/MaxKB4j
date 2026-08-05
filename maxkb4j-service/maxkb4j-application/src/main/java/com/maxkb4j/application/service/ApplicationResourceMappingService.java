@@ -34,8 +34,9 @@ public class ApplicationResourceMappingService {
         List<String> modelIds = new ArrayList<>(Stream.of(app.getModelId(), app.getSttModelId(), app.getTtsModelId())
                 .filter(Objects::nonNull)
                 .toList());
-        List<String> knowledgeIds = app.getKnowledgeIds() == null ? new ArrayList<>() : new ArrayList<>(app.getKnowledgeIds());
-        List<String> toolIds = app.getToolIds() == null ? new ArrayList<>() : new ArrayList<>(app.getToolIds());
+        List<String> applicationIds = app.getToolIds() == null ? new ArrayList<>() : app.getApplicationIds();
+        List<String> knowledgeIds = app.getKnowledgeIds() == null ? new ArrayList<>() : app.getKnowledgeIds();
+        List<String> toolIds = app.getToolIds() == null ? new ArrayList<>() : app.getToolIds();
         JSONObject workFlow = app.getWorkFlow();
         if (workFlow != null && workFlow.containsKey("nodes")) {
             JSONArray nodes = workFlow.getJSONArray("nodes");
@@ -45,6 +46,14 @@ public class ApplicationResourceMappingService {
                     JSONObject properties = node.getJSONObject("properties");
                     if (properties != null && properties.containsKey("nodeData")) {
                         JSONObject nodeData = properties.getJSONObject("nodeData");
+                        if (nodeData != null && nodeData.containsKey("applicationIds")) {
+                            JSONArray applicationIdArray = nodeData.getJSONArray("applicationIds");
+                            applicationIds.addAll(new ArrayList<>(applicationIdArray.toJavaList(String.class)));
+                        }
+                        if (nodeData != null && nodeData.containsKey("knowledgeIds")) {
+                            JSONArray knowledgeIdArray = nodeData.getJSONArray("knowledgeIds");
+                            knowledgeIds.addAll(new ArrayList<>(knowledgeIdArray.toJavaList(String.class)));
+                        }
                         if (nodeData != null && nodeData.containsKey("toolLibId")) {
                             toolIds.add(nodeData.getString("toolLibId"));
                         }
@@ -54,10 +63,6 @@ public class ApplicationResourceMappingService {
                         if (nodeData != null && nodeData.containsKey("toolIds")) {
                             JSONArray toolIdArray = nodeData.getJSONArray("toolIds");
                             toolIds.addAll(new ArrayList<>(toolIdArray.toJavaList(String.class)));
-                        }
-                        if (nodeData != null && nodeData.containsKey("knowledgeIds")) {
-                            JSONArray knowledgeIdArray = nodeData.getJSONArray("knowledgeIds");
-                            knowledgeIds.addAll(new ArrayList<>(knowledgeIdArray.toJavaList(String.class)));
                         }
                         if (nodeData != null && nodeData.containsKey("modelId")) {
                             modelIds.add(nodeData.getString("modelId"));
@@ -75,7 +80,7 @@ public class ApplicationResourceMappingService {
                 }
             }
         }
-        saveResourceMappings(app.getId(), knowledgeIds, toolIds, modelIds);
+        saveResourceMappings(app.getId(), applicationIds,knowledgeIds, toolIds, modelIds);
     }
 
     /**
@@ -89,13 +94,14 @@ public class ApplicationResourceMappingService {
      * 批量保存资源映射关系
      */
     private void saveResourceMappings(String appId,
+                                      List<String> applicationIds,
                                       List<String> knowledgeIds,
                                       List<String> toolIds,
                                       List<String> modelIds) {
-        knowledgeIds = knowledgeIds == null ? List.of() : knowledgeIds.stream().filter(Objects::nonNull).toList();
-        List<TargetResource> targets = new ArrayList<>(knowledgeIds.stream().map(id -> new TargetResource(id, ResourceType.KNOWLEDGE)).toList());
-        toolIds = toolIds == null ? List.of() : toolIds.stream().filter(Objects::nonNull).toList();
-        targets.addAll(toolIds.stream().map(id -> new TargetResource(id, ResourceType.TOOL)).toList());
+        List<TargetResource> targets = new ArrayList<>();
+        targets.addAll(applicationIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.APPLICATION)).toList());
+        targets.addAll(knowledgeIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.KNOWLEDGE)).toList());
+        targets.addAll(toolIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.TOOL)).toList());
         targets.addAll(modelIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.MODEL)).toList());
         resourceMappingService.relation(ResourceType.APPLICATION, appId, targets);
     }

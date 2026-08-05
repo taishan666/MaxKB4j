@@ -2,27 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.maxkb4j.application.mapper.ApplicationMapper">
 
-    <resultMap id="applicationResultMap" type="com.maxkb4j.application.vo.ApplicationVO">
-        <result property="knowledgeSetting" column="knowledge_setting"
-                typeHandler="com.maxkb4j.common.typehandler.DatasetSettingTypeHandler"/>
-        <result property="modelSetting" column="model_setting"
-                typeHandler="com.maxkb4j.common.typehandler.LlmModelSettingTypeHandler"/>
-        <result property="workFlow" column="work_flow"
-                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
-        <result property="modelParamsSetting" column="model_params_setting"
-                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
-        <result property="ttsModelParamsSetting" column="tts_model_params_setting"
-                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
-        <result property="fileUploadSetting" column="file_upload_setting"
-                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
-        <result property="toolIds" column="tool_ids"
-                typeHandler="com.maxkb4j.common.typehandler.StringListTypeHandler"/>
-        <result property="applicationIds" column="application_ids"
-                typeHandler="com.maxkb4j.common.typehandler.StringListTypeHandler"/>
-        <result property="knowledgeIds" column="knowledge_ids"
-                typeHandler="com.maxkb4j.common.typehandler.StringListTypeHandler"/>
-    </resultMap>
-    <select id="pageList" resultMap="applicationResultMap">
+
+    <select id="pageList" resultType="com.maxkb4j.application.vo.ApplicationListVO">
         SELECT
         a.id,
         a.name,
@@ -32,9 +13,18 @@
         a.is_publish,
         a.create_time,
         a.update_time,
-        u.nickname
+        u.nickname,
+        COALESCE(res_stats.resource_count, 0) AS resource_count
         FROM application a
         LEFT JOIN "user" u ON a.user_id = u.id
+        LEFT JOIN (
+        SELECT
+        m.target_id,
+        COUNT(*) AS resource_count
+        FROM resource_mapping m
+        WHERE m.target_type = 'APPLICATION'
+        GROUP BY m.target_id
+        ) res_stats ON a.id = res_stats.target_id
         <where>
             <if test="query.name != null and query.name != ''">
                 AND a.name LIKE '%' || #{query.name} || '%'

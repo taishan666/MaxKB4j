@@ -15,4 +15,5 @@ public class ApplicationListVO {
     private Date createTime;
     private Date updateTime;
     private Boolean isPublish;
+    private int resourceCount;
 }

@@ -90,7 +90,7 @@ public class ApplicationController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{current}/{size}")
-    public R<IPage<ApplicationVO>> userApplications(@PathVariable("current") int current, @PathVariable("size") int size, ApplicationQuery query) {
+    public R<IPage<ApplicationListVO>> userApplications(@PathVariable("current") int current, @PathVariable("size") int size, ApplicationQuery query) {
         return R.data(applicationService.selectAppPage(current, size, query));
     }
 

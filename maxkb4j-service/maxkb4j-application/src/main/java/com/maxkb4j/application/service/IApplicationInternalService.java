@@ -17,7 +17,7 @@ import java.util.List;
  */
 public interface IApplicationInternalService extends IApplicationService, IService<ApplicationEntity> {
 
-    IPage<ApplicationVO> selectAppPage(int page, int size, ApplicationQuery query);
+    IPage<ApplicationListVO> selectAppPage(int page, int size, ApplicationQuery query);
 
     boolean deleteByAppId(String appId);
 

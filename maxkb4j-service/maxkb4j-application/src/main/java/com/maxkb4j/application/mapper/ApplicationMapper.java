@@ -19,7 +19,7 @@ import java.util.List;
 @Mapper
 public interface ApplicationMapper extends BaseMapper<ApplicationEntity>{
 
-    IPage<ApplicationVO> pageList(Page<ApplicationVO> page, @Param("query") ApplicationQuery query);
+    IPage<ApplicationListVO> pageList(Page<ApplicationVO> page, @Param("query") ApplicationQuery query);
 
     List<ApplicationListVO> listApps(@Param("query") ApplicationQuery query);
 }
