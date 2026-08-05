@@ -174,6 +174,7 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
 
     @Transactional
     public KnowledgeEntity createKnowledgeWeb(WebKnowledgeDTO knowledge) {
+        knowledge.setMeta(new JSONObject(Map.of("sourceUrl", knowledge.getSourceUrl(), "selector", knowledge.getSelector())));
         createKnowledge(knowledge);
         // 使用事件驱动异步处理，确保事务提交后再执行
         eventPublisher.publishEvent(new CreateWebDocsEvent(
