@@ -297,13 +297,13 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
     @Transactional
-    public boolean adjustPosition(String knowledgeId, String documentId, String paragraphId, Integer targetIndex) {
-        // 1. 参数校验与转换：将0-based的targetIndex转为1-based的newPosition
-        if (targetIndex == null || targetIndex < 0) {
+    public boolean adjustPosition(String knowledgeId, String documentId, String paragraphId, Integer newPosition, Integer targetIndex) {
+        if (newPosition == null || newPosition < 1) {
             return false;
         }
-        int newPosition = targetIndex + 1;
-
+        if (targetIndex != null && targetIndex < 0) {
+            newPosition = targetIndex + 1;
+        }
         // 2. 一次性查询所需数据，避免二次查库
         List<ParagraphEntity> paragraphs = this.lambdaQuery()
                 .select(ParagraphEntity::getId, ParagraphEntity::getPosition)

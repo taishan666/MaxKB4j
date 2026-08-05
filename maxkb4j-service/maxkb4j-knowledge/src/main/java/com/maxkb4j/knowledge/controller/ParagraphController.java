@@ -99,7 +99,7 @@ public class ParagraphController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{documentId}/paragraph/adjust_position")
     public R<Boolean> adjustPosition(@PathVariable String id, @PathVariable String documentId, String paragraphId, Integer newPosition, Integer targetIndex) {
-        return R.status(paragraphService.adjustPosition(id, documentId, paragraphId,targetIndex));
+        return R.status(paragraphService.adjustPosition(id, documentId, paragraphId,newPosition,targetIndex));
     }
 
 }

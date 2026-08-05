@@ -3,9 +3,11 @@ package com.maxkb4j.model.provider;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.ModelCredential;
 import com.maxkb4j.model.annotation.ModelProviderType;
+import com.maxkb4j.model.custom.model.SiliconFlowImageModel;
 import com.maxkb4j.model.custom.model.SiliconFlowScoringModel;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
+import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +50,11 @@ public class SiliconFlowModelProvider extends OpenAiModelProvider {
     @Override
     public String getDefaultBaseUrl(){
         return BASE_URL;
+    }
+
+    @Override
+    public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
+        return new SiliconFlowImageModel(modelName, credential, params);
     }
 
     @Override

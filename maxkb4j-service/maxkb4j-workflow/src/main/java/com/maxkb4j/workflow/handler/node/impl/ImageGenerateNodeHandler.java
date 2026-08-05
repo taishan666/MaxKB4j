@@ -55,13 +55,13 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
             modelParamsSetting.put("negative_prompt", negativePrompt);
         }
         ImageModel imageModel = modelFactory.buildImageModel(modelId, modelParamsSetting);
-        List<String> imageFieldList = params.getImageList();
+
         List<Image> outImages = new ArrayList<>();
         List<Image> editImages = new ArrayList<>();
-
+      /*  List<String> imageFieldList = params.getImageList();
         if (CollectionUtils.isNotEmpty(imageFieldList)) {
             editImages = buildImages(workflow, node, imageFieldList);
-        }
+        }*/
 
         if (CollectionUtils.isNotEmpty(editImages)) {
             for (Image editImage : editImages) {

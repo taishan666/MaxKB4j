@@ -7,4 +7,5 @@ public class ParagraphBaseVO {
     private String id;
     private String title;
     private String content;
+    private Boolean isActive;
 }

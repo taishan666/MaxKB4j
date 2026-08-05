@@ -57,9 +57,10 @@ public class DocumentWriteService extends ServiceImpl<DocumentMapper, DocumentEn
             DocumentEntity doc = new DocumentEntity(knowledgeId, d.getName(), knowledgeType);
             AtomicInteger docCharLength = new AtomicInteger();
             if (!CollectionUtils.isEmpty(d.getParagraphs())) {
+                int index = 1;
                 for (var p : d.getParagraphs()) {
                     String content = p.getContent() != null ? p.getContent() : "";
-                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), content, null);
+                    ParagraphEntity paragraph = paragraphService.createParagraph(knowledgeId, doc.getId(), p.getTitle(), content, index);
                     paragraphEntities.add(paragraph);
                     docCharLength.addAndGet(content.length());
                     if (!CollectionUtils.isEmpty(p.getProblemList())) {
@@ -88,6 +89,7 @@ public class DocumentWriteService extends ServiceImpl<DocumentMapper, DocumentEn
                             }
                         }
                     }
+                    index++;
                 }
             }
             doc.setCharLength(docCharLength.get());
