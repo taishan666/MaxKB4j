@@ -9,6 +9,7 @@
 
 <p align="center">
   <a href="https://www.gnu.org/licenses/gpl-3.0.html#license-text"><img src="https://img.shields.io/badge/License-GPL%20v3-blue" alt="License: GPL v3"></a>
+  <a href="https://github.com/taishan666/MaxKB4j/actions/workflows/ci.yml"><img src="https://github.com/taishan666/MaxKB4j/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href=""><img src="https://img.shields.io/badge/Java-21+-green" alt="Java 21+"></a>
   <a href=""><img src="https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen" alt="Spring Boot 3.x"></a>    
   <a href=""><img src="https://img.shields.io/badge/Langchain4J-1.x-green" alt="LangChain4j"></a>
@@ -27,6 +28,7 @@
 
 - 📄 [MaxKB4j 商业价值白皮书](./docs/MaxKB4j-商业价值白皮书.md)
 - 🧪 [MaxKB4j 回归测试报告](./docs/MaxKB4j-回归测试报告.md)
+- 🗒️ [更新日志](./CHANGELOG.md)
 
 ---
 
