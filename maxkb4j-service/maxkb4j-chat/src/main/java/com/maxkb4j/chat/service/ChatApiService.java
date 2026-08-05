@@ -168,7 +168,7 @@ public class ChatApiService {
                 case null, default -> resp.error = Map.of("code", -32601, "message", "Method not supported");
             }
         } catch (Exception e) {
-            resp.error = Map.of("code", -32000, "message", e.getMessage());
+            resp.error = Map.of("code", -32000, "message", e.getMessage()==null?"":e.getMessage());
         }
         return resp;
     }
