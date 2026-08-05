@@ -11,6 +11,7 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.ISTTModel;
 import com.maxkb4j.model.service.ITTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
+import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClientBuilder;
@@ -157,7 +158,8 @@ public abstract class AbsModelProvider {
                 model.embed("ok");
             }else if (ModelType.RERANKER.getKey().equals(modelType)) {
                 ScoringModel model = buildScoringModel(modelName, credential, params);
-                model.score("ok", "ok");
+                List<TextSegment> list = List.of(TextSegment.from("ok3"),TextSegment.from("ok2"),TextSegment.from("ok1"));
+                model.scoreAll(list, "ok");
             }
         }
     }

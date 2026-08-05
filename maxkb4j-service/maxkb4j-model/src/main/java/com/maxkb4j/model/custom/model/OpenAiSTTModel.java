@@ -23,8 +23,8 @@ public class OpenAiSTTModel implements ISTTModel {
         this.client= builder.build();
         this.modelName = modelName;
         this.params = params;
-
     }
+
     @Override
     public String speechToText(byte[] audioBytes, String suffix) {
         TranscriptionCreateParams transcriptionCreateParams = TranscriptionCreateParams.builder()

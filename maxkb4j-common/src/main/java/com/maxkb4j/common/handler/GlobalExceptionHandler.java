@@ -12,6 +12,7 @@ import dev.langchain4j.exception.AuthenticationException;
 import dev.langchain4j.exception.InvalidRequestException;
 import dev.langchain4j.exception.ModelNotFoundException;
 import dev.langchain4j.exception.RateLimitException;
+import dev.langchain4j.model.ModelDisabledException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -152,6 +153,13 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining("; "));
         log.warn("参数校验失败: {}", message);
         return R.fail(500, message);
+    }
+
+    @ExceptionHandler(ModelDisabledException.class)
+    @ResponseBody
+    public R<String> handleException(ModelDisabledException e) {
+        log.warn("模型禁用异常: {}", e.getMessage());
+        return R.fail(500, e.getMessage());
     }
 
     /**
