@@ -124,11 +124,15 @@ public class DocumentHandler {
                         .get();
                 CSVParser csvParser = csvFormat.parse(reader);
                 for (CSVRecord record : csvParser) {
+                    // 列数不足的行跳过，避免越界（至少需要 title + content 两列）
+                    if (record.size() < 2) {
+                        continue;
+                    }
                     ParagraphSimple paragraph = ParagraphSimple.builder()
                             .title(record.get(0))
                             .content(record.get(1))
                             .build();
-                    if (StringUtils.isNotBlank(record.get(2))) {
+                    if (record.size() > 2 && StringUtils.isNotBlank(record.get(2))) {
                         String[] problems = record.get(2).split("\n");
                         paragraph.setProblemList(new ArrayList<>(Arrays.asList(problems)));
                     }

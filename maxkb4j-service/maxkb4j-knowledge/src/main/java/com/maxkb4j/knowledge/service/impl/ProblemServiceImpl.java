@@ -147,10 +147,10 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
      * Batch create index for multiple paragraphs with optimized processing
      */
     private void createIndexBatch(List<String> problemIds, EmbeddingModel embeddingModel) {
-        List<ProblemEntity> problems = this.listByIds(problemIds);
-        if (CollectionUtils.isEmpty(problems)) {
+        if (CollectionUtils.isEmpty(problemIds)) {
             return;
         }
+        List<ProblemEntity> problems = this.listByIds(problemIds);
         log.info("开始批量索引 {} 个问题", problems.size());
         // Collect all embedding entities for batch processing
         List<EmbeddingEntity> allEmbeddingEntities = new ArrayList<>();
