@@ -95,8 +95,8 @@ public class ChatApiService {
         List<ApplicationChatRecordDTO> chatRecordEntities = chatRecordService.listVoteStatusByChatId(chatId);
         ApplicationChatDTO chatDTO = new ApplicationChatDTO();
         chatDTO.setId(chatId);
-        int starNum = (int) chatRecordEntities.stream().filter(item -> item.getVoteStatus().equals("0")).count();
-        int trampleNum = (int) chatRecordEntities.stream().filter(item -> item.getVoteStatus().equals("1")).count();
+        int starNum = (int) chatRecordEntities.stream().filter(item -> "0".equals(item.getVoteStatus())).count();
+        int trampleNum = (int) chatRecordEntities.stream().filter(item -> "1".equals(item.getVoteStatus())).count();
         chatDTO.setStarNum(starNum);
         chatDTO.setTrampleNum(trampleNum);
         return chatService.updateDtoById(chatDTO);
