@@ -137,7 +137,6 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
     }
 
     public void reIndexBatch( String knowledgeId, List<String> problemIds) {
-        // problemParagraphService.reVector(problem);
         EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(knowledgeId);
         compositeStore.deleteByProblemIds(knowledgeId,problemIds);
         createIndexBatch(problemIds,embeddingModel);
