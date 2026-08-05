@@ -74,7 +74,7 @@ public class SiliconFlowImageModel implements ImageModel {
         JSONObject params = new JSONObject();
         params.put("model",modelName);
         params.put("prompt",prompt);
-        params.put("batch_size",n);
+        params.put("batch_size",1);
         String imageSize = modelParams.getString("size");
         if (imageSize != null){
             params.put("image_size",imageSize);
