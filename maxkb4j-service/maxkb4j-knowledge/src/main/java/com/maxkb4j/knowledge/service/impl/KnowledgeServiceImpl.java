@@ -159,8 +159,10 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
 
     @Transactional
     public KnowledgeEntity createKnowledge(KnowledgeEntity knowledge) {
-        knowledge.setMeta(new JSONObject());
         knowledge.setUserId(userContext.getUserId());
+        if (knowledge.getMeta() == null){
+            knowledge.setMeta(new JSONObject());
+        }
         if (knowledge.getWorkFlow() == null) {
             knowledge.setWorkFlow(new JSONObject());
         }
