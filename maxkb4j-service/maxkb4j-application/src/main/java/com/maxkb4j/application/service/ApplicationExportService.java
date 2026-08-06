@@ -46,7 +46,9 @@ public class ApplicationExportService {
         }
         try {
             MaxKb4J maxKb4j = ResourceUtil.parseMk(file.getInputStream());
-            return applicationService.saveMk(maxKb4j);
+            ApplicationEntity app = maxKb4j.getApplication();
+            app.setId(null);
+            return applicationService.upsertMk(maxKb4j);
         } catch (IOException e) {
             throw new ApiException(e.getMessage());
         }

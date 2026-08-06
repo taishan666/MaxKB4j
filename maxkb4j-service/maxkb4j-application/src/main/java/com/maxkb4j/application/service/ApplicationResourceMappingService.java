@@ -80,7 +80,7 @@ public class ApplicationResourceMappingService {
                 }
             }
         }
-        saveResourceMappings(app.getId(), applicationIds,knowledgeIds, toolIds, modelIds);
+        upsertResourceMappings(app.getId(), applicationIds,knowledgeIds, toolIds, modelIds);
     }
 
     /**
@@ -93,7 +93,7 @@ public class ApplicationResourceMappingService {
     /**
      * 批量保存资源映射关系
      */
-    private void saveResourceMappings(String appId,
+    private void upsertResourceMappings(String appId,
                                       List<String> applicationIds,
                                       List<String> knowledgeIds,
                                       List<String> toolIds,

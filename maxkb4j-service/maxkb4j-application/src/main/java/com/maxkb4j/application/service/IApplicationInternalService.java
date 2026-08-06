@@ -25,7 +25,7 @@ public interface IApplicationInternalService extends IApplicationService, IServi
 
     ApplicationVO getDetail(String id);
 
-    Boolean updateAppById(String appId, ApplicationVO appVO);
+    Boolean updateAppById(ApplicationDTO appDTO);
 
     ApplicationEntity publish(String id, JSONObject params);
 

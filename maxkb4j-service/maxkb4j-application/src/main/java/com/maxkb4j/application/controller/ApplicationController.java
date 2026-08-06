@@ -102,8 +102,9 @@ public class ApplicationController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}")
-    public R<Boolean> updateByAppId(@PathVariable("id") String id, @RequestBody ApplicationVO appVO) {
-        return R.status(applicationService.updateAppById(id, appVO));
+    public R<Boolean> updateByAppId(@PathVariable("id") String id, @RequestBody ApplicationDTO appDTO) {
+        appDTO.setId(id);
+        return R.status(applicationService.updateAppById(appDTO));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_DELETE)

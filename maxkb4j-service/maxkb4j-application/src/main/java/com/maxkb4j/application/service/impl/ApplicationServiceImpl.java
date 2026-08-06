@@ -108,10 +108,11 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
                 Resource resource = resolver.getResource("templates/app/" + downloadUrl);
                 MaxKb4J maxKb4j = ResourceUtil.parseMk(resource);
                 ApplicationEntity app = maxKb4j.getApplication();
+                app.setId(null);
                 app.setName(application.getName());
                 app.setDesc(application.getDesc());
                 app.setIcon(StringUtils.isNotBlank(application.getIcon()) ? application.getIcon() : app.getIcon());
-                saveMk(maxKb4j);
+                upsertMk(maxKb4j);
                 applicationResourceMappingService.saveResourceMappings(app);
                 return app;
             }
@@ -126,19 +127,18 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         application.setToolIds(new ArrayList<>());
         application.setKnowledgeIds(new ArrayList<>());
         application.setApplicationIds(new ArrayList<>());
-        this.saveApp(application);
+        this.saveOrUpdateApp(application);
         applicationResourceMappingService.saveResourceMappings(application);
         return application;
     }
 
     @Transactional
-    public boolean saveMk(MaxKb4J maxKb4j) {
+    public boolean upsertMk(MaxKb4J maxKb4j) {
         if (maxKb4j == null) {
             return false;
         }
         Date now = new Date();
         ApplicationEntity app = maxKb4j.getApplication();
-        app.setId(null);
         app.setIsPublish(false);
         app.setCreateTime(now);
         app.setUpdateTime(now);
@@ -174,17 +174,21 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
                 }
             }
         }
-        return this.saveApp(app);
+        return this.saveOrUpdateApp(app);
     }
 
     @Transactional
-    public boolean saveApp(ApplicationEntity application) {
-        this.save(application);
-        ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
-        accessToken.setApplicationId(application.getId());
-        accessToken.setLanguage(userService.getLanguage(application.getUserId()));
-        accessTokenService.save(accessToken);
-        return userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
+    public boolean saveOrUpdateApp(ApplicationEntity application) {
+        if (application.getId()!=null){
+            this.save(application);
+            ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
+            accessToken.setApplicationId(application.getId());
+            accessToken.setLanguage(userService.getLanguage(application.getUserId()));
+            accessTokenService.save(accessToken);
+            return userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
+        }else {
+            return this.updateById(application);
+        }
     }
 
     public ApplicationVO appProfile(String appId) {
@@ -296,10 +300,22 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
 
     @SuppressWarnings("unchecked")
     @Transactional
-    public Boolean updateAppById(String appId, ApplicationVO appVO) {
-        ApplicationEntity app = BeanUtil.copy(appVO, ApplicationEntity.class);
-        app.setId(appId);
-        JSONObject workFlow = appVO.getWorkFlow();
+    public Boolean updateAppById(ApplicationDTO appDTO) {
+        JSONObject workFlowTemplate = appDTO.getWorkFlowTemplate();
+        if (workFlowTemplate != null) {
+            String downloadUrl = workFlowTemplate.getString("downloadUrl");
+            if (StringUtils.isNotBlank(downloadUrl)) {
+                PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+                Resource resource = resolver.getResource("templates/app/" + downloadUrl);
+                MaxKb4J maxKb4j = ResourceUtil.parseMk(resource);
+                ApplicationEntity app = maxKb4j.getApplication();
+                app.setId(appDTO.getId());
+                boolean status=upsertMk(maxKb4j);
+                applicationResourceMappingService.saveResourceMappings(app);
+                return status;
+            }
+        }
+        JSONObject workFlow = appDTO.getWorkFlow();
         if (workFlow != null && workFlow.containsKey("nodes")) {
             JSONArray nodes = workFlow.getJSONArray("nodes");
             if (nodes != null) {
@@ -308,11 +324,11 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
                         .map(node -> (Map<String, Object>) node)
                         .filter(node -> BASE.getKey().equals(node.get("type")))
                         .findFirst()
-                        .map(JSONObject::new).ifPresent(baseNode -> updateAppFromBaseNode(app, baseNode));
+                        .map(JSONObject::new).ifPresent(baseNode -> updateAppFromBaseNode(appDTO, baseNode));
             }
         }
-        applicationResourceMappingService.saveResourceMappings(app);
-        return this.updateById(app);
+        applicationResourceMappingService.saveResourceMappings(appDTO);
+        return this.updateById(appDTO);
     }
 
     /**

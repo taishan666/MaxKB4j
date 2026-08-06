@@ -46,7 +46,7 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
 
     @Transactional
     @Override
-    public boolean relation(String sourceType, String sourceId, List<TargetResource> targets) {
+    public void relation(String sourceType, String sourceId, List<TargetResource> targets) {
         this.remove(Wrappers.<ResourceMappingEntity>lambdaQuery().eq(ResourceMappingEntity::getSourceType, sourceType).eq(ResourceMappingEntity::getSourceId, sourceId));
         List<ResourceMappingEntity> list = targets.stream().map(target -> {
             ResourceMappingEntity entity = new ResourceMappingEntity();
@@ -56,26 +56,18 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
             entity.setTargetType(target.getTargetType());
             return entity;
         }).toList();
-        return this.saveBatch( list);
+        this.saveBatch(list);
     }
 
     @Override
-    public boolean deleteBySourceId(String sourceType, String sourceId) {
-        LambdaQueryWrapper<ResourceMappingEntity> wrapper = Wrappers.<ResourceMappingEntity>lambdaQuery()
-                .eq(StringUtils.isNotBlank(sourceType),ResourceMappingEntity::getSourceType, sourceType)
-                .eq(StringUtils.isNotBlank(sourceId),ResourceMappingEntity::getSourceId, sourceId);
-        return this.remove(wrapper);
-    }
-
-    @Override
-    public boolean deleteBySourceIds(String sourceType, List<String> sourceIds) {
+    public void deleteBySourceIds(String sourceType, List<String> sourceIds) {
         if (CollectionUtils.isEmpty(sourceIds)) {
-            return false;
+            return;
         }
         LambdaQueryWrapper<ResourceMappingEntity> wrapper = Wrappers.<ResourceMappingEntity>lambdaQuery()
                 .eq(StringUtils.isNotBlank(sourceType), ResourceMappingEntity::getSourceType, sourceType)
                 .in(ResourceMappingEntity::getSourceId, sourceIds);
-        return this.remove(wrapper);
+        this.remove(wrapper);
     }
 
 
