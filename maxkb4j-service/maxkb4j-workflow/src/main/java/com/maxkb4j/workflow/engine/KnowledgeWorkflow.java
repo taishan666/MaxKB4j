@@ -9,7 +9,6 @@ import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +35,7 @@ public class KnowledgeWorkflow extends WorkflowImpl {
         }
 
         // 3. 初始化历史管理器
-        super.historyManager = new HistoryManager(Collections.emptyList());
+        super.historyManager = new HistoryManager(List.of());
 
         // 4. 初始化执行控制器
         super.executionAccessor = new WorkflowExecutionAccessor(super.configuration, super.workflowContext, new EdgeNavigator(edges));

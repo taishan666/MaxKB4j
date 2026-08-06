@@ -144,20 +144,10 @@ public class LoopNodeHandler extends AbsNodeHandler {
      */
     private List<JSONObject> executeIterations(IWorkflow workflow, AbsNode node, List<Object> items, JSONObject loopBody) {
         LoopExecutionContext ctx = prepareLoopContext(node);
-
-   /*     // 设置子节点的 runtimeNodeId
-        ChatParams chatParams = workflow.getChatParams();
-        if (chatParams.getChildNode() != null) {
-            chatParams.setRuntimeNodeId(chatParams.getChildNode().getRuntimeNodeId());
-        }
-
         while (ctx.currentIndex < items.size() && !ctx.shouldBreak.get()) {
             executeSingleIteration(workflow, node, items, loopBody, ctx);
             ctx.currentIndex++;
-            // 清除 runtimeNodeId 以便下次迭代
-            chatParams.setRuntimeNodeId(null);
-        }*/
-
+        }
         return ctx.loopDetails;
     }
 

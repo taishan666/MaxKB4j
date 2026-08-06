@@ -67,9 +67,9 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
         recordNodeDetails(node, systemPrompt, historyMessages, userPrompt, contents);
 
         ModelConfig modelConfig = resolveModelConfig(workflow, params);
+        List<ToolProvider> toolProviders = resolveToolProviders(workflow, toolIds, applicationIds);
         // 构建 AI 服务
-        Assistant assistant = buildStreamingAssistant(workflow, modelConfig, systemPrompt, historyMessages,
-                resolveToolProviders(workflow, toolIds, applicationIds));
+        Assistant assistant = buildStreamingAssistant(workflow, modelConfig, systemPrompt, historyMessages, toolProviders);
 
         TokenStream tokenStream = assistant.chatStream(userPrompt, contents);
 

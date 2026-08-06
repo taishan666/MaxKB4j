@@ -23,11 +23,12 @@ public class ChatWorkflow extends WorkflowImpl {
      */
     private ChatState chatState;
 
-     ChatWorkflow(ChatWorkflowBuilder builder) {
-         // 调用父类保护构造器
-         super();
-         this.chatParams = builder.chatParams;
-         this.chatState = builder.chatState;
+
+    ChatWorkflow(ChatWorkflowBuilder builder) {
+        // 调用父类保护构造器
+        super();
+        this.chatParams = builder.chatParams;
+        this.chatState = builder.chatState;
         // 1. 基础组件（从 builder 获取）
         this.configuration = builder.configuration;
         this.workflowContext = builder.context;

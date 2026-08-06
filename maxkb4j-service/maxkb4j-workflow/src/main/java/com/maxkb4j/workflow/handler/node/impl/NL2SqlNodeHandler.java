@@ -59,7 +59,6 @@ public class NL2SqlNodeHandler extends AbsNodeHandler {
 
         putDetail(node, "question", question);
         recordTokenUsage(node, result.tokenUsage());
-
         return new NodeResult(Map.of("sql", sql, "result", sqlResult));
     }
 }
