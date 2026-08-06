@@ -6,7 +6,7 @@ import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChildNode;
 import com.maxkb4j.common.util.MessageConverter;
 import com.maxkb4j.workflow.enums.NodeStatus;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.util.NodeIdGenerator;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -94,7 +94,7 @@ public abstract class AbsNode {
      * @param workflow 工作流实例
      * @param detail   节点详情
      */
-    public void saveContext(Workflow workflow, Map<String, Object> detail) {
+    public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
         // 默认空实现，子类按需 override
     }
 

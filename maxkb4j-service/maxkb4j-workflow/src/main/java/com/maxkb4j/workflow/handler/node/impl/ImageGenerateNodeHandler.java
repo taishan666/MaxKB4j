@@ -11,7 +11,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.ImageGenerateNode;
 import dev.langchain4j.data.image.Image;
@@ -38,7 +38,7 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
     private final IOssService ossService;
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         ImageGenerateNode.NodeParams params = parseParams(node, ImageGenerateNode.NodeParams.class);
         String prompt = workflow.renderPrompt(params.getPrompt());
         List<String> answerTexts = new ArrayList<>();
@@ -90,7 +90,7 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
         return new NodeResult(Map.of("answer", String.join(" ", answerTexts), "image", imageUrls));
     }
 
-    private List<Image> buildImages(Workflow workflow, AbsNode node, List<String> imageFieldList) {
+    private List<Image> buildImages(IWorkflow workflow, AbsNode node, List<String> imageFieldList) {
         List<Image> images = new ArrayList<>();
         List<OssFile> imageFiles = getOssFiles(workflow,imageFieldList);
         for (OssFile file : imageFiles) {

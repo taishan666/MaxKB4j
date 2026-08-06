@@ -1,8 +1,6 @@
 package com.maxkb4j.workflow.service;
 
-import com.maxkb4j.workflow.handler.ChatWorkflowHandler;
-import com.maxkb4j.workflow.handler.KnowledgeWorkflowHandler;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +17,7 @@ public class WorkFlowActuator implements IWorkFlowActuator {
     private final List<IWorkflowHandler> handlers;
 
     @Override
-    public void execute(Workflow workflow) {
+    public void execute(IWorkflow workflow) {
         handlers.stream()
                 .filter(handler -> handler.canHandle(workflow))
                 .findFirst()

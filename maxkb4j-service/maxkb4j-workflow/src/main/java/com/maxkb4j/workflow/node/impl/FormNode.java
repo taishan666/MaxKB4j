@@ -4,7 +4,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 
@@ -25,7 +25,7 @@ public class FormNode extends AbsNode {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void saveContext(Workflow workflow, Map<String, Object> detail) {
+    public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
         Map<String, Object> formData = (Map<String, Object>) detail.get("form_data");
         if (formData != null) {
             context.putAll(formData);

@@ -6,7 +6,7 @@ import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.UserSelectNode;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ public class UserSelectNodeHandler extends AbsNodeHandler {
 
     private static final String SELECT_FILED = "select-card";
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         UserSelectNode.NodeParams params = parseParams(node, UserSelectNode.NodeParams.class);
         JSONObject formData = params.getFormData();
         List<UserSelectNode.Branch> branches = params.getBranch();

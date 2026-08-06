@@ -9,7 +9,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.InputField;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.ApplicationNode;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
     private final IApplicationChatService chatService;
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         ApplicationNode.NodeParams params = parseParams(node, ApplicationNode.NodeParams.class);
         List<String> questionFields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, questionFields);
@@ -115,7 +115,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
     /**
      * 构建 formData
      */
-    private Map<String, Object> buildFormData(Workflow workflow, List<InputField> fieldList) {
+    private Map<String, Object> buildFormData(IWorkflow workflow, List<InputField> fieldList) {
         Map<String, Object> formData = new HashMap<>();
         if (CollectionUtils.isNotEmpty(fieldList)) {
             for (InputField field : fieldList) {

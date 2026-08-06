@@ -11,7 +11,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.ChatRecordSimple;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +28,7 @@ public class StartNodeHandler extends AbsNodeHandler {
 
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         ChatParams chatParams = workflow.getChatParams();
 
         // 获取默认全局变量
@@ -62,7 +62,7 @@ public class StartNodeHandler extends AbsNodeHandler {
         return new NodeResult(nodeVariable);
     }
 
-    private Map<String, Object> getDefaultGlobalVariable(Workflow workflow, ChatParams chatParams) {
+    private Map<String, Object> getDefaultGlobalVariable(IWorkflow workflow, ChatParams chatParams) {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         resultMap.put("historyContext", getHistoryContext(workflow));
@@ -76,7 +76,7 @@ public class StartNodeHandler extends AbsNodeHandler {
         return resultMap;
     }
 
-    private List<ChatRecordSimple> getHistoryContext(Workflow workflow) {
+    private List<ChatRecordSimple> getHistoryContext(IWorkflow workflow) {
         List<ChatRecordSimple> list = new ArrayList<>();
         for (ChatRecordDTO chatRecord : workflow.getHistoryChatRecords()) {
             ChatRecordSimple record = new ChatRecordSimple();

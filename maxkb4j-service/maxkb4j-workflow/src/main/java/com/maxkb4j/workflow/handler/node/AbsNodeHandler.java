@@ -6,7 +6,7 @@ import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.workflow.model.ModelAwareParams;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.model.output.TokenUsage;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +46,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * @return 执行结果
      * @throws Exception 执行异常
      */
-    protected abstract NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception;
+    protected abstract NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception;
 
     /**
      * 核心异步执行逻辑
@@ -58,7 +58,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * @return 执行结果的 CompletableFuture
      * @throws Exception 执行异常
      */
-    protected CompletableFuture<NodeResult> doExecuteAsync(Workflow workflow, AbsNode node) throws Exception {
+    protected CompletableFuture<NodeResult> doExecuteAsync(IWorkflow workflow, AbsNode node) throws Exception {
         return CompletableFuture.completedFuture(doExecute(workflow, node));
     }
 
@@ -70,7 +70,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * <p>注意：此方法为 final，子类应覆盖 doExecuteAsync() 而不是此方法</p>
      */
     @Override
-    public final CompletableFuture<NodeResult> execute(Workflow workflow, AbsNode node) throws Exception {
+    public final CompletableFuture<NodeResult> execute(IWorkflow workflow, AbsNode node) throws Exception {
         long startTime = System.currentTimeMillis();
         try {
             // 2. 内部预处理（记录开始时间等）
@@ -132,7 +132,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * @param workflow 工作流上下文
      * @param node     节点实例
      */
-    protected void onPreExecute(Workflow workflow, AbsNode node) {
+    protected void onPreExecute(IWorkflow workflow, AbsNode node) {
     }
 
     /**
@@ -143,7 +143,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * @param node     节点实例
      * @param result   执行结果
      */
-    protected void onPostExecute(Workflow workflow, AbsNode node, NodeResult result) {
+    protected void onPostExecute(IWorkflow workflow, AbsNode node, NodeResult result) {
         // 子类可覆盖添加自定义逻辑
     }
 
@@ -159,7 +159,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * @param node     节点实例
      * @param ex       异常信息
      */
-    protected void handleError(Workflow workflow, AbsNode node, Exception ex) {
+    protected void handleError(IWorkflow workflow, AbsNode node, Exception ex) {
         // 默认空实现，异常处理由 ExceptionResolverChain 统一处理
     }
 
@@ -234,7 +234,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * @param fields   字段引用路径
      * @return 字段值
      */
-    protected Object getReferenceField(Workflow workflow, List<String> fields) {
+    protected Object getReferenceField(IWorkflow workflow, List<String> fields) {
         return workflow.getReferenceField(fields);
     }
 
@@ -245,12 +245,12 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * @param fields   字段引用路径
      * @return 字段值（字符串），如果不存在或类型不匹配返回 null
      */
-    protected String getReferenceFieldAsString(Workflow workflow, List<String> fields) {
+    protected String getReferenceFieldAsString(IWorkflow workflow, List<String> fields) {
         Object value = workflow.getReferenceField(fields);
         return value instanceof String ? (String) value : null;
     }
 
-    protected List<OssFile> getOssFiles(Workflow workflow, List<String> fields) {
+    protected List<OssFile> getOssFiles(IWorkflow workflow, List<String> fields) {
         if (CollectionUtils.isEmpty(fields)) {
             return List.of();
         }
@@ -283,7 +283,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * @param params   实现 {@link ModelAwareParams} 的节点参数
      * @return 解析后的 {@link ModelConfig}；当 params 为 null 时返回 null
      */
-    protected ModelConfig resolveModelConfig(Workflow workflow, ModelAwareParams params) {
+    protected ModelConfig resolveModelConfig(IWorkflow workflow, ModelAwareParams params) {
         if (params == null) {
             return null;
         }

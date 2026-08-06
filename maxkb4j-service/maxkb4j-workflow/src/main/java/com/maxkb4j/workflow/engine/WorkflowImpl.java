@@ -1,13 +1,12 @@
 package com.maxkb4j.workflow.engine;
 
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.workflow.model.IWorkflowContext;
 import com.maxkb4j.workflow.model.IWorkflowExecutionAccessor;
 import com.maxkb4j.workflow.model.IWorkflowOutputManager;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.data.message.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,7 @@ import java.util.Map;
  * </pre>
  */
 @Slf4j
-public class WorkflowImpl implements Workflow {
+public class WorkflowImpl implements IWorkflow {
 
     protected WorkflowConfiguration configuration;
     protected WorkflowContext workflowContext;
@@ -181,10 +180,7 @@ public class WorkflowImpl implements Workflow {
      */
     @Override
     public Object getReferenceField(List<String> reference) {
-        if (CollectionUtils.isNotEmpty(reference) && reference.size() > 1) {
-            return workflowContext.getReferenceField(reference.get(0), reference.get(1));
-        }
-        return null;
+        return workflowContext.getReferenceField(reference);
     }
 
     /**
@@ -195,15 +191,8 @@ public class WorkflowImpl implements Workflow {
      * @return 实际字段值
      */
     @Override
-    @SuppressWarnings("unchecked")
     public Object getFieldValue(Object value, String source) {
-        if ("reference".equals(source) && value instanceof List) {
-            List<String> fields = (List<String>) value;
-            if (fields.size() >= 2){
-                return workflowContext.getReferenceField(fields.get(0), fields.get(1));
-            }
-        }
-        return value;
+        return workflowContext.getFieldValue(value, source);
     }
 
     /**

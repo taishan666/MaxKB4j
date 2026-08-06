@@ -121,9 +121,9 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         application.setFileUploadSetting(new JSONObject());
         application.setCleanTime(365);
         application.setWorkFlow(application.getWorkFlow() == null ? new JSONObject() : application.getWorkFlow());
-        application.setToolIds(List.of());
-        application.setKnowledgeIds(List.of());
-        application.setApplicationIds(List.of());
+        application.setToolIds(new ArrayList<>());
+        application.setKnowledgeIds(new ArrayList<>());
+        application.setApplicationIds(new ArrayList<>());
         this.saveApp(application);
         applicationResourceMappingService.saveResourceMappings(application);
         return application;

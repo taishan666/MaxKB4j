@@ -14,7 +14,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbstractChatStreamNodeHandler;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.ImageUnderstandNode;
 import dev.langchain4j.data.message.ChatMessage;
@@ -40,7 +40,7 @@ public class ImageUnderStandNodeHandler extends AbstractChatStreamNodeHandler {
     }
 
     @Override
-    protected CompletableFuture<NodeResult> doExecuteAsync(Workflow workflow, AbsNode node) {
+    protected CompletableFuture<NodeResult> doExecuteAsync(IWorkflow workflow, AbsNode node) {
         ImageUnderstandNode.NodeParams params = parseParams(node, ImageUnderstandNode.NodeParams.class);
         String userPrompt = workflow.renderPrompt(params.getPrompt());
         String systemPrompt = workflow.renderPrompt(params.getSystem());

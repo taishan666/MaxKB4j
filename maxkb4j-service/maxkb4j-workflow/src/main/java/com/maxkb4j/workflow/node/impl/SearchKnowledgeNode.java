@@ -4,7 +4,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 
@@ -28,7 +28,7 @@ public class SearchKnowledgeNode extends AbsNode {
 
 
     @Override
-    public void saveContext(Workflow workflow, Map<String, Object> detail) {
+    public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
         context.put("paragraphList", detail.get("paragraphList"));
         context.put("isHitHandlingMethodList", detail.get("isHitHandlingMethodList"));
         context.put("data", detail.get("data"));

@@ -5,7 +5,7 @@ import com.maxkb4j.workflow.enums.ActionStatus;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.engine.KnowledgeWorkflow;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
@@ -30,12 +30,12 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
     }
 
     @Override
-    public boolean canHandle(Workflow workflow) {
+    public boolean canHandle(IWorkflow workflow) {
         return workflow instanceof KnowledgeWorkflow;
     }
 
     @Override
-    public void execute(Workflow workflow) {
+    public void execute(IWorkflow workflow) {
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             List<AbsNode> nodes = knowledgeWorkflow.getStartNodes();
             runChainNodes(workflow, nodes);
@@ -43,7 +43,7 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
         }
     }
 
-    public void updateState(Workflow workflow, ActionStatus actionStatus) {
+    public void updateState(IWorkflow workflow, ActionStatus actionStatus) {
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             String actionId = knowledgeWorkflow.getKnowledgeParams().getActionId();
             knowledgeActionService.updateState(actionId, knowledgeWorkflow.output().runtimeDetails(), actionStatus.name());
@@ -51,7 +51,7 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
     }
 
     @Override
-    protected void onNodeStart(Workflow workflow, AbsNode node) {
+    protected void onNodeStart(IWorkflow workflow, AbsNode node) {
         node.setStatus(NodeStatus.STARTED.getStatus());
         updateState(workflow, ActionStatus.STARTED);
     }

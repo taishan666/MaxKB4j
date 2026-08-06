@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.service;
 
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 
 public interface IWorkflowHandler {
     /**
@@ -9,7 +9,7 @@ public interface IWorkflowHandler {
      * @param workflow the workflow to check
      * @return true if this handler can handle the workflow
      */
-    default boolean canHandle(Workflow workflow) {
+    default boolean canHandle(IWorkflow workflow) {
         return true;
     }
 
@@ -18,7 +18,7 @@ public interface IWorkflowHandler {
      *
      * @param workflow the workflow to execute
      */
-    void execute(Workflow workflow);
+    void execute(IWorkflow workflow);
 }
 
 

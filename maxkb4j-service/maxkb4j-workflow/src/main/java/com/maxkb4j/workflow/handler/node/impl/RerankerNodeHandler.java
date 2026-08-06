@@ -8,7 +8,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.RerankerNode;
 import dev.langchain4j.data.document.Metadata;
@@ -34,7 +34,7 @@ public class RerankerNodeHandler extends AbsNodeHandler {
     private final IModelProviderService modelFactory;
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         RerankerNode.NodeParams params = parseParams(node, RerankerNode.NodeParams.class);
         List<String> questionReferenceAddress = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, questionReferenceAddress);
@@ -95,7 +95,7 @@ public class RerankerNodeHandler extends AbsNodeHandler {
     }
 
     @SuppressWarnings("unchecked")
-    public List<TextSegment> getRerankerList(Workflow workflow, List<List<String>> rerankerReferenceList) {
+    public List<TextSegment> getRerankerList(IWorkflow workflow, List<List<String>> rerankerReferenceList) {
         List<TextSegment> textSegments = new ArrayList<>();
         for (List<String> reference : rerankerReferenceList) {
             Object value = workflow.getReferenceField(reference);

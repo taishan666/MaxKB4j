@@ -16,7 +16,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbstractChatStreamNodeHandler;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.AiChatNode;
 import dev.langchain4j.data.message.ChatMessage;
@@ -53,7 +53,7 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
     }
 
     @Override
-    protected CompletableFuture<NodeResult> doExecuteAsync(Workflow workflow, AbsNode node) {
+    protected CompletableFuture<NodeResult> doExecuteAsync(IWorkflow workflow, AbsNode node) {
         AiChatNode.NodeParams params = parseParams(node, AiChatNode.NodeParams.class);
         String userPrompt = workflow.renderPrompt(params.getPrompt());
         String systemPrompt = workflow.renderPrompt(params.getSystem());
@@ -89,7 +89,7 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
      * 工具执行前钩子：输出工具执行前的格式化消息。
      */
     @Override
-    protected void onBeforeToolExecution(BeforeToolExecution toolExecute, Workflow workflow, AbsNode node) {
+    protected void onBeforeToolExecution(BeforeToolExecution toolExecute, IWorkflow workflow, AbsNode node) {
         String toolMessage = toolFormatterService.format(toolExecute);
         emitMessage(workflow, node, toolMessage, "");
     }
@@ -98,13 +98,13 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
      * 工具执行后钩子：输出工具执行后的格式化消息，并返回需累加到答案的文本。
      */
     @Override
-    protected String onToolExecuted(ToolExecution toolExecute, Workflow workflow, AbsNode node) {
+    protected String onToolExecuted(ToolExecution toolExecute, IWorkflow workflow, AbsNode node) {
         String toolMessage = toolFormatterService.format(toolExecute);
         emitMessage(workflow, node, toolMessage, "");
         return toolMessage;
     }
 
-    private Assistant buildAiServices(String modelId, JSONObject modelParamsSetting, Workflow workflow,
+    private Assistant buildAiServices(String modelId, JSONObject modelParamsSetting, IWorkflow workflow,
                                       String systemPrompt, List<ChatMessage> historyMessages,
                                       List<String> toolIds, List<String> applicationIds) {
         AiServices<Assistant> builder = AiServiceFactory.builder(Assistant.class);

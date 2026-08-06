@@ -7,7 +7,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.IWorkflowExecutionAccessor;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -186,7 +186,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
      * @param currentNodeData 当前节点数据
      */
     @SuppressWarnings("unchecked")
-    public void loadNodeState(Workflow workflow, JSONObject details, String currentNodeId, Map<String, Object> currentNodeData) {
+    public void loadNodeState(IWorkflow workflow, JSONObject details, String currentNodeId, Map<String, Object> currentNodeData) {
         if (details == null || currentNodeId == null) {
             log.warn("loadNodeState called with null details or currentNodeId");
             return;

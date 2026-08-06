@@ -6,7 +6,7 @@ import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.FormNode;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class FormNodeHandler extends AbsNodeHandler {
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         FormNode.NodeParams params = parseParams(node, FormNode.NodeParams.class);
         Map<String, Object> formData = params.getFormData();
         Map<String, Object> nodeVariable = new HashMap<>();

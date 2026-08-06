@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.service.IDocumentWebService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
@@ -27,7 +27,7 @@ public class DataSourceWebHandler extends AbsNodeHandler {
     private final IDocumentWebService documentWebService;
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         List<DocumentSimple> documentList = new ArrayList<>();
         Map<String, Object> inputParams = new HashMap<>();
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {

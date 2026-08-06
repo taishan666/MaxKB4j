@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -24,7 +24,7 @@ public class DataSourceLocalHandler extends AbsNodeHandler {
 
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         List<OssFile> fileList = new ArrayList<>();
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
             KnowledgeParams knowledgeParams = knowledgeWorkflow.getKnowledgeParams();

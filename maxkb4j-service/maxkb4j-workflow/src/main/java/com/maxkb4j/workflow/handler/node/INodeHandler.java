@@ -4,7 +4,7 @@ package com.maxkb4j.workflow.handler.node;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 
 import java.util.concurrent.CompletableFuture;
@@ -25,7 +25,7 @@ public interface INodeHandler {
      * @return 执行结果的 CompletableFuture
      * @throws Exception 执行异常（仅限 execute 方法本身的同步异常）
      */
-    CompletableFuture<NodeResult> execute(Workflow workflow, AbsNode node) throws Exception;
+    CompletableFuture<NodeResult> execute(IWorkflow workflow, AbsNode node) throws Exception;
 
     /**
      * 是否为异步节点
@@ -44,7 +44,7 @@ public interface INodeHandler {
      * @param workflow 工作流上下文
      * @param node     节点实例
      */
-    default void preExecute(Workflow workflow, AbsNode node) {
+    default void preExecute(IWorkflow workflow, AbsNode node) {
         ChatParams chatParams = workflow.getChatParams();
         ChatMessageVO vo = node.toChatMessageVO(
                 chatParams.getChatId(),
@@ -64,7 +64,7 @@ public interface INodeHandler {
      * @param node     节点实例
      * @param result   执行结果
      */
-    default void postExecute(Workflow workflow, AbsNode node, NodeResult result) {
+    default void postExecute(IWorkflow workflow, AbsNode node, NodeResult result) {
         // 默认空实现
     }
 
@@ -76,7 +76,7 @@ public interface INodeHandler {
      * @param node     节点实例
      * @param ex       异常信息
      */
-    default void onError(Workflow workflow, AbsNode node, Exception ex) {
+    default void onError(IWorkflow workflow, AbsNode node, Exception ex) {
         // 默认空实现
     }
 

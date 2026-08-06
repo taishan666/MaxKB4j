@@ -6,7 +6,7 @@ import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.McpNode;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class McpNodeHandler extends AbsNodeHandler {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         McpNode.NodeParams params = parseParams(node, McpNode.NodeParams.class);
         JSONObject toolParams = params.getToolParams();
         JSONObject execParams = new JSONObject();

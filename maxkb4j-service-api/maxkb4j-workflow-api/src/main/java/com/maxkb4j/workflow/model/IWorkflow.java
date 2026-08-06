@@ -21,7 +21,7 @@ import java.util.Map;
  *   <li>分层访问器：细粒度控制通过 {@link #context()}、{@link #execution()}、{@link #output()} 获取。</li>
  * </ul>
  */
-public interface Workflow {
+public interface IWorkflow {
 
     /**
      * 输出访问器。

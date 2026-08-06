@@ -4,7 +4,7 @@ import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.VariableAggregationNode;
 import org.springframework.stereotype.Component;
@@ -26,7 +26,7 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
     }
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         VariableAggregationNode.NodeParams params = parseParams(node, VariableAggregationNode.NodeParams.class);
         String strategyName = params.getStrategy();
         StrategyFunction strategy = STRATEGY_MAP.get(strategyName);
@@ -54,7 +54,7 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
         return new NodeResult(nodeVariable);
     }
 
-    private void resetVariable(List<VariableAggregationNode.Variable> variableList, Workflow workflow) {
+    private void resetVariable(List<VariableAggregationNode.Variable> variableList, IWorkflow workflow) {
         for (VariableAggregationNode.Variable e : variableList) {
             String nodeId = e.getVariable().getFirst();
             AbsNode lfNode = workflow.getNode(nodeId);

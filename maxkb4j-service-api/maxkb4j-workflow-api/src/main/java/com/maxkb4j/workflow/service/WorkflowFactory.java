@@ -5,7 +5,7 @@ import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.KnowledgeParams;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import reactor.core.publisher.Sinks;
 
@@ -29,7 +29,7 @@ public interface WorkflowFactory {
      * @param sink         响应式输出 Sink
      * @return 工作流实例
      */
-    Workflow createApplication(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink);
+    IWorkflow createApplication(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink);
 
     /**
      * 构造知识库工作流。
@@ -39,5 +39,5 @@ public interface WorkflowFactory {
      * @param knowledgeParams  知识库参数
      * @return 工作流实例
      */
-    Workflow createKnowledge(List<AbsNode> nodes, List<LfEdge> edges, KnowledgeParams knowledgeParams);
+    IWorkflow createKnowledge(List<AbsNode> nodes, List<LfEdge> edges, KnowledgeParams knowledgeParams);
 }

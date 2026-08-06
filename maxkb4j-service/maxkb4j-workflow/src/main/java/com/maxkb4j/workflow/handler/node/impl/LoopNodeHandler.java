@@ -15,7 +15,7 @@ import com.maxkb4j.workflow.engine.LoopWorkFlow;
 import com.maxkb4j.workflow.engine.WorkflowImpl;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.LoopNode;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
@@ -56,7 +56,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     private final NodeBuilder nodeBuilder;
 
     @Override
-    public NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    public NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         LoopNode.NodeParams nodeParams = parseParams(node, LoopNode.NodeParams.class);
         List<JSONObject> loopDetails = executeLoop(workflow, node, nodeParams);
 
@@ -75,7 +75,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     /**
      * 根据循环类型执行循环逻辑
      */
-    private List<JSONObject> executeLoop(Workflow workflow, AbsNode node, LoopNode.NodeParams params) {
+    private List<JSONObject> executeLoop(IWorkflow workflow, AbsNode node, LoopNode.NodeParams params) {
         String loopType = params.getLoopType();
         if (LOOP_TYPE_ARRAY.equals(loopType)) {
             return executeArrayLoop(workflow, node, params.getArray(), params.getLoopBody());
@@ -89,7 +89,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     /**
      * 执行数组遍历循环
      */
-    private List<JSONObject> executeArrayLoop(Workflow workflow, AbsNode node, List<String> arrayRef, JSONObject loopBody) {
+    private List<JSONObject> executeArrayLoop(IWorkflow workflow, AbsNode node, List<String> arrayRef, JSONObject loopBody) {
         Object value = workflow.getReferenceField(arrayRef);
         if (value == null) {
             return new ArrayList<>();
@@ -101,7 +101,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     /**
      * 执行指定次数循环
      */
-    private List<JSONObject> executeCountLoop(Workflow workflow, AbsNode node, Integer count, JSONObject loopBody) {
+    private List<JSONObject> executeCountLoop(IWorkflow workflow, AbsNode node, Integer count, JSONObject loopBody) {
         int iterations = count != null ? count : 0;
         List<Object> items = createIndexList(iterations);
         return executeIterations(workflow, node, items, loopBody);
@@ -146,7 +146,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     /**
      * 执行循环迭代
      */
-    private List<JSONObject> executeIterations(Workflow workflow, AbsNode node, List<Object> items, JSONObject loopBody) {
+    private List<JSONObject> executeIterations(IWorkflow workflow, AbsNode node, List<Object> items, JSONObject loopBody) {
         LoopExecutionContext ctx = prepareLoopContext(node);
 
         // 设置子节点的 runtimeNodeId
@@ -204,7 +204,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     /**
      * 执行单次循环迭代
      */
-    private void executeSingleIteration(Workflow workflow, AbsNode node, List<Object> items, JSONObject loopBody, LoopExecutionContext ctx) {
+    private void executeSingleIteration(IWorkflow workflow, AbsNode node, List<Object> items, JSONObject loopBody, LoopExecutionContext ctx) {
         // 清理前一次迭代数据
         removePreviousIterationData(ctx);
 
@@ -238,7 +238,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
      * 订阅子工作流输出
      */
     private AtomicReference<ChildNode> subscribeToSink(Sinks.Many<ChatMessageVO> sink, LoopParams loopParams,
-                                                       LoopExecutionContext ctx, Workflow workflow, AbsNode node) {
+                                                       LoopExecutionContext ctx, IWorkflow workflow, AbsNode node) {
         AtomicReference<ChildNode> childNodeRef = new AtomicReference<>(null);
         sink.asFlux().subscribe(message -> {
             if (isBreakSignal(message)) {
@@ -261,7 +261,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
      * 处理循环消息
      */
     private void handleLoopMessage(ChatMessageVO message, LoopParams loopParams, LoopExecutionContext ctx,
-                                   AtomicReference<ChildNode> childNodeRef, Workflow workflow, AbsNode node) {
+                                   AtomicReference<ChildNode> childNodeRef, IWorkflow workflow, AbsNode node) {
         String nodeType = message.getNodeType();
 
         // 表单和用户选择节点需要中断
@@ -282,7 +282,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     /**
      * 构建循环消息VO
      */
-    private ChatMessageVO buildLoopMessageVO(ChatMessageVO source, Workflow workflow,
+    private ChatMessageVO buildLoopMessageVO(ChatMessageVO source, IWorkflow workflow,
                                              AbsNode node, ChildNode childNode) {
         ChatParams chatParams = workflow.getChatParams();
         ChatMessageVO vo = node.toChatMessageVO(
@@ -300,7 +300,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     /**
      * 发送迭代结束标记
      */
-    private void emitIterationEnd(Workflow workflow, AbsNode node, AtomicReference<ChildNode> childNodeRef) {
+    private void emitIterationEnd(IWorkflow workflow, AbsNode node, AtomicReference<ChildNode> childNodeRef) {
         ChatParams chatParams = workflow.getChatParams();
         ChatMessageVO vo = node.toChatMessageVO(
                 chatParams.getChatId(),

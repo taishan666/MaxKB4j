@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.exception;
 
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 
 /**
@@ -20,7 +20,7 @@ public interface NodeExceptionResolver {
      * @param ex       异常信息
      * @return true 继续执行下一个解析器，false 终止责任链
      */
-    boolean resolve(Workflow workflow, AbsNode node, Exception ex);
+    boolean resolve(IWorkflow workflow, AbsNode node, Exception ex);
 
     /**
      * 获取解析器顺序

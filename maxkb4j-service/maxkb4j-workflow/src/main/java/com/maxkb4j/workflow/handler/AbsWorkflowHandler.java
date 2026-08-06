@@ -5,7 +5,7 @@ import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.NodeResultFuture;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import com.maxkb4j.workflow.service.IWorkflowHandler;
@@ -36,7 +36,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
     }
 
     @Override
-    public void execute(Workflow workflow) {
+    public void execute(IWorkflow workflow) {
         AbsNode currentNode = workflow.execution().currentNode();
         if (currentNode == null) {
             currentNode = workflow.execution().startNode();
@@ -46,7 +46,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         log.info("Workflow completed");
     }
 
-    protected void runChainNodes(Workflow workflow, List<AbsNode> nodeList) {
+    protected void runChainNodes(IWorkflow workflow, List<AbsNode> nodeList) {
         if (nodeList == null || nodeList.isEmpty()) {
             return;
         }
@@ -97,7 +97,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
     }
 
 
-    protected List<AbsNode> runChainNode(Workflow workflow, AbsNode node) {
+    protected List<AbsNode> runChainNode(IWorkflow workflow, AbsNode node) {
         if (workflow.execution().dependenciesExecuted(node)) {
             // Atomically claim READY/INTERRUPT -> STARTED. A diamond-join may reach this
             // node concurrently from two upstream branches; without the CAS the node could
@@ -128,7 +128,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * 异步节点链式执行：直接使用节点返回的 CompletableFuture
      * 不阻塞 workflowTaskExecutor 线程，流式回调完成后自动推进
      */
-    protected CompletableFuture<List<AbsNode>> runAsyncChainNode(Workflow workflow, AbsNode node) {
+    protected CompletableFuture<List<AbsNode>> runAsyncChainNode(IWorkflow workflow, AbsNode node) {
         if (!node.tryClaimRunning()) {
             return CompletableFuture.completedFuture(List.of());
         }
@@ -173,7 +173,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * @param node     节点实例
      * @return 执行结果Future
      */
-    protected NodeResultFuture runNodeFuture(Workflow workflow, AbsNode node) {
+    protected NodeResultFuture runNodeFuture(IWorkflow workflow, AbsNode node) {
         try {
             // 获取处理器
             INodeHandler nodeHandler = nodeCenter.getHandler(node.getType());
@@ -209,7 +209,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * @param workflow the workflow context
      * @param node     the node to be executed
      */
-    protected void onNodeStart(Workflow workflow, AbsNode node) {
+    protected void onNodeStart(IWorkflow workflow, AbsNode node) {
     }
 
     /**
@@ -220,7 +220,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * @param node     the executed node
      * @param result   the execution result
      */
-    protected void onNodeSuccess(Workflow workflow, AbsNode node, NodeResult result) {
+    protected void onNodeSuccess(IWorkflow workflow, AbsNode node, NodeResult result) {
         // Default: do nothing
     }
 
@@ -233,7 +233,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * @param ex       the exception that occurred
      * @return NodeResultFuture containing the error
      */
-    protected NodeResultFuture handleNodeError(Workflow workflow, AbsNode node, Exception ex) {
+    protected NodeResultFuture handleNodeError(IWorkflow workflow, AbsNode node, Exception ex) {
         // 使用统一的异常解析器链处理异常
         exceptionResolverChain.resolve(workflow, node, ex);
         NodeResult errorResult = new NodeResult(Map.of());

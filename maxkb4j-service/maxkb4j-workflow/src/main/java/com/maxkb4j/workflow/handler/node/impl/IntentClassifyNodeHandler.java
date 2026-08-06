@@ -12,7 +12,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.IntentClassifyNode;
 import dev.langchain4j.data.message.ChatMessage;
@@ -34,7 +34,7 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
     private final IModelProviderService modelFactory;
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         IntentClassifyNode.NodeParams params = parseParams(node, IntentClassifyNode.NodeParams.class);
         ModelConfig modelConfig = resolveModelConfig(workflow, params);
         ChatModel chatModel = modelFactory.buildChatModel(modelConfig.getModelId(), modelConfig.getModelParamsSetting());

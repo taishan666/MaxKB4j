@@ -4,7 +4,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.ModelAwareParams;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 
@@ -25,7 +25,7 @@ public class QuestionNode extends AbsNode {
 
 
     @Override
-    public void saveContext(Workflow workflow, Map<String, Object> detail) {
+    public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
         context.put("answer", detail.get("answer"));
     }
 

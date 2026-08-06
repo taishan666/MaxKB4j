@@ -4,7 +4,7 @@ import com.maxkb4j.workflow.builder.CompareBuilder;
 import com.maxkb4j.workflow.compare.impl.*;
 import com.maxkb4j.workflow.enums.CompareOperator;
 import com.maxkb4j.workflow.model.Condition;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -21,7 +21,7 @@ class ConditionUtilTest {
 
     private final CompareBuilder builder = newFullCompareBuilder();
     private final ConditionUtil util = new ConditionUtil(builder);
-    private final Workflow workflow = mock(Workflow.class);
+    private final IWorkflow workflow = mock(IWorkflow.class);
 
     private static CompareBuilder newFullCompareBuilder() {
         CompareBuilder b = new CompareBuilder();

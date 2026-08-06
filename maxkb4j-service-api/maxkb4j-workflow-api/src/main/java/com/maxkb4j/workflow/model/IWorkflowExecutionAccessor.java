@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * 工作流执行控制器接口（契约层）。
  * <p>
- * 定义节点状态恢复、下一节点计算、依赖检查、执行追踪等执行控制行为，供 {@link Workflow} 门面返回。
+ * 定义节点状态恢复、下一节点计算、依赖检查、执行追踪等执行控制行为，供 {@link IWorkflow} 门面返回。
  * 具体实现位于 workflow 实现模块（其中节点状态加载、节点实例获取等内部方法不在本接口暴露）。
  */
 public interface IWorkflowExecutionAccessor {

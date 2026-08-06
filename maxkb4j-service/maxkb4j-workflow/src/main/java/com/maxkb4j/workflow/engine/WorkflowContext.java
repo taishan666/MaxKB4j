@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.engine;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.workflow.model.IWorkflowContext;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
@@ -82,8 +83,28 @@ public class WorkflowContext implements IWorkflowContext {
     }
 
     @Override
+    public Object getReferenceField(List<String> reference) {
+        if (CollectionUtils.isNotEmpty(reference) && reference.size() > 1) {
+            return getReferenceField(reference.get(0), reference.get(1));
+        }
+        return null;
+    }
+
+    @Override
     public Object getReferenceField(String nodeId, String key) {
         return variableResolver.getReferenceField(nodeId, key);
+    }
+
+    @Override
+    public Object getFieldValue(Object value, String source) {
+        if ("reference".equals(source) && value instanceof List) {
+            @SuppressWarnings("unchecked")
+            List<String> fields = (List<String>) value;
+            if (fields.size() >= 2){
+                return getReferenceField(fields.get(0), fields.get(1));
+            }
+        }
+        return value;
     }
 
     @Override

@@ -3,7 +3,7 @@ package com.maxkb4j.workflow.exception;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.exception.impl.DetailRecordingResolver;
 import com.maxkb4j.workflow.exception.impl.LoggingExceptionResolver;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +36,7 @@ class ExceptionResolverChainTest {
         }
 
         @Override
-        public boolean resolve(Workflow workflow, AbsNode node, Exception ex) {
+        public boolean resolve(IWorkflow workflow, AbsNode node, Exception ex) {
             sink.add("R" + order);
             if (failure != null) {
                 throw failure;

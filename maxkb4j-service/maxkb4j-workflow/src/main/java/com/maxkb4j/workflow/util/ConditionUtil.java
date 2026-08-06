@@ -3,7 +3,7 @@ package com.maxkb4j.workflow.util;
 import com.maxkb4j.workflow.builder.CompareBuilder;
 import com.maxkb4j.workflow.compare.Compare;
 import com.maxkb4j.workflow.model.Condition;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +28,7 @@ public class ConditionUtil {
      * @param conditionList the list of conditions to evaluate
      * @return whether the conditions are satisfied
      */
-    public boolean assertion(Workflow workflow, String conditionType, List<Condition> conditionList) {
+    public boolean assertion(IWorkflow workflow, String conditionType, List<Condition> conditionList) {
         if (conditionList == null || conditionList.isEmpty()) {
             return true; // No conditions means satisfied
         }
@@ -44,7 +44,7 @@ public class ConditionUtil {
     /**
      * Execute a single condition assertion.
      */
-    private boolean assertion(Workflow workflow, List<String> fieldList, String compare, String valueToCompare) {
+    private boolean assertion(IWorkflow workflow, List<String> fieldList, String compare, String valueToCompare) {
         if (fieldList == null || fieldList.size() != 2) {
             return false;
         }

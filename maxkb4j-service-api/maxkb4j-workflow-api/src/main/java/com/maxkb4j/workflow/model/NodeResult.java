@@ -46,7 +46,7 @@ public class NodeResult {
     }
 
 
-    public void writeContext(AbsNode currentNode, Workflow workflow) {
+    public void writeContext(AbsNode currentNode, IWorkflow workflow) {
         this.writeContextFunc.apply(nodeVariable, currentNode, workflow);
     }
 
@@ -62,7 +62,7 @@ public class NodeResult {
         return false;
     }
 
-    public void defaultWriteContextFunc(Map<String, Object> nodeVariable, AbsNode node, Workflow workflow) {
+    public void defaultWriteContextFunc(Map<String, Object> nodeVariable, AbsNode node, IWorkflow workflow) {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
         }
@@ -92,7 +92,7 @@ public class NodeResult {
 
     @FunctionalInterface
     public interface WriteContextFunction {
-        void apply(Map<String, Object> nodeVariable, AbsNode node, Workflow workflow);
+        void apply(Map<String, Object> nodeVariable, AbsNode node, IWorkflow workflow);
     }
 
 

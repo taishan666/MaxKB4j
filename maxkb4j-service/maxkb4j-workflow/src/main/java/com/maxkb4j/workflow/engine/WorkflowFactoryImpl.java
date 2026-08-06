@@ -6,7 +6,7 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.KnowledgeParams;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.service.WorkflowFactory;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ import java.util.List;
 public class WorkflowFactoryImpl implements WorkflowFactory {
 
     @Override
-    public Workflow createApplication(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
+    public IWorkflow createApplication(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
         return WorkflowBuilder.create(WorkflowMode.APPLICATION, nodes, edges)
                 .chatParams(chatParams)
                 .context(chatContext)
@@ -31,7 +31,7 @@ public class WorkflowFactoryImpl implements WorkflowFactory {
     }
 
     @Override
-    public Workflow createKnowledge(List<AbsNode> nodes, List<LfEdge> edges, KnowledgeParams params) {
+    public IWorkflow createKnowledge(List<AbsNode> nodes, List<LfEdge> edges, KnowledgeParams params) {
         return new KnowledgeWorkflow(nodes, edges, params);
     }
 }

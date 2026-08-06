@@ -11,7 +11,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.ValueType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.SearchKnowledgeNode;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,7 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         SearchKnowledgeNode.NodeParams params = parseParams(node, SearchKnowledgeNode.NodeParams.class);
         List<String> knowledgeIds = params.getKnowledgeIds();
         if (ValueType.referencing.name().equals(params.getSearchScopeType())) {
@@ -73,7 +73,7 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
     }
 
     @SuppressWarnings("unchecked")
-    private List<String> getExcludeParagraphIds(Workflow workflow, String runtimeNodeId, String question) {
+    private List<String> getExcludeParagraphIds(IWorkflow workflow, String runtimeNodeId, String question) {
         List<String> excludeParagraphIds = new ArrayList<>();
         for (ChatRecordDTO chatRecord : workflow.getHistoryChatRecords()) {
             if (Objects.equals(chatRecord.getProblemText(), workflow.getChatParams().getMessage())) {

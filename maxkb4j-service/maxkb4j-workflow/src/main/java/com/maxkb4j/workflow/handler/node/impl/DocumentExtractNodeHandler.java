@@ -8,7 +8,7 @@ import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.DocumentExtractNode;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class DocumentExtractNodeHandler extends AbsNodeHandler {
     private final IOssService ossService;
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         DocumentExtractNode.NodeParams params = parseParams(node, DocumentExtractNode.NodeParams.class);
         // 安全校验 documentList
         if (params == null || params.getDocumentList() == null || params.getDocumentList().size() < 2) {

@@ -8,7 +8,7 @@ import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.engine.LoopWorkFlow;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +19,7 @@ import java.util.Map;
 public class LoopStartNodeHandler extends AbsNodeHandler {
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         int index = 0;
         Object item = null;
         if (workflow instanceof LoopWorkFlow loopWorkFlow) {

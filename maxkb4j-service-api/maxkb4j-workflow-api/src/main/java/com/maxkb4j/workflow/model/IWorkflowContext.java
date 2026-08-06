@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * 工作流上下文访问器接口（契约层）。
  * <p>
- * 定义工作流各级上下文（全局/聊天/节点/循环）的访问与变更行为，供 {@link Workflow} 门面返回。
+ * 定义工作流各级上下文（全局/聊天/节点/循环）的访问与变更行为，供 {@link IWorkflow} 门面返回。
  * 具体实现位于 workflow 实现模块。
  */
 public interface IWorkflowContext {
@@ -32,12 +32,26 @@ public interface IWorkflowContext {
      * 获取提示词变量（"scope.variable": value 统一格式）。
      */
     Map<String, Object> getPromptVariables();
+    /**
+     * 获取引用字段值。
+     *
+     * @param reference 字段引用路径 [nodeId, fieldName]
+     * @return 字段值
+     */
+    Object getReferenceField(List<String> reference);
 
     /**
      * 获取引用字段值（nodeId 为节点 ID 或作用域名 global/chat/loop）。
      */
     Object getReferenceField(String nodeId, String key);
-
+    /**
+     * 获取字段值。
+     *
+     * @param value  字段值或引用路径
+     * @param source 值来源类型
+     * @return 实际字段值
+     */
+    Object getFieldValue(Object value, String source);
     /**
      * 获取已执行节点（按 nodeId）。
      */

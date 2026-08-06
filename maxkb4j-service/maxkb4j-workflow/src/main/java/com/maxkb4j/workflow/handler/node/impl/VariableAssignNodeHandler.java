@@ -8,7 +8,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.ValueType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.VariableAssignNode;
 import org.springframework.stereotype.Component;
@@ -24,7 +24,7 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         VariableAssignNode.NodeParams params = parseParams(node, VariableAssignNode.NodeParams.class);
         List<Map<String, Object>> resultList = new ArrayList<>();
         for (Map<String, Object> variable : params.getVariableList()) {
@@ -50,7 +50,7 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         return new NodeResult(Map.of());
     }
 
-    private Map<String, Object> getGlobalHandleResult(Workflow workflow, Map<String, Object> variable, List<String> fields) {
+    private Map<String, Object> getGlobalHandleResult(IWorkflow workflow, Map<String, Object> variable, List<String> fields) {
         String varName = fields.get(1);
         String inputValue = getReferenceContent(workflow, fields);
         Object value = resolveValue(workflow, variable);
@@ -62,7 +62,7 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         return result;
     }
 
-    private Map<String, Object> getLoopHandleResult(Workflow workflow, Map<String, Object> variable, List<String> fields) {
+    private Map<String, Object> getLoopHandleResult(IWorkflow workflow, Map<String, Object> variable, List<String> fields) {
         Map<String, Object> result = new HashMap<>();
         String varName = fields.get(1);
         String inputValue = getReferenceContent(workflow, fields);
@@ -74,7 +74,7 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         return result;
     }
 
-    private Map<String, Object> getChatHandleResult(Workflow workflow, Map<String, Object> variable, List<String> fields) {
+    private Map<String, Object> getChatHandleResult(IWorkflow workflow, Map<String, Object> variable, List<String> fields) {
         String varName = fields.get(1);
         String inputValue = getReferenceContent(workflow, fields);
         Object value = resolveValue(workflow, variable);
@@ -95,7 +95,7 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
     }
 
     @SuppressWarnings("unchecked")
-    private Object resolveValue(Workflow workflow, Map<String, Object> variable) {
+    private Object resolveValue(IWorkflow workflow, Map<String, Object> variable) {
         String source = (String) variable.get("source");
         if (ValueType.referencing.name().equals(source)) {
             List<String> reference = (List<String>) variable.get("reference");
@@ -107,7 +107,7 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         return workflow.renderPrompt(String.valueOf(value));
     }
 
-    public String getReferenceContent(Workflow workflow, List<String> fields) {
+    public String getReferenceContent(IWorkflow workflow, List<String> fields) {
         if (fields == null || fields.size() < 2) {
             return "";
         }

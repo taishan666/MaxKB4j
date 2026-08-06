@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * 工作流输出管理器接口（契约层）。
  * <p>
- * 定义响应式输出、答案列表、运行时详情等输出行为，供 {@link Workflow} 门面返回。
+ * 定义响应式输出、答案列表、运行时详情等输出行为，供 {@link IWorkflow} 门面返回。
  * 具体实现位于 workflow 实现模块。
  */
 public interface IWorkflowOutputManager {

@@ -8,7 +8,7 @@ import com.maxkb4j.common.util.MimeTypeUtils;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ImageContent;
@@ -59,7 +59,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
     }
 
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         throw new UnsupportedOperationException("Streaming node uses async execution via doExecuteAsync");
     }
 
@@ -76,7 +76,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * @param imageFieldList  图片字段引用路径列表
      * @return 图片内容列表，加载失败时返回空列表
      */
-    protected List<Content> buildImageContents(Workflow workflow, AbsNode node, List<String> imageFieldList) {
+    protected List<Content> buildImageContents(IWorkflow workflow, AbsNode node, List<String> imageFieldList) {
         List<Content> contents = new ArrayList<>();
         try {
             List<OssFile> imageFiles = getOssFiles(workflow, imageFieldList);
@@ -137,7 +137,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * @param content   消息内容
      * @param reasoning 推理内容
      */
-    protected void emitMessage(Workflow workflow, AbsNode node, String content, String reasoning) {
+    protected void emitMessage(IWorkflow workflow, AbsNode node, String content, String reasoning) {
         ChatParams chatParams=workflow.getChatParams();
         ChatMessageVO vo = node.toChatMessageVO(
                 chatParams.getChatId(),
@@ -179,7 +179,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * @return 节点执行结果的 CompletableFuture
      */
     protected CompletableFuture<NodeResult> writeContextStreamAsync(
-            StreamOptions options, TokenStream tokenStream, Workflow workflow, AbsNode node) {
+            StreamOptions options, TokenStream tokenStream, IWorkflow workflow, AbsNode node) {
         List<String> answerTexts = new ArrayList<>();
         AtomicReference<String> errorMessage = new AtomicReference<>("");
         boolean isResult = options.isResult();
@@ -226,7 +226,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * @param workflow    工作流上下文
      * @param node        节点实例
      */
-    protected void onBeforeToolExecution(BeforeToolExecution toolExecute, Workflow workflow, AbsNode node) {
+    protected void onBeforeToolExecution(BeforeToolExecution toolExecute, IWorkflow workflow, AbsNode node) {
         // 默认空实现
     }
 
@@ -239,7 +239,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * @param node        节点实例
      * @return 需要累加到答案的文本，默认空字符串（表示不累加）
      */
-    protected String onToolExecuted(ToolExecution toolExecute, Workflow workflow, AbsNode node) {
+    protected String onToolExecuted(ToolExecution toolExecute, IWorkflow workflow, AbsNode node) {
         return "";
     }
 

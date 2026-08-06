@@ -3,7 +3,7 @@ import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 
@@ -21,7 +21,7 @@ public class LoopStartNode extends AbsNode {
     }
 
     @Override
-    public void saveContext(Workflow workflow, Map<String, Object> detail) {
+    public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
         context.put("index", detail.get("current_index"));
         context.put("item", detail.get("current_item"));
     }

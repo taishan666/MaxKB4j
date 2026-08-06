@@ -13,7 +13,7 @@ import com.maxkb4j.user.service.IUserService;
 import com.maxkb4j.workflow.builder.NodeBuilder;
 import com.maxkb4j.workflow.logic.LogicFlow;
 import com.maxkb4j.workflow.model.KnowledgeParams;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import com.maxkb4j.workflow.service.WorkflowFactory;
@@ -131,7 +131,7 @@ public class KnowledgeWorkflowService {
         params.setActionId(knowledgeAction.getId());
         params.setKnowledgeId(id);
         params.setDebug(debug);
-        Workflow workflow = workflowFactory.createKnowledge(nodes, logicFlow.getEdges(), params);
+        IWorkflow workflow = workflowFactory.createKnowledge(nodes, logicFlow.getEdges(), params);
         CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow), workflowTaskExecutor);
         return knowledgeAction;
     }

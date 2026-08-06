@@ -7,7 +7,7 @@ import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.DocumentSpiltNode;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class DocumentSpiltHandler extends AbsNodeHandler {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected NodeResult doExecute(Workflow workflow, AbsNode node) throws Exception {
+    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         DocumentSpiltNode.NodeParams params = parseParams(node, DocumentSpiltNode.NodeParams.class);
         List<String> fileIds = params.getDocumentList();
         Object res = workflow.getReferenceField(fileIds);

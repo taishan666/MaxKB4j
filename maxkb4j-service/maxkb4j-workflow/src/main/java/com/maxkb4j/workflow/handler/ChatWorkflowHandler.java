@@ -5,7 +5,7 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.engine.KnowledgeWorkflow;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.model.NodeResultFuture;
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
@@ -25,13 +25,13 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
     }
 
     @Override
-    public boolean canHandle(Workflow workflow) {
+    public boolean canHandle(IWorkflow workflow) {
         // ChatWorkflowHandler handles all workflows except KnowledgeWorkflow
         return !(workflow instanceof KnowledgeWorkflow);
     }
 
     @Override
-    protected NodeResultFuture handleNodeError(Workflow workflow, AbsNode node, Exception ex) {
+    protected NodeResultFuture handleNodeError(IWorkflow workflow, AbsNode node, Exception ex) {
         NodeResultFuture result = super.handleNodeError(workflow, node, ex);
         emitErrorToSink(workflow, node, ex);
         return result;
@@ -44,7 +44,7 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
      * @param node     the node that failed
      * @param ex       the exception that occurred
      */
-    protected void emitErrorToSink(Workflow workflow, AbsNode node, Exception ex) {
+    protected void emitErrorToSink(IWorkflow workflow, AbsNode node, Exception ex) {
         ChatParams chatParams = workflow.getChatParams();
         ChatMessageVO errMessage = node.toChatMessageVO(
                 chatParams.getChatId(),

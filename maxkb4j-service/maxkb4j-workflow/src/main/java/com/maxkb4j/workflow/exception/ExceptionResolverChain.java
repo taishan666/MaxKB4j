@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.exception;
 
-import com.maxkb4j.workflow.model.Workflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -33,7 +33,7 @@ public class ExceptionResolverChain {
      * @param node     发生异常的节点
      * @param ex       异常信息
      */
-    public void resolve(Workflow workflow, AbsNode node, Exception ex) {
+    public void resolve(IWorkflow workflow, AbsNode node, Exception ex) {
         for (NodeExceptionResolver resolver : resolvers) {
             try {
                 boolean shouldContinue = resolver.resolve(workflow, node, ex);
