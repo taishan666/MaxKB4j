@@ -56,14 +56,4 @@ public class ResourceUtil {
         return mk.getApplication();
     }
 
-    /**
-     * 从 InputStream 中提取应用描述信息
-     */
-    public static String parseMkDesc(@NonNull Resource resource) {
-        MaxKb4J mk = parseMk(resource); // 注意：此调用会关闭 inputStream
-        if (mk == null || mk.getApplication() == null) {
-            return "";
-        }
-        return mk.getApplication().getDesc() != null ? mk.getApplication().getDesc() : "";
-    }
 }

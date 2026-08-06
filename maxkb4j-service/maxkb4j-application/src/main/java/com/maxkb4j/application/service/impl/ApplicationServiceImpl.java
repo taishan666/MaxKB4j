@@ -27,6 +27,8 @@ import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.core.support.permission.DataPermissionSupport;
 import com.maxkb4j.knowledge.dto.KnowledgeSimple;
 import com.maxkb4j.knowledge.service.IKnowledgeService;
+import com.maxkb4j.model.enums.ModelType;
+import com.maxkb4j.model.service.IModelService;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.service.IToolService;
@@ -43,8 +45,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static com.maxkb4j.workflow.enums.NodeType.BASE;
-import static com.maxkb4j.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
+import static com.maxkb4j.workflow.enums.NodeType.*;
 
 
 /**
@@ -68,6 +69,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     private final ApplicationChatShareLinkService applicationChatShareLinkService;
     private final ApplicationLongTermMemoryServiceImpl applicationLongTermMemoryService;
     private final IToolService toolService;
+    private final IModelService modelService;
 
     private static final Cache<String, ApplicationVO> PUBLISHED_APP_CACHE = Caffeine.newBuilder()
             .initialCapacity(64)
@@ -129,17 +131,19 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         return application;
     }
 
+    @Transactional
     public boolean saveMk(MaxKb4J maxKb4j) {
         if (maxKb4j == null) {
             return false;
         }
         Date now = new Date();
-        ApplicationEntity application = maxKb4j.getApplication();
-        application.setId(null);
-        application.setIsPublish(false);
-        application.setCreateTime(now);
-        application.setUpdateTime(now);
-        application.setUserId(userContext.getUserId());
+        ApplicationEntity app = maxKb4j.getApplication();
+        app.setId(null);
+        app.setIsPublish(false);
+        app.setCreateTime(now);
+        app.setUpdateTime(now);
+        app.setUserId(userContext.getUserId());
+        app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.LLM));
         List<ToolDTO> toolList = maxKb4j.getToolList();
         if (!CollectionUtils.isEmpty(toolList)) {
             toolList.forEach(e -> {
@@ -148,9 +152,29 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
             });
             toolService.saveOrUpdateBatch(toolList);
             List<String> toolIds = toolList.stream().map(ToolDTO::getId).toList();
-            application.setToolIds(toolIds);
+            app.setToolIds(toolIds);
         }
-        return this.saveApp(application);
+        JSONObject workFlow= app.getWorkFlow();
+        if (workFlow!=null){
+            JSONArray nodes = workFlow.getJSONArray("nodes");
+            if (nodes != null) {
+                List<String> llmNodes=List.of(QUESTION.getKey(), NL2SQL.getKey(), INTENT_CLASSIFY.getKey(), IMAGE_UNDERSTAND.getKey(), AI_CHAT.getKey(), PARAMETER_EXTRACTION.getKey());
+                for (int i = 0; i < nodes.size(); i++) {
+                    JSONObject node = nodes.getJSONObject(i);
+                    if (llmNodes.contains(node.getString("type"))) {
+                        JSONObject properties = node.getJSONObject("properties");
+                        if (properties != null) {
+                            JSONObject nodeData = properties.getJSONObject("nodeData");
+                            if (nodeData != null) {
+                                String modelId = nodeData.getString("modelId");
+                                nodeData.put("modelId", modelService.getSafeModelId(modelId, ModelType.LLM));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return this.saveApp(app);
     }
 
     @Transactional

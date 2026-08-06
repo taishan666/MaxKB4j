@@ -89,17 +89,13 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
 
     private JSONObject extractDefaultModelParams(JSONArray modelParamsForm) {
         JSONObject defaultModelParams = new JSONObject();
-        // 闃插尽鎬у垽鏂細濡傛灉浼犲叆鐨勬暟缁勪负绌烘垨 null锛岀洿鎺ヨ繑鍥炵┖瀵硅薄
         if (modelParamsForm == null || modelParamsForm.isEmpty()) {
             return defaultModelParams;
         }
-        // 閬嶅巻 JSONArray 涓殑姣忎竴涓厤缃」
         for (int i = 0; i < modelParamsForm.size(); i++) {
             JSONObject paramConfig = modelParamsForm.getJSONObject(i);
-            // 鑾峰彇瀛楁鍚嶄綔涓?key锛岄粯璁ゅ€间綔涓?value
             String field = paramConfig.getString("field");
             Object defaultValue = paramConfig.get("default_value");
-            // 闃叉 field 涓?null 瀵艰嚧寮傚父
             if (field != null && defaultValue != null) {
                 defaultModelParams.put(field, defaultValue);
             }
@@ -157,21 +153,6 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     }
 
     /**
-     * 搴旂敤閫氱敤绛涢€夋潯浠讹細鍚嶇О妯＄硦銆佹ā鍨嬬被鍨嬨€佷緵搴斿晢銆?
-     */
-    private void applyCommonFilters(LambdaQueryWrapper<ModelEntity> wrapper, String name, String modelType, String provider) {
-        if (StringUtils.isNotBlank(name)) {
-            wrapper.like(ModelEntity::getName, name);
-        }
-        if (StringUtils.isNotBlank(modelType)) {
-            wrapper.eq(ModelEntity::getModelType, modelType);
-        }
-        if (StringUtils.isNotBlank(provider)) {
-            wrapper.eq(ModelEntity::getProvider, provider);
-        }
-    }
-
-    /**
      * 应用数据权限：
      * - 管理员：不附加限制；
      * - 普通用户：仅可见已授权的模型，无授权则强制空结果；
@@ -222,15 +203,14 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
         this.updateById(modelEntity);
     }
 
-    @Override
-    public String getLastModelId(ModelType modelType) {
+    private String getLastModelId(ModelType modelType) {
         LambdaQueryWrapper<ModelEntity> wrapper= new LambdaQueryWrapper<>();
         wrapper.eq(ModelEntity::getModelType, modelType.getKey());
         applyDataPermission(wrapper);
         wrapper.orderByDesc(ModelEntity::getCreateTime);
         wrapper.last("limit 1");
-        ModelEntity embeddingModel = this.getOne(wrapper);
-        return embeddingModel != null ? embeddingModel.getId() : null;
+        ModelEntity model = this.getOne(wrapper);
+        return model != null ? model.getId() : null;
     }
 
     @Override
