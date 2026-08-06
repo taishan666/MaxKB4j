@@ -23,6 +23,8 @@ public class KnowledgeWorkflow extends WorkflowImpl {
         // 调用父类保护构造器
         super();
 
+        this.knowledgeParams = knowledgeParams;
+
         // 1. 初始化配置
         super.configuration = new WorkflowConfiguration(WorkflowMode.KNOWLEDGE, nodes, edges);
 
@@ -43,7 +45,6 @@ public class KnowledgeWorkflow extends WorkflowImpl {
         super.outputManager = new WorkflowOutputManager(super.configuration, super.workflowContext, null);
 
 
-        this.knowledgeParams = knowledgeParams;
     }
 
     /**

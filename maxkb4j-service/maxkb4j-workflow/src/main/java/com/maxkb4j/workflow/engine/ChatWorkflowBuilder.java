@@ -34,7 +34,7 @@ import java.util.Objects;
  *     .build();
  * </pre>
  */
-public class WorkflowBuilder {
+public class ChatWorkflowBuilder {
 
     // ==================== 必需参数 ====================
     private final WorkflowMode workflowMode;
@@ -61,7 +61,7 @@ public class WorkflowBuilder {
      * @param nodes 节点列表
      * @param edges 边列表
      */
-    public WorkflowBuilder(WorkflowMode mode, List<AbsNode> nodes, List<LfEdge> edges) {
+    public ChatWorkflowBuilder(WorkflowMode mode, List<AbsNode> nodes, List<LfEdge> edges) {
         this.workflowMode = Objects.requireNonNull(mode, "workflowMode cannot be null");
         this.nodes = nodes != null ? nodes : Collections.emptyList();
         this.edges = edges != null ? edges : Collections.emptyList();
@@ -75,7 +75,7 @@ public class WorkflowBuilder {
      * @param params 聊天参数
      * @return this
      */
-    public WorkflowBuilder chatParams(ChatParams params) {
+    public ChatWorkflowBuilder chatParams(ChatParams params) {
         this.chatParams = params;
         return this;
     }
@@ -86,7 +86,7 @@ public class WorkflowBuilder {
      * @param chatState 对话执行上下文
      * @return this
      */
-    public WorkflowBuilder chatState(ChatState chatState) {
+    public ChatWorkflowBuilder chatState(ChatState chatState) {
         this.chatState = chatState;
         return this;
     }
@@ -97,7 +97,7 @@ public class WorkflowBuilder {
      * @param sink Sink 实例
      * @return this
      */
-    public WorkflowBuilder sink(Many<ChatMessageVO> sink) {
+    public ChatWorkflowBuilder sink(Many<ChatMessageVO> sink) {
         this.sink = sink;
         return this;
     }
@@ -136,7 +136,7 @@ public class WorkflowBuilder {
         // 5. 构建 Navigator
         this.navigator = new EdgeNavigator(edges);
         // 6. 构建 Workflow（内部完成依赖组件初始化）
-        return new WorkflowImpl(this);
+        return new ChatWorkflow(this);
     }
 
     /**
@@ -147,8 +147,8 @@ public class WorkflowBuilder {
      * @param edges 边列表
      * @return WorkflowBuilder 实例
      */
-    public static WorkflowBuilder create(WorkflowMode mode, List<AbsNode> nodes, List<LfEdge> edges) {
-        return new WorkflowBuilder(mode, nodes, edges);
+    public static ChatWorkflowBuilder create(WorkflowMode mode, List<AbsNode> nodes, List<LfEdge> edges) {
+        return new ChatWorkflowBuilder(mode, nodes, edges);
     }
 
 }

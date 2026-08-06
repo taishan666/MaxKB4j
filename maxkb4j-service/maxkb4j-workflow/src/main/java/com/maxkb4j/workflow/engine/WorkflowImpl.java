@@ -42,40 +42,6 @@ public class WorkflowImpl implements IWorkflow {
     protected WorkflowExecutionAccessor executionAccessor;
     protected WorkflowOutputManager outputManager;
 
-    /**
-     * 使用 Builder 构建（推荐）
-     *
-     * @param builder WorkflowBuilder 实例
-     */
-    WorkflowImpl(WorkflowBuilder builder) {
-        // 1. 基础组件（从 builder 获取）
-        this.configuration = builder.configuration;
-        this.workflowContext = builder.context;
-        this.historyManager = builder.historyManager;
-
-        this.executionAccessor = new WorkflowExecutionAccessor(
-                this.configuration, this.workflowContext, builder.navigator);
-        this.outputManager = new WorkflowOutputManager(
-                this.configuration, this.workflowContext, builder.sink);
-        // 3. 加载节点状态（恢复执行）
-        if (builder.restoreState) {
-            this.executionAccessor.loadNodeState(this, builder.details,
-                    builder.currentNodeId, builder.currentNodeData);
-        }
-    }
-
-    /**
-     * 保护构造器（供子类使用）
-     * 子类可以完全控制初始化过程
-     */
-    protected WorkflowImpl() {
-        // 子类需要自行初始化所有组件
-        this.configuration = null;
-        this.workflowContext = null;
-        this.historyManager = null;
-        this.executionAccessor = null;
-        this.outputManager = null;
-    }
 
     // ==================== 便捷方法层（推荐使用） ====================
 
