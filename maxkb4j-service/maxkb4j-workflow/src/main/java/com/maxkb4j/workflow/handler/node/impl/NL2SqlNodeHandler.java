@@ -47,10 +47,10 @@ public class NL2SqlNodeHandler extends AbsNodeHandler {
         String sqlDialect = DatabaseUtil.getSqlDialect(dataSource);
         String databaseStructure = DatabaseUtil.generateDDL(dataSource);
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), params.getDialogueType(), node.getRuntimeNodeId());
-
+        String chatId = (String) workflow.getGlobalContext().get("chatId");
         NL2SqlAssistant assistant = AiServiceFactory.builder(NL2SqlAssistant.class)
                 .chatModel(chatModel)
-                .chatMemory(AiChatMemory.withMessages(workflow.getChatParams().getChatId(),historyMessages))
+                .chatMemory(AiChatMemory.withMessages(chatId,historyMessages))
                 .build();
 
         Result<String> result = assistant.generateSqlQuery(sqlDialect, databaseStructure, question);

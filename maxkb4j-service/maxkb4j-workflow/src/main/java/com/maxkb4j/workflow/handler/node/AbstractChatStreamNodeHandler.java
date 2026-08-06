@@ -11,6 +11,7 @@ import com.maxkb4j.core.langchain4j.AiChatMemory;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
+import com.maxkb4j.workflow.engine.ChatWorkflow;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.IWorkflow;
@@ -93,7 +94,8 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
             builder.systemMessage(systemPrompt);
         }
         if (CollectionUtils.isNotEmpty(historyMessages)) {
-            builder.chatMemory(AiChatMemory.withMessages(workflow.getChatParams().getChatId(), historyMessages));
+            String chatId = (String) workflow.getGlobalContext().get("chatId");
+            builder.chatMemory(AiChatMemory.withMessages(chatId, historyMessages));
         }
         if (CollectionUtils.isNotEmpty(toolProviders)) {
             builder.toolProviders(toolProviders);
@@ -178,16 +180,18 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * @param reasoning 推理内容
      */
     protected void emitMessage(IWorkflow workflow, AbsNode node, String content, String reasoning) {
-        ChatParams chatParams=workflow.getChatParams();
-        ChatMessageVO vo = node.toChatMessageVO(
-                chatParams.getChatId(),
-                chatParams.getChatRecordId(),
-                content,
-                reasoning,
-                null,
-                false
-        );
-        workflow.output().emit(vo);
+        if (workflow instanceof ChatWorkflow chatWorkflow) {
+            ChatParams chatParams=chatWorkflow.getChatParams();
+            ChatMessageVO vo = node.toChatMessageVO(
+                    chatParams.getChatId(),
+                    chatParams.getChatRecordId(),
+                    content,
+                    reasoning,
+                    null,
+                    false
+            );
+            workflow.output().emit(vo);
+        }
     }
 
     // ==================== 异步流式写入 ====================

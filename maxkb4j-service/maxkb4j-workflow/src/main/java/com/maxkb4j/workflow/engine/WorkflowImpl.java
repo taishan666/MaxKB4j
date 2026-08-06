@@ -1,12 +1,10 @@
 package com.maxkb4j.workflow.engine;
 
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
-import com.maxkb4j.common.domain.dto.ChatState;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.IWorkflowContext;
 import com.maxkb4j.workflow.model.IWorkflowExecutionAccessor;
 import com.maxkb4j.workflow.model.IWorkflowOutputManager;
-import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.data.message.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -204,16 +202,6 @@ public class WorkflowImpl implements IWorkflow {
     @Override
     public AbsNode getNode(String nodeId) {
         return configuration.getNode(nodeId);
-    }
-
-    @Override
-    public ChatParams getChatParams() {
-        return null;
-    }
-
-    @Override
-    public ChatState getChatState() {
-        return null;
     }
 
     /**

@@ -1,12 +1,9 @@
 package com.maxkb4j.workflow.engine;
 
-import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,14 +37,6 @@ public class WorkflowConfiguration {
      * 节点ID到节点的映射（O(1)查找）
      */
     private final Map<String, AbsNode> nodeMap;
-
-    @Setter
-    private ChatParams chatParams;
-
-    @Setter
-    private ChatState chatState;
-
-
 
     /**
      * 节点执行超时时间（分钟）

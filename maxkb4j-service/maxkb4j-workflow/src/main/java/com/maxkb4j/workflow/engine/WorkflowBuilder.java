@@ -86,7 +86,7 @@ public class WorkflowBuilder {
      * @param chatState 对话执行上下文
      * @return this
      */
-    public WorkflowBuilder context(ChatState chatState) {
+    public WorkflowBuilder chatState(ChatState chatState) {
         this.chatState = chatState;
         return this;
     }
@@ -119,8 +119,6 @@ public class WorkflowBuilder {
     public WorkflowImpl build() {
         // 1. 构建 Configuration
         this.configuration = new WorkflowConfiguration(workflowMode, nodes, edges);
-        this.configuration.setChatParams(chatParams);
-        this.configuration.setChatState(chatState);
         // 2. 构建 Context
         this.context = new WorkflowContext();
         // 3. 恢复执行状态：chatRecord 来自上下文，runtimeNodeId/nodeData 来自请求入参

@@ -43,10 +43,10 @@ public class QuestionNodeHandler extends AbsNodeHandler {
 
         String question = workflow.renderPrompt(params.getPrompt());
         String systemPrompt = workflow.renderPrompt(params.getSystem());
-
+        String chatId = (String) workflow.getGlobalContext().get("chatId");
         Assistant assistant = AiServiceFactory.builder(Assistant.class)
                 .systemMessage(systemPrompt)
-                .chatMemory(AiChatMemory.withMessages(workflow.getChatParams().getChatId(),historyMessages))
+                .chatMemory(AiChatMemory.withMessages(chatId,historyMessages))
                 .chatModel(chatModel)
                 .build();
 

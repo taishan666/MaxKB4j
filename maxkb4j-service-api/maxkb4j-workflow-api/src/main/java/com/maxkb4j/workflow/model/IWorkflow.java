@@ -1,8 +1,6 @@
 package com.maxkb4j.workflow.model;
 
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
-import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.data.message.ChatMessage;
 
@@ -104,16 +102,6 @@ public interface IWorkflow {
      * 根据节点 ID 获取节点。
      */
     AbsNode getNode(String nodeId);
-
-    /**
-     * 获取聊天参数。
-     */
-    ChatParams getChatParams();
-
-    /**
-     * 获取对话执行上下文（服务端解析的身份信息与历史记录）。
-     */
-    ChatState getChatState();
     /**
      * 获取节点执行超时时间（分钟），与 TimeUnit.MINUTES 配合使用。
      */

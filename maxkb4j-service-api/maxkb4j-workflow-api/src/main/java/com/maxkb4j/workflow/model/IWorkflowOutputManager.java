@@ -1,8 +1,8 @@
 package com.maxkb4j.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.workflow.node.AbsNode;
 
 import java.util.List;
 
@@ -15,9 +15,9 @@ import java.util.List;
 public interface IWorkflowOutputManager {
 
     /**
-     * 获取答案文本列表（仅配置中存在的有效节点）。
+     * 获取已经执行的节点。
      */
-    List<Answer> answers();
+    List<AbsNode> getExecutedNodes();
 
     /**
      * 发送消息到响应式 Sink（知识库工作流不输出）。

@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,9 +36,23 @@ public class ChatFlowServiceImpl implements IChatService {
         List<AbsNode> nodes = logicFlow.getNodes().stream().map(nodeBuilder::getNode).filter(Objects::nonNull).toList();
         IWorkflow workflow = workflowFactory.createApplication(nodes, logicFlow.getEdges(), chatParams, chatContext, sink);
         workFlowActuator.execute(workflow);
-        List<Answer> answerTextList = workflow.output().answers();
+        List<Answer> answerTextList = getAnswers(workflow.output().getExecutedNodes(), chatParams.getChatRecordId());
         JSONObject details = workflow.output().runtimeDetails();
         return new ChatResponse(answerTextList, details);
+    }
+
+    public List<Answer> getAnswers(List<AbsNode> getExecutedNodes,String chatRecordId) {
+        if (getExecutedNodes.isEmpty()) {
+            return List.of();
+        }
+        if (chatRecordId == null) {
+            return List.of();
+        }
+        List<Answer> answerList = new ArrayList<>(getExecutedNodes.size());
+        for (AbsNode node : getExecutedNodes) {
+            answerList.addAll(node.getAnswerList(chatRecordId));
+        }
+        return answerList;
     }
 
 }

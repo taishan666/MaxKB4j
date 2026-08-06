@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.OssFile;
+import com.maxkb4j.workflow.engine.ChatWorkflow;
 import com.maxkb4j.workflow.model.ModelAwareParams;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
@@ -73,14 +74,16 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * Emits an empty start message so the frontend can render the node before it finishes.
      */
     private void emitNodeStart(IWorkflow workflow, AbsNode node) {
-        ChatParams chatParams = workflow.getChatParams();
-        workflow.output().emit(node.toChatMessageVO(
-                chatParams.getChatId(),
-                chatParams.getChatRecordId(),
-                "",
-                "",
-                null,
-                false));
+        if (workflow instanceof ChatWorkflow chatWorkflow) {
+            ChatParams chatParams = chatWorkflow.getChatParams();
+            workflow.output().emit(node.toChatMessageVO(
+                    chatParams.getChatId(),
+                    chatParams.getChatRecordId(),
+                    "",
+                    "",
+                    null,
+                    false));
+        }
     }
 
     /**

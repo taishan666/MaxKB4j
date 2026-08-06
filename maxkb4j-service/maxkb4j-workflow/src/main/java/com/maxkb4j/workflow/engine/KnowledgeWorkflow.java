@@ -23,26 +23,27 @@ public class KnowledgeWorkflow extends WorkflowImpl {
         // 调用父类保护构造器
         super();
 
-        this.knowledgeParams = knowledgeParams;
-
         // 1. 初始化配置
-        this.configuration = new WorkflowConfiguration(WorkflowMode.KNOWLEDGE, nodes, edges);
+        super.configuration = new WorkflowConfiguration(WorkflowMode.KNOWLEDGE, nodes, edges);
 
         // 2. 初始化上下文
-        this.workflowContext = new WorkflowContext();
+        super.workflowContext = new WorkflowContext();
         Map<String, Object> knowledgeBase = knowledgeParams.getKnowledgeBase();
         if (knowledgeBase != null) {
-            this.workflowContext.getGlobalContext().putAll(knowledgeBase);
+            super.workflowContext.getGlobalContext().putAll(knowledgeBase);
         }
 
         // 3. 初始化历史管理器
-        this.historyManager = new HistoryManager(Collections.emptyList());
+        super.historyManager = new HistoryManager(Collections.emptyList());
 
         // 4. 初始化执行控制器
-        this.executionAccessor = new WorkflowExecutionAccessor(this.configuration, this.workflowContext, new EdgeNavigator(edges));
+        super.executionAccessor = new WorkflowExecutionAccessor(super.configuration, super.workflowContext, new EdgeNavigator(edges));
 
         // 5. 初始化输出管理器
-        this.outputManager = new WorkflowOutputManager(this.configuration, this.workflowContext, null);
+        super.outputManager = new WorkflowOutputManager(super.configuration, super.workflowContext, null);
+
+
+        this.knowledgeParams = knowledgeParams;
     }
 
     /**

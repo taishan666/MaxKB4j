@@ -2,7 +2,6 @@ package com.maxkb4j.workflow.engine;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.LoopParams;
@@ -45,7 +44,7 @@ public class LoopWorkFlow extends WorkflowImpl {
         // 1. 初始化配置
         this.configuration = new WorkflowConfiguration(
                 workflow.configuration.getWorkflowMode(), nodes, edges);
-        this.configuration.setChatParams(workflow.configuration.getChatParams());
+      //  this.configuration.setChatParams(workflow.configuration.getChatParams());
 
         // 2. 复用父工作流的上下文（关键：共享上下文）
         this.workflowContext = workflow.workflowContext;
@@ -54,8 +53,8 @@ public class LoopWorkFlow extends WorkflowImpl {
         // 3. 初始化执行控制器（覆盖 startNode 以返回 LoopStart 节点）
         this.executionAccessor = new LoopExecutionAccessor(this.configuration, this.workflowContext, new EdgeNavigator(edges));
         if (details!=null&&!details.isEmpty()) {
-            ChatParams chatParams = workflow.getChatParams();
-            this.executionAccessor.loadNodeState(this, details, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+         //   ChatParams chatParams = workflow.getChatParams();
+          //  this.executionAccessor.loadNodeState(this, details, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
         }
 
         // 4. 初始化输出管理器

@@ -8,6 +8,7 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChildNode;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.builder.NodeBuilder;
+import com.maxkb4j.workflow.engine.ChatWorkflow;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.logic.LogicFlow;
@@ -144,7 +145,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     private List<JSONObject> executeIterations(IWorkflow workflow, AbsNode node, List<Object> items, JSONObject loopBody) {
         LoopExecutionContext ctx = prepareLoopContext(node);
 
-        // 设置子节点的 runtimeNodeId
+   /*     // 设置子节点的 runtimeNodeId
         ChatParams chatParams = workflow.getChatParams();
         if (chatParams.getChildNode() != null) {
             chatParams.setRuntimeNodeId(chatParams.getChildNode().getRuntimeNodeId());
@@ -155,7 +156,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
             ctx.currentIndex++;
             // 清除 runtimeNodeId 以便下次迭代
             chatParams.setRuntimeNodeId(null);
-        }
+        }*/
 
         return ctx.loopDetails;
     }
@@ -270,41 +271,46 @@ public class LoopNodeHandler extends AbsNodeHandler {
         childNodeRef.set(new ChildNode(message.getChatRecordId(), runtimeNodeId));
 
         // 转发消息到主工作流
-        ChatMessageVO vo = buildLoopMessageVO(message, workflow, node, childNodeRef.get());
-        workflow.output().emit(vo);
+        emitLoopMessageVO(message, workflow, node, childNodeRef.get());
+
     }
 
     /**
      * 构建循环消息VO
      */
-    private ChatMessageVO buildLoopMessageVO(ChatMessageVO source, IWorkflow workflow,
+    private void emitLoopMessageVO(ChatMessageVO source, IWorkflow workflow,
                                              AbsNode node, ChildNode childNode) {
-        ChatParams chatParams = workflow.getChatParams();
-        ChatMessageVO vo = node.toChatMessageVO(
-                chatParams.getChatId(),
-                chatParams.getChatRecordId(),
-                source.getContent(),
-                source.getReasoningContent(),
-                childNode,
-                false);
-        vo.setNodeType(source.getNodeType());
-        vo.setViewType(source.getViewType());
-        return vo;
+        if (workflow instanceof ChatWorkflow chatWorkflow) {
+            ChatParams chatParams = chatWorkflow.getChatParams();
+            ChatMessageVO vo = node.toChatMessageVO(
+                    chatParams.getChatId(),
+                    chatParams.getChatRecordId(),
+                    source.getContent(),
+                    source.getReasoningContent(),
+                    childNode,
+                    false);
+            vo.setNodeType(source.getNodeType());
+            vo.setViewType(source.getViewType());
+            workflow.output().emit(vo);
+        }
+
     }
 
     /**
      * 发送迭代结束标记
      */
     private void emitIterationEnd(IWorkflow workflow, AbsNode node, AtomicReference<ChildNode> childNodeRef) {
-        ChatParams chatParams = workflow.getChatParams();
-        ChatMessageVO vo = node.toChatMessageVO(
-                chatParams.getChatId(),
-                chatParams.getChatRecordId(),
-                "",
-                "",
-                childNodeRef.get(),
-                false);
-        workflow.output().emit(vo);
+        if (workflow instanceof ChatWorkflow chatWorkflow) {
+            ChatParams chatParams = chatWorkflow.getChatParams();
+            ChatMessageVO vo = node.toChatMessageVO(
+                    chatParams.getChatId(),
+                    chatParams.getChatRecordId(),
+                    "",
+                    "",
+                    childNodeRef.get(),
+                    false);
+            workflow.output().emit(vo);
+        }
     }
 
     /**

@@ -2,13 +2,12 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.ValueType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
-import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.IWorkflow;
+import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.VariableAssignNode;
 import org.springframework.stereotype.Component;
@@ -84,9 +83,9 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         result.put("input_value", inputValue);
         result.put("output_value", value);
         // Update chat variables
-        ChatParams chatParams = workflow.getChatParams();
-        if (chatParams!= null && chatParams.getChatId() != null) {
-            ChatInfo chatInfo = ChatCache.get(chatParams.getChatId());
+        String chatId = (String) workflow.getGlobalContext().get("chatId");
+        if (chatId!= null) {
+            ChatInfo chatInfo = ChatCache.get(chatId);
             if (chatInfo != null && chatInfo.getChatVariables() != null) {
                 chatInfo.getChatVariables().put(varName,value);
             }

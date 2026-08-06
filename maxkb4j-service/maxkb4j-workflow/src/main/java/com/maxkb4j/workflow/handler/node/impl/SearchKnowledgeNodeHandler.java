@@ -1,7 +1,5 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.core.support.RagContentInjector;
 import com.maxkb4j.knowledge.service.IRetrieveService;
@@ -10,19 +8,17 @@ import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.ValueType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
-import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.IWorkflow;
+import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.SearchKnowledgeNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 
 @Slf4j
@@ -50,9 +46,9 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
         List<String> fields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, fields);
         List<String> excludeParagraphIds = new ArrayList<>();
-        if (workflow.getChatParams().getReChat()) {
+      /*  if (workflow.getChatParams().getReChat()) {
             excludeParagraphIds = getExcludeParagraphIds(workflow, node.getRuntimeNodeId(), question);
-        }
+        }*/
         List<ParagraphRagVO> paragraphList = retrieveService.paragraphSearch(
                 question, knowledgeIds, excludeParagraphIds, knowledgeSetting);
         List<ParagraphRagVO> isHitHandlingMethodList = paragraphList.stream()
@@ -72,7 +68,7 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
         ));
     }
 
-    @SuppressWarnings("unchecked")
+/*    @SuppressWarnings("unchecked")
     private List<String> getExcludeParagraphIds(IWorkflow workflow, String runtimeNodeId, String question) {
         List<String> excludeParagraphIds = new ArrayList<>();
         for (ChatRecordDTO chatRecord : workflow.getHistoryChatRecords()) {
@@ -90,7 +86,7 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
             }
         }
         return excludeParagraphIds;
-    }
+    }*/
 
     public String directlyReturns(List<ParagraphRagVO> isHitHandlingMethodList) {
         StringBuilder result = new StringBuilder();
