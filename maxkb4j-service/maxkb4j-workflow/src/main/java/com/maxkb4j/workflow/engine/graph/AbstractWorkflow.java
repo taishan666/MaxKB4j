@@ -1,24 +1,29 @@
 package com.maxkb4j.workflow.engine.graph;
 
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
-import com.maxkb4j.workflow.engine.*;
+import com.maxkb4j.workflow.engine.HistoryManager;
+import com.maxkb4j.workflow.engine.WorkflowConfiguration;
+import com.maxkb4j.workflow.engine.WorkflowContext;
+import com.maxkb4j.workflow.engine.WorkflowExecutionAccessor;
+import com.maxkb4j.workflow.engine.WorkflowOutputManager;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.IWorkflowContext;
 import com.maxkb4j.workflow.model.IWorkflowExecutionAccessor;
 import com.maxkb4j.workflow.model.IWorkflowOutputManager;
 import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.data.message.ChatMessage;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
- * 工作流门面实现
+ * 工作流门面抽象基类
  * 提供统一的访问入口，隐藏内部组件复杂性。
  * <p>
  * 设计原则：
  * <ul>
+ *   <li>构造注入：所有内部组件通过 {@link Components} 一次性注入，字段不可变，杜绝半初始化实例。</li>
  *   <li>便捷方法优先：常用操作通过 facade 方法直接访问。</li>
  *   <li>分层访问器：细粒度控制通过 context()/execution()/output() 获取。</li>
  * </ul>
@@ -34,15 +39,33 @@ import java.util.Map;
  * workflow.output().emit(message);
  * </pre>
  */
-@Slf4j
-public class WorkflowImpl implements IWorkflow {
+public abstract class AbstractWorkflow implements IWorkflow {
 
-    protected WorkflowConfiguration configuration;
-    protected WorkflowContext workflowContext;
-    protected HistoryManager historyManager;
-    protected WorkflowExecutionAccessor executionAccessor;
-    protected WorkflowOutputManager outputManager;
+    protected final WorkflowConfiguration configuration;
+    protected final WorkflowContext workflowContext;
+    protected final HistoryManager historyManager;
+    protected final WorkflowExecutionAccessor executionAccessor;
+    protected final WorkflowOutputManager outputManager;
 
+    /**
+     * 工作流内部组件束
+     * 供子类在构造器中一次性组装各组件，解决组件间相互依赖、无法逐个传入 super() 的问题。
+     */
+    protected record Components(WorkflowConfiguration configuration,
+                                WorkflowContext context,
+                                HistoryManager historyManager,
+                                WorkflowExecutionAccessor executionAccessor,
+                                WorkflowOutputManager outputManager) {
+    }
+
+    protected AbstractWorkflow(Components components) {
+        Objects.requireNonNull(components, "components cannot be null");
+        this.configuration = Objects.requireNonNull(components.configuration(), "configuration cannot be null");
+        this.workflowContext = Objects.requireNonNull(components.context(), "context cannot be null");
+        this.historyManager = Objects.requireNonNull(components.historyManager(), "historyManager cannot be null");
+        this.executionAccessor = Objects.requireNonNull(components.executionAccessor(), "executionAccessor cannot be null");
+        this.outputManager = Objects.requireNonNull(components.outputManager(), "outputManager cannot be null");
+    }
 
     // ==================== 便捷方法层（推荐使用） ====================
 
@@ -72,9 +95,9 @@ public class WorkflowImpl implements IWorkflow {
     }
 
     /**
-     * 获取聊天上下文
+     * 获取循环上下文
      *
-     * @return 聊天变量 Map
+     * @return 循环变量 Map
      */
     @Override
     public Map<String, Object> getLoopContext() {

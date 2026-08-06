@@ -203,7 +203,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
         AtomicReference<ChildNode> childNodeRef = subscribeToSink(sink, loopParams, ctx, workflow, node);
         IWorkflow loopWorkflow = null;
         if (workflow instanceof ChatWorkflow chatWorkflow) {
-            loopWorkflow = new ChatLoopWorkFlow(chatWorkflow, nodes, logicFlow.getEdges(), loopParams, ctx.currentDetails, sink);
+            loopWorkflow = new ChatLoopWorkflow(chatWorkflow, nodes, logicFlow.getEdges(), loopParams, ctx.currentDetails, sink);
             workFlowActuator.execute(loopWorkflow);
             // 发送结束标记
             emitIterationEnd(workflow, node, childNodeRef);
@@ -211,7 +211,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
             updateIterationState(node, loopWorkflow, ctx);
         }
         if (workflow instanceof KnowledgeWorkflow knowledgeWorkFlow) {
-            loopWorkflow = new KnowledgeLoopWorkFlow(knowledgeWorkFlow, nodes, logicFlow.getEdges(), loopParams);
+            loopWorkflow = new KnowledgeLoopWorkflow(knowledgeWorkFlow, nodes, logicFlow.getEdges(), loopParams);
             workFlowActuator.execute(loopWorkflow);
             // 更新状态
             updateIterationState(node, loopWorkflow, ctx);

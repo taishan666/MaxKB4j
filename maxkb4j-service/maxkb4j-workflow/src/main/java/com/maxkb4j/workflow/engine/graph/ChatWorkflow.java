@@ -5,46 +5,45 @@ import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.workflow.engine.WorkflowExecutionAccessor;
 import com.maxkb4j.workflow.engine.WorkflowOutputManager;
 import lombok.Getter;
-import lombok.Setter;
 
+/**
+ * 聊天（应用）工作流
+ * 由 {@link ChatWorkflowBuilder} 构建，构建完成后状态不可变。
+ */
 @Getter
-@Setter
-public class ChatWorkflow extends WorkflowImpl {
+public class ChatWorkflow extends AbstractWorkflow {
 
     /**
      * 聊天参数
-     * -- SETTER --
-     * 设置聊天参数
      */
-    private ChatParams chatParams;
+    private final ChatParams chatParams;
 
     /**
      * 对话执行上下文（服务端解析的身份信息与历史记录）
-     * -- SETTER --
-     * 设置对话执行上下文
      */
-    private ChatState chatState;
-
+    private final ChatState chatState;
 
     ChatWorkflow(ChatWorkflowBuilder builder) {
-        // 调用父类保护构造器
-        super();
+        super(compose(builder));
         this.chatParams = builder.chatParams;
         this.chatState = builder.chatState;
-        // 1. 基础组件（从 builder 获取）
-        this.configuration = builder.configuration;
-        this.workflowContext = builder.context;
-        this.historyManager = builder.historyManager;
-
-        this.executionAccessor = new WorkflowExecutionAccessor(
-                this.configuration, this.workflowContext, builder.navigator);
-        this.outputManager = new WorkflowOutputManager(
-                this.configuration, this.workflowContext, builder.sink);
-        // 3. 加载节点状态（恢复执行）
+        // 加载节点状态（恢复执行）
         if (builder.restoreState) {
             this.executionAccessor.loadNodeState(this, builder.details,
                     builder.currentNodeId, builder.currentNodeData);
         }
+    }
+
+    /**
+     * 组装聊天工作流组件束
+     */
+    private static Components compose(ChatWorkflowBuilder builder) {
+        WorkflowExecutionAccessor executionAccessor = new WorkflowExecutionAccessor(
+                builder.configuration, builder.context, builder.navigator);
+        WorkflowOutputManager outputManager = new WorkflowOutputManager(
+                builder.configuration, builder.context, builder.sink);
+        return new Components(builder.configuration, builder.context, builder.historyManager,
+                executionAccessor, outputManager);
     }
 
 }

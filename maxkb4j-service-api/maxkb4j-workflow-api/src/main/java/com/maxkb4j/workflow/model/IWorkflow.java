@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * 工作流门面接口（契约层）。
  * <p>
- * 提供统一的访问入口，隐藏内部组件复杂性。具体实现 {@code WorkflowImpl} 位于 workflow 实现模块，
+ * 提供统一的访问入口，隐藏内部组件复杂性。具体实现 {@code AbstractWorkflow} 位于 workflow 实现模块，
  * 通过 {@link com.maxkb4j.workflow.service.WorkflowFactory} 构造。
  * <p>
  * 设计原则：

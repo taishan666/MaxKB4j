@@ -1,9 +1,7 @@
 package com.maxkb4j.workflow.engine;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -19,7 +17,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
- * 回归测试:工作流输出管理器(响应式输出判定、答案收集、运行时详情聚合、Sink 安全发射)。
+ * 回归测试:工作流输出管理器(响应式输出判定、运行时详情聚合、Sink 安全发射)。
  */
 class WorkflowOutputManagerTest {
 
@@ -36,12 +34,8 @@ class WorkflowOutputManagerTest {
         return node;
     }
 
-    private WorkflowConfiguration config(WorkflowMode mode, List<AbsNode> nodes, String chatRecordId) {
-        WorkflowConfiguration configuration = new WorkflowConfiguration(mode, nodes, null);
-        if (chatRecordId != null) {
-            configuration.setChatParams(ChatParams.builder().chatRecordId(chatRecordId).build());
-        }
-        return configuration;
+    private WorkflowConfiguration config(WorkflowMode mode, List<AbsNode> nodes) {
+        return new WorkflowConfiguration(mode, nodes, null);
     }
 
     @Test
@@ -59,55 +53,10 @@ class WorkflowOutputManagerTest {
     }
 
     @Test
-    void answers_emptyWhenNoConfiguredNodes() {
-        WorkflowContext ctx = new WorkflowContext();
-        AbsNode node = newNode("n1");
-        node.setAnswerText("hello");
-        ctx.appendNode(node);
-        WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of(), "rec-1");
-
-        WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, null);
-
-        assertThat(manager.answers()).isEmpty();
-    }
-
-    @Test
-    void answers_emptyWhenChatRecordIdNull() {
-        WorkflowContext ctx = new WorkflowContext();
-        AbsNode node = newNode("n1");
-        node.setAnswerText("hello");
-        ctx.appendNode(node);
-        WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of(node), null);
-
-        WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, null);
-
-        assertThat(manager.answers()).isEmpty();
-    }
-
-    @Test
-    void answers_collectsOnlyFromConfiguredNodesWithAnswer() {
-        WorkflowContext ctx = new WorkflowContext();
-        AbsNode configured = newNode("n1");
-        configured.setAnswerText("configured-answer");
-        ctx.appendNode(configured);
-        AbsNode notConfigured = newNode("n2");
-        notConfigured.setAnswerText("orphan-answer");
-        ctx.appendNode(notConfigured);
-        WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of(configured), "rec-1");
-
-        WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, null);
-
-        List<Answer> answers = manager.answers();
-        assertThat(answers).hasSize(1);
-        assertThat(answers.get(0).getContent()).isEqualTo("configured-answer");
-        assertThat(answers.get(0).getChatRecordId()).isEqualTo("rec-1");
-    }
-
-    @Test
     void emit_whenNeedsSink_emitsToSink() {
         Sinks.Many<ChatMessageVO> sink = mock();
         WorkflowContext ctx = new WorkflowContext();
-        WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of(), "rec-1");
+        WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of());
         WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, sink);
         ChatMessageVO message = new ChatMessageVO("chat-1", "rec-1", true);
 
@@ -120,7 +69,7 @@ class WorkflowOutputManagerTest {
     void emit_whenNotNeedsSink_skipsEmit() {
         Sinks.Many<ChatMessageVO> sink = mock();
         WorkflowContext ctx = new WorkflowContext();
-        WorkflowConfiguration configuration = config(WorkflowMode.KNOWLEDGE, List.of(), "rec-1");
+        WorkflowConfiguration configuration = config(WorkflowMode.KNOWLEDGE, List.of());
         WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, sink);
         ChatMessageVO message = new ChatMessageVO("chat-1", "rec-1", true);
 
@@ -133,7 +82,7 @@ class WorkflowOutputManagerTest {
     void emit_nullMessage_skipsSafely() {
         Sinks.Many<ChatMessageVO> sink = mock();
         WorkflowContext ctx = new WorkflowContext();
-        WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of(), "rec-1");
+        WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of());
         WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, sink);
 
         manager.emit(null);
@@ -150,7 +99,7 @@ class WorkflowOutputManagerTest {
         node.setUpNodeIdList(List.of("start"));
         node.getDetail().put("answer", "hi");
         ctx.appendNode(node);
-        WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of(node), "rec-1");
+        WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of(node));
 
         WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, null);
         JSONObject details = manager.runtimeDetails();
@@ -176,7 +125,7 @@ class WorkflowOutputManagerTest {
         node.setType("question-classifier");
         node.setStatus(NodeStatus.SUCCESS.getStatus());
         ctx.appendNode(node);
-        WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of(node), "rec-1");
+        WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of(node));
 
         WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, null);
         JSONObject details = manager.runtimeDetails();
@@ -190,7 +139,7 @@ class WorkflowOutputManagerTest {
         WorkflowContext ctx = new WorkflowContext();
         AbsNode node = newNode("n1");
         ctx.appendNode(node);
-        WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of(), "rec-1");
+        WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of());
 
         WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, null);
         assertThat(manager.runtimeDetails()).isEmpty();

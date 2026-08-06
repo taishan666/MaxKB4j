@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Workflow 构建器
+ * ChatWorkflow 构建器
  * 分离复杂初始化逻辑，提供清晰的构建流程
  * <p>
  * 设计原则：
@@ -27,9 +27,9 @@ import java.util.Objects;
  * <p>
  * 使用示例：
  * <pre>
- * Workflow workflow = WorkflowBuilder.create(mode, nodes, edges)
+ * ChatWorkflow workflow = ChatWorkflowBuilder.create(mode, nodes, edges)
  *     .chatParams(chatParams)
- *     .context(chatContext)
+ *     .chatState(chatState)
  *     .sink(sink)
  *     .restoreState(details, nodeId, nodeData)
  *     .build();
@@ -49,7 +49,7 @@ public class ChatWorkflowBuilder {
     String currentNodeId;
     Map<String, Object> currentNodeData;
     boolean restoreState = false;
-    // ==================== 内部构建的组件（供 WorkflowImpl 构造器使用） ====================
+    // ==================== 内部构建的组件（供 ChatWorkflow 构造器使用） ====================
     WorkflowConfiguration configuration;
     WorkflowContext context;
     HistoryManager historyManager;
@@ -103,27 +103,37 @@ public class ChatWorkflowBuilder {
         return this;
     }
 
-    public void restoreState(JSONObject details, String nodeId, Map<String, Object> nodeData) {
+    /**
+     * 设置待恢复的执行状态
+     *
+     * @param details  节点详情
+     * @param nodeId   当前节点运行时 ID
+     * @param nodeData 当前节点数据
+     * @return this
+     */
+    public ChatWorkflowBuilder restoreState(JSONObject details, String nodeId, Map<String, Object> nodeData) {
         this.details = details;
         this.currentNodeId = nodeId;
         this.currentNodeData = nodeData;
         this.restoreState = (details != null && nodeId != null);
+        return this;
     }
 
     // ==================== 构建方法 ====================
 
     /**
-     * 构建 Workflow 实例
+     * 构建 ChatWorkflow 实例
      *
-     * @return Workflow 实例
+     * @return ChatWorkflow 实例
      */
-    public WorkflowImpl build() {
+    public ChatWorkflow build() {
         // 1. 构建 Configuration
         this.configuration = new WorkflowConfiguration(workflowMode, nodes, edges);
         // 2. 构建 Context
         this.context = new WorkflowContext();
         // 3. 恢复执行状态：chatRecord 来自上下文，runtimeNodeId/nodeData 来自请求入参
-        if (chatState != null
+        if (chatParams != null
+                && chatState != null
                 && chatState.getChatRecord() != null
                 && chatState.getChatRecord().getDetails() != null) {
             restoreState(chatState.getChatRecord().getDetails(),
@@ -146,7 +156,7 @@ public class ChatWorkflowBuilder {
      * @param mode  工作流模式
      * @param nodes 节点列表
      * @param edges 边列表
-     * @return WorkflowBuilder 实例
+     * @return ChatWorkflowBuilder 实例
      */
     public static ChatWorkflowBuilder create(WorkflowMode mode, List<AbsNode> nodes, List<LfEdge> edges) {
         return new ChatWorkflowBuilder(mode, nodes, edges);
