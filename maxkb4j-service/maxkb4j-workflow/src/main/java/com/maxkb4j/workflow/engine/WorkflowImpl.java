@@ -1,8 +1,8 @@
 package com.maxkb4j.workflow.engine;
 
-import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.workflow.model.IWorkflowContext;
 import com.maxkb4j.workflow.model.IWorkflowExecutionAccessor;
 import com.maxkb4j.workflow.model.IWorkflowOutputManager;
@@ -206,24 +206,14 @@ public class WorkflowImpl implements IWorkflow {
         return configuration.getNode(nodeId);
     }
 
-    /**
-     * 获取聊天参数
-     *
-     * @return ChatParams 实例
-     */
     @Override
     public ChatParams getChatParams() {
-        return configuration.getChatParams()==null?new ChatParams():configuration.getChatParams();
+        return null;
     }
 
-    /**
-     * 获取对话执行上下文
-     *
-     * @return ChatContext 实例
-     */
     @Override
-    public ChatContext getContext() {
-        return configuration.getChatContext();
+    public ChatState getChatState() {
+        return null;
     }
 
     /**

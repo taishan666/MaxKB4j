@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.dto.MaxKb4J;
 import com.maxkb4j.application.entity.ApplicationEntity;
-import com.maxkb4j.application.service.impl.ApplicationServiceImpl;
 import com.maxkb4j.application.util.ResourceUtil;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.I18nUtil;
@@ -29,7 +28,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Service
 public class ApplicationExportService {
-    private final ApplicationServiceImpl applicationService;
+    private final IApplicationInternalService applicationService;
     private final IToolService toolService;
 
     /**

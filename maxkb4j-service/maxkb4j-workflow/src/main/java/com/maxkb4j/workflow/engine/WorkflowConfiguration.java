@@ -1,18 +1,14 @@
 package com.maxkb4j.workflow.engine;
 
-import com.maxkb4j.common.domain.dto.ChatContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,23 +41,13 @@ public class WorkflowConfiguration {
      */
     private final Map<String, AbsNode> nodeMap;
 
-    /**
-     * 聊天参数
-     * -- SETTER --
-     *  设置聊天参数
-     *
-     */
     @Setter
     private ChatParams chatParams;
 
-    /**
-     * 对话执行上下文（服务端解析的身份信息与历史记录）
-     * -- SETTER --
-     *  设置对话执行上下文
-     *
-     */
     @Setter
-    private ChatContext chatContext;
+    private ChatState chatState;
+
+
 
     /**
      * 节点执行超时时间（分钟）

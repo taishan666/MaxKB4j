@@ -1,7 +1,5 @@
 package com.maxkb4j.workflow.model;
 
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
@@ -66,7 +64,7 @@ public class NodeResult {
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
         }
-        ChatParams chatParams = workflow.getChatParams();
+/*        ChatParams chatParams = workflow.getChatParams();
         ChatMessageVO nodeEndVo = node.toChatMessageVO(
                 chatParams.getChatId(),
                 chatParams.getChatRecordId(),
@@ -74,7 +72,7 @@ public class NodeResult {
                 "",
                 null,
                 true);
-        workflow.output().emit(nodeEndVo);
+        workflow.output().emit(nodeEndVo);*/
         // Sync update to workflow context
         workflow.context().appendNode(node);
     }

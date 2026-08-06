@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.domain.dto.Answer;
-import com.maxkb4j.common.domain.dto.ChatContext;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.util.MessageConverter;
@@ -26,7 +26,7 @@ public class PipelineManage {
     public Map<String, Object> context;
     public ApplicationVO application;
     public ChatParams chatParams;
-    public ChatContext chatContext;
+    public ChatState chatContext;
     public Sinks.Many<ChatMessageVO> sink;
 
     public PipelineManage(List<AbsStep> stepList) {
@@ -37,7 +37,7 @@ public class PipelineManage {
     }
 
 
-    public Answer run(ApplicationVO application, ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink)  {
+    public Answer run(ApplicationVO application, ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink)  {
         if (application != null) {
             this.application= application;
         }

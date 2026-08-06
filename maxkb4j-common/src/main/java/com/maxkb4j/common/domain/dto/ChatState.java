@@ -35,7 +35,7 @@ import java.util.Map;
 @Builder
 @Data
 @Schema(description = "对话执行上下文（服务端构建，非请求入参）")
-public class ChatContext {
+public class ChatState {
 
     @Schema(description = "应用id")
     private String appId;

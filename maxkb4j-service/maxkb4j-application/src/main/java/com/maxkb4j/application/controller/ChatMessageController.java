@@ -4,7 +4,7 @@ import com.maxkb4j.application.service.IApplicationChatInternalService;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatContext;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.enums.ChatSource;
@@ -37,7 +37,7 @@ public class ChatMessageController {
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params, @CurrentUserId String userId) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
-        ChatContext chatContext = ChatContext.builder()
+        ChatState chatContext = ChatState.builder()
                 .chatUserId(userId)
                 .chatUserType(ChatUserType.ANONYMOUS_USER.name())
                 .source(ChatSource.ONLINE)

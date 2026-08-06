@@ -10,7 +10,7 @@ import com.maxkb4j.application.pipeline.step.searchdatasetstep.AbsSearchDatasetS
 import com.maxkb4j.application.service.IChatService;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.domain.dto.Answer;
-import com.maxkb4j.common.domain.dto.ChatContext;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.application.dto.ChatResponse;
@@ -32,7 +32,7 @@ public class ChatSimpleServiceImpl implements IChatService {
     private final AbsChatStep chatStep;
 
     @Override
-    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
+    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink) {
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         Boolean problemOptimization = application.getProblemOptimization();
         if (!CollectionUtils.isEmpty(application.getKnowledgeIds())) {

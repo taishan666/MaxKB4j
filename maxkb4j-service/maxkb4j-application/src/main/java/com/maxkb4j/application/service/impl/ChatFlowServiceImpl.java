@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.service.IChatService;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.domain.dto.Answer;
-import com.maxkb4j.common.domain.dto.ChatContext;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.application.dto.ChatResponse;
@@ -30,7 +30,7 @@ public class ChatFlowServiceImpl implements IChatService {
     private final WorkflowFactory workflowFactory;
 
     @Override
-    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
+    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink) {
         LogicFlow logicFlow = LogicFlow.newInstance(application.getWorkFlow());
         List<AbsNode> nodes = logicFlow.getNodes().stream().map(nodeBuilder::getNode).filter(Objects::nonNull).toList();
         IWorkflow workflow = workflowFactory.createApplication(nodes, logicFlow.getEdges(), chatParams, chatContext, sink);

@@ -42,7 +42,7 @@ public class ChatOpenAiController {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         // 构建 ChatParams（请求入参）与 ChatContext（服务端上下文）
         ChatParams params = convertToChatParams(request, chatId);
-        ChatContext chatContext = ChatContext.builder()
+        ChatState chatContext = ChatState.builder()
                 .chatUserId(IdWorker.get32UUID())
                 .chatUserType(ChatUserType.APPLICATION_API_KEY.name())
                 .source(ChatSource.API_CALL)
@@ -71,7 +71,7 @@ public class ChatOpenAiController {
     /**
      * 处理流式响应
      */
-    private Flux<ServerSentEvent<String>> handleStreamResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
+    private Flux<ServerSentEvent<String>> handleStreamResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatContext, Sinks.Many<ChatMessageVO> sink) {
         String completionId = generateCompletionId();
         String model = request.getModel() != null ? request.getModel() : "maxkb4j";
         // 异步执行业务逻辑
@@ -107,7 +107,7 @@ public class ChatOpenAiController {
     /**
      * 处理同步响应
      */
-    private ResponseEntity<OpenAIChatCompletionResponse> handleSyncResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
+    private ResponseEntity<OpenAIChatCompletionResponse> handleSyncResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatContext, Sinks.Many<ChatMessageVO> sink) {
         ChatResponse chatResponse = chatService.chatMessage(params, chatContext, sink);
         String completionId = generateCompletionId();
         String model = request.getModel() != null ? request.getModel() : "maxkb4j";

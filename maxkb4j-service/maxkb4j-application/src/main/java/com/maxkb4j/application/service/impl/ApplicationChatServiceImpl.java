@@ -117,7 +117,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         return chatInfo;
     }
 
-    public ChatResponse chatMessage(ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
+    public ChatResponse chatMessage(ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink) {
         long startTime = System.currentTimeMillis();
         if (visitCountOver(chatContext)) {
             sink.tryEmitError(new AccessNumLimitException());
@@ -145,7 +145,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         return chatResponse;
     }
 
-    public void chatMessageAsync(ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink) {
+    public void chatMessageAsync(ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink) {
         CompletableFuture.supplyAsync(() -> chatMessage(chatParams, chatContext, sink), chatTaskExecutor)
                 .exceptionally(throwable -> {
                     // 记录异常日志（关键！）
@@ -158,7 +158,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
                 });
     }
 
-    public boolean visitCountOver(ChatContext chatContext) {
+    public boolean visitCountOver(ChatState chatContext) {
         String appId = chatContext.getAppId();
         String chatUserId = chatContext.getChatUserId();
         boolean debug = chatContext.getDebug();

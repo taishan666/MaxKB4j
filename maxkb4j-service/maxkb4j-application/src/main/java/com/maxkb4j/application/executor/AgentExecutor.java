@@ -2,7 +2,7 @@ package com.maxkb4j.application.executor;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.maxkb4j.application.service.IApplicationChatService;
-import com.maxkb4j.common.domain.dto.ChatContext;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatSource;
@@ -42,7 +42,7 @@ public class AgentExecutor extends AbsToolExecutor {
                 .reChat(false)
                 .stream(false)
                 .build();
-        ChatContext chatContext = ChatContext.builder()
+        ChatState chatContext = ChatState.builder()
                 .appId(appId)
                 .chatUserId(chatUserId)
                 .chatUserType(ChatUserType.ANONYMOUS_USER.name())

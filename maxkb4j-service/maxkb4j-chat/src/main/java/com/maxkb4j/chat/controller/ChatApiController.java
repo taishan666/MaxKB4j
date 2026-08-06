@@ -97,7 +97,7 @@ public class ChatApiController {
         String userId = StpKit.USER.getLoginIdAsString();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
-        ChatContext chatContext = ChatContext.builder()
+        ChatState chatContext = ChatState.builder()
                 .chatUserId(userId)
                 .chatUserType(ChatUserType.ANONYMOUS_USER.name())
                 .source(ChatSource.ONLINE)

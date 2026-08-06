@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.constant.ResourceType;
-import com.maxkb4j.common.domain.dto.ChatContext;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.application.dto.ChatResponse;
@@ -123,7 +123,7 @@ public class TriggerTaskExecutor {
                         .reChat(false)
                         .stream(false)
                         .build();
-                ChatContext chatContext = ChatContext.builder()
+                ChatState chatContext = ChatState.builder()
                         .appId(appId)
                         .debug(false)
                         .source(ChatSource.TRIGGER)

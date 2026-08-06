@@ -40,7 +40,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
         List<String> questionFields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, questionFields);
         ChatParams chatParams = workflow.getChatParams();
-        ChatContext chatContext = workflow.getContext();
+        ChatState chatState= workflow.getChatState();
         String chatId = chatParams.getChatId() + "_" + params.getApplicationId();
         // 获取各种文件列表
         List<OssFile> docList = getOssFiles(workflow, params.getDocumentList());
@@ -69,11 +69,11 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
                 .formData(formData)
                 .nodeData(chatParams.getNodeData())
                 .build();
-        ChatContext nodeContext = ChatContext.builder()
+        ChatState nodeContext = ChatState.builder()
                 .appId(params.getApplicationId())
-                .chatUserId(chatContext.getChatUserId())
-                .chatUserType(chatContext.getChatUserType())
-                .debug(chatContext.getDebug())
+                .chatUserId(chatState.getChatUserId())
+                .chatUserType(chatState.getChatUserType())
+                .debug(chatState.getDebug())
                 .build();
         Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
         AtomicBoolean isInterruptExec = new AtomicBoolean(false);

@@ -8,6 +8,7 @@ import com.maxkb4j.application.dto.ApplicationQuery;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
+import com.maxkb4j.tool.dto.ToolDTO;
 
 import java.util.List;
 
@@ -22,6 +23,11 @@ public interface IApplicationInternalService extends IApplicationService, IServi
     boolean deleteByAppId(String appId);
 
     ApplicationEntity createApp(ApplicationDTO application);
+
+    /**
+     * 导入/更新 .mk 文件解析出的应用与工具。
+     */
+    boolean upsertMk(ApplicationEntity app, List<ToolDTO> toolList);
 
     ApplicationVO getDetail(String id);
 

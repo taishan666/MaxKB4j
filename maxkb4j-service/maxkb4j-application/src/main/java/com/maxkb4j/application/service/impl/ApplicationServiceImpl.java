@@ -7,48 +7,53 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxkb4j.application.dto.ApplicationDTO;
 import com.maxkb4j.application.dto.ApplicationQuery;
 import com.maxkb4j.application.dto.ApplicationSimple;
 import com.maxkb4j.application.dto.MaxKb4J;
-import com.maxkb4j.application.entity.*;
-import com.maxkb4j.application.enums.AppType;
+import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
+import com.maxkb4j.application.entity.ApplicationEntity;
+import com.maxkb4j.application.entity.ApplicationVersionEntity;
 import com.maxkb4j.application.mapper.ApplicationMapper;
-import com.maxkb4j.application.service.*;
-import com.maxkb4j.application.util.ResourceUtil;
+import com.maxkb4j.application.service.ApplicationCascadeDeleteService;
+import com.maxkb4j.application.service.ApplicationDetailAssembler;
+import com.maxkb4j.application.service.ApplicationMkImportService;
+import com.maxkb4j.application.service.ApplicationResourceMappingService;
+import com.maxkb4j.application.service.ApplicationVersionService;
+import com.maxkb4j.application.service.IApplicationInternalService;
+import com.maxkb4j.application.service.PublishedApplicationCache;
+import com.maxkb4j.application.util.WorkFlowNodes;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
-import com.maxkb4j.application.vo.KnowledgeVO;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.core.support.permission.DataPermissionSupport;
-import com.maxkb4j.knowledge.dto.KnowledgeSimple;
-import com.maxkb4j.knowledge.service.IKnowledgeService;
-import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.service.IModelService;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.tool.dto.ToolDTO;
-import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.*;
-
+import static com.maxkb4j.workflow.enums.NodeType.BASE;
 
 /**
+ * 应用服务实现：聚焦应用自身的增删改查、发布与详情查询编排。
+ * <p>
+ * MK 模板导入、详情组装、发布缓存与级联删除等职责已分别抽离至
+ * {@link ApplicationMkImportService}、{@link ApplicationDetailAssembler}、
+ * {@link PublishedApplicationCache} 与 {@link ApplicationCascadeDeleteService}。
+ *
  * @author tarzan
  * @date 2024-12-25 13:09:54
  */
@@ -57,65 +62,50 @@ import static com.maxkb4j.workflow.enums.NodeType.*;
 public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, ApplicationEntity> implements IApplicationInternalService {
 
     private final UserContext userContext;
-    private final IKnowledgeService knowledgeService;
     private final IUserService userService;
     private final ApplicationAccessTokenServiceImpl accessTokenService;
-    private final ApplicationApiKeyServiceImpl applicationApiKeyService;
-    private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationVersionService applicationVersionService;
     private final IUserResourcePermissionService userResourcePermissionService;
     private final DataPermissionSupport dataPermissionSupport;
     private final ApplicationResourceMappingService applicationResourceMappingService;
-    private final ApplicationChatShareLinkService applicationChatShareLinkService;
-    private final ApplicationLongTermMemoryServiceImpl applicationLongTermMemoryService;
-    private final IToolService toolService;
-    private final IModelService modelService;
+    private final ApplicationMkImportService mkImportService;
+    private final ApplicationDetailAssembler detailAssembler;
+    private final PublishedApplicationCache publishedApplicationCache;
+    private final ApplicationCascadeDeleteService cascadeDeleteService;
 
-    private static final Cache<String, ApplicationVO> PUBLISHED_APP_CACHE = Caffeine.newBuilder()
-            .initialCapacity(64)
-            .maximumSize(1000)
-            .expireAfterWrite(10, TimeUnit.MINUTES)
-            .build();
-
+    @Override
     public IPage<ApplicationListVO> selectAppPage(int page, int size, ApplicationQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         return baseMapper.pageList(new Page<>(page, size), query);
     }
 
-
+    @Override
     @Transactional
     public boolean deleteByAppId(String appId) {
-        PUBLISHED_APP_CACHE.invalidate(appId);
-        accessTokenService.remove(Wrappers.<ApplicationAccessTokenEntity>lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId));
-        applicationApiKeyService.remove(Wrappers.<ApplicationApiKeyEntity>lambdaQuery().eq(ApplicationApiKeyEntity::getApplicationId, appId));
-        chatUserStatsService.remove(Wrappers.<ApplicationChatUserStatsEntity>lambdaQuery().eq(ApplicationChatUserStatsEntity::getApplicationId, appId));
-        applicationVersionService.remove(Wrappers.<ApplicationVersionEntity>lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId));
-        userResourcePermissionService.remove(AuthTargetType.APPLICATION, appId);
-        // 批量删除资源映射
-        applicationResourceMappingService.deleteResourceMappings(appId);
-        applicationChatShareLinkService.remove(Wrappers.<ApplicationChatShareLinkEntity>lambdaQuery().eq(ApplicationChatShareLinkEntity::getApplicationId, appId));
-        applicationLongTermMemoryService.remove(Wrappers.<ApplicationLongTermMemoryEntity>lambdaQuery().eq(ApplicationLongTermMemoryEntity::getApplicationId, appId));
+        cascadeDeleteService.deleteRelatedResources(appId);
+        publishedApplicationCache.invalidate(appId);
         return this.removeById(appId);
     }
 
+    @Override
+    @Transactional
+    public boolean deleteBatch(List<String> idList) {
+        if (CollectionUtils.isEmpty(idList)) {
+            return true;
+        }
+        boolean success = true;
+        for (String id : idList) {
+            success &= deleteByAppId(id);
+        }
+        return success;
+    }
+
+    @Override
     @Transactional
     public ApplicationEntity createApp(ApplicationDTO application) {
-        JSONObject workFlowTemplate = application.getWorkFlowTemplate();
-        if (workFlowTemplate != null) {
-            String downloadUrl = workFlowTemplate.getString("downloadUrl");
-            if (StringUtils.isNotBlank(downloadUrl)) {
-                PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-                Resource resource = resolver.getResource("templates/app/" + downloadUrl);
-                MaxKb4J maxKb4j = ResourceUtil.parseMk(resource);
-                ApplicationEntity app = maxKb4j.getApplication();
-                app.setId(null);
-                app.setName(application.getName());
-                app.setDesc(application.getDesc());
-                app.setIcon(StringUtils.isNotBlank(application.getIcon()) ? application.getIcon() : app.getIcon());
-                upsertMk(app, maxKb4j.getToolList());
-                applicationResourceMappingService.saveResourceMappings(app);
-                return app;
-            }
+        String downloadUrl = getTemplateDownloadUrl(application.getWorkFlowTemplate());
+        if (StringUtils.isNotBlank(downloadUrl)) {
+            return createAppFromTemplate(downloadUrl, application);
         }
         // 非模板方式创建
         application.setIcon("./favicon.ico");
@@ -132,85 +122,64 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         return application;
     }
 
+    private ApplicationEntity createAppFromTemplate(String downloadUrl, ApplicationDTO application) {
+        MaxKb4J maxKb4j = mkImportService.loadClasspathTemplate(downloadUrl);
+        ApplicationEntity app = maxKb4j.getApplication();
+        app.setId(null);
+        app.setName(application.getName());
+        app.setDesc(application.getDesc());
+        if (StringUtils.isNotBlank(application.getIcon())) {
+            app.setIcon(application.getIcon());
+        }
+        mkImportService.normalizeForImport(app, maxKb4j.getToolList());
+        this.saveOrUpdateApp(app);
+        applicationResourceMappingService.saveResourceMappings(app);
+        return app;
+    }
+
+    @Override
     @Transactional
-    public boolean upsertMk(ApplicationEntity app,List<ToolDTO> toolList) {
-     /*   if (maxKb4j == null) {
-            return false;
-        }*/
-        Date now = new Date();
-        String userId = userContext.getUserId();
-        app.setIsPublish(false);
-        app.setCreateTime(now);
-        app.setUpdateTime(now);
-        app.setUserId(userId);
-        app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.LLM));
-        if (!CollectionUtils.isEmpty(toolList)) {
-            toolList.forEach(e -> {
-                e.setUserId(userId);
-                e.setIsActive(true);
-            });
-            toolService.saveOrUpdateBatch(toolList);
-            List<String> toolIds = toolList.stream().map(ToolDTO::getId).toList();
-            app.setToolIds(toolIds);
-        }
-        JSONObject workFlow= app.getWorkFlow();
-        if (workFlow!=null){
-            JSONArray nodes = workFlow.getJSONArray("nodes");
-            if (nodes != null) {
-                List<String> llmNodes=List.of(QUESTION.getKey(), NL2SQL.getKey(), INTENT_CLASSIFY.getKey(), IMAGE_UNDERSTAND.getKey(), AI_CHAT.getKey(), PARAMETER_EXTRACTION.getKey());
-                for (int i = 0; i < nodes.size(); i++) {
-                    JSONObject node = nodes.getJSONObject(i);
-                    if (llmNodes.contains(node.getString("type"))) {
-                        JSONObject properties = node.getJSONObject("properties");
-                        if (properties != null) {
-                            JSONObject nodeData = properties.getJSONObject("nodeData");
-                            if (nodeData != null) {
-                                String modelId = nodeData.getString("modelId");
-                                nodeData.put("modelId", modelService.getSafeModelId(modelId, ModelType.LLM));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return this.saveOrUpdateApp(app);
+    public boolean upsertMk(ApplicationEntity app, List<ToolDTO> toolList) {
+        mkImportService.normalizeForImport(app, toolList);
+        boolean result = this.saveOrUpdateApp(app);
+        publishedApplicationCache.invalidate(app.getId());
+        return result;
     }
 
     @Transactional
     public boolean saveOrUpdateApp(ApplicationEntity application) {
-        if (application.getId()==null){
+        if (application.getId() == null) {
             this.save(application);
             ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
             accessToken.setApplicationId(application.getId());
             accessToken.setLanguage(userService.getLanguage(application.getUserId()));
             accessTokenService.save(accessToken);
             return userResourcePermissionService.ownerSave(AuthTargetType.APPLICATION, application.getId(), application.getUserId());
-        }else {
-            return this.updateById(application);
         }
+        return this.updateById(application);
     }
 
+    @Override
     public ApplicationVO appProfile(String appId) {
-        ApplicationVO appProfile = this.getDetail(appId);
-        if (appProfile == null || !appProfile.getIsPublish()) {
-            return appProfile;
+        ApplicationVO draft = this.getDetail(appId);
+        if (draft == null || !Boolean.TRUE.equals(draft.getIsPublish())) {
+            return draft;
         }
-        return this.getPublishedDetail(appId);
+        return publishedApplicationCache.get(appId);
     }
 
     @Override
     public ApplicationVO getAppDetail(String appId, boolean debug) {
         if (debug) {
             return this.getDetail(appId);
-        } else {
-            return this.getPublishedDetail(appId);
         }
+        return publishedApplicationCache.get(appId);
     }
 
     @Override
     public ApplicationSimple getAppSimpleById(String appId) {
         ApplicationEntity app = this.lambdaQuery()
-                .select(ApplicationEntity::getId,ApplicationEntity::getName, ApplicationEntity::getDesc, ApplicationEntity::getIcon)
+                .select(ApplicationEntity::getId, ApplicationEntity::getName, ApplicationEntity::getDesc, ApplicationEntity::getIcon)
                 .eq(ApplicationEntity::getId, appId).one();
         return BeanUtil.copy(app, ApplicationSimple.class);
     }
@@ -218,7 +187,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     @Override
     public List<ApplicationSimple> listAppSimpleByIds(List<String> applicationIds) {
         LambdaQueryWrapper<ApplicationEntity> wrapper = Wrappers.lambdaQuery(ApplicationEntity.class)
-                .select(ApplicationEntity::getId,ApplicationEntity::getName, ApplicationEntity::getDesc, ApplicationEntity::getIcon)
+                .select(ApplicationEntity::getId, ApplicationEntity::getName, ApplicationEntity::getDesc, ApplicationEntity::getIcon)
                 .in(ApplicationEntity::getId, applicationIds);
         List<ApplicationEntity> list = this.list(wrapper);
         return BeanUtil.copyList(list, ApplicationSimple.class);
@@ -239,147 +208,110 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         return this.listMaps(new LambdaQueryWrapper<ApplicationEntity>().in(ApplicationEntity::getId, ids));
     }
 
+    @Override
     public ApplicationVO getDetail(String id) {
         ApplicationEntity entity = this.getById(id);
         if (entity == null) {
             return null;
         }
-        ApplicationVO vo = BeanUtil.copy(entity, ApplicationVO.class);
-        return wrapVo(vo);
+        return detailAssembler.wrap(BeanUtil.copy(entity, ApplicationVO.class));
     }
 
-    private ApplicationVO getPublishedDetail(String id) {
-        ApplicationVO cached = PUBLISHED_APP_CACHE.get(id, appId -> {
-            ApplicationVO vo = applicationVersionService.getAppLatestOne(appId);
-            return vo == null ? null : wrapVo(vo);
-        });
-        return cached == null ? null : BeanUtil.copy(cached, ApplicationVO.class);
-    }
-
-
-    public ApplicationVO wrapVo(ApplicationVO vo) {
-        if (AppType.WORK_FLOW.name().equals(vo.getType())) {
-            JSONObject workFlow = vo.getWorkFlow();
-            JSONArray nodes = workFlow.getJSONArray("nodes");
-            if (nodes != null) {
-                for (int i = 0; i < nodes.size(); i++) {
-                    JSONObject node = nodes.getJSONObject(i);
-                    if (SEARCH_KNOWLEDGE.getKey().equals(node.getString("type"))) {
-                        JSONObject properties = node.getJSONObject("properties"); // 假设每个节点都有 id 字段
-                        if (properties != null) {
-                            JSONObject nodeData = properties.getJSONObject("nodeData");
-                            if (nodeData != null) {
-                                JSONArray knowledgeIdListJson = nodeData.getJSONArray("knowledgeIds");
-                                nodeData.put("knowledgeList", List.of());
-                                if (knowledgeIdListJson != null) {
-                                    List<String> nodeKnowledgeIds = knowledgeIdListJson.toJavaList(String.class);
-                                    if (!CollectionUtils.isEmpty(nodeKnowledgeIds)) {
-                                        nodeData.put("knowledgeList", knowledgeService.listSimpleKnowledgeByIds(nodeKnowledgeIds));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            List<String> knowledgeIds = vo.getKnowledgeIds();
-            if (!CollectionUtils.isEmpty(knowledgeIds)) {
-                List<KnowledgeSimple> knowledgeList = knowledgeService.listSimpleKnowledgeByIds( knowledgeIds);
-                vo.setKnowledgeList(BeanUtil.copyList(knowledgeList, KnowledgeVO.class));
-            } else {
-                vo.setKnowledgeList(List.of());
-            }
-        }
-        return vo;
-    }
-
-
-
-
-    @SuppressWarnings("unchecked")
+    @Override
     @Transactional
     public Boolean updateAppById(ApplicationDTO appDTO) {
-        JSONObject workFlowTemplate = appDTO.getWorkFlowTemplate();
-        if (workFlowTemplate != null) {
-            String downloadUrl = workFlowTemplate.getString("downloadUrl");
-            if (StringUtils.isNotBlank(downloadUrl)) {
-                PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-                Resource resource = resolver.getResource("templates/app/" + downloadUrl);
-                MaxKb4J maxKb4j = ResourceUtil.parseMk(resource);
-                ApplicationEntity app = maxKb4j.getApplication();
-                app.setId(appDTO.getId());
-                boolean status=upsertMk(app, maxKb4j.getToolList());
-                applicationResourceMappingService.saveResourceMappings(app);
-                return status;
-            }
+        String downloadUrl = getTemplateDownloadUrl(appDTO.getWorkFlowTemplate());
+        if (StringUtils.isNotBlank(downloadUrl)) {
+            return updateAppFromTemplate(downloadUrl, appDTO);
         }
-        JSONObject workFlow = appDTO.getWorkFlow();
-        if (workFlow != null && workFlow.containsKey("nodes")) {
-            JSONArray nodes = workFlow.getJSONArray("nodes");
-            if (nodes != null) {
-                nodes.stream()
-                        .filter(node -> node instanceof Map)
-                        .map(node -> (Map<String, Object>) node)
-                        .filter(node -> BASE.getKey().equals(node.get("type")))
-                        .findFirst()
-                        .map(JSONObject::new).ifPresent(baseNode -> updateAppFromBaseNode(appDTO, baseNode));
-            }
-        }
+        syncFromBaseNode(appDTO);
         applicationResourceMappingService.saveResourceMappings(appDTO);
+        publishedApplicationCache.invalidate(appDTO.getId());
         return this.updateById(appDTO);
     }
 
+    private Boolean updateAppFromTemplate(String downloadUrl, ApplicationDTO appDTO) {
+        MaxKb4J maxKb4j = mkImportService.loadClasspathTemplate(downloadUrl);
+        ApplicationEntity app = maxKb4j.getApplication();
+        app.setId(appDTO.getId());
+        boolean status = this.upsertMk(app, maxKb4j.getToolList());
+        applicationResourceMappingService.saveResourceMappings(app);
+        return status;
+    }
+
     /**
-     * 从基础节点更新应用配置
+     * 从工作流基础节点同步应用基础配置。
      */
-    private void updateAppFromBaseNode(ApplicationEntity app, JSONObject baseNode) {
-        JSONObject baseNodeProperties = baseNode.getJSONObject("properties");
-        if (baseNodeProperties == null) {
+    private void syncFromBaseNode(ApplicationDTO appDTO) {
+        JSONObject baseNode = findBaseNode(appDTO.getWorkFlow());
+        if (baseNode == null) {
             return;
         }
-        JSONObject nodeData = baseNodeProperties.getJSONObject("nodeData");
+        JSONObject nodeData = WorkFlowNodes.getNodeData(baseNode);
         if (nodeData == null) {
             return;
         }
-        // 更新应用基础信息
-        app.setName(nodeData.getString("name"));
-        app.setDesc(nodeData.getString("desc"));
-        app.setPrologue(nodeData.getString("prologue"));
-        app.setFileUploadEnable(nodeData.getBooleanValue("fileUploadEnable"));
-        app.setFileUploadSetting(nodeData.getJSONObject("fileUploadSetting"));
-        app.setTtsType(nodeData.getString("ttsType"));
-        app.setTtsModelEnable(nodeData.getBooleanValue("ttsModelEnable"));
-        app.setTtsModelId(nodeData.getString("ttsModelId"));
-        app.setTtsModelParamsSetting(nodeData.getJSONObject("ttsModelParamsSetting"));
-        app.setTtsAutoplay(nodeData.getBooleanValue("ttsAutoplay"));
-        app.setSttModelEnable(nodeData.getBooleanValue("sttModelEnable"));
-        app.setSttModelId(nodeData.getString("sttModelId"));
-        app.setSttAutoSend(nodeData.getBooleanValue("sttAutoSend"));
+        appDTO.setName(nodeData.getString("name"));
+        appDTO.setDesc(nodeData.getString("desc"));
+        appDTO.setPrologue(nodeData.getString("prologue"));
+        appDTO.setFileUploadEnable(nodeData.getBooleanValue("fileUploadEnable"));
+        appDTO.setFileUploadSetting(nodeData.getJSONObject("fileUploadSetting"));
+        appDTO.setTtsType(nodeData.getString("ttsType"));
+        appDTO.setTtsModelEnable(nodeData.getBooleanValue("ttsModelEnable"));
+        appDTO.setTtsModelId(nodeData.getString("ttsModelId"));
+        appDTO.setTtsModelParamsSetting(nodeData.getJSONObject("ttsModelParamsSetting"));
+        appDTO.setTtsAutoplay(nodeData.getBooleanValue("ttsAutoplay"));
+        appDTO.setSttModelEnable(nodeData.getBooleanValue("sttModelEnable"));
+        appDTO.setSttModelId(nodeData.getString("sttModelId"));
+        appDTO.setSttAutoSend(nodeData.getBooleanValue("sttAutoSend"));
     }
 
+    private static JSONObject findBaseNode(JSONObject workFlow) {
+        JSONArray nodes = WorkFlowNodes.getNodes(workFlow);
+        if (nodes == null) {
+            return null;
+        }
+        for (int i = 0; i < nodes.size(); i++) {
+            JSONObject node = nodes.getJSONObject(i);
+            if (node != null && BASE.getKey().equals(node.getString("type"))) {
+                return node;
+            }
+        }
+        return null;
+    }
 
+    private static String getTemplateDownloadUrl(JSONObject workFlowTemplate) {
+        return workFlowTemplate == null ? null : workFlowTemplate.getString("downloadUrl");
+    }
+
+    @Override
     @Transactional
     public ApplicationEntity publish(String id, JSONObject params) {
-        ApplicationEntity application = new ApplicationEntity();
-        application.setId(id);
+        ApplicationEntity application = this.getById(id);
+        if (application == null) {
+            return null;
+        }
         application.setIsPublish(true);
         application.setPublishTime(new Date());
         this.updateById(application);
-        application = this.getById(id);
+        applicationVersionService.save(buildVersion(application));
+        publishedApplicationCache.invalidate(id);
+        return application;
+    }
+
+    private ApplicationVersionEntity buildVersion(ApplicationEntity application) {
         ApplicationVersionEntity entity = BeanUtil.copy(application, ApplicationVersionEntity.class);
         entity.setId(null);
-        entity.setApplicationId(id);
+        entity.setApplicationId(application.getId());
         entity.setApplicationName(application.getName());
         entity.setName(DateTimeUtil.now());
         String userId = userContext.getUserId();
         entity.setPublishUserId(userId);
         entity.setPublishUserName(userService.getUsername(userId));
-        applicationVersionService.save(entity);
-        PUBLISHED_APP_CACHE.invalidate(id);
-        return application;
+        return entity;
     }
 
+    @Override
     public List<ApplicationListVO> listApps(String folderId) {
         if (StringUtils.isBlank(folderId)) {
             return Collections.emptyList();
@@ -388,16 +320,5 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         query.setFolderId(folderId);
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         return baseMapper.listApps(query);
-    }
-
-
-
-    @Transactional
-    public boolean deleteBatch(List<String> idList) {
-        List<Boolean> result = new ArrayList<>();
-        for (String id : idList) {
-            result.add(deleteByAppId(id));
-        }
-        return result.stream().allMatch(Boolean::booleanValue);
     }
 }

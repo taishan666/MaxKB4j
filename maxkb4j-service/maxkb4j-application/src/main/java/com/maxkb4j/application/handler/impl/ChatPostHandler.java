@@ -12,7 +12,7 @@ import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.service.ApplicationChatUserStatsService;
 import com.maxkb4j.common.cache.ChatCache;
-import com.maxkb4j.common.domain.dto.ChatContext;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
@@ -37,7 +37,7 @@ public class ChatPostHandler implements PostResponseHandler {
 
     @Override
     @Transactional
-    public void handler(ChatParams chatParams, ChatContext chatContext, ChatResponse chatResponse, long startTime) {
+    public void handler(ChatParams chatParams, ChatState chatContext, ChatResponse chatResponse, long startTime) {
         String chatId = chatParams.getChatId();
         String chatRecordId = chatParams.getChatRecordId();
         String problemText = chatParams.getMessage();

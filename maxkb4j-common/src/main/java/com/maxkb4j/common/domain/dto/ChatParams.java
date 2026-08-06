@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * 对话请求入参：仅承载客户端提交的请求字段，由 {@code @RequestBody} 绑定。
  * <p>
- * 服务端解析的运行时状态（用户身份、来源、历史记录等）已分离至 {@link ChatContext}，
+ * 服务端解析的运行时状态（用户身份、来源、历史记录等）已分离至 {@link ChatState}，
  * 沿调用链独立传递，避免请求 DTO 与可变执行上下文混装。
  *
  * @author tarzan

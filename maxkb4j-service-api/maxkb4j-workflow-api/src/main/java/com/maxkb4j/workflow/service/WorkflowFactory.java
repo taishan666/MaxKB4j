@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.service;
 
-import com.maxkb4j.common.domain.dto.ChatContext;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.logic.LfEdge;
@@ -29,7 +29,7 @@ public interface WorkflowFactory {
      * @param sink         响应式输出 Sink
      * @return 工作流实例
      */
-    IWorkflow createApplication(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, ChatContext chatContext, Sinks.Many<ChatMessageVO> sink);
+    IWorkflow createApplication(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink);
 
     /**
      * 构造知识库工作流。
