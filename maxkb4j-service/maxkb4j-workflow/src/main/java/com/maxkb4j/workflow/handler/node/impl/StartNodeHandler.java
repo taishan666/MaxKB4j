@@ -73,9 +73,9 @@ public class StartNodeHandler extends AbsNodeHandler {
         return resultMap;
     }
 
-    private List<ChatRecordSimple> getHistoryContext(ChatWorkflow workflow) {
+    private List<ChatRecordSimple> getHistoryContext(IWorkflow workflow) {
         List<ChatRecordSimple> list = new ArrayList<>();
-        for (ChatRecordDTO chatRecord : workflow.historyChatRecords()) {
+        for (ChatRecordDTO chatRecord : workflow.getHistoryChatRecords()) {
             ChatRecordSimple record = new ChatRecordSimple();
             record.setQuestion(chatRecord.getProblemText());
             record.setAnswer(chatRecord.getAnswerText());
