@@ -3,7 +3,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
-import com.maxkb4j.workflow.engine.graph.ILoopWorkflow;
+import com.maxkb4j.workflow.engine.graph.AbstractLoopWorkflow;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.IWorkflow;
@@ -22,7 +22,7 @@ public class LoopStartNodeHandler extends AbsNodeHandler {
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         int index = 0;
         Object item = null;
-        if (workflow instanceof ILoopWorkflow loopWorkFlow) {
+        if (workflow instanceof AbstractLoopWorkflow loopWorkFlow) {
             LoopParams loopParams = loopWorkFlow.getLoopParams();
             index = loopParams.getIndex();
             item = loopParams.getItem();

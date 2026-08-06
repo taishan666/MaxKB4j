@@ -1,15 +1,12 @@
 package com.maxkb4j.workflow.engine.graph;
 
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.workflow.engine.EdgeNavigator;
-import com.maxkb4j.workflow.engine.WorkflowConfiguration;
-import com.maxkb4j.workflow.engine.WorkflowContext;
-import com.maxkb4j.workflow.engine.WorkflowExecutionAccessor;
-import com.maxkb4j.workflow.engine.WorkflowOutputManager;
+import com.maxkb4j.workflow.engine.*;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.node.AbsNode;
+import lombok.Getter;
 import reactor.core.publisher.Sinks;
 
 import java.util.Collections;
@@ -25,18 +22,14 @@ import java.util.Objects;
  *   <li>使用 {@link LoopExecutionAccessor} 覆盖 startNode 以返回 LoopStart 节点</li>
  * </ul>
  */
-public abstract class AbstractLoopWorkflow extends AbstractWorkflow implements ILoopWorkflow {
+@Getter
+public abstract class AbstractLoopWorkflow extends AbstractWorkflow {
 
     private final LoopParams loopParams;
 
     protected AbstractLoopWorkflow(Components components, LoopParams loopParams) {
         super(components);
         this.loopParams = Objects.requireNonNull(loopParams, "loopParams cannot be null");
-    }
-
-    @Override
-    public LoopParams getLoopParams() {
-        return loopParams;
     }
 
     /**

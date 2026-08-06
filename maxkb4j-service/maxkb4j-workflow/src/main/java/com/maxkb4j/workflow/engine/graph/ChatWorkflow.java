@@ -4,6 +4,7 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.workflow.engine.WorkflowExecutionAccessor;
 import com.maxkb4j.workflow.engine.WorkflowOutputManager;
+import com.maxkb4j.workflow.model.IChatWorkflow;
 import lombok.Getter;
 
 /**
@@ -11,7 +12,7 @@ import lombok.Getter;
  * 由 {@link ChatWorkflowBuilder} 构建，构建完成后状态不可变。
  */
 @Getter
-public class ChatWorkflow extends AbstractWorkflow {
+public class ChatWorkflow extends AbstractWorkflow implements IChatWorkflow {
 
     /**
      * 聊天参数

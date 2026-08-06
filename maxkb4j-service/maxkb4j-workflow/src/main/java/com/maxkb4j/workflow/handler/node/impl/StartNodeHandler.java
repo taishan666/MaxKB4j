@@ -7,7 +7,7 @@ import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
-import com.maxkb4j.workflow.engine.graph.ChatWorkflow;
+import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.ChatRecordSimple;
@@ -31,7 +31,7 @@ public class StartNodeHandler extends AbsNodeHandler {
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         Map<String, Object> nodeVariable = new HashMap<>();
-        if (workflow instanceof ChatWorkflow chatWorkflow) {
+        if (workflow instanceof IChatWorkflow chatWorkflow) {
             ChatParams chatParams = chatWorkflow.getChatParams();
             // 获取默认全局变量
             Map<String, Object> globalVariable = getDefaultGlobalVariable(chatWorkflow, chatParams);
@@ -59,7 +59,7 @@ public class StartNodeHandler extends AbsNodeHandler {
         return new NodeResult(nodeVariable);
     }
 
-    private Map<String, Object> getDefaultGlobalVariable(ChatWorkflow chatWorkflow, ChatParams chatParams) {
+    private Map<String, Object> getDefaultGlobalVariable(IChatWorkflow chatWorkflow, ChatParams chatParams) {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         resultMap.put("historyContext", getHistoryContext(chatWorkflow));

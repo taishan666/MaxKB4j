@@ -5,7 +5,7 @@ import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
-import com.maxkb4j.workflow.engine.graph.ChatWorkflow;
+import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.IWorkflow;
@@ -37,7 +37,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
 
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
-        if (workflow instanceof ChatWorkflow chatWorkflow) {
+        if (workflow instanceof IChatWorkflow chatWorkflow) {
             ApplicationNode.NodeParams params = parseParams(node, ApplicationNode.NodeParams.class);
             List<String> questionFields = params.getQuestionReferenceAddress();
             String question = getReferenceFieldAsString(workflow, questionFields);

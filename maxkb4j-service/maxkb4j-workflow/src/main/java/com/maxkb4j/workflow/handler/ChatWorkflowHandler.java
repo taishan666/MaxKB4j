@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.handler;
 
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.workflow.engine.graph.ChatWorkflow;
+import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.NodeResultFuture;
@@ -26,8 +26,8 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
 
     @Override
     public boolean canHandle(IWorkflow workflow) {
-        // ChatWorkflowHandler handles all workflows except KnowledgeWorkflow
-        return (workflow instanceof ChatWorkflow);
+        // ChatWorkflowHandler 处理所有聊天系工作流（ChatWorkflow 与聊天循环工作流）
+        return (workflow instanceof IChatWorkflow);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
      * @param ex       the exception that occurred
      */
     protected void emitErrorToSink(IWorkflow workflow, AbsNode node, Exception ex) {
-        if (workflow instanceof ChatWorkflow chatWorkflow) {
+        if (workflow instanceof IChatWorkflow chatWorkflow) {
             ChatParams chatParams = chatWorkflow.getChatParams();
             ChatMessageVO errMessage = node.toChatMessageVO(
                     chatParams.getChatId(),

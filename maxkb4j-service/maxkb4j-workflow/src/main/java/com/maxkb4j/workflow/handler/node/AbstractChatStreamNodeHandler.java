@@ -11,7 +11,7 @@ import com.maxkb4j.core.langchain4j.AiChatMemory;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
-import com.maxkb4j.workflow.engine.graph.ChatWorkflow;
+import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
@@ -180,7 +180,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * @param reasoning 推理内容
      */
     protected void emitMessage(IWorkflow workflow, AbsNode node, String content, String reasoning) {
-        if (workflow instanceof ChatWorkflow chatWorkflow) {
+        if (workflow instanceof IChatWorkflow chatWorkflow) {
             ChatParams chatParams=chatWorkflow.getChatParams();
             ChatMessageVO vo = node.toChatMessageVO(
                     chatParams.getChatId(),
