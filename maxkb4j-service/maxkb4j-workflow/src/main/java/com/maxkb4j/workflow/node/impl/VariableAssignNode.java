@@ -10,15 +10,11 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.VARIABLE_ASSIGN;
-
 @NodeCreatorType(NodeType.VARIABLE_ASSIGN)
 public class VariableAssignNode extends AbsNode {
     public VariableAssignNode(String id,JSONObject properties) {
         super(id,properties);
-        this.setType(VARIABLE_ASSIGN.getKey());
     }
-
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
@@ -30,7 +26,5 @@ public class VariableAssignNode extends AbsNode {
     public static class NodeParams{
         private List<Map<String, Object>> variableList;
     }
-
-
 
 }

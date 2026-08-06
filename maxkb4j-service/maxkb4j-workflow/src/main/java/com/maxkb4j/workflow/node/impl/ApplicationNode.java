@@ -13,22 +13,17 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.APPLICATION;
-
-
 @NodeCreatorType(NodeType.APPLICATION)
 public class ApplicationNode extends AbsNode {
 
     public ApplicationNode(String id,JSONObject properties) {
         super(id,properties);
-        this.setType(APPLICATION.getKey());
     }
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
         context.put("result", detail.get("result"));
     }
-
 
     @Data
     public static class NodeParams {
@@ -51,6 +46,5 @@ public class ApplicationNode extends AbsNode {
         private Boolean isResult;
 
     }
-
 
 }

@@ -10,14 +10,11 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.KNOWLEDGE_WRITE;
-
 @NodeCreatorType(NodeType.KNOWLEDGE_WRITE)
 public class KnowledgeWriteNode extends AbsNode {
 
     public KnowledgeWriteNode(String id, JSONObject properties) {
         super(id, properties);
-        this.setType(KNOWLEDGE_WRITE.getKey());
     }
 
     @Override

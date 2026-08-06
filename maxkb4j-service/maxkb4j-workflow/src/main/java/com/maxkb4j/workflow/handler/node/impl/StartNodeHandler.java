@@ -33,11 +33,6 @@ public class StartNodeHandler extends AbsNodeHandler {
 
         // 获取默认全局变量
         Map<String, Object> globalVariable = getDefaultGlobalVariable(workflow, chatParams);
-
-        // 合并全局变量
-        if (chatParams.getFormData() != null) {
-            globalVariable.putAll(chatParams.getFormData());
-        }
         workflow.getGlobalContext().putAll(globalVariable);
 
         JSONObject config = node.getProperties().getJSONObject("config");
@@ -90,6 +85,9 @@ public class StartNodeHandler extends AbsNodeHandler {
     public Map<String, Object> getChatVariable(AbsNode node, String chatId) {
         Map<String, Object> resultMap = new HashMap<>();
         ChatInfo chatInfo = ChatCache.get(chatId);
+        if (chatInfo == null) {
+            return resultMap;
+        }
         Map<String, Object> chatVariable = chatInfo.getChatVariables();
         JSONObject config = node.getProperties().getJSONObject("config");
         if (config != null) {

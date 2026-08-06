@@ -11,21 +11,16 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.LOOP_BREAK;
-
-
 @NodeCreatorType(NodeType.LOOP_BREAK)
 public class LoopBreakNode extends AbsNode {
     public LoopBreakNode(String id, JSONObject properties) {
         super(id,properties);
-        super.setType(LOOP_BREAK.getKey());
     }
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
         context.put("is_break", detail.get("is_break"));
     }
-
 
     @Data
     public static class NodeParams {

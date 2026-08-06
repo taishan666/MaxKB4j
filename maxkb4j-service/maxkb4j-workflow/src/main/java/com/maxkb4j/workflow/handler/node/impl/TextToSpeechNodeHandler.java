@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.alibaba.fastjson.JSONObject;
+
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.model.service.ITTSModel;
@@ -31,14 +31,8 @@ public class TextToSpeechNodeHandler extends AbsNodeHandler {
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         TextToSpeechNode.NodeParams params = parseParams(node, TextToSpeechNode.NodeParams.class);
-        String modelId = params.getTtsModelId();
-        JSONObject modelParamsSetting = params.getModelParamsSetting();
-        if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
-            ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
-            modelId = modelConfig.getModelId();
-            modelParamsSetting = modelConfig.getModelParamsSetting();
-        }
-        ITTSModel ttsModel = modelFactory.buildTTSModel(modelId, modelParamsSetting);
+        ModelConfig modelConfig = resolveModelConfig(workflow, params);
+        ITTSModel ttsModel = modelFactory.buildTTSModel(modelConfig.getModelId(), modelConfig.getModelParamsSetting());
         List<String> contentList = params.getContentList();
         Object content = workflow.getReferenceField(contentList);
         byte[] audioData = ttsModel.textToSpeech(content.toString());

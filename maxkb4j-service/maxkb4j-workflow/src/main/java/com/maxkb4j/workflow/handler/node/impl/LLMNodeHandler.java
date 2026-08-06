@@ -1,12 +1,9 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.util.MessageConverter;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.core.assistant.Assistant;
-import com.maxkb4j.core.langchain4j.AiChatMemory;
-import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.service.IToolFormatterService;
@@ -21,13 +18,11 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.AiChatNode;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;
-import dev.langchain4j.model.chat.StreamingChatModel;
-import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.tool.BeforeToolExecution;
 import dev.langchain4j.service.tool.ToolExecution;
+import dev.langchain4j.service.tool.ToolProvider;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -73,8 +68,8 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
 
         ModelConfig modelConfig = resolveModelConfig(workflow, params);
         // 构建 AI 服务
-        Assistant assistant = buildAiServices(modelConfig.getModelId(), modelConfig.getModelParamsSetting(),
-                workflow, systemPrompt, historyMessages, toolIds, applicationIds);
+        Assistant assistant = buildStreamingAssistant(workflow, modelConfig, systemPrompt, historyMessages,
+                resolveToolProviders(workflow, toolIds, applicationIds));
 
         TokenStream tokenStream = assistant.chatStream(userPrompt, contents);
 
@@ -104,24 +99,13 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
         return toolMessage;
     }
 
-    private Assistant buildAiServices(String modelId, JSONObject modelParamsSetting, IWorkflow workflow,
-                                      String systemPrompt, List<ChatMessage> historyMessages,
-                                      List<String> toolIds, List<String> applicationIds) {
-        AiServices<Assistant> builder = AiServiceFactory.builder(Assistant.class);
-
-        if (StringUtils.isNotBlank(systemPrompt)) {
-            builder.systemMessage(systemPrompt);
-        }
-        if (CollectionUtils.isNotEmpty(historyMessages)) {
-            builder.chatMemory(AiChatMemory.withMessages(workflow.getChatParams().getChatId(),historyMessages));
-        }
+    private List<ToolProvider> resolveToolProviders(IWorkflow workflow, List<String> toolIds, List<String> applicationIds) {
         try {
-            builder.toolProviders(toolProviderService.getToolProviders(toolIds, applicationIds));
+            return toolProviderService.getToolProviders(toolIds, applicationIds);
         } catch (ApiException e) {
             workflow.output().emit(null); // Error will be propagated differently
+            return List.of();
         }
-        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId, modelParamsSetting);
-        return builder.streamingChatModel(chatModel).build();
     }
 
     private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,

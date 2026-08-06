@@ -10,16 +10,11 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.VARIABLE_AGGREGATE;
-
-
 @NodeCreatorType(NodeType.VARIABLE_AGGREGATE)
 public class VariableAggregationNode extends AbsNode {
     public VariableAggregationNode(String id,JSONObject properties) {
         super(id,properties);
-        this.setType(VARIABLE_AGGREGATE.getKey());
     }
-
 
     @Override
     @SuppressWarnings("unchecked")

@@ -1,22 +1,32 @@
 package com.maxkb4j.workflow.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.common.util.MimeTypeUtils;
+import com.maxkb4j.core.assistant.Assistant;
+import com.maxkb4j.core.langchain4j.AiChatMemory;
+import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
+import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ImageContent;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.tool.BeforeToolExecution;
 import dev.langchain4j.service.tool.ToolExecution;
+import dev.langchain4j.service.tool.ToolProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -61,6 +71,36 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         throw new UnsupportedOperationException("Streaming node uses async execution via doExecuteAsync");
+    }
+
+    // ==================== Assistant construction ====================
+
+    /**
+     * Builds a streaming {@link Assistant} without tool support.
+     */
+    protected Assistant buildStreamingAssistant(IWorkflow workflow, ModelConfig modelConfig, String systemPrompt,
+                                                List<ChatMessage> historyMessages) {
+        return buildStreamingAssistant(workflow, modelConfig, systemPrompt, historyMessages, List.of());
+    }
+
+    /**
+     * Builds a streaming {@link Assistant} with optional system prompt, chat memory and tool providers.
+     */
+    protected Assistant buildStreamingAssistant(IWorkflow workflow, ModelConfig modelConfig, String systemPrompt,
+                                                List<ChatMessage> historyMessages, List<ToolProvider> toolProviders) {
+        AiServices<Assistant> builder = AiServiceFactory.builder(Assistant.class);
+        if (StringUtils.isNotBlank(systemPrompt)) {
+            builder.systemMessage(systemPrompt);
+        }
+        if (CollectionUtils.isNotEmpty(historyMessages)) {
+            builder.chatMemory(AiChatMemory.withMessages(workflow.getChatParams().getChatId(), historyMessages));
+        }
+        if (CollectionUtils.isNotEmpty(toolProviders)) {
+            builder.toolProviders(toolProviders);
+        }
+        StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(
+                modelConfig.getModelId(), modelConfig.getModelParamsSetting());
+        return builder.streamingChatModel(chatModel).build();
     }
 
     // ==================== 多模态图片内容构建 ====================

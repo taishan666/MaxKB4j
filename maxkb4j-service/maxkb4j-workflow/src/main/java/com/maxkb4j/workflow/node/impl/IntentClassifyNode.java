@@ -12,19 +12,13 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.INTENT_CLASSIFY;
-
-
 @Slf4j
 @NodeCreatorType(NodeType.INTENT_CLASSIFY)
 public class IntentClassifyNode extends AbsNode {
 
-
     public IntentClassifyNode(String id,JSONObject properties) {
         super(id,properties);
-        super.setType(INTENT_CLASSIFY.getKey());
     }
-
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
@@ -49,6 +43,5 @@ public class IntentClassifyNode extends AbsNode {
         //private Boolean isOther;
         private String content;
     }
-
 
 }

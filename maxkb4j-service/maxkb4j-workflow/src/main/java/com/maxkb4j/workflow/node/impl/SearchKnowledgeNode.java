@@ -11,21 +11,12 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.SEARCH_KNOWLEDGE;
-
-
 @NodeCreatorType(NodeType.SEARCH_KNOWLEDGE)
 public class SearchKnowledgeNode extends AbsNode {
 
-
-
     public SearchKnowledgeNode(String id,JSONObject properties) {
         super(id,properties);
-        this.setType(SEARCH_KNOWLEDGE.getKey());
     }
-
-
-
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
@@ -45,7 +36,5 @@ public class SearchKnowledgeNode extends AbsNode {
         private Boolean showKnowledge;
 
     }
-
-
 
 }

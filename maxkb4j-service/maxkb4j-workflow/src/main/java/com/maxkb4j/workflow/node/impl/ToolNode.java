@@ -11,16 +11,11 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.TOOL;
-
-
 @NodeCreatorType(NodeType.TOOL)
 public class ToolNode extends AbsNode {
     public ToolNode(String id,JSONObject properties) {
         super(id,properties);
-        this.setType(TOOL.getKey());
     }
-
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {

@@ -10,14 +10,10 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.LOOP_START;
-
-
 @NodeCreatorType(NodeType.LOOP_START)
 public class LoopStartNode extends AbsNode {
     public LoopStartNode(String id, JSONObject properties) {
         super(id,properties);
-        super.setType(LOOP_START.getKey());
     }
 
     @Override
@@ -34,7 +30,6 @@ public class LoopStartNode extends AbsNode {
         detail.remove("item");
         return detail;
     }
-
 
     @Data
     public static class NodeParams {

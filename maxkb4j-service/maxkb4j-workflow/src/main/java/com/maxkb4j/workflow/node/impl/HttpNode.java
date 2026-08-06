@@ -2,7 +2,6 @@ package com.maxkb4j.workflow.node.impl;
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.IWorkflow;
@@ -11,18 +10,12 @@ import lombok.Data;
 
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.HTTP_CLIENT;
-
-
 @NodeCreatorType(NodeType.HTTP_CLIENT)
 public class HttpNode extends AbsNode {
 
-
     public HttpNode(String id,JSONObject properties) {
         super(id,properties);
-        super.setType(HTTP_CLIENT.getKey());
     }
-
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
@@ -44,6 +37,4 @@ public class HttpNode extends AbsNode {
         private String token;
     }
 
-
 }
-

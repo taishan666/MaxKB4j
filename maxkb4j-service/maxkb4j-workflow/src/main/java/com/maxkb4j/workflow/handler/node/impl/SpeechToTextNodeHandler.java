@@ -1,6 +1,5 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.model.service.ISTTModel;
@@ -34,14 +33,8 @@ public class SpeechToTextNodeHandler extends AbsNodeHandler {
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         SpeechToTextNode.NodeParams params = parseParams(node, SpeechToTextNode.NodeParams.class);
-        String modelId = params.getSttModelId();
-        JSONObject modelParamsSetting = params.getModelParamsSetting();
-        if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
-            ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
-            modelId = modelConfig.getModelId();
-            modelParamsSetting = modelConfig.getModelParamsSetting();
-        }
-        ISTTModel sttModel = modelFactory.buildSTTModel(modelId,modelParamsSetting);
+        ModelConfig modelConfig = resolveModelConfig(workflow, params);
+        ISTTModel sttModel = modelFactory.buildSTTModel(modelConfig.getModelId(), modelConfig.getModelParamsSetting());
         List<OssFile> audioFiles = getOssFiles(workflow,params.getAudioList());
         List<String> content = new ArrayList<>();
         List<String> answerTextList = new ArrayList<>();

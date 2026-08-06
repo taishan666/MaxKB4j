@@ -64,12 +64,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
         node.getDetail().put(DETAIL_LOOP_TYPE, nodeParams.getLoopType());
         node.getDetail().put(DETAIL_NUMBER, nodeParams.getNumber());
 
-        return new NodeResult(workflow.getLoopContext(), true, this::isInterrupt);
-    }
-
-    public boolean isInterrupt(AbsNode node) {
-        Object flag = node.getDetail().get(DETAIL_INTERRUPT_EXEC);
-        return Boolean.TRUE.equals(flag);
+        return new NodeResult(workflow.getLoopContext(), true, this::getInterruptFlag);
     }
 
     /**

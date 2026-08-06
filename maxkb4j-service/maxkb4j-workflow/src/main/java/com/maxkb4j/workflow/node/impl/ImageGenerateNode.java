@@ -4,24 +4,19 @@ import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.IWorkflow;
+import com.maxkb4j.workflow.model.ModelAwareParams;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.IMAGE_GENERATE;
-
-
 @NodeCreatorType(NodeType.IMAGE_GENERATE)
 public class ImageGenerateNode extends AbsNode {
 
-
     public ImageGenerateNode(String id,JSONObject properties) {
         super(id,properties);
-        super.setType(IMAGE_GENERATE.getKey());
     }
-
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
@@ -30,7 +25,7 @@ public class ImageGenerateNode extends AbsNode {
     }
 
     @Data
-    public static class NodeParams {
+    public static class NodeParams implements ModelAwareParams {
         private String modelId;
         private String modelIdType;
         private List<String> modelIdReference;
@@ -42,6 +37,5 @@ public class ImageGenerateNode extends AbsNode {
         private List<String> imageList;
         private Boolean isResult;
     }
-
 
 }

@@ -10,16 +10,11 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.DOCUMENT_EXTRACT;
-
-
 @NodeCreatorType(NodeType.DOCUMENT_EXTRACT)
 public class DocumentExtractNode extends AbsNode {
 
-
     public DocumentExtractNode(String id, JSONObject properties) {
         super(id, properties);
-        this.setType(DOCUMENT_EXTRACT.getKey());
     }
 
     public static final String SPLITTER = "\n-----------------------------------\n";
@@ -31,7 +26,6 @@ public class DocumentExtractNode extends AbsNode {
         context.put("documentList", detail.get("documentList"));
     }
 
-
     @Override
     public Map<String, Object> getDetail() {
         String content = (String) context.getOrDefault("content", "");
@@ -40,11 +34,9 @@ public class DocumentExtractNode extends AbsNode {
         return detail;
     }
 
-
     @Data
     public static class NodeParams {
         private List<String> documentList;
     }
-
 
 }

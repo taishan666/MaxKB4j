@@ -4,6 +4,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.IWorkflow;
+import com.maxkb4j.workflow.model.ModelAwareParams;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,18 +13,12 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.RERANKER;
-
-
 @NodeCreatorType(NodeType.RERANKER)
 public class RerankerNode extends AbsNode {
 
-
     public RerankerNode(String id,JSONObject properties) {
         super(id,properties);
-        this.setType(RERANKER.getKey());
     }
-
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
@@ -32,7 +27,7 @@ public class RerankerNode extends AbsNode {
     }
 
     @Data
-    public static class NodeParams {
+    public static class NodeParams implements ModelAwareParams {
         private RerankerSetting rerankerSetting;
         private List<String> questionReferenceAddress;
         private String rerankerModelId;
@@ -40,6 +35,16 @@ public class RerankerNode extends AbsNode {
         private List<String> modelIdReference;
         private List<List<String>> rerankerReferenceList;
         private Boolean showKnowledge;
+
+        @Override
+        public String getModelId() {
+            return rerankerModelId;
+        }
+
+        @Override
+        public JSONObject getModelParamsSetting() {
+            return null;
+        }
     }
 
     @Data
@@ -56,6 +61,5 @@ public class RerankerNode extends AbsNode {
         private String pageContent;
         private Map<String,Object> metadata;
     }
-
 
 }

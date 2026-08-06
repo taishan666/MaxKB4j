@@ -3,6 +3,7 @@ package com.maxkb4j.workflow.processor;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
+import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,8 @@ import java.util.Set;
  * <p>Node implementations are plain POJOs (not Spring beans), so the scan uses
  * {@link ClassPathScanningCandidateComponentProvider} rather than {@code getBeansOfType},
  * keeping the registration mechanism otherwise identical to
- * {@link NodeHandlerAutoRegistrar}.
+ * {@link NodeHandlerAutoRegistrar}. The registrar also sets each node's type from
+ * its annotation, so node classes do not repeat the type in their constructors.
  *
  * <p>Like the handler registrar it runs as {@link SmartInitializingSingleton} (after all
  * singletons are created) so that no early BeanPostProcessor side effects are triggered.
@@ -57,7 +59,9 @@ public class NodeCreatorAutoRegistrar implements SmartInitializingSingleton {
                 constructor.setAccessible(true);
                 nodeCenter.registerCreator(nodeType.getKey(), (id, properties) -> {
                     try {
-                        return constructor.newInstance(id, properties);
+                        AbsNode node = (AbsNode) constructor.newInstance(id, properties);
+                        node.setType(nodeType.getKey());
+                        return node;
                     } catch (ReflectiveOperationException e) {
                         throw new IllegalStateException("Failed to instantiate node " + clazz.getSimpleName(), e);
                     }

@@ -10,18 +10,13 @@ import lombok.Data;
 
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.FORM;
-
-
 @NodeCreatorType(NodeType.FORM)
 public class FormNode extends AbsNode {
 
     public FormNode(String id, JSONObject properties) {
         super(id, properties);
-        super.setType(FORM.getKey());
         super.setViewType("single_view");
     }
-
 
     @Override
     @SuppressWarnings("unchecked")
@@ -42,6 +37,5 @@ public class FormNode extends AbsNode {
         private String formContentFormat;
         private Map<String, Object> formData;
     }
-
 
 }

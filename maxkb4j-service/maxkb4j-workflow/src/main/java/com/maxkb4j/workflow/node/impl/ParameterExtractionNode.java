@@ -11,15 +11,11 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.PARAMETER_EXTRACTION;
-
-
 @NodeCreatorType(NodeType.PARAMETER_EXTRACTION)
 public class ParameterExtractionNode extends AbsNode {
 
     public ParameterExtractionNode(String id,JSONObject properties) {
         super(id,properties);
-        super.setType(PARAMETER_EXTRACTION.getKey());
     }
 
     @Override

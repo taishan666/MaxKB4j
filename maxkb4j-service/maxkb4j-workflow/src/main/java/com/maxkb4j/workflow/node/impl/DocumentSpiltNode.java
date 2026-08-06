@@ -8,14 +8,10 @@ import lombok.Data;
 
 import java.util.List;
 
-import static com.maxkb4j.workflow.enums.NodeType.DOCUMENT_SPLIT;
-
-
 @NodeCreatorType(NodeType.DOCUMENT_SPLIT)
 public class DocumentSpiltNode extends AbsNode {
     public DocumentSpiltNode(String id, JSONObject properties) {
         super(id, properties);
-        super.setType(DOCUMENT_SPLIT.getKey());
     }
 
     @Data

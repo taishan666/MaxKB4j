@@ -10,21 +10,16 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.LOOP;
-
-
 @NodeCreatorType(NodeType.LOOP)
 public class LoopNode extends AbsNode {
     public LoopNode(String id, JSONObject properties) {
         super(id,properties);
-        super.setType(LOOP.getKey());
     }
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
         context.put("current_index", detail.get("current_index"));
     }
-
 
     @Data
     public static class NodeParams {

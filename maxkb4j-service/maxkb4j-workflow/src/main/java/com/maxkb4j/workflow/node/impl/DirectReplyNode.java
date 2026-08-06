@@ -10,22 +10,17 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.REPLY;
-
-
 @NodeCreatorType(NodeType.REPLY)
 public class DirectReplyNode extends AbsNode {
 
     public DirectReplyNode(String id,JSONObject properties) {
         super(id,properties);
-        super.setType(REPLY.getKey());
     }
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
         context.put("answer", detail.get("answer"));
     }
-
 
     @Data
     public static class NodeParams {

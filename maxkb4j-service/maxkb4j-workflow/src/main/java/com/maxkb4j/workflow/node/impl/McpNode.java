@@ -10,17 +10,12 @@ import lombok.Data;
 
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.MCP;
-
-
 @NodeCreatorType(NodeType.MCP)
 public class McpNode extends AbsNode {
 
     public McpNode(String id,JSONObject properties) {
         super(id,properties);
-        this.setType(MCP.getKey());
     }
-
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {

@@ -10,16 +10,11 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.VARIABLE_SPLITTING;
-
-
 @NodeCreatorType(NodeType.VARIABLE_SPLITTING)
 public class VariableSplittingNode extends AbsNode {
     public VariableSplittingNode(String id,JSONObject properties) {
         super(id,properties);
-        this.setType(VARIABLE_SPLITTING.getKey());
     }
-
 
     @Override
     @SuppressWarnings("unchecked")
@@ -44,7 +39,5 @@ public class VariableSplittingNode extends AbsNode {
         private String expression;
 
     }
-
-
 
 }

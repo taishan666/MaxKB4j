@@ -8,13 +8,10 @@ import lombok.Data;
 
 import java.util.List;
 
-import static com.maxkb4j.workflow.enums.NodeType.DATA_SOURCE_LOCAL;
-
 @NodeCreatorType(NodeType.DATA_SOURCE_LOCAL)
 public class DataSourceLocalNode extends AbsNode {
     public DataSourceLocalNode(String id, JSONObject properties) {
         super(id, properties);
-        this.setType(DATA_SOURCE_LOCAL.getKey());
     }
 
     @Data

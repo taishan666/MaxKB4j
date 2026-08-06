@@ -1,60 +1,49 @@
 package com.maxkb4j.workflow.util;
 
-import com.maxkb4j.workflow.builder.CompareBuilder;
-import com.maxkb4j.workflow.compare.Compare;
+import com.maxkb4j.workflow.enums.CompareOperator;
 import com.maxkb4j.workflow.model.Condition;
 import com.maxkb4j.workflow.model.IWorkflow;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
- * Utility class for evaluating workflow conditions.
- * Refactored to Spring Bean, injecting CompareBuilder for handler lookup.
+ * Utility for evaluating workflow branch conditions.
+ * Stateless: comparison semantics live in {@link CompareOperator} itself.
  */
-@Component
-@RequiredArgsConstructor
-public class ConditionUtil {
+public final class ConditionUtil {
 
-    private final CompareBuilder compareBuilder;
+    private static final String AND = "and";
+
+    private ConditionUtil() {
+    }
 
     /**
      * Evaluate whether a branch meets the specified conditions.
-     * Uses Stream API for clearer logic expression.
      *
      * @param workflow      the workflow context
      * @param conditionType "and" or "or" for condition combination
      * @param conditionList the list of conditions to evaluate
      * @return whether the conditions are satisfied
      */
-    public boolean assertion(IWorkflow workflow, String conditionType, List<Condition> conditionList) {
+    public static boolean assertion(IWorkflow workflow, String conditionType, List<Condition> conditionList) {
         if (conditionList == null || conditionList.isEmpty()) {
-            return true; // No conditions means satisfied
+            return true;
         }
-        if ("and".equals(conditionType)) {
-            return conditionList.stream().allMatch(
-                    cond -> assertion(workflow, cond.getField(), cond.getCompare(), cond.getValue()));
-        } else {
-            return conditionList.stream().anyMatch(
-                    cond -> assertion(workflow, cond.getField(), cond.getCompare(), cond.getValue()));
+        if (AND.equals(conditionType)) {
+            return conditionList.stream().allMatch(condition -> matches(workflow, condition));
         }
+        return conditionList.stream().anyMatch(condition -> matches(workflow, condition));
     }
 
     /**
      * Execute a single condition assertion.
      */
-    private boolean assertion(IWorkflow workflow, List<String> fieldList, String compare, String valueToCompare) {
-        if (fieldList == null || fieldList.size() != 2) {
+    private static boolean matches(IWorkflow workflow, Condition condition) {
+        List<String> field = condition.getField();
+        if (field == null || field.size() != 2) {
             return false;
         }
-        Object fieldValue = workflow.getReferenceField(fieldList);
-        try {
-            Compare handler = compareBuilder.getHandler(compare);
-            return handler.compare(fieldValue, valueToCompare);
-        } catch (IllegalArgumentException e) {
-            // Unknown comparison operator
-            return false;
-        }
+        CompareOperator operator = CompareOperator.fromCode(condition.getCompare());
+        return operator != null && operator.compare(workflow.getReferenceField(field), condition.getValue());
     }
 }

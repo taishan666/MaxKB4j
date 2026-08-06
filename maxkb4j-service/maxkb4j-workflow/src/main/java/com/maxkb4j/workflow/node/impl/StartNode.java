@@ -11,18 +11,12 @@ import com.maxkb4j.workflow.node.AbsNode;
 
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.START;
-
-
 @NodeCreatorType(NodeType.START)
 public class StartNode extends AbsNode {
 
-
     public StartNode(String id,JSONObject properties) {
         super(id,properties);
-        super.setType(START.getKey());
     }
-
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
@@ -57,6 +51,5 @@ public class StartNode extends AbsNode {
         detail.remove("other");
         return detail;
     }
-
 
 }

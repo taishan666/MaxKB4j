@@ -11,18 +11,12 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.QUESTION;
-
 @NodeCreatorType(NodeType.QUESTION)
 public class QuestionNode extends AbsNode {
 
-
     public QuestionNode(String id,JSONObject properties) {
         super(id,properties);
-        super.setType(QUESTION.getKey());
     }
-
-
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
@@ -40,6 +34,5 @@ public class QuestionNode extends AbsNode {
         private JSONObject modelParamsSetting;
         private Boolean isResult;
     }
-
 
 }

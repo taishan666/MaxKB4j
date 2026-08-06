@@ -12,16 +12,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.IMAGE_UNDERSTAND;
-
-
 @Slf4j
 @NodeCreatorType(NodeType.IMAGE_UNDERSTAND)
 public class ImageUnderstandNode extends AbsNode {
 
     public ImageUnderstandNode(String id,JSONObject properties) {
         super(id,properties);
-        super.setType(IMAGE_UNDERSTAND.getKey());
     }
 
     @Override
@@ -29,7 +25,6 @@ public class ImageUnderstandNode extends AbsNode {
         context.put("answer", detail.get("answer"));
         context.put("reasoningContent", detail.get("reasoningContent"));
     }
-
 
     @Data
     public static class NodeParams implements ModelAwareParams {
@@ -46,6 +41,5 @@ public class ImageUnderstandNode extends AbsNode {
         private List<String> imageList;
 
     }
-
 
 }

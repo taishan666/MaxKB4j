@@ -9,14 +9,10 @@ import lombok.Data;
 
 import java.util.List;
 
-import static com.maxkb4j.workflow.enums.NodeType.NL2SQL;
-
-
 @NodeCreatorType(NodeType.NL2SQL)
 public class NL2SqlNode extends AbsNode {
     public NL2SqlNode(String id,JSONObject properties) {
         super(id,properties);
-        this.setType(NL2SQL.getKey());
     }
 
     @Data

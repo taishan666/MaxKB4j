@@ -5,17 +5,11 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.node.AbsNode;
 
-import static com.maxkb4j.workflow.enums.NodeType.BASE;
-
-
 @NodeCreatorType(NodeType.BASE)
 public class BaseNode extends AbsNode {
 
-
     public BaseNode(String id, JSONObject properties) {
         super(id,properties);
-        super.setType(BASE.getKey());
     }
-
 
 }

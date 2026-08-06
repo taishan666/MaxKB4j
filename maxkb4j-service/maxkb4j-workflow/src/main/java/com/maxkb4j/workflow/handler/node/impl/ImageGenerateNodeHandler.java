@@ -43,18 +43,13 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
         String prompt = workflow.renderPrompt(params.getPrompt());
         List<String> answerTexts = new ArrayList<>();
         List<String> imageUrls = new ArrayList<>();
-        String modelId = params.getModelId();
-        JSONObject modelParamsSetting = params.getModelParamsSetting();
-        if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
-            ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
-            modelId = modelConfig.getModelId();
-            modelParamsSetting = modelConfig.getModelParamsSetting();
-        }
+        ModelConfig modelConfig = resolveModelConfig(workflow, params);
+        JSONObject modelParamsSetting = modelConfig.getModelParamsSetting();
         String negativePrompt = params.getNegativePrompt();
         if (modelParamsSetting != null) {
             modelParamsSetting.put("negative_prompt", negativePrompt);
         }
-        ImageModel imageModel = modelFactory.buildImageModel(modelId, modelParamsSetting);
+        ImageModel imageModel = modelFactory.buildImageModel(modelConfig.getModelId(), modelParamsSetting);
 
         List<Image> outImages = new ArrayList<>();
         List<Image> editImages = new ArrayList<>();

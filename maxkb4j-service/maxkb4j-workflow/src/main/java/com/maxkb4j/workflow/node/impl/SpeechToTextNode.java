@@ -4,40 +4,37 @@ import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.IWorkflow;
+import com.maxkb4j.workflow.model.ModelAwareParams;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.SPEECH_TO_TEXT;
-
-
 @NodeCreatorType(NodeType.SPEECH_TO_TEXT)
 public class SpeechToTextNode extends AbsNode {
 
-
     public SpeechToTextNode(String id,JSONObject properties) {
         super(id,properties);
-        this.setType(SPEECH_TO_TEXT.getKey());
     }
-
-
-
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
         context.put("result", detail.get("result"));
     }
 
-
     @Data
-    public static class NodeParams {
+    public static class NodeParams implements ModelAwareParams {
         private String sttModelId;
         private String modelIdType;
         private List<String> modelIdReference;
         private JSONObject modelParamsSetting;
         private List<String> audioList;
         private Boolean isResult;
+
+        @Override
+        public String getModelId() {
+            return sttModelId;
+        }
     }
 }

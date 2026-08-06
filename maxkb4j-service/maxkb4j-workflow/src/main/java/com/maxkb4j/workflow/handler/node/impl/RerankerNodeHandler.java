@@ -45,13 +45,9 @@ public class RerankerNodeHandler extends AbsNodeHandler {
         if (CollectionUtils.isNotEmpty(rerankerReferenceList)) {
             double similarity = params.getRerankerSetting().getSimilarity();
             List<TextSegment> textSegments = getRerankerList(workflow, rerankerReferenceList);
-            String modelId = params.getRerankerModelId();
-            if (params.getModelIdType() != null && params.getModelIdType().equals("reference")){
-                ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
-                modelId = modelConfig.getModelId();
-            }
+            ModelConfig modelConfig = resolveModelConfig(workflow, params);
             // 获取重排序模型实例
-            ScoringModel rerankerModel = modelFactory.buildScoringModel(modelId);
+            ScoringModel rerankerModel = modelFactory.buildScoringModel(modelConfig.getModelId());
             Response<List<Double>> response = rerankerModel.scoreAll(textSegments, question);
             List<Double> scores = response.content();
 

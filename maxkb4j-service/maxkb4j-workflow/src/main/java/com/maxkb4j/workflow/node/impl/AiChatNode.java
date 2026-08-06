@@ -12,26 +12,19 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.AI_CHAT;
-
-
 @Slf4j
 @NodeCreatorType(NodeType.AI_CHAT)
 public class AiChatNode extends AbsNode {
 
-
     public AiChatNode(String id,JSONObject properties) {
         super(id,properties);
-        super.setType(AI_CHAT.getKey());
     }
-
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
         context.put("answer", detail.get("answer"));
         context.put("reasoningContent", detail.get("reasoningContent"));
     }
-
 
     @Data
     public static class NodeParams implements ModelAwareParams {

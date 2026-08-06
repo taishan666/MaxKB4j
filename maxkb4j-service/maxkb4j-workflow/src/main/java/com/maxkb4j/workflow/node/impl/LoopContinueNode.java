@@ -11,21 +11,16 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-import static com.maxkb4j.workflow.enums.NodeType.LOOP_CONTINUE;
-
-
 @NodeCreatorType(NodeType.LOOP_CONTINUE)
 public class LoopContinueNode extends AbsNode {
     public LoopContinueNode(String id, JSONObject properties) {
         super(id,properties);
-        super.setType(LOOP_CONTINUE.getKey());
     }
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
         context.put("is_continue", detail.get("is_continue"));
     }
-
 
     @Data
     public static class NodeParams {
