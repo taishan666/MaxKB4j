@@ -69,7 +69,11 @@ public class TriggerTaskExecutor {
                                 String source = fieldValue.getString("source");
                                 if ("reference".equals(source)) {
                                     List<String> reference = fieldValue.getObject("value", new TypeReference<List<String>>() {});
-                                    parameter.put(key, data.get(reference.get(1)));
+                                    if (reference != null && reference.size() >= 2) {
+                                        parameter.put(key, data.get(reference.get(1)));
+                                    } else {
+                                        log.warn("Invalid reference configuration for key '{}': expected at least 2 elements, got {}", key, reference);
+                                    }
                                 } else {
                                     parameter.put(key, fieldValue.get("value"));
                                 }

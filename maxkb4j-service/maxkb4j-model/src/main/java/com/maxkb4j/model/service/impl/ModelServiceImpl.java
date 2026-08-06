@@ -70,7 +70,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     @Transactional
     public boolean createModel(ModelEntity model) {
         String userId = userContext.getUserId();
-        if (checkModelExists(model.getName(),model.getProvider(),userId)) {
+        if (checkModelExists(null,model.getName(),userId)) {
             throw new ApiException("model.name.exists");
         }
         if (model.getModelParamsForm() == null){
@@ -109,7 +109,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
 
     public ModelEntity updateModel(String id, ModelEntity model) {
         String userId = userContext.getUserId();
-        if (checkModelExists(model.getName(),model.getProvider(),userId)) {
+        if (checkModelExists(id,model.getName(),userId)) {
             throw new ApiException("model.name.exists");
         }
         model.setId(id);
@@ -248,8 +248,13 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     }
 
 
-    private boolean checkModelExists(String name,String provider, String userId) {
-        long count = this.lambdaQuery().eq(ModelEntity::getName, name).eq(ModelEntity::getProvider, provider).eq(ModelEntity::getUserId, userId).count();
+    private boolean checkModelExists(String id, String name,String userId) {
+        long count;
+        if (StringUtils.isBlank(id)){
+             count = this.lambdaQuery().eq(ModelEntity::getName, name).eq(ModelEntity::getUserId, userId).count();
+        }else {
+             count = this.lambdaQuery().eq(ModelEntity::getName, name).eq(ModelEntity::getUserId, userId).ne(ModelEntity::getId, id).count();
+        }
         return count > 0;
     }
 }

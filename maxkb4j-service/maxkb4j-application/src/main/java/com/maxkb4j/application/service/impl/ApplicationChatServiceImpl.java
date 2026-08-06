@@ -188,7 +188,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         if (CollectionUtils.isNotEmpty(ids)) {
             List<ChatRecordDetailVO> list = baseMapper.chatRecordDetail(ids);
             List<ChatRecordDetailExcel> rows = BeanUtil.copyList(list, ChatRecordDetailExcel.class);
-            EasyExcel.write(response.getOutputStream(), ChatRecordDetailVO.class).sheet("sheet").doWrite(rows);
+            EasyExcel.write(response.getOutputStream(), ChatRecordDetailExcel.class).sheet("sheet").doWrite(rows);
         }
     }
 

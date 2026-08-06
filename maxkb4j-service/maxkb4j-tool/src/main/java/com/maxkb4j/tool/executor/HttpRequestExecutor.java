@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.ArrayList;
 
 @Getter
 public class HttpRequestExecutor extends AbsToolExecutor {
@@ -23,14 +24,18 @@ public class HttpRequestExecutor extends AbsToolExecutor {
         ToolHttpRequest  tempData = JSONObject.parseObject(code, ToolHttpRequest.class);
         List<KeyAndValue>  headers =tempData.getHeaders();
         List<KeyAndValue>  params =tempData.getParams();
-        // 3. 过滤 Headers
+        // 过滤 Headers，为 null 时初始化为空列表以避免后续遍历 NPE
         if (headers != null) {
             headers.removeIf(this::isEmptyKeyAndValue);
+        } else {
+            tempData.setHeaders(new ArrayList<>());
         }
 
-        // 4. 过滤 Params
+        // 过滤 Params，为 null 时初始化为空列表以避免后续遍历 NPE
         if (params != null) {
             params.removeIf(this::isEmptyKeyAndValue);
+        } else {
+            tempData.setParams(new ArrayList<>());
         }
         this.data = tempData;
     }

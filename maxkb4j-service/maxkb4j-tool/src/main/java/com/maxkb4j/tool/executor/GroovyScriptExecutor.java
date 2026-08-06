@@ -1,6 +1,7 @@
 package com.maxkb4j.tool.executor;
 
 import com.alibaba.fastjson.JSON;
+import lombok.extern.slf4j.Slf4j;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.sandbox.GroovySandboxInterceptor;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
@@ -20,6 +21,7 @@ import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.kohsuke.groovy.sandbox.SandboxTransformer;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ import java.util.concurrent.*;
  * 3. 超时控制：通过线程池限制脚本执行时间，防止无限循环/资源耗尽
  * </p>
  */
+@Slf4j
 public class GroovyScriptExecutor extends AbsToolExecutor {
 
     /** 脚本执行超时时间（秒） */
@@ -213,6 +216,11 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
             throw new RuntimeException(I18nUtil.get("tool.groovy.script.execution.interrupted"), e);
         } finally {
             executor.shutdownNow();
+            try {
+                groovyClassLoader.close();
+            } catch (IOException e) {
+                log.warn("Failed to close GroovyClassLoader", e);
+            }
         }
     }
 
