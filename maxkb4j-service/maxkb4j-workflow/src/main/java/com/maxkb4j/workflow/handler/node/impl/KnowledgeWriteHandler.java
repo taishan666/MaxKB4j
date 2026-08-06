@@ -4,7 +4,7 @@ import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.service.IDocumentService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
-import com.maxkb4j.workflow.engine.graph.KnowledgeWorkflow;
+import com.maxkb4j.workflow.model.IKnowledgeWorkflow;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.IWorkflow;
@@ -33,7 +33,7 @@ public class KnowledgeWriteHandler extends AbsNodeHandler {
         Object value = workflow.getReferenceField(params.getDocumentList());
         putDetail(node, "write_content", value);
 
-        if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
+        if (workflow instanceof IKnowledgeWorkflow knowledgeWorkflow) {
             boolean debug = knowledgeWorkflow.getKnowledgeParams().isDebug();
             if (!debug) {
                 String knowledgeId = knowledgeWorkflow.getKnowledgeParams().getKnowledgeId();

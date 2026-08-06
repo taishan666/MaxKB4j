@@ -5,7 +5,7 @@ import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.service.IDocumentWebService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.engine.graph.KnowledgeWorkflow;
+import com.maxkb4j.workflow.model.IKnowledgeWorkflow;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.*;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -30,7 +30,7 @@ public class DataSourceWebHandler extends AbsNodeHandler {
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         List<DocumentSimple> documentList = new ArrayList<>();
         Map<String, Object> inputParams = new HashMap<>();
-        if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
+        if (workflow instanceof IKnowledgeWorkflow knowledgeWorkflow) {
             KnowledgeParams knowledgeParams = knowledgeWorkflow.getKnowledgeParams();
             DataSource dataSource = knowledgeParams.getDataSource();
             if (dataSource != null) {

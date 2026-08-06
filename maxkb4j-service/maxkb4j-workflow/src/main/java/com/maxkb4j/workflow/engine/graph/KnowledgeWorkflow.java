@@ -11,6 +11,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.DataSource;
+import com.maxkb4j.workflow.model.IKnowledgeWorkflow;
 import com.maxkb4j.workflow.model.KnowledgeParams;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Getter
-public class KnowledgeWorkflow extends AbstractWorkflow {
+public class KnowledgeWorkflow extends AbstractWorkflow implements IKnowledgeWorkflow {
 
     private final KnowledgeParams knowledgeParams;
 

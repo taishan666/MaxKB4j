@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.engine.graph;
 
 import com.maxkb4j.workflow.logic.LfEdge;
+import com.maxkb4j.workflow.model.IKnowledgeWorkflow;
 import com.maxkb4j.workflow.model.KnowledgeParams;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -14,7 +15,7 @@ import java.util.List;
  * 同时持有父工作流的知识库参数，无 Sink 输出。
  */
 @Getter
-public class KnowledgeLoopWorkflow extends AbstractLoopWorkflow {
+public class KnowledgeLoopWorkflow extends AbstractLoopWorkflow implements IKnowledgeWorkflow {
 
     /**
      * 知识库参数（来自父工作流）

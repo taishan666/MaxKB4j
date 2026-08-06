@@ -6,7 +6,7 @@ import com.maxkb4j.workflow.enums.ActionStatus;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.model.IWorkflow;
-import com.maxkb4j.workflow.model.IChatWorkflow;
+import com.maxkb4j.workflow.model.IKnowledgeWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,8 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
 
     @Override
     public boolean canHandle(IWorkflow workflow) {
-        return !(workflow instanceof IChatWorkflow);
+        // KnowledgeWorkflowHandler 处理所有知识库系工作流（KnowledgeWorkflow 与知识库循环工作流）
+        return (workflow instanceof IKnowledgeWorkflow);
     }
 
     @Override

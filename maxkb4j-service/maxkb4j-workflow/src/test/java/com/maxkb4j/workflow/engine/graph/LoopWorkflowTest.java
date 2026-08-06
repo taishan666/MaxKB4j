@@ -3,6 +3,8 @@ package com.maxkb4j.workflow.engine.graph;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.workflow.enums.WorkflowMode;
+import com.maxkb4j.workflow.model.IChatWorkflow;
+import com.maxkb4j.workflow.model.IKnowledgeWorkflow;
 import com.maxkb4j.workflow.model.KnowledgeParams;
 import com.maxkb4j.workflow.model.LoopParams;
 import org.junit.jupiter.api.Test;
@@ -31,6 +33,7 @@ class LoopWorkflowTest {
         assertThat(loopWorkflow.getChatParams()).isSameAs(chatParams);
         assertThat(loopWorkflow.getChatState()).isSameAs(chatState);
         assertThat(loopWorkflow.getLoopParams()).isSameAs(loopParams);
+        assertThat(loopWorkflow).isInstanceOf(IChatWorkflow.class);
     }
 
     @Test
@@ -43,5 +46,6 @@ class LoopWorkflowTest {
 
         assertThat(loopWorkflow.getKnowledgeParams()).isSameAs(knowledgeParams);
         assertThat(loopWorkflow.getLoopParams()).isSameAs(loopParams);
+        assertThat(loopWorkflow).isInstanceOf(IKnowledgeWorkflow.class);
     }
 }

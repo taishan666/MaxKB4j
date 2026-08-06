@@ -8,9 +8,13 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChildNode;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.builder.NodeBuilder;
-import com.maxkb4j.workflow.engine.graph.*;
+import com.maxkb4j.workflow.engine.graph.ChatLoopWorkflow;
+import com.maxkb4j.workflow.engine.graph.ChatWorkflow;
+import com.maxkb4j.workflow.engine.graph.KnowledgeLoopWorkflow;
+import com.maxkb4j.workflow.engine.graph.KnowledgeWorkflow;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.logic.LogicFlow;
+import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.model.NodeResult;
@@ -277,7 +281,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
      */
     private void emitLoopMessageVO(ChatMessageVO source, IWorkflow workflow,
                                    AbsNode node, ChildNode childNode) {
-        if (workflow instanceof ChatWorkflow chatWorkflow) {
+        if (workflow instanceof IChatWorkflow chatWorkflow) {
             ChatParams chatParams = chatWorkflow.getChatParams();
             ChatMessageVO vo = node.toChatMessageVO(
                     chatParams.getChatId(),
@@ -297,7 +301,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
      * 发送迭代结束标记
      */
     private void emitIterationEnd(IWorkflow workflow, AbsNode node, AtomicReference<ChildNode> childNodeRef) {
-        if (workflow instanceof ChatWorkflow chatWorkflow) {
+        if (workflow instanceof IChatWorkflow chatWorkflow) {
             ChatParams chatParams = chatWorkflow.getChatParams();
             ChatMessageVO vo = node.toChatMessageVO(
                     chatParams.getChatId(),
