@@ -112,7 +112,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
                 app.setName(application.getName());
                 app.setDesc(application.getDesc());
                 app.setIcon(StringUtils.isNotBlank(application.getIcon()) ? application.getIcon() : app.getIcon());
-                upsertMk(maxKb4j);
+                upsertMk(app, maxKb4j.getToolList());
                 applicationResourceMappingService.saveResourceMappings(app);
                 return app;
             }
@@ -133,21 +133,20 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     }
 
     @Transactional
-    public boolean upsertMk(MaxKb4J maxKb4j) {
-        if (maxKb4j == null) {
+    public boolean upsertMk(ApplicationEntity app,List<ToolDTO> toolList) {
+     /*   if (maxKb4j == null) {
             return false;
-        }
+        }*/
         Date now = new Date();
-        ApplicationEntity app = maxKb4j.getApplication();
+        String userId = userContext.getUserId();
         app.setIsPublish(false);
         app.setCreateTime(now);
         app.setUpdateTime(now);
-        app.setUserId(userContext.getUserId());
+        app.setUserId(userId);
         app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.LLM));
-        List<ToolDTO> toolList = maxKb4j.getToolList();
         if (!CollectionUtils.isEmpty(toolList)) {
             toolList.forEach(e -> {
-                e.setUserId(userContext.getUserId());
+                e.setUserId(userId);
                 e.setIsActive(true);
             });
             toolService.saveOrUpdateBatch(toolList);
@@ -179,7 +178,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
 
     @Transactional
     public boolean saveOrUpdateApp(ApplicationEntity application) {
-        if (application.getId()!=null){
+        if (application.getId()==null){
             this.save(application);
             ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
             accessToken.setApplicationId(application.getId());
@@ -310,7 +309,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
                 MaxKb4J maxKb4j = ResourceUtil.parseMk(resource);
                 ApplicationEntity app = maxKb4j.getApplication();
                 app.setId(appDTO.getId());
-                boolean status=upsertMk(maxKb4j);
+                boolean status=upsertMk(app, maxKb4j.getToolList());
                 applicationResourceMappingService.saveResourceMappings(app);
                 return status;
             }
