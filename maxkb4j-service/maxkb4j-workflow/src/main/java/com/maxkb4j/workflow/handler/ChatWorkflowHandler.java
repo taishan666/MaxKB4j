@@ -2,11 +2,10 @@ package com.maxkb4j.workflow.handler;
 
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.workflow.engine.ChatWorkflow;
-import com.maxkb4j.workflow.engine.KnowledgeWorkflow;
+import com.maxkb4j.workflow.engine.graph.ChatWorkflow;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
-import com.maxkb4j.workflow.model.NodeResultFuture;
 import com.maxkb4j.workflow.model.IWorkflow;
+import com.maxkb4j.workflow.model.NodeResultFuture;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,7 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
     @Override
     public boolean canHandle(IWorkflow workflow) {
         // ChatWorkflowHandler handles all workflows except KnowledgeWorkflow
-        return !(workflow instanceof KnowledgeWorkflow);
+        return (workflow instanceof ChatWorkflow);
     }
 
     @Override

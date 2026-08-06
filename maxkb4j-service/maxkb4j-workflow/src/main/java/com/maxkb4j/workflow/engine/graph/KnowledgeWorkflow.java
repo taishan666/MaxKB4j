@@ -1,5 +1,6 @@
-package com.maxkb4j.workflow.engine;
+package com.maxkb4j.workflow.engine.graph;
 
+import com.maxkb4j.workflow.engine.*;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.WorkflowMode;

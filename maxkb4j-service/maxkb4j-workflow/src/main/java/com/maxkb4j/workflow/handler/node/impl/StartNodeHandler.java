@@ -7,7 +7,7 @@ import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
-import com.maxkb4j.workflow.engine.ChatWorkflow;
+import com.maxkb4j.workflow.engine.graph.ChatWorkflow;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.ChatRecordSimple;

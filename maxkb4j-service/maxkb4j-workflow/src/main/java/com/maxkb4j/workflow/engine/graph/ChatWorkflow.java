@@ -1,7 +1,9 @@
-package com.maxkb4j.workflow.engine;
+package com.maxkb4j.workflow.engine.graph;
 
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
+import com.maxkb4j.workflow.engine.WorkflowExecutionAccessor;
+import com.maxkb4j.workflow.engine.WorkflowOutputManager;
 import lombok.Getter;
 import lombok.Setter;
 

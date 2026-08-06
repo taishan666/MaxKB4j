@@ -1,10 +1,11 @@
-package com.maxkb4j.workflow.engine;
+package com.maxkb4j.workflow.engine.graph;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.workflow.engine.*;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.node.AbsNode;

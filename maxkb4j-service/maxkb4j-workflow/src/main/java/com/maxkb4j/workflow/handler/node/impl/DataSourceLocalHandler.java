@@ -1,12 +1,14 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
+import com.maxkb4j.workflow.engine.graph.KnowledgeWorkflow;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.engine.KnowledgeWorkflow;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
-import com.maxkb4j.workflow.model.*;
+import com.maxkb4j.workflow.model.DataSource;
+import com.maxkb4j.workflow.model.IWorkflow;
+import com.maxkb4j.workflow.model.KnowledgeParams;
+import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

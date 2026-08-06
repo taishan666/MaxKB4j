@@ -3,12 +3,12 @@ package com.maxkb4j.workflow.handler.node.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
+import com.maxkb4j.workflow.engine.graph.ILoopWorkFlow;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
-import com.maxkb4j.workflow.engine.LoopWorkFlow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +22,7 @@ public class LoopStartNodeHandler extends AbsNodeHandler {
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         int index = 0;
         Object item = null;
-        if (workflow instanceof LoopWorkFlow loopWorkFlow) {
+        if (workflow instanceof ILoopWorkFlow loopWorkFlow) {
             LoopParams loopParams = loopWorkFlow.getLoopParams();
             index = loopParams.getIndex();
             item = loopParams.getItem();

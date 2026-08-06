@@ -1,15 +1,12 @@
-package com.maxkb4j.workflow.engine;
+package com.maxkb4j.workflow.engine.graph;
 
-import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.workflow.engine.*;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
 import lombok.Setter;
-import reactor.core.publisher.Sinks;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,7 +22,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class LoopWorkFlow extends WorkflowImpl {
+public class KnowledgeLoopWorkFlow extends WorkflowImpl implements ILoopWorkFlow{
 
     private LoopParams loopParams;
 
@@ -36,11 +33,8 @@ public class LoopWorkFlow extends WorkflowImpl {
      * @param nodes      循环内节点列表
      * @param edges      循环内边列表
      * @param loopParams 循环参数
-     * @param details    节点详情
-     * @param sink       输出 Sink
      */
-    public LoopWorkFlow(WorkflowImpl workflow, List<AbsNode> nodes, List<LfEdge> edges,
-                        LoopParams loopParams, JSONObject details, Sinks.Many<ChatMessageVO> sink) {
+    public KnowledgeLoopWorkFlow(KnowledgeWorkflow workflow, List<AbsNode> nodes, List<LfEdge> edges, LoopParams loopParams) {
         this.loopParams = loopParams;
         // 1. 初始化配置
         this.configuration = new WorkflowConfiguration(workflow.configuration.getWorkflowMode(), nodes, edges);
@@ -51,13 +45,6 @@ public class LoopWorkFlow extends WorkflowImpl {
 
         // 3. 初始化执行控制器（覆盖 startNode 以返回 LoopStart 节点）
         this.executionAccessor = new LoopExecutionAccessor(this.configuration, this.workflowContext, new EdgeNavigator(edges));
-        if (workflow instanceof ChatWorkflow chatWorkflow) {
-            if (details != null && !details.isEmpty()) {
-                ChatParams chatParams = chatWorkflow.getChatParams();
-                this.executionAccessor.loadNodeState(this, details, chatParams.getRuntimeNodeId(), chatParams.getNodeData());
-            }
-            this.outputManager = new WorkflowOutputManager(this.configuration, this.workflowContext, sink);
-        }
 
         this.outputManager = new WorkflowOutputManager(this.configuration, this.workflowContext, null);
     }

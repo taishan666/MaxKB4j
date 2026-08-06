@@ -1,9 +1,9 @@
 package com.maxkb4j.workflow.handler;
 
 import com.maxkb4j.knowledge.service.IKnowledgeActionService;
+import com.maxkb4j.workflow.engine.graph.KnowledgeWorkflow;
 import com.maxkb4j.workflow.enums.ActionStatus;
 import com.maxkb4j.workflow.enums.NodeStatus;
-import com.maxkb4j.workflow.engine.KnowledgeWorkflow;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -31,7 +31,7 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
 
     @Override
     public boolean canHandle(IWorkflow workflow) {
-        return workflow instanceof KnowledgeWorkflow;
+        return (workflow instanceof KnowledgeWorkflow);
     }
 
     @Override

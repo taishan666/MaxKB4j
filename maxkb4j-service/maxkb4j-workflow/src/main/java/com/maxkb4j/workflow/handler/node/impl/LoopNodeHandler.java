@@ -8,15 +8,12 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChildNode;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.builder.NodeBuilder;
-import com.maxkb4j.workflow.engine.ChatWorkflow;
-import com.maxkb4j.workflow.enums.NodeType;
+import com.maxkb4j.workflow.engine.graph.*;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.logic.LogicFlow;
-import com.maxkb4j.workflow.engine.LoopWorkFlow;
-import com.maxkb4j.workflow.engine.WorkflowImpl;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.LoopNode;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
@@ -36,7 +33,7 @@ import static com.maxkb4j.workflow.enums.NodeType.*;
  * 循环节点处理器
  * 支持数组遍历、指定次数循环和无限循环三种模式
  */
-@NodeHandlerType(NodeType.LOOP)
+@NodeHandlerType(LOOP)
 @Component
 @RequiredArgsConstructor
 public class LoopNodeHandler extends AbsNodeHandler {
@@ -123,7 +120,8 @@ public class LoopNodeHandler extends AbsNodeHandler {
     private List<Object> parseJsonArray(String jsonStr) {
         String trimmed = jsonStr.trim();
         if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-            return new Gson().fromJson(trimmed, new TypeToken<List<Object>>() {}.getType());
+            return new Gson().fromJson(trimmed, new TypeToken<List<Object>>() {
+            }.getType());
         }
         return List.of(jsonStr);
     }
@@ -202,13 +200,22 @@ public class LoopNodeHandler extends AbsNodeHandler {
                 .filter(Objects::nonNull)
                 .toList();
         LoopParams loopParams = new LoopParams(ctx.currentIndex, items.get(ctx.currentIndex));
-        LoopWorkFlow loopWorkflow = new LoopWorkFlow((WorkflowImpl) workflow, nodes, logicFlow.getEdges(), loopParams, ctx.currentDetails, sink);
         AtomicReference<ChildNode> childNodeRef = subscribeToSink(sink, loopParams, ctx, workflow, node);
-        workFlowActuator.execute(loopWorkflow);
-        // 发送结束标记
-        emitIterationEnd(workflow, node, childNodeRef);
-        // 更新状态
-        updateIterationState(node, loopWorkflow, ctx);
+        IWorkflow loopWorkflow = null;
+        if (workflow instanceof ChatWorkflow chatWorkflow) {
+            loopWorkflow = new ChatLoopWorkFlow(chatWorkflow, nodes, logicFlow.getEdges(), loopParams, ctx.currentDetails, sink);
+            workFlowActuator.execute(loopWorkflow);
+            // 发送结束标记
+            emitIterationEnd(workflow, node, childNodeRef);
+            // 更新状态
+            updateIterationState(node, loopWorkflow, ctx);
+        }
+        if (workflow instanceof KnowledgeWorkflow knowledgeWorkFlow) {
+            loopWorkflow = new KnowledgeLoopWorkFlow(knowledgeWorkFlow, nodes, logicFlow.getEdges(), loopParams);
+            workFlowActuator.execute(loopWorkflow);
+            // 更新状态
+            updateIterationState(node, loopWorkflow, ctx);
+        }
     }
 
     /**
@@ -269,7 +276,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
      * 构建循环消息VO
      */
     private void emitLoopMessageVO(ChatMessageVO source, IWorkflow workflow,
-                                             AbsNode node, ChildNode childNode) {
+                                   AbsNode node, ChildNode childNode) {
         if (workflow instanceof ChatWorkflow chatWorkflow) {
             ChatParams chatParams = chatWorkflow.getChatParams();
             ChatMessageVO vo = node.toChatMessageVO(
@@ -306,7 +313,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     /**
      * 更新迭代状态
      */
-    private void updateIterationState(AbsNode node, LoopWorkFlow loopWorkflow, LoopExecutionContext ctx) {
+    private void updateIterationState(AbsNode node, IWorkflow loopWorkflow, LoopExecutionContext ctx) {
         node.getDetail().put(DETAIL_INTERRUPT_EXEC, ctx.isInterrupted.get());
         node.getDetail().put(DETAIL_CURRENT_INDEX, ctx.currentIndex);
 
