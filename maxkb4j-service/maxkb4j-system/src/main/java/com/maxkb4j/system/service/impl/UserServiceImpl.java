@@ -169,13 +169,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             throw new NotLoginException(I18nUtil.get("login.user.not.found"), "", "");
         }
         UserVO user = BeanUtil.copy(userEntity, UserVO.class);
+        user.setPermissions(stpInterface.getPermissionList(userId, null));
+        user.setRoleName(Set.of(userEntity.getRole()));
         Set<String> role=new HashSet<>();
         role.add(userEntity.getRole());
-        user.setPermissions(stpInterface.getPermissionList(userId, null));
         if (RoleType.ADMIN.equals(userEntity.getRole())) {
-            role.add("WORKSPACE_MANAGE:/WORKSPACE/default");
+            role.add(RoleType.WORKSPACE_MANAGE+":/WORKSPACE/default");
         } else {
-            role.add("USER:/WORKSPACE/default");
+            role.add(RoleType.USER+":/WORKSPACE/default");
         }
         user.setRole(role);
         List<Map<String, String>> workspaceList = new ArrayList<>();
