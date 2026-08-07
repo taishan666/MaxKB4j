@@ -35,14 +35,13 @@ public class ApplicationChatController {
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/chat/client/{chatId}")
     public R<Boolean> updateChat(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @RequestBody ApplicationChatEntity chatEntity) {
-        chatEntity.setId(chatId);
-        return R.status(chatService.updateById(chatEntity));
+        return R.status(chatService.updateByApplicationId(id, chatId, chatEntity));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_DELETE)
     @DeleteMapping("/application/{id}/chat/client/{chatId}")
     public R<Boolean> deleteChat(@PathVariable("id") String id, @PathVariable("chatId") String chatId) {
-        return R.status(chatService.deleteById(chatId));
+        return R.status(chatService.deleteByApplicationId(id, chatId));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)

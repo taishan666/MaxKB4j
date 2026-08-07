@@ -74,7 +74,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         wrapper.like(StringUtils.isNotBlank(query.getSummary()), ApplicationChatEntity::getSummary, query.getSummary());
         if (StringUtils.isNotBlank(query.getStartTime())) {
             LocalDateTime startOfDay = DateTimeUtil.parseDate(query.getStartTime()).atStartOfDay();
-            wrapper.gt(ApplicationChatEntity::getCreateTime, startOfDay);
+            wrapper.ge(ApplicationChatEntity::getCreateTime, startOfDay);
         }
         if (StringUtils.isNotBlank(query.getEndTime())) {
             LocalDateTime endOfDay = DateTimeUtil.parseDate(query.getEndTime()).atTime(LocalTime.MAX);
@@ -110,7 +110,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
                 }
             }
             chatInfo = new ChatInfo(chatId, appId);
-            chatInfo.setChatRecordList(chatRecordService.getChatRecords(appId));
+            chatInfo.setChatRecordList(chatRecordService.getChatRecords(chatId));
             ChatCache.put(chatInfo.getChatId(), chatInfo);
             return chatInfo;
         }
@@ -148,13 +148,9 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
     public void chatMessageAsync(ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink) {
         CompletableFuture.supplyAsync(() -> chatMessage(chatParams, chatContext, sink), chatTaskExecutor)
                 .exceptionally(throwable -> {
-                    // 记录异常日志（关键！）
                     log.error("Async chatMessage failed", throwable);
-                    // 可选：向 sink 发送错误消息（如果前端需要感知）
                     sink.tryEmitError(throwable);
-                    // 返回一个默认/空响应，或重新抛出（但需包装为 CompletionException）
-                    throw new CompletionException(throwable); // 如果调用方需要捕获
-                    // 或 return ChatResponse.empty(); // 如果允许返回默认值
+                    throw new CompletionException(throwable);
                 });
     }
 
@@ -184,6 +180,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
     }
 
 
+
     public void chatExport(List<String> ids, HttpServletResponse response) throws IOException {
         if (CollectionUtils.isNotEmpty(ids)) {
             List<ChatRecordDetailVO> list = baseMapper.chatRecordDetail(ids);
@@ -197,6 +194,41 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         chatRecordService.lambdaUpdate().eq(ApplicationChatRecordEntity::getChatId, chatId).remove();
         ChatCache.remove(chatId);
         return this.removeById(chatId);
+    }
+
+    @Override
+    public boolean updateByApplicationId(String appId, String chatId, ApplicationChatEntity chatEntity) {
+        if (belongsToApp(chatId, appId)) {
+            ApplicationChatEntity entity = new ApplicationChatEntity();
+            entity.setId(chatId);
+            entity.setSummary(chatEntity.getSummary());
+            entity.setMarkSum(chatEntity.getMarkSum());
+            return this.updateById(entity);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean deleteByApplicationId(String appId, String chatId) {
+        if (belongsToApp(chatId, appId)) {
+            return this.removeById(chatId);
+        }
+        return false;
+    }
+
+    private boolean belongsToApp(String chatId, String appId) {
+        return this.lambdaQuery()
+                .eq(ApplicationChatEntity::getId, chatId)
+                .eq(ApplicationChatEntity::getApplicationId, appId)
+                .count() > 0;
+    }
+
+    private boolean isOwnedBy(String chatId, String appId, String userId) {
+        return this.lambdaQuery()
+                .eq(ApplicationChatEntity::getId, chatId)
+                .eq(ApplicationChatEntity::getApplicationId, appId)
+                .eq(ApplicationChatEntity::getChatUserId, userId)
+                .count() > 0;
     }
 
     @Override
@@ -229,7 +261,13 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
 
     @Override
     public boolean updateDtoById(ApplicationChatDTO applicationChatDTO) {
-        return this.updateById(BeanUtil.copy(applicationChatDTO, ApplicationChatEntity.class));
+        ApplicationChatEntity entity = new ApplicationChatEntity();
+        entity.setId(applicationChatDTO.getId());
+        entity.setSummary(applicationChatDTO.getSummary());
+        entity.setStarNum(applicationChatDTO.getStarNum());
+        entity.setTrampleNum(applicationChatDTO.getTrampleNum());
+        entity.setMarkSum(applicationChatDTO.getMarkSum());
+        return this.updateById(entity);
     }
 
     @Override

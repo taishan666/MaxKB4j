@@ -21,6 +21,7 @@ import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -112,7 +113,13 @@ public class ChatPostHandler implements PostResponseHandler {
                 chatEntity.setIpAddress(chatContext.getIpAddress());
                 ChatSource source=chatContext.getSource()==null?ChatSource.ONLINE:chatContext.getSource();
                 chatEntity.setSource(new JSONObject(Map.of("type", source)));
-                chatMapper.insert(chatEntity);
+                try {
+                    chatMapper.insert(chatEntity);
+                } catch (DuplicateKeyException e) {
+                    chatMapper.update(null, Wrappers.<ApplicationChatEntity>lambdaUpdate()
+                            .eq(ApplicationChatEntity::getId, chatId)
+                            .setSql("chat_record_count = chat_record_count + 1"));
+                }
             }else {
                 chatEntity.setChatRecordCount(chatInfo.getChatRecordList().size());
                 chatMapper.updateById(chatEntity);

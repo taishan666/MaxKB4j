@@ -16,6 +16,7 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.chat.dto.McpRequest;
 import com.maxkb4j.chat.dto.McpResponse;
+import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.StpKit;
@@ -157,8 +158,10 @@ public class ChatApiService {
                             .build();
                     ChatState chatContext = ChatState.builder()
                             .appId(apiKey.getApplicationId())
-                            .chatUserId(IdWorker.get32UUID())
+                            // 使用稳定的 chatUserId，避免每次调用都在统计表新增一行
+                            .chatUserId("mcp_" + apiKey.getApplicationId())
                             .chatUserType(ChatUserType.ANONYMOUS_USER.name())
+                            .source(ChatSource.API_CALL)
                             .debug(false)
                             .build();
                     ChatResponse chatResponse = chatService.chatMessage(params, chatContext, Sinks.many().unicast().onBackpressureBuffer());

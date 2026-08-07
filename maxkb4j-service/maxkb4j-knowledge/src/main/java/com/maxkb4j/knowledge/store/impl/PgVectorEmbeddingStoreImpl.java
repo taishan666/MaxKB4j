@@ -108,7 +108,7 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
             }
         });
         if (!failedEntities.isEmpty()) {
-            log.warn("Failed to process {} entities. They can be retried later.", failedEntities.size());
+            throw new RuntimeException("向量写入失败，共 " + failedEntities.size() + " 条数据未成功索引，请检查 embedding 服务后重试");
         }
     }
 

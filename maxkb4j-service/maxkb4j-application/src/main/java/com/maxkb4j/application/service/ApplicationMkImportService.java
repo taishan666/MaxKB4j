@@ -53,9 +53,36 @@ public class ApplicationMkImportService {
      * 从 classpath 的 templates/app 目录加载并解析 .mk 模板。
      */
     public MaxKb4J loadClasspathTemplate(String downloadUrl) {
+        String templatePath = normalizeTemplatePath(downloadUrl);
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        Resource resource = resolver.getResource(TEMPLATE_LOCATION_PREFIX + downloadUrl);
+        Resource resource = resolver.getResource(TEMPLATE_LOCATION_PREFIX + templatePath);
         return ResourceUtil.parseMk(resource);
+    }
+
+    /**
+     * 校验并规范化模板路径，防止通过 ../ 等手段逃逸出 templates/app 目录读取任意 classpath 资源。
+     */
+    private static String normalizeTemplatePath(String downloadUrl) {
+        if (downloadUrl == null || downloadUrl.isBlank()) {
+            throw new IllegalArgumentException("模板名称不能为空");
+        }
+        String normalized;
+        try {
+            java.nio.file.Path path = java.nio.file.Paths.get(downloadUrl).normalize();
+            if (path.isAbsolute()) {
+                throw new IllegalArgumentException("非法的模板名称: " + downloadUrl);
+            }
+            normalized = path.toString().replace('\\', '/');
+        } catch (java.nio.file.InvalidPathException e) {
+            throw new IllegalArgumentException("非法的模板名称: " + downloadUrl);
+        }
+        if (normalized.startsWith("..") || normalized.contains("/../") || normalized.endsWith("/..")) {
+            throw new IllegalArgumentException("非法的模板名称: " + downloadUrl);
+        }
+        if (!normalized.endsWith(".mk")) {
+            throw new IllegalArgumentException("模板必须为 .mk 文件: " + downloadUrl);
+        }
+        return normalized;
     }
 
     /**

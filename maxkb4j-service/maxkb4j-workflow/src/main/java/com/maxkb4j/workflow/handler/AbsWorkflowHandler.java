@@ -19,6 +19,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Abstract base class for workflow handlers.
@@ -58,17 +59,28 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         long timeoutMinutes = workflow.getNodeExecutionTimeoutMinutes();
         List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
         List<AbsNode> scheduledNodes = new ArrayList<>();
+        List<AtomicReference<Thread>> workerThreads = new ArrayList<>();
         for (AbsNode node : nodeList) {
             if (NodeStatus.READY.getStatus() == node.getStatus() || NodeStatus.INTERRUPT.getStatus() == node.getStatus()) {
                 INodeHandler handler = nodeCenter.getHandler(node.getType());
                 if (handler.isAsync()) {
                     // Async node: runs on its own future without occupying a workflowTaskExecutor thread
                     futureList.add(runAsyncChainNode(workflow, node));
+                    workerThreads.add(null);
                 } else {
                     // Sync node: runs on the workflowTaskExecutor
+                    AtomicReference<Thread> workerThread = new AtomicReference<>();
                     futureList.add(CompletableFuture.supplyAsync(
-                            () -> runChainNode(workflow, node),
+                            () -> {
+                                workerThread.set(Thread.currentThread());
+                                try {
+                                    return runChainNode(workflow, node);
+                                } finally {
+                                    workerThread.set(null);
+                                }
+                            },
                             workflowTaskExecutor));
+                    workerThreads.add(workerThread);
                 }
                 scheduledNodes.add(node);
             } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
@@ -79,6 +91,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                     }
                 });
                 futureList.add(CompletableFuture.completedFuture(nextNodeList));
+                workerThreads.add(null);
                 scheduledNodes.add(node);
             }
         }
@@ -91,6 +104,15 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             } catch (TimeoutException e) {
                 log.error("Node execution timeout after {} minutes", timeoutMinutes);
                 future.cancel(true);
+                // CompletableFuture.cancel 不会中断底层任务，这里显式中断执行线程，
+                // 避免超时节点继续占用线程池资源并在结束后覆写节点状态
+                AtomicReference<Thread> workerThread = workerThreads.get(i);
+                if (workerThread != null) {
+                    Thread worker = workerThread.get();
+                    if (worker != null) {
+                        worker.interrupt();
+                    }
+                }
                 exceptionResolverChain.resolve(workflow, node, new RuntimeException("Node execution timeout after " + timeoutMinutes + " minutes"));
                 node.setStatus(NodeStatus.ERROR.getStatus());
             } catch (Exception e) {

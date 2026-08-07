@@ -16,5 +16,9 @@ public interface IApplicationChatInternalService extends IApplicationChatService
 
     IPage<ApplicationChatEntity> chatLogs(String appId, int page, int size, ChatQueryDTO query);
 
+    boolean updateByApplicationId(String appId, String chatId, ApplicationChatEntity chatEntity);
+
+    boolean deleteByApplicationId(String appId, String chatId);
+
     void chatExport(List<String> ids, HttpServletResponse response) throws IOException;
 }

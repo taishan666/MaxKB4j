@@ -155,7 +155,13 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
 
     @Override
     public void updateDtoById(ApplicationChatRecordDTO applicationChatDTO) {
-        this.updateById(BeanUtil.copy(applicationChatDTO, ApplicationChatRecordEntity.class));
+        this.lambdaUpdate()
+                .eq(ApplicationChatRecordEntity::getId, applicationChatDTO.getId())
+                .eq(applicationChatDTO.getChatId() != null, ApplicationChatRecordEntity::getChatId, applicationChatDTO.getChatId())
+                .set(applicationChatDTO.getVoteStatus() != null, ApplicationChatRecordEntity::getVoteStatus, applicationChatDTO.getVoteStatus())
+                .set(applicationChatDTO.getVoteReason() != null, ApplicationChatRecordEntity::getVoteReason, applicationChatDTO.getVoteReason())
+                .set(applicationChatDTO.getVoteOtherContent() != null, ApplicationChatRecordEntity::getVoteOtherContent, applicationChatDTO.getVoteOtherContent())
+                .update();
     }
 
     @Override
