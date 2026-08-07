@@ -4,6 +4,7 @@ import com.maxkb4j.common.exception.ApiException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -48,7 +49,7 @@ public class DataPermissionSupport {
         if (scope.isAdmin()) {
             return;
         }
-        if (!scope.getTargetIds().containsAll(targetIds)) {
+        if (!new HashSet<>(scope.getTargetIds()).containsAll(targetIds)) {
             throw new ApiException("resource.no.permission");
         }
     }

@@ -1,5 +1,7 @@
 package com.maxkb4j.core.support.permission;
 
+import lombok.Getter;
+
 import java.util.List;
 
 /**
@@ -17,6 +19,7 @@ import java.util.List;
  *
  * @author tarzan
  */
+@Getter
 public final class DataPermissionScope {
 
     private final boolean admin;
@@ -40,14 +43,6 @@ public final class DataPermissionScope {
     /** 无可见资源。 */
     public static DataPermissionScope empty() {
         return new DataPermissionScope(false, List.of());
-    }
-
-    public boolean isAdmin() {
-        return admin;
-    }
-
-    public List<String> getTargetIds() {
-        return targetIds;
     }
 
     /** 非管理员且无可授权资源时，查询应返回空结果。 */
