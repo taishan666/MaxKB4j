@@ -37,15 +37,15 @@ public class ChatMessageController {
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params, @CurrentUserId String userId) {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
-        ChatState chatContext = ChatState.builder()
+        ChatState chatState = ChatState.builder()
                 .chatUserId(userId)
-                .chatUserType(ChatUserType.ANONYMOUS_USER.name())
+                .chatUserType(ChatUserType.ANONYMOUS_USER)
                 .source(ChatSource.ONLINE)
                 .ipAddress(WebUtil.getIP())
                 .debug(true)
                 .build();
         // 异步执行业务逻辑
-        chatService.chatMessageAsync(params, chatContext, sink);
+        chatService.chatMessageAsync(params, chatState, sink);
         return sink.asFlux();
     }
 }

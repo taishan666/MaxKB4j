@@ -156,15 +156,15 @@ public class ChatApiService {
                             .stream(false)
                             .chatId(chatId)
                             .build();
-                    ChatState chatContext = ChatState.builder()
+                    ChatState chatState = ChatState.builder()
                             .appId(apiKey.getApplicationId())
                             // 使用稳定的 chatUserId，避免每次调用都在统计表新增一行
-                            .chatUserId("mcp_" + apiKey.getApplicationId())
-                            .chatUserType(ChatUserType.ANONYMOUS_USER.name())
+                            .chatUserId(IdWorker.get32UUID())
+                            .chatUserType(ChatUserType.ANONYMOUS_USER)
                             .source(ChatSource.API_CALL)
                             .debug(false)
                             .build();
-                    ChatResponse chatResponse = chatService.chatMessage(params, chatContext, Sinks.many().unicast().onBackpressureBuffer());
+                    ChatResponse chatResponse = chatService.chatMessage(params, chatState, Sinks.many().unicast().onBackpressureBuffer());
                     Map<String, Object> content = Map.of("type", "text", "text", chatResponse.getAnswer());
                     resp.result = Map.of("content", List.of(content));
                 }

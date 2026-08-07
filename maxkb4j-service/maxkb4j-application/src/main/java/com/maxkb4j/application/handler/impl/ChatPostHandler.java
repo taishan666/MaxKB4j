@@ -12,21 +12,21 @@ import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.service.ApplicationChatUserStatsService;
 import com.maxkb4j.common.cache.ChatCache;
-import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Component
@@ -38,13 +38,13 @@ public class ChatPostHandler implements PostResponseHandler {
 
     @Override
     @Transactional
-    public void handler(ChatParams chatParams, ChatState chatContext, ChatResponse chatResponse, long startTime) {
+    public void handler(ChatParams chatParams, ChatState chatState, ChatResponse chatResponse, long startTime) {
         String chatId = chatParams.getChatId();
         String chatRecordId = chatParams.getChatRecordId();
         String problemText = chatParams.getMessage();
-        String chatUserId = chatContext.getChatUserId();
-        String chatUserType = chatContext.getChatUserType();
-        boolean debug = chatContext.getDebug();
+        String chatUserId = chatState.getChatUserId();
+        ChatUserType chatUserType = chatState.getChatUserType();
+        boolean debug = chatState.getDebug();
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
         ChatInfo chatInfo = ChatCache.get(chatId);
         String answerText = chatResponse.getAnswer();
@@ -52,7 +52,7 @@ public class ChatPostHandler implements PostResponseHandler {
         int messageTokens = chatResponse.getMessageTokens();
         int answerTokens = chatResponse.getAnswerTokens();
         JSONObject details = chatResponse.getRunDetails();
-        ChatRecordDTO chatRecord=chatContext.getChatRecord();
+        ChatRecordDTO chatRecord=chatState.getChatRecord();
         ApplicationChatRecordEntity chatRecordEntity = new ApplicationChatRecordEntity();
         chatRecordEntity.setId(chatRecordId);
         chatRecordEntity.setChatId(chatId);
@@ -82,7 +82,7 @@ public class ChatPostHandler implements PostResponseHandler {
         chatRecordEntity.setImproveParagraphIdList(List.of());
         ChatRecordDTO chatRecordDTO=BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
         if (chatInfo==null){
-            chatInfo = new ChatInfo(chatId, chatContext.getAppId());
+            chatInfo = new ChatInfo(chatId, chatState.getAppId());
         }
         chatInfo.addChatRecord(chatRecordDTO);
         // 重新设置缓存
@@ -102,16 +102,16 @@ public class ChatPostHandler implements PostResponseHandler {
                 String problemOverview = problemText.length() > 50 ? problemText.substring(0, 50) : problemText;
                 chatEntity.setSummary(problemOverview);
                 chatEntity.setChatUserId(chatUserId);
-                chatEntity.setChatUserType(StringUtils.isBlank(chatUserType) ? ChatUserType.CHAT_USER.name() : chatUserType);
+                chatEntity.setChatUserType(Objects.isNull(chatUserType) ? ChatUserType.CHAT_USER.getKey() : chatUserType.getKey());
                 chatEntity.setIsDeleted(false);
-                chatEntity.setAsker(chatContext.getChatUser());
+                chatEntity.setAsker(chatState.getChatUser());
                 chatEntity.setMeta(new JSONObject());
                 chatEntity.setStarNum(0);
                 chatEntity.setTrampleNum(0);
                 chatEntity.setChatRecordCount(1);
                 chatEntity.setMarkSum(0);
-                chatEntity.setIpAddress(chatContext.getIpAddress());
-                ChatSource source=chatContext.getSource()==null?ChatSource.ONLINE:chatContext.getSource();
+                chatEntity.setIpAddress(chatState.getIpAddress());
+                ChatSource source=chatState.getSource()==null?ChatSource.ONLINE:chatState.getSource();
                 chatEntity.setSource(new JSONObject(Map.of("type", source)));
                 try {
                     chatMapper.insert(chatEntity);

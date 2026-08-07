@@ -25,11 +25,11 @@ public interface WorkflowFactory {
      * @param nodes        节点列表
      * @param edges        边列表
      * @param chatParams   聊天请求入参（含恢复状态所需的 runtimeNodeId/nodeData）
-     * @param chatContext  对话执行上下文（含历史记录与身份信息）
+     * @param chatState  对话执行上下文（含历史记录与身份信息）
      * @param sink         响应式输出 Sink
      * @return 工作流实例
      */
-    IWorkflow createApplication(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink);
+    IWorkflow createApplication(List<AbsNode> nodes, List<LfEdge> edges, ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink);
 
     /**
      * 构造知识库工作流。

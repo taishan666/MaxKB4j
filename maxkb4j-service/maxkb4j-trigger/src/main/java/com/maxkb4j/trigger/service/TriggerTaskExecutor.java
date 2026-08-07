@@ -122,15 +122,12 @@ public class TriggerTaskExecutor {
                 ChatParams chatParams = ChatParams.builder()
                         .message(question)
                         .chatId(chatId)
-                        .reChat(false)
-                        .stream(false)
                         .build();
-                ChatState chatContext = ChatState.builder()
+                ChatState chatState = ChatState.builder()
                         .appId(appId)
-                        .debug(false)
                         .source(ChatSource.TRIGGER)
                         .build();
-                ChatResponse response = applicationChatService.chatMessage(chatParams, chatContext, sink);
+                ChatResponse response = applicationChatService.chatMessage(chatParams, chatState, sink);
                 float runTime = (System.currentTimeMillis() - startTime) / 1000f;
                 TaskState state = (response != null && response.getAnswerTextList() != null) ? TaskState.SUCCESS : TaskState.FAILURE;
                 JSONObject meta = (response != null) ? response.getRunDetails() : new JSONObject();

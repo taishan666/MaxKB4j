@@ -9,5 +9,5 @@ import reactor.core.publisher.Sinks;
 
 public interface IChatService {
 
-    ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink);
+    ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink);
 }

@@ -7,5 +7,5 @@ import com.maxkb4j.application.dto.ChatResponse;
 
 public interface PostResponseHandler {
 
-    void handler(ChatParams chatParams, ChatState chatContext, ChatResponse chatResponse, long startTime);
+    void handler(ChatParams chatParams, ChatState chatState, ChatResponse chatResponse, long startTime);
 }

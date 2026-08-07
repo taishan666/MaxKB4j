@@ -97,19 +97,19 @@ public class ChatApiController {
         String userId = StpKit.USER.getLoginIdAsString();
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
-        ChatState chatContext = ChatState.builder()
+        ChatState chatState = ChatState.builder()
                 .chatUserId(userId)
-                .chatUserType(ChatUserType.ANONYMOUS_USER.name())
+                .chatUserType(ChatUserType.ANONYMOUS_USER)
                 .source(ChatSource.ONLINE)
                 .ipAddress(WebUtil.getIP())
                 .debug(false)
                 .build();
         if (Boolean.TRUE.equals(params.getStream())) {
             // 异步执行业务逻辑
-            chatService.chatMessageAsync(params, chatContext, sink);
+            chatService.chatMessageAsync(params, chatState, sink);
             return sink.asFlux();
         } else {
-            ChatResponse chatResponse = chatService.chatMessage(params, chatContext, sink);
+            ChatResponse chatResponse = chatService.chatMessage(params, chatState, sink);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .body(R.data(chatResponse));

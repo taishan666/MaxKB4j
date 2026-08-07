@@ -26,6 +26,7 @@ import com.maxkb4j.application.vo.ChatRecordDetailVO;
 import com.maxkb4j.application.vo.ShareChatVO;
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.*;
+import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.AccessNumLimitException;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
@@ -117,36 +118,36 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         return chatInfo;
     }
 
-    public ChatResponse chatMessage(ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink) {
+    public ChatResponse chatMessage(ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
         long startTime = System.currentTimeMillis();
-        if (visitCountOver(chatContext)) {
+        if (visitCountOver(chatState)) {
             sink.tryEmitError(new AccessNumLimitException());
             return new ChatResponse(List.of(), null);
         }
-        ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatContext.getAppId());
+        ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatState.getAppId());
         List<ChatRecordDTO> historyChatRecordList = chatInfo.getChatRecordList();
-        chatContext.setHistoryChatRecords(historyChatRecordList);
+        chatState.setHistoryChatRecords(historyChatRecordList);
         if (StringUtils.isNotBlank(chatParams.getChatRecordId())) {
             ChatRecordDTO chatRecord = historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
-            chatContext.setChatRecord(chatRecord);
+            chatState.setChatRecord(chatRecord);
         } else {
             chatParams.setChatRecordId(IdWorker.get32UUID());
         }
-        ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatContext.getDebug());
+        ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatState.getDebug());
         if (Objects.isNull(application)) {
             sink.tryEmitError(new ApiException("application.not.found"));
             return new ChatResponse(List.of(), null);
         }
         IChatService chatService = ChatServiceBuilder.getChatService(application.getType());
-        ChatResponse chatResponse = chatService.chatMessage(application, chatParams, chatContext, sink);
-        postResponseHandler.handler(chatParams, chatContext, chatResponse, startTime);
+        ChatResponse chatResponse = chatService.chatMessage(application, chatParams, chatState, sink);
+        postResponseHandler.handler(chatParams, chatState, chatResponse, startTime);
         sink.tryEmitNext(new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true));
         sink.tryEmitComplete();
         return chatResponse;
     }
 
-    public void chatMessageAsync(ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink) {
-        CompletableFuture.supplyAsync(() -> chatMessage(chatParams, chatContext, sink), chatTaskExecutor)
+    public void chatMessageAsync(ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
+        CompletableFuture.supplyAsync(() -> chatMessage(chatParams, chatState, sink), chatTaskExecutor)
                 .exceptionally(throwable -> {
                     log.error("Async chatMessage failed", throwable);
                     sink.tryEmitError(throwable);
@@ -154,17 +155,17 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
                 });
     }
 
-    public boolean visitCountOver(ChatState chatContext) {
-        String appId = chatContext.getAppId();
-        String chatUserId = chatContext.getChatUserId();
-        boolean debug = chatContext.getDebug();
+    public boolean visitCountOver(ChatState chatState) {
+        String appId = chatState.getAppId();
+        String chatUserId = chatState.getChatUserId();
+        boolean debug = chatState.getDebug();
         if (!debug && Objects.nonNull(appId)) {
             ApplicationChatUserStatsEntity chatUserStats = chatUserStatsService.getByUserIdAndAppId(chatUserId, appId);
             if (Objects.isNull(chatUserStats)) {
-                String chatUserType = chatContext.getChatUserType();
+                ChatUserType chatUserType = chatState.getChatUserType();
                 chatUserStats = new ApplicationChatUserStatsEntity();
                 chatUserStats.setChatUserId(chatUserId);
-                chatUserStats.setChatUserType(chatUserType);
+                chatUserStats.setChatUserType(chatUserType.getKey());
                 chatUserStats.setApplicationId(appId);
                 chatUserStats.setAccessNum(0);
                 chatUserStats.setIntraDayAccessNum(0);

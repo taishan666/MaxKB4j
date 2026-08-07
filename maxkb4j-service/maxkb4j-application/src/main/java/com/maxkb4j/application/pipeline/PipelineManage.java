@@ -26,7 +26,7 @@ public class PipelineManage {
     public Map<String, Object> context;
     public ApplicationVO application;
     public ChatParams chatParams;
-    public ChatState chatContext;
+    public ChatState chatState;
     public Sinks.Many<ChatMessageVO> sink;
 
     public PipelineManage(List<AbsStep> stepList) {
@@ -37,15 +37,15 @@ public class PipelineManage {
     }
 
 
-    public Answer run(ApplicationVO application, ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink)  {
+    public Answer run(ApplicationVO application, ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink)  {
         if (application != null) {
             this.application= application;
         }
         if (chatParams != null) {
             this.chatParams= chatParams;
         }
-        if (chatContext != null) {
-            this.chatContext= chatContext;
+        if (chatState != null) {
+            this.chatState= chatState;
         }
         if (sink != null){
             this.sink = sink;
@@ -65,7 +65,7 @@ public class PipelineManage {
         return Answer.builder().content(answer).reasoningContent(reasoningContent).viewType("many_view").runtimeNodeId("ai-chat-node").build();
     }
     public List<ChatMessage> getHistoryMessages(int dialogueNumber) {
-        return MessageConverter.toHistoryMessages(chatContext.getHistoryChatRecords(), dialogueNumber);
+        return MessageConverter.toHistoryMessages(chatState.getHistoryChatRecords(), dialogueNumber);
     }
     public JSONArray formatHistoryMessages(List<ChatMessage> historyMessages){
         return MessageConverter.formatHistoryMessages(historyMessages);

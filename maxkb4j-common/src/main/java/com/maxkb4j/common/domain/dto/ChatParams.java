@@ -2,7 +2,6 @@ package com.maxkb4j.common.domain.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,8 +35,6 @@ public class ChatParams {
     private String chatRecordId;
     @Schema(description = "运行节点id")
     private String runtimeNodeId;
-    @Schema(description = "是否流式响应,默认为false")
-    private Boolean stream;
     @Schema(description = "表单数据", example = "{ \"name\": \"张三\", \"age\": 25 }")
     private Map<String,Object> formData;
     @Schema(description = "节点数据", example = "{ \"name\": \"张三\", \"age\": 25 }")
@@ -52,7 +49,10 @@ public class ChatParams {
     private List<OssFile> imageList;
     @Schema(description = "其他列表")
     private List<OssFile> otherList;
-    @Schema(description = "是否重新回答")
-    @NotNull(message = "是否重新回答")
-    private Boolean reChat;
+    @Schema(description = "是否流式响应,默认为false")
+    @Builder.Default
+    private Boolean stream = false;
+    @Schema(description = "是否重新回答,默认为false")
+    @Builder.Default
+    private Boolean reChat = false;
 }

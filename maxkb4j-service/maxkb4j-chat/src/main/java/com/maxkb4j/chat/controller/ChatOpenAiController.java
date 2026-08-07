@@ -42,17 +42,17 @@ public class ChatOpenAiController {
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         // 构建 ChatParams（请求入参）与 ChatContext（服务端上下文）
         ChatParams params = convertToChatParams(request, chatId);
-        ChatState chatContext = ChatState.builder()
+        ChatState chatState = ChatState.builder()
                 .chatUserId(IdWorker.get32UUID())
-                .chatUserType(ChatUserType.APPLICATION_API_KEY.name())
+                .chatUserType(ChatUserType.APPLICATION_API_KEY)
                 .source(ChatSource.API_CALL)
                 .ipAddress(WebUtil.getIP())
                 .debug(false)
                 .build();
         if (Boolean.TRUE.equals(request.getStream())) {
-            return handleStreamResponse(request, params, chatContext, sink);
+            return handleStreamResponse(request, params, chatState, sink);
         } else {
-            return handleSyncResponse(request, params, chatContext, sink);
+            return handleSyncResponse(request, params, chatState, sink);
         }
     }
 
@@ -71,11 +71,11 @@ public class ChatOpenAiController {
     /**
      * 处理流式响应
      */
-    private Flux<ServerSentEvent<String>> handleStreamResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatContext, Sinks.Many<ChatMessageVO> sink) {
+    private Flux<ServerSentEvent<String>> handleStreamResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
         String completionId = generateCompletionId();
         String model = request.getModel() != null ? request.getModel() : "maxkb4j";
         // 异步执行业务逻辑
-        chatService.chatMessageAsync(params, chatContext, sink);
+        chatService.chatMessageAsync(params, chatState, sink);
 
         return sink.asFlux()
                 .timeout(Duration.ofMinutes(10))
@@ -107,8 +107,8 @@ public class ChatOpenAiController {
     /**
      * 处理同步响应
      */
-    private ResponseEntity<OpenAIChatCompletionResponse> handleSyncResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatContext, Sinks.Many<ChatMessageVO> sink) {
-        ChatResponse chatResponse = chatService.chatMessage(params, chatContext, sink);
+    private ResponseEntity<OpenAIChatCompletionResponse> handleSyncResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
+        ChatResponse chatResponse = chatService.chatMessage(params, chatState, sink);
         String completionId = generateCompletionId();
         String model = request.getModel() != null ? request.getModel() : "maxkb4j";
 

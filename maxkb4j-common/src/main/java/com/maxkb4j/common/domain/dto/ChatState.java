@@ -11,6 +11,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 对话执行上下文：服务端在请求处理过程中解析/加载的运行时状态。
@@ -42,15 +43,16 @@ public class ChatState {
     @Schema(description = "聊天用户id")
     private String chatUserId;
     @Schema(description = "聊天用户类型")
-    private String chatUserType;
-    @Schema(description = "聊天用户信息")
-    private JSONObject chatUser;
+    private ChatUserType chatUserType;
     @Schema(description = "对话来源")
     private ChatSource source;
+    @Schema(description = "聊天用户信息")
+    private JSONObject chatUser;
     @Schema(description = "客户端ip地址")
     private String ipAddress;
     @Schema(description = "是否调试模式")
-    private Boolean debug;
+    @Builder.Default
+    private Boolean debug= false;
     @Schema(description = "历史聊天记录（按 chatId 加载）")
     private List<ChatRecordDTO> historyChatRecords;
     @Schema(description = "当前对话记录（重新回答时定位）")
@@ -60,11 +62,11 @@ public class ChatState {
         return StringUtils.isBlank(chatUserId) ? IdWorker.get32UUID() : chatUserId;
     }
 
-    public String getChatUserType() {
-        return StringUtils.isBlank(chatUserType) ? ChatUserType.ANONYMOUS_USER.name() : chatUserType;
+    public ChatUserType getChatUserType() {
+        return Objects.isNull(chatUserType) ? ChatUserType.ANONYMOUS_USER : chatUserType;
     }
 
     public JSONObject getChatUser() {
-        return ChatUserType.ANONYMOUS_USER.name().equals(chatUserType) ? new JSONObject(Map.of("username", "游客")) : new JSONObject();
+        return ChatUserType.ANONYMOUS_USER.equals(chatUserType) ? new JSONObject(Map.of("username", "游客")) : new JSONObject();
     }
 }

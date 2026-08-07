@@ -16,8 +16,8 @@ public interface IApplicationChatService {
 
     String chatOpen(String appId, boolean debug);
 
-    ChatResponse chatMessage(ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink);
-    void chatMessageAsync(ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink);
+    ChatResponse chatMessage(ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink);
+    void chatMessageAsync(ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink);
     Boolean deleteById(String chatId);
 
     IPage<ApplicationChatDTO> page(String appId, String userId, int current, int size);

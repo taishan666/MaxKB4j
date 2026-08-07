@@ -42,14 +42,14 @@ public class AgentExecutor extends AbsToolExecutor {
                 .reChat(false)
                 .stream(false)
                 .build();
-        ChatState chatContext = ChatState.builder()
+        ChatState chatState = ChatState.builder()
                 .appId(appId)
                 .chatUserId(chatUserId)
-                .chatUserType(ChatUserType.ANONYMOUS_USER.name())
+                .chatUserType(ChatUserType.ANONYMOUS_USER)
                 .source(ChatSource.ONLINE)
                 .debug(false)
                 .build();
-        ChatResponse chatResponse = chatService.chatMessage(params, chatContext, Sinks.many().unicast().onBackpressureBuffer());
+        ChatResponse chatResponse = chatService.chatMessage(params, chatState, Sinks.many().unicast().onBackpressureBuffer());
         return chatResponse.getAnswer();
     }
 

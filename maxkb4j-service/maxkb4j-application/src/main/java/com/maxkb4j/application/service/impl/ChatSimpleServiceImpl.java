@@ -32,7 +32,7 @@ public class ChatSimpleServiceImpl implements IChatService {
     private final AbsChatStep chatStep;
 
     @Override
-    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, ChatState chatContext, Sinks.Many<ChatMessageVO> sink) {
+    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
         PipelineManage.Builder pipelineManageBuilder = new PipelineManage.Builder();
         Boolean problemOptimization = application.getProblemOptimization();
         if (!CollectionUtils.isEmpty(application.getKnowledgeIds())) {
@@ -45,7 +45,7 @@ public class ChatSimpleServiceImpl implements IChatService {
         pipelineManageBuilder.addStep(chatStep);
         PipelineManage pipelineManage = pipelineManageBuilder.build();
         chatParams.setChatRecordId(chatParams.getChatRecordId() == null ? IdWorker.get32UUID() : chatParams.getChatRecordId());
-        Answer answer = pipelineManage.run(application, chatParams, chatContext, sink);
+        Answer answer = pipelineManage.run(application, chatParams, chatState, sink);
         JSONObject details = pipelineManage.getDetails();
         return new ChatResponse(List.of(answer), details);
     }
