@@ -190,6 +190,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
 
     @Transactional
     public Boolean delMulApplication(List<String> idList) {
+        dataPermissionSupport.checkManagePermission(AuthTargetType.TOOL, idList);
         boolean result = true;
         for (String id : idList) {
             result = removeToolById(id) && result;

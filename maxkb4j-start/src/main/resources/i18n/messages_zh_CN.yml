@@ -35,6 +35,10 @@ login:
   access:
     denied: 禁止访问
 
+resource:
+  no:
+    permission: 无权限删除该资源
+
 user:
   username:
     exists: 用户名已存在

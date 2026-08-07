@@ -115,6 +115,7 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
         if (CollectionUtils.isEmpty(idList)) {
             return false;
         }
+        dataPermissionSupport.checkManagePermission(AuthTargetType.KNOWLEDGE, idList);
         return deleteKnowledge(idList);
     }
 

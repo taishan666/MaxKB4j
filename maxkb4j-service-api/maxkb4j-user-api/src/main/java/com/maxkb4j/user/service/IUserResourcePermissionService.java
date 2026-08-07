@@ -5,6 +5,12 @@ import java.util.List;
 public interface IUserResourcePermissionService {
 
     List<String> getTargetIds(String authTargetType, String userId);
+
+    /**
+     * 查询用户对指定资源类型中拥有某权限级别（如 {@code VIEW} / {@code MANAGE}）的目标资源 ID 列表。
+     */
+    List<String> getTargetIds(String authTargetType, String userId, String permission);
+
     boolean ownerSave(String type, String targetId, String userId);
     boolean remove(String type, String targetId);
     /**

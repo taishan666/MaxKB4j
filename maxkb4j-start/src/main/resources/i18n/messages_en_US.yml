@@ -35,6 +35,10 @@ login:
   access:
     denied: Access denied
 
+resource:
+  no:
+    permission: No permission to delete this resource
+
 user:
   username:
     exists: Username already exists

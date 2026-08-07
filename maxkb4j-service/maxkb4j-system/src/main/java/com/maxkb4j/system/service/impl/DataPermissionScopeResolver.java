@@ -1,6 +1,7 @@
 package com.maxkb4j.system.service.impl;
 
 import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.constant.Permission;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.core.support.permission.DataPermissionScope;
 import com.maxkb4j.core.support.permission.IDataPermissionScopeResolver;
@@ -34,6 +35,16 @@ public class DataPermissionScopeResolver implements IDataPermissionScopeResolver
 
     @Override
     public DataPermissionScope resolve(String authTargetType) {
+        return resolve(authTargetType, Permission.VIEW);
+    }
+
+    @Override
+    public DataPermissionScope resolveManageScope(String authTargetType) {
+        return resolve(authTargetType, Permission.MANAGE);
+    }
+
+    /** 按权限级别解析数据权限范围：VIEW 用于可见性过滤，MANAGE 用于删除等写操作校验。 */
+    private DataPermissionScope resolve(String authTargetType, String permission) {
         String loginId = userContext.getUserId();
         Set<String> roles = userService.getRoleById(loginId);
         if (CollectionUtils.isEmpty(roles)) {
@@ -42,7 +53,7 @@ public class DataPermissionScopeResolver implements IDataPermissionScopeResolver
         if (roles.contains(RoleType.ADMIN)) {
             return DataPermissionScope.admin();
         }
-        List<String> targetIds = userResourcePermissionService.getTargetIds(authTargetType, loginId);
+        List<String> targetIds = userResourcePermissionService.getTargetIds(authTargetType, loginId, permission);
         return targetIds.isEmpty() ? DataPermissionScope.empty() : DataPermissionScope.limited(targetIds);
     }
 }

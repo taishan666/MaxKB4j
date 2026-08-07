@@ -93,6 +93,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         if (CollectionUtils.isEmpty(idList)) {
             return true;
         }
+        dataPermissionSupport.checkManagePermission(AuthTargetType.APPLICATION, idList);
         boolean success = true;
         for (String id : idList) {
             success &= deleteByAppId(id);

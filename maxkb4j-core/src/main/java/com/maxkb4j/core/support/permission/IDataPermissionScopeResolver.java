@@ -17,4 +17,13 @@ public interface IDataPermissionScopeResolver {
      * @param authTargetType 资源类型，对应 {@code AuthTargetType} 常量值
      */
     DataPermissionScope resolve(String authTargetType);
+
+    /**
+     * 解析当前登录用户对指定资源类型的「管理」数据权限范围（删除等写操作的资源级校验用）。
+     *
+     * <p>与 {@link #resolve(String)} 区别：仅收集授权列表中包含 MANAGE 的资源。
+     *
+     * @param authTargetType 资源类型，对应 {@code AuthTargetType} 常量值
+     */
+    DataPermissionScope resolveManageScope(String authTargetType);
 }
