@@ -32,15 +32,18 @@ public class StpInterfaceImpl implements StpInterface {
         permissions.add(PermissionEnum.APPLICATION_READ.getResourcePerm());
         permissions.add(PermissionEnum.APPLICATION_CREATE.getResourcePerm());
         permissions.add(PermissionEnum.APPLICATION_IMPORT.getResourcePerm());
+        permissions.add(PermissionEnum.APPLICATION_BATCH_DELETE.getResourcePerm());
         permissions.add(PermissionEnum.KNOWLEDGE_CREATE.getResourcePerm());
         permissions.add(PermissionEnum.KNOWLEDGE_READ.getResourcePerm());
         permissions.add(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE.getResourcePerm());
         permissions.add(PermissionEnum.KNOWLEDGE_DOCUMENT_READ.getResourcePerm());
         permissions.add(PermissionEnum.KNOWLEDGE_PROBLEM_CREATE.getResourcePerm());
+        permissions.add(PermissionEnum.KNOWLEDGE_BATCH_DELETE.getResourcePerm());
         permissions.add(PermissionEnum.TOOL_CREATE.getResourcePerm());
         permissions.add(PermissionEnum.TOOL_DEBUG.getResourcePerm());
         permissions.add(PermissionEnum.TOOL_READ.getResourcePerm());
         permissions.add(PermissionEnum.TOOL_IMPORT.getResourcePerm());
+        permissions.add(PermissionEnum.TOOL_BATCH_DELETE.getResourcePerm());
         permissions.add(PermissionEnum.MODEL_CREATE.getResourcePerm());
         permissions.add(PermissionEnum.MODEL_READ.getResourcePerm());
         List<UserResourcePermissionEntity> userResourcePermissions = userResourcePermissionService.getByUserId(String.valueOf(loginId));
