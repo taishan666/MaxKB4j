@@ -67,7 +67,6 @@ public class ThreadPoolConfig {
         executor.setCorePoolSize(corePoolSize);
         executor.setMaxPoolSize(maxPoolSize);
         executor.setQueueCapacity(queueCapacity);
-        executor.setVirtualThreads(true);
 
         // 拒绝策略：当线程池和队列都满时，由调用者线程执行，起到背压/限流作用
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());

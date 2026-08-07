@@ -20,6 +20,7 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 
 import javax.crypto.Cipher;
+import java.nio.charset.StandardCharsets;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -31,10 +32,27 @@ import java.util.Base64;
 @Slf4j
 public class RSAUtil{
 
-    private final static String password = "mac_kb_password";
+    /** 密钥保护口令：优先读取系统属性/环境变量，未配置时回退默认值（兼容存量数据） */
+    private final static String password = resolveKeyPassword();
+
+    private static String resolveKeyPassword() {
+        String fromProperty = System.getProperty("maxkb4j.rsa.key-password");
+        if (fromProperty != null && !fromProperty.isBlank()) {
+            return fromProperty;
+        }
+        String fromEnv = System.getenv("MAXKB4J_RSA_KEY_PASSWORD");
+        if (fromEnv != null && !fromEnv.isBlank()) {
+            return fromEnv;
+        }
+        return "mac_kb_password";
+    }
 
     /** RSA 算法名称 */
     private static final String ALGORITHM = "RSA";
+    /** 新数据统一使用 OAEP 填充，避免默认 PKCS#1 v1.5 填充的预言机攻击风险 */
+    private static final String TRANSFORMATION_OAEP = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
+    /** 仅用于解密历史存量密文（JDK 默认 "RSA" 即 PKCS#1 v1.5 填充） */
+    private static final String TRANSFORMATION_LEGACY = "RSA/ECB/PKCS1Padding";
     /** RSA 密钥长度 */
     private static final int KEY_SIZE = 2048;
     /** BouncyCastle 提供者名称 */
@@ -79,9 +97,9 @@ public class RSAUtil{
     }
 
     public static String encrypt(String plainText, PublicKey publicKey) throws Exception {
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        Cipher cipher = Cipher.getInstance(TRANSFORMATION_OAEP);
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        return byteToBase64(cipher.doFinal(plainText.getBytes()));
+        return byteToBase64(cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8)));
     }
     public static String encrypt(String plainText, String publicKey) throws Exception {
         return encrypt(plainText,importPublicKey(publicKey));
@@ -92,46 +110,21 @@ public class RSAUtil{
     }
 
     public static String decrypt(String cipherText, PrivateKey privateKey) throws Exception {
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
-        cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        return new String(cipher.doFinal(Base64.getDecoder().decode(cipherText)));
+        byte[] data = Base64.getDecoder().decode(cipherText);
+        try {
+            Cipher cipher = Cipher.getInstance(TRANSFORMATION_OAEP);
+            cipher.init(Cipher.DECRYPT_MODE, privateKey);
+            return new String(cipher.doFinal(data), StandardCharsets.UTF_8);
+        } catch (GeneralSecurityException e) {
+            // 回退解密历史存量数据
+            Cipher legacy = Cipher.getInstance(TRANSFORMATION_LEGACY);
+            legacy.init(Cipher.DECRYPT_MODE, privateKey);
+            return new String(legacy.doFinal(data), StandardCharsets.UTF_8);
+        }
     }
 
     public static String decrypt(String cipherText, String privateKey) throws Exception {
         return decrypt(cipherText,importPrivateKey(privateKey));
-    }
-
-
-
-    public static void main(String[] args) {
-        try {
-            // 生成密钥对
-            KeyPair keyPair = generateRSAKeyPair();
-            PublicKey publicKey1 = keyPair.getPublic();
-            PrivateKey privateKey1 = keyPair.getPrivate();
-            log.info("publicKey: {}", byteToBase64(publicKey1.getEncoded()));
-            log.info("privateKey: {}", byteToBase64(privateKey1.getEncoded()));
-            // 要加密的明文
-            String originalText = "Hello, RSA Encryption!";
-            PublicKey publicKey =importPublicKey(byteToBase64(publicKey1.getEncoded()));
-            PrivateKey privateKey = importPrivateKey(byteToBase64(privateKey1.getEncoded()));
-            // 加密
-            String encryptedText = encrypt(originalText, publicKey);
-            log.info("Encrypted: {}", encryptedText);
-
-            // 解密
-            String decryptedText = decrypt(encryptedText, privateKey);
-            log.info("Decrypted: {}", decryptedText);
-
-            // 验证加密和解密是否正确
-            if (originalText.equals(decryptedText)) {
-                log.info("Encryption and decryption were successful.");
-            } else {
-                log.info("Encryption and decryption failed.");
-            }
-        } catch (Exception e) {
-            log.error("RSA test failed", e);
-        }
     }
     static {
         Security.addProvider(new BouncyCastleProvider());

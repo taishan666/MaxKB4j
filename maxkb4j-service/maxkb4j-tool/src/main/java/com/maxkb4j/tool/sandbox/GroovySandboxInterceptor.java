@@ -26,7 +26,7 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
      */
     private static final Set<String> ALLOWED_CLASSES = Set.of(
             // ===== 基础类型 =====
-            "java.lang.Object",
+            
             "java.lang.String",
             "java.lang.Boolean",
             "java.lang.Byte",
@@ -350,6 +350,10 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
 
     private static boolean isAllowedType(Class<?> type) {
         if (type == null) {
+            return false;
+        }
+        // Object 是所有类的祖先，若放行会导致类白名单对任意类失效
+        if (Object.class.equals(type)) {
             return false;
         }
         if (type.isArray()) {
