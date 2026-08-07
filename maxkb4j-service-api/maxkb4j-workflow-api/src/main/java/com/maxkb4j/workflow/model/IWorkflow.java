@@ -54,7 +54,7 @@ public interface IWorkflow {
     /**
      * 获取历史聊天记录。
      */
-    List<ChatRecordDTO> getHistoryChatRecords();
+    List<ChatRecordSimple> getHistoryChatRecords();
 
     /**
      * 获取历史消息。

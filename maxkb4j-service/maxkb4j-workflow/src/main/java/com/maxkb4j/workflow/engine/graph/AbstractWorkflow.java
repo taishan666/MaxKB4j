@@ -6,10 +6,7 @@ import com.maxkb4j.workflow.engine.WorkflowConfiguration;
 import com.maxkb4j.workflow.engine.WorkflowContext;
 import com.maxkb4j.workflow.engine.WorkflowExecutionAccessor;
 import com.maxkb4j.workflow.engine.WorkflowOutputManager;
-import com.maxkb4j.workflow.model.IWorkflow;
-import com.maxkb4j.workflow.model.IWorkflowContext;
-import com.maxkb4j.workflow.model.IWorkflowExecutionAccessor;
-import com.maxkb4j.workflow.model.IWorkflowOutputManager;
+import com.maxkb4j.workflow.model.*;
 import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.data.message.ChatMessage;
 
@@ -110,8 +107,8 @@ public abstract class AbstractWorkflow implements IWorkflow {
      * @return 历史记录列表
      */
     @Override
-    public List<ChatRecordDTO> getHistoryChatRecords() {
-        return historyManager.historyChatRecords();
+    public List<ChatRecordSimple> getHistoryChatRecords() {
+        return historyManager.getSimpleMessages();
     }
 
     /**

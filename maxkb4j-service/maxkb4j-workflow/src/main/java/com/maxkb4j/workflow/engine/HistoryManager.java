@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.util.MessageConverter;
 import com.maxkb4j.workflow.enums.DialogueType;
+import com.maxkb4j.workflow.model.ChatRecordSimple;
 import dev.langchain4j.data.message.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,6 +24,17 @@ public record HistoryManager(List<ChatRecordDTO> historyChatRecords) {
 
     public HistoryManager(List<ChatRecordDTO> historyChatRecords) {
         this.historyChatRecords = Objects.requireNonNullElseGet(historyChatRecords, () -> new ArrayList<>(0));
+    }
+
+    public List<ChatRecordSimple> getSimpleMessages() {
+        List<ChatRecordSimple> list = new ArrayList<>();
+        for (ChatRecordDTO chatRecord : historyChatRecords) {
+            ChatRecordSimple record = new ChatRecordSimple();
+            record.setQuestion(chatRecord.getProblemText());
+            record.setAnswer(chatRecord.getAnswerText());
+            list.add(record);
+        }
+        return list;
     }
 
     /**

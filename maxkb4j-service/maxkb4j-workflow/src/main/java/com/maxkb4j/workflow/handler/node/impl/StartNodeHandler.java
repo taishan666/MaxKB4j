@@ -5,12 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
-import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
-import com.maxkb4j.workflow.model.ChatRecordSimple;
+import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -18,9 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @NodeHandlerType(NodeType.START)
@@ -62,7 +58,7 @@ public class StartNodeHandler extends AbsNodeHandler {
     private Map<String, Object> getDefaultGlobalVariable(IChatWorkflow chatWorkflow, ChatParams chatParams) {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        resultMap.put("historyContext", getHistoryContext(chatWorkflow));
+        resultMap.put("historyContext", chatWorkflow.getHistoryChatRecords());
         resultMap.put("chatId", chatParams.getChatId());
         resultMap.put("chatUserId", chatWorkflow.getChatState().getChatUserId());
         resultMap.put("chatUserType", chatWorkflow.getChatState().getChatUserType());
@@ -71,17 +67,6 @@ public class StartNodeHandler extends AbsNodeHandler {
             resultMap.putAll(chatParams.getFormData());
         }
         return resultMap;
-    }
-
-    private List<ChatRecordSimple> getHistoryContext(IWorkflow workflow) {
-        List<ChatRecordSimple> list = new ArrayList<>();
-        for (ChatRecordDTO chatRecord : workflow.getHistoryChatRecords()) {
-            ChatRecordSimple record = new ChatRecordSimple();
-            record.setQuestion(chatRecord.getProblemText());
-            record.setAnswer(chatRecord.getAnswerText());
-            list.add(record);
-        }
-        return list;
     }
 
     public Map<String, Object> getChatVariable(AbsNode node, String chatId) {
