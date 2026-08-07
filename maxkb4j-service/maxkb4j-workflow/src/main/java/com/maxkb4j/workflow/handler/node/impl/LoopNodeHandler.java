@@ -227,7 +227,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
      */
     private void removePreviousIterationData(LoopExecutionContext ctx) {
         if (ctx.loopDetails.size() > ctx.currentIndex) {
-            ctx.loopDetails.removeFirst();
+            ctx.loopDetails.remove(ctx.currentIndex);
         }
     }
 
