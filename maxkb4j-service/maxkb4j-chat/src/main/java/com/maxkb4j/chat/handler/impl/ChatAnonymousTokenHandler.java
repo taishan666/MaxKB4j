@@ -42,6 +42,6 @@ public class ChatAnonymousTokenHandler implements AuthHandler {
         }
         StpKit.USER.setTokenValue(tokenValue);
         String chatUserType = (String) StpKit.USER.getExtra("chatUserType");
-        return ChatUserType.ANONYMOUS_USER.name().equals(chatUserType);
+        return ChatUserType.ANONYMOUS_USER.getKey().equals(chatUserType);
     }
 }

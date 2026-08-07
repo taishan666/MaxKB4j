@@ -39,7 +39,7 @@ public class ChatMessageController {
         params.setChatId(chatId);
         ChatState chatState = ChatState.builder()
                 .chatUserId(userId)
-                .chatUserType(ChatUserType.ANONYMOUS_USER)
+                .chatUserType(ChatUserType.PLATFORM_USER)
                 .source(ChatSource.ONLINE)
                 .ipAddress(WebUtil.getIP())
                 .debug(true)

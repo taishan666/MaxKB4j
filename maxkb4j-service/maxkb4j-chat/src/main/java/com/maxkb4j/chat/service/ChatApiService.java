@@ -60,7 +60,7 @@ public class ChatApiService {
         }
         Map<String, Object> extraData = new HashMap<>();
         extraData.put("applicationId", accessTokenEntity.getApplicationId());
-        extraData.put("chatUserType", ChatUserType.ANONYMOUS_USER.name());
+        extraData.put("chatUserType", ChatUserType.ANONYMOUS_USER.getKey());
         extraData.put("accessToken", accessToken);
         return chatTokenService.issueAnonymousToken(chatUserId, extraData);
     }
