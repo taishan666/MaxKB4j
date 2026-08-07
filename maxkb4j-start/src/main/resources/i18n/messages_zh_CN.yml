@@ -1,7 +1,7 @@
 common:
   success: 操作成功
   fail: 操作失败
-  no:
+  "no":
     data: 暂无承载数据
   pk:
     empty: 主键不能为空
@@ -30,13 +30,13 @@ login:
     disabled: 该用户已被禁用，请联系管理员！
   not:
     login: 未登录
-  no:
+  "no":
     permission: 无此权限
   access:
     denied: 禁止访问
 
 resource:
-  no:
+  "no":
     permission: 无权限删除该资源
 
 user:
@@ -139,5 +139,5 @@ trigger:
       failed: token鉴权失败
 workflow:
   condition:
-    no:
+    "no":
       match: 条件节点未匹配到任何分支

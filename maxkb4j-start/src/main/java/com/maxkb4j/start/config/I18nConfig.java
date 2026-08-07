@@ -45,29 +45,7 @@ public class I18nConfig {
 
     @Bean
     public MessageSource messageSource(@Value("${spring.messages.basename:i18n/messages}") String basename) {
-        YamlMessageSource source = new YamlMessageSource(basename);
-        // [I18N-DIAG] 临时诊断：排查 resource.no.permission 不生效
-        try {
-            PathMatchingResourcePatternResolver r = new PathMatchingResourcePatternResolver();
-            Resource res = r.getResource("classpath:i18n/messages_zh_CN.yml");
-            System.out.println("[I18N-DIAG] yml.url=" + res.getURL());
-            YamlPropertiesFactoryBean fb = new YamlPropertiesFactoryBean();
-            fb.setResources(res);
-            Properties p = fb.getObject();
-            System.out.println("[I18N-DIAG] yml.size=" + (p == null ? 0 : p.size()));
-            System.out.println("[I18N-DIAG] yml.hasResourcePerm=" + (p != null && p.containsKey("resource.no.permission")));
-            if (p != null) {
-                p.stringPropertyNames().stream().filter(k -> k.startsWith("resource"))
-                        .forEach(k -> System.out.println("[I18N-DIAG] yml.key=" + k + "=" + p.getProperty(k)));
-            }
-        } catch (Exception e) {
-            System.out.println("[I18N-DIAG] diag.err=" + e);
-        }
-        for (String code : new String[]{"resource.no.permission", "login.no.permission"}) {
-            System.out.println("[I18N-DIAG] probe " + code + " zh="
-                    + source.getMessage(code, null, "[MISS]", Locale.SIMPLIFIED_CHINESE));
-        }
-        return source;
+        return new YamlMessageSource(basename);
     }
 
     @Bean

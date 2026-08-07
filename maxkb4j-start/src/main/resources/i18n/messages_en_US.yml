@@ -1,7 +1,7 @@
 common:
   success: Operation successful
   fail: Operation failed
-  no:
+  "no":
     data: No data available
   pk:
     empty: Primary key cannot be empty
@@ -30,13 +30,13 @@ login:
     disabled: The user has been disabled. Please contact the administrator.
   not:
     login: Not logged in
-  no:
+  "no":
     permission: No permission
   access:
     denied: Access denied
 
 resource:
-  no:
+  "no":
     permission: No permission to delete this resource
 
 user:
@@ -139,5 +139,5 @@ trigger:
       failed: Token authentication failed
 workflow:
   condition:
-    no:
+    "no":
       match: The condition node did not match any branch

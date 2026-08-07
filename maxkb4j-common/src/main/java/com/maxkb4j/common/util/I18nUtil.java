@@ -43,18 +43,11 @@ public class I18nUtil implements ApplicationContextAware {
      */
     public static String get(String code, Object... args) {
         if (MESSAGE_SOURCE == null) {
-            System.out.println("[I18N-DIAG] MISS(null source) code=" + code);
             return code;
         }
-        Locale locale = LocaleContextHolder.getLocale();
         try {
-            String result = MESSAGE_SOURCE.getMessage(code, args, locale);
-            System.out.println("[I18N-DIAG] resolve code=" + code + " locale=" + locale
-                    + " source=" + MESSAGE_SOURCE.getClass().getSimpleName() + " -> " + result);
-            return result;
+            return MESSAGE_SOURCE.getMessage(code, args, LocaleContextHolder.getLocale());
         } catch (NoSuchMessageException ex) {
-            System.out.println("[I18N-DIAG] MISS code=" + code + " locale=" + locale
-                    + " source=" + MESSAGE_SOURCE.getClass().getSimpleName());
             return code;
         }
     }
