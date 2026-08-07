@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DocumentWriteService extends ServiceImpl<DocumentMapper, DocumentEntity> {
+public class DocumentWriteService extends ServiceImpl<DocumentMapper, DocumentEntity> implements IDocumentService {
 
     private final ParagraphServiceImpl paragraphService;
     private final ProblemServiceImpl problemService;
@@ -42,6 +42,7 @@ public class DocumentWriteService extends ServiceImpl<DocumentMapper, DocumentEn
 
 
     @Transactional
+    @Override
     public boolean batchCreateDocs(String knowledgeId,int knowledgeType, List<DocumentSimple> docs) {
         if (CollectionUtils.isEmpty(docs)) {
             return true;

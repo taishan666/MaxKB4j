@@ -3,42 +3,24 @@ package com.maxkb4j.knowledge.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.maxkb4j.common.domain.dto.KeyAndValue;
-import com.maxkb4j.common.exception.FileLimitExceededException;
-import com.maxkb4j.knowledge.util.FilePathSecurityUtil;
-import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.DatasetBatchHitHandlingDTO;
 import com.maxkb4j.knowledge.dto.DocQuery;
-import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.entity.*;
 import com.maxkb4j.knowledge.event.DocumentIndexEvent;
 import com.maxkb4j.knowledge.event.GenerateProblemEvent;
-import com.maxkb4j.knowledge.handler.DocumentHandler;
 import com.maxkb4j.knowledge.mapper.DocumentMapper;
-import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
-import com.maxkb4j.knowledge.service.DocumentWriteService;
-import com.maxkb4j.knowledge.service.IDocumentParseService;
 import com.maxkb4j.knowledge.service.IDocumentInternalService;
 import com.maxkb4j.knowledge.service.IDocumentTagService;
 import com.maxkb4j.knowledge.store.IDataStore;
-import com.maxkb4j.knowledge.vo.DocFileVO;
 import com.maxkb4j.knowledge.vo.DocumentVO;
-import com.maxkb4j.knowledge.vo.TextSegmentVO;
-import com.maxkb4j.oss.service.IOssService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,15 +35,8 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
 
     private final ParagraphServiceImpl paragraphService;
     private final ProblemParagraphServiceImpl problemParagraphService;
-    private final IDocumentParseService documentParseService;
-    private final DocumentSplitServiceImpl documentSpiltService;
-    private final IOssService ossService;
     private final ApplicationEventPublisher eventPublisher;
-    private final DocumentWebServiceImpl documentWebService;
-    private final DocumentWriteService documentWriteService;
-    private final DocumentHandler documentHandler;
     private final IDataStore compositeStore;
-    private final KnowledgeMapper knowledgeMapper;
     private final IDocumentTagService documentTagService;
 
     public void updateStatusMetaById(String id) {
@@ -81,22 +56,6 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
     }
 
     @Transactional
-    public boolean migrateDoc(String sourceKnowledgeId, String targetKnowledgeId, List<String> docIds) {
-        if (CollectionUtils.isEmpty(docIds)) {
-            return false;
-        }
-        compositeStore.deleteByDocumentIds(targetKnowledgeId, docIds);
-        documentTagService.lambdaUpdate().in(DocumentTagEntity::getDocumentId, docIds).remove();
-        paragraphService.lambdaUpdate().set(ParagraphEntity::getKnowledgeId, targetKnowledgeId).in(ParagraphEntity::getDocumentId, docIds).update();
-        problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getKnowledgeId, sourceKnowledgeId).in(ProblemParagraphEntity::getDocumentId, docIds).remove();
-        publishDocumentIndexEvent(targetKnowledgeId, docIds, List.of("0", "1", "2", "3", "4", "5", "n"));
-        return this.lambdaUpdate()
-                .set(DocumentEntity::getKnowledgeId, targetKnowledgeId)
-                .in(DocumentEntity::getId, docIds)
-                .update();
-    }
-
-    @Transactional
     public boolean batchHitHandling(String knowledgeId, DatasetBatchHitHandlingDTO dto) {
         List<String> ids = dto.getIdList();
         if (CollectionUtils.isEmpty(ids)) {
@@ -111,62 +70,6 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
             return entity;
         }).collect(Collectors.toList());
         return this.updateBatchById(documentEntities);
-    }
-
-    @Transactional
-    public void importQa(String knowledgeId, MultipartFile[] files) throws IOException {
-        if (checkFileLimit(knowledgeId, files)) {
-            throw new FileLimitExceededException("common.file.limit.exceeded");
-        }
-        if (files == null) return;
-        List<DocumentSimple> docs = new ArrayList<>();
-        for (MultipartFile file : files) {
-            if (file == null || file.isEmpty()) continue;
-            String fileName = file.getOriginalFilename();
-            if (fileName == null) continue;
-            // 验证文件名安全性
-            if (FilePathSecurityUtil.illegalityFileName(fileName)) {
-                continue; // 跳过非法文件
-            }
-            if (fileName.toLowerCase().endsWith(".zip")) {
-                docs.addAll(documentHandler.processZipQaFile(file));
-            } else {
-                docs.addAll(documentHandler.processQaFile(file.getBytes(), fileName));
-            }
-        }
-        // 将解析的文档保存到数据库
-        if (!docs.isEmpty()) {
-            batchCreateDocs(knowledgeId, KnowledgeType.BASE, docs);
-        }
-    }
-
-    @Transactional
-    public void importTable(String knowledgeId, MultipartFile[] files) throws IOException {
-        if (checkFileLimit(knowledgeId, files)) {
-            throw new FileLimitExceededException("common.file.limit.exceeded");
-        }
-        if (files == null) return;
-        List<DocumentSimple> docs = new ArrayList<>();
-        for (MultipartFile uploadFile : files) {
-            if (uploadFile == null || uploadFile.isEmpty()) continue;
-            String originalFilename = uploadFile.getOriginalFilename();
-            if (originalFilename == null) continue;
-
-            // 验证文件名安全性
-            if (FilePathSecurityUtil.illegalityFileName(originalFilename)) {
-                continue; // 跳过非法文件
-            }
-
-            docs.addAll(documentHandler.processTable(uploadFile.getBytes(), originalFilename));
-        }
-        // 将解析的文档保存到数据库
-        if (!docs.isEmpty()) {
-            batchCreateDocs(knowledgeId, KnowledgeType.BASE, docs);
-        }
-    }
-
-    public boolean batchCreateDocs(String knowledgeId, int knowledgeType, List<DocumentSimple> docs) {
-        return documentWriteService.batchCreateDocs(knowledgeId, knowledgeType, docs);
     }
 
     public List<String> getNoActiveDocIds(List<String> knowledgeIds) {
@@ -247,101 +150,6 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
         return docPage;
     }
 
-    public List<KeyAndValue> splitPattern() {
-        return Arrays.asList(
-                new KeyAndValue("#", "(?<=^)# .*|(?<=\\n)# .*"),
-                new KeyAndValue("##", "(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*"),
-                new KeyAndValue("###", "(?<=\\n)(?<!#)### (?!#).*|(?<=^)(?<!#)### (?!#).*"),
-                new KeyAndValue("####", "(?<=\\n)(?<!#)#### (?!#).*|(?<=^)(?<!#)#### (?!#).*"),
-                new KeyAndValue("#####", "(?<=\\n)(?<!#)##### (?!#).*|(?<=^)(?<!#)##### (?!#).*"),
-                new KeyAndValue("######", "(?<=\\n)(?<!#)###### (?!#).*|(?<=^)(?<!#)###### (?!#).*"),
-                new KeyAndValue("-", "(?<! )- .*"),
-                new KeyAndValue("space", "(?<! ) (?! )"),
-                new KeyAndValue("semicolon", "(?<!；)；(?!；)"),
-                new KeyAndValue("comma", "(?<!，)，(?!，)"),
-                new KeyAndValue("period", "(?<!。)。(?!。)"),
-                new KeyAndValue("enter", "(?<!\\n)\\n(?!\\n)"),
-                new KeyAndValue("blank line", "(?<!\\n)\\n\\n(?!\\n)")
-        );
-    }
-
-    public List<TextSegmentVO> split(String knowledgeId, MultipartFile[] files, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
-        if (checkFileLimit(knowledgeId, files)) {
-            throw new FileLimitExceededException("common.file.limit.exceeded");
-        }
-        List<TextSegmentVO> result = new ArrayList<>();
-        List<DocFileVO> fileStreams = new ArrayList<>();
-        if (files == null) return result;
-        for (MultipartFile file : files) {
-            if (file == null || file.isEmpty()) continue;
-            String name = file.getOriginalFilename();
-            if (name == null) continue;
-            // 验证文件名安全性
-            if (FilePathSecurityUtil.illegalityFileName(name)) {
-                log.warn("非法的文件名: {}", name);
-                continue; // 跳过非法文件
-            }
-            if (name.toLowerCase().endsWith(".zip")) {
-                try (ZipArchiveInputStream zis = new ZipArchiveInputStream(file.getInputStream())) {
-                    ZipArchiveEntry entry;
-                    while ((entry = zis.getNextEntry()) != null) {
-                        if (!entry.isDirectory()) {
-                            // 验证压缩包内文件名的安全性
-                            String entryName = FilePathSecurityUtil.normalizeFilePath(entry.getName());
-                            if (entryName == null) {
-                                log.warn("压缩包中存在非法的文件路径: {}", entry.getName());
-                                continue; // 跳过非法文件
-                            }
-                            try {
-                                byte[] bytes = zis.readAllBytes();
-                                fileStreams.add(new DocFileVO(entryName, bytes, ""));
-                            } catch (java.io.EOFException e) {
-                                log.warn("压缩包中文件 {} 读取不完整，已跳过: {}", entryName, e.getMessage());
-                            }
-                        }
-                    }
-                } catch (java.io.EOFException e) {
-                    log.warn("ZIP文件 {} 格式异常或已损坏，部分文件可能未读取: {}", name, e.getMessage());
-                }
-            } else {
-                fileStreams.add(new DocFileVO(name, file.getBytes(), file.getContentType()));
-            }
-        }
-        for (DocFileVO fs : fileStreams) {
-            TextSegmentVO vo = new TextSegmentVO();
-            vo.setName(fs.getName());
-            String fileId = ossService.storeFile(fs.getBytes(), fs.getName(), fs.getContentType());
-            String text = documentParseService.extractText(fs.getName(), new ByteArrayInputStream(fs.getBytes()));
-            vo.setContent(documentSpiltService.split(text, patterns, limit, withFilter));
-            vo.setSourceFileId(fileId);
-            result.add(vo);
-        }
-        return result;
-    }
-
-
-    @Transactional
-    public void createWebDoc(String knowledgeId, List<String> sourceUrlList, String selector) {
-        for (String sourceUrl : sourceUrlList) {
-            List<DocumentSimple> docs = documentWebService.getWebDocuments(sourceUrl, selector, false);
-            batchCreateDocs(knowledgeId, KnowledgeType.WEB, docs);
-        }
-    }
-
-
-    @Transactional
-    public void syncWebDoc(String knowledgeId, String docId) {
-        DocumentEntity doc = this.getById(docId);
-        if (doc == null || doc.getMeta() == null) return;
-        String sourceUrl = doc.getMeta().getString("sourceUrl");
-        String selector = doc.getMeta().getString("selector");
-        if (StringUtils.isAnyBlank(sourceUrl, selector)) return;
-        deleteDocByIds(knowledgeId, List.of(docId));
-        List<DocumentSimple> docs = documentWebService.getWebDocuments(sourceUrl, selector, false);
-        batchCreateDocs(knowledgeId, KnowledgeType.WEB, docs);
-    }
-
-
     public boolean batchGenerateRelated(String knowledgeId, GenerateProblemDTO dto) {
         eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(),dto.getModelParamsSetting(), dto.getNumber(), dto.getStateList()));
         return true;
@@ -353,34 +161,5 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
             eventPublisher.publishEvent(new DocumentIndexEvent(this, knowledgeId, docIds, stateList));
         }
     }
-
-    private boolean checkFileLimit(String id, MultipartFile[] files) {
-        KnowledgeEntity knowledge = knowledgeMapper.selectById(id);
-        if (Objects.isNull(knowledge)) {
-            return false;
-        }
-        int fileSizeLimit = knowledge.getFileSizeLimit();
-        int fileCountLimit = knowledge.getFileCountLimit();
-        // 检查文件数量
-        if (files == null || files.length == 0) {
-            return false;
-        }
-        if (files.length > fileCountLimit) {
-            return true;
-        }
-        // 预计算字节上限（避免循环内重复计算）
-        long fileSizeLimitBytes = (long) fileSizeLimit * 1024 * 1024;
-        // 收集超限文件的序号（从1开始）
-        List<Integer> overLimitIndices = new ArrayList<>();
-        for (int i = 0; i < files.length; i++) {
-            MultipartFile file = files[i];
-            if (file != null && file.getSize() > fileSizeLimitBytes) {
-                overLimitIndices.add(i + 1);
-            }
-        }
-        // 若有超限文件，返回提示
-        return !overLimitIndices.isEmpty();
-    }
-
 
 }

@@ -1,5 +1,6 @@
 package com.maxkb4j.knowledge.service.impl;
 
+import com.maxkb4j.common.domain.dto.KeyAndValue;
 import com.maxkb4j.knowledge.service.IDocumentSplitService;
 import com.maxkb4j.knowledge.util.SentenceSplitter;
 import com.maxkb4j.knowledge.util.TextSplitter;
@@ -326,5 +327,23 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
         }
 
         return segments;
+    }
+
+    public List<KeyAndValue> splitPattern() {
+        return Arrays.asList(
+                new KeyAndValue("#", "(?<=^)# .*|(?<=\\n)# .*"),
+                new KeyAndValue("##", "(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*"),
+                new KeyAndValue("###", "(?<=\\n)(?<!#)### (?!#).*|(?<=^)(?<!#)### (?!#).*"),
+                new KeyAndValue("####", "(?<=\\n)(?<!#)#### (?!#).*|(?<=^)(?<!#)#### (?!#).*"),
+                new KeyAndValue("#####", "(?<=\\n)(?<!#)##### (?!#).*|(?<=^)(?<!#)##### (?!#).*"),
+                new KeyAndValue("######", "(?<=\\n)(?<!#)###### (?!#).*|(?<=^)(?<!#)###### (?!#).*"),
+                new KeyAndValue("-", "(?<! )- .*"),
+                new KeyAndValue("space", "(?<! ) (?! )"),
+                new KeyAndValue("semicolon", "(?<!；)；(?!；)"),
+                new KeyAndValue("comma", "(?<!，)，(?!，)"),
+                new KeyAndValue("period", "(?<!。)。(?!。)"),
+                new KeyAndValue("enter", "(?<!\\n)\\n(?!\\n)"),
+                new KeyAndValue("blank line", "(?<!\\n)\\n\\n(?!\\n)")
+        );
     }
 }

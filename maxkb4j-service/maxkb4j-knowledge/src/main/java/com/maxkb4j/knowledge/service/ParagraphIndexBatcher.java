@@ -4,12 +4,17 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.knowledge.listener.DocumentIndexListener;
 import com.maxkb4j.knowledge.listener.ParagraphIndexListener;
 import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
+import com.maxkb4j.knowledge.consts.SourceType;
+import com.maxkb4j.knowledge.entity.EmbeddingEntity;
+import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
+import com.maxkb4j.knowledge.store.IDataStore;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,6 +39,7 @@ public class ParagraphIndexBatcher {
 
     private final DocumentServiceImpl documentService;
     private final ParagraphServiceImpl paragraphService;
+    private final IDataStore compositeStore;
 
     /**
      * 批量对文档下的段落进行向量化索引，并维护文档/段落状态流转。
@@ -55,7 +61,7 @@ public class ParagraphIndexBatcher {
             paragraphService.updateStatusByIds(paragraphIds, 1, 0);
 
             try {
-                paragraphService.createIndexBatch(knowledgeId, paragraphIds, embeddingModel);
+                createIndexBatch(knowledgeId, paragraphIds, embeddingModel);
                 paragraphService.updateStatusByIds(paragraphIds, 1, 2);
                 documentService.updateStatusMetaById(docId);
                 log.info("结束--->文档索引: {} (处理了 {} 个段落)", docId, paragraphIds.size());
@@ -66,5 +72,44 @@ public class ParagraphIndexBatcher {
         }
 
         documentService.updateStatusById(docId, 1, 2);
+    }
+
+    /**
+     * Batch create index for multiple paragraphs with optimized processing
+     */
+    private void createIndexBatch(String knowledgeId,List<String> paragraphIds, EmbeddingModel embeddingModel) {
+        List<ParagraphEntity> paragraphs = paragraphService.listByIds(paragraphIds);
+        if (CollectionUtils.isEmpty(paragraphs)) {
+            return;
+        }
+
+        log.info("开始批量索引 {} 个段落", paragraphs.size());
+
+        // Collect all embedding entities for batch processing
+        List<EmbeddingEntity> allEmbeddingEntities = new ArrayList<>();
+        // Clear previous vectors
+        compositeStore.deleteByParagraphIds(knowledgeId, paragraphIds);
+        for (ParagraphEntity paragraph : paragraphs) {
+            if (paragraph == null) continue;
+
+            String title = paragraph.getTitle() != null ? paragraph.getTitle() : "";
+            String content = paragraph.getContent() != null ? paragraph.getContent() : "";
+
+            // Create paragraph embedding
+            EmbeddingEntity paragraphEmbed = EmbeddingEntity.builder()
+                    .knowledgeId(paragraph.getKnowledgeId())
+                    .documentId(paragraph.getDocumentId())
+                    .sourceId(paragraph.getId())
+                    .sourceType(SourceType.PARAGRAPH)
+                    .content(title + content)
+                    .build();
+            allEmbeddingEntities.add(paragraphEmbed);
+        }
+
+        // Batch insert all embeddings
+        if (!allEmbeddingEntities.isEmpty()) {
+            compositeStore.upsert(embeddingModel, allEmbeddingEntities);
+            log.info("批量索引完成，共处理 {} 个嵌入实体", allEmbeddingEntities.size());
+        }
     }
 }

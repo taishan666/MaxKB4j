@@ -3,7 +3,7 @@ package com.maxkb4j.knowledge.listener;
 import com.maxkb4j.knowledge.event.CreateWebDocsEvent;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
-import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
+import com.maxkb4j.knowledge.service.DocumentWriteService;
 import com.maxkb4j.knowledge.service.impl.DocumentWebServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ import java.util.List;
 public class WebDocsListener {
 
     private final DocumentWebServiceImpl documentWebService;
-    private final DocumentServiceImpl documentService;
+    private final DocumentWriteService documentWriteService;
 
     @Async
     @Transactional
@@ -39,7 +39,7 @@ public class WebDocsListener {
                 event.getSelector(),
                 true
             );
-            documentService.batchCreateDocs(event.getKnowledgeId(), KnowledgeType.WEB, docs);
+            documentWriteService.batchCreateDocs(event.getKnowledgeId(), KnowledgeType.WEB, docs);
             log.info("Web文档创建完成: knowledgeId={}, 文档数量={}", event.getKnowledgeId(), docs.size());
         } catch (Exception e) {
             log.error("Web文档创建失败: knowledgeId={}, sourceUrl={}, 错误: {}",

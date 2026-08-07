@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.tool.service.IToolService;
+import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
@@ -22,7 +22,7 @@ import java.util.Map;
 @Component
 public class McpNodeHandler extends AbsNodeHandler {
 
-    private final IToolService toolService;
+    private final IToolExecuteService toolExecuteService;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -38,7 +38,7 @@ public class McpNodeHandler extends AbsNodeHandler {
             }
             execParams.put(key, value);
         }
-        String resultText =toolService.mcpToolExecute(params.getMcpServers(),params.getMcpTool(), execParams);
+        String resultText =toolExecuteService.mcpToolExecute(params.getMcpServers(),params.getMcpTool(), execParams);
         putDetails(node, Map.of(
                 "toolParams", execParams,
                 "mcpTool", params.getMcpTool()

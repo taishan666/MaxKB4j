@@ -3,7 +3,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 import cn.hutool.http.HttpResponse;
 import com.maxkb4j.common.mp.entity.ToolInputField;
 import com.maxkb4j.tool.consts.ToolConstants;
-import com.maxkb4j.tool.service.IToolService;
+import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
@@ -23,7 +23,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ToolNodeHandler extends AbsNodeHandler {
 
-    private final IToolService toolService;
+    private final IToolExecuteService toolExecuteService;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -38,10 +38,10 @@ public class ToolNodeHandler extends AbsNodeHandler {
         }
         Object result;
         if (ToolConstants.ToolType.HTTP.equals(params.getToolType())){
-            HttpResponse httpResponse = toolService.httpExecute(params.getCode(),execParams);
+            HttpResponse httpResponse = toolExecuteService.httpExecute(params.getCode(),execParams);
             result = httpResponse.body();
         }else {
-            result = toolService.customExecute(params.getCode(), params.getInitParams(),execParams);
+            result = toolExecuteService.customExecute(params.getCode(), params.getInitParams(),execParams);
         }
         // 使用辅助方法写入详情
         putDetail(node, "params", execParams);

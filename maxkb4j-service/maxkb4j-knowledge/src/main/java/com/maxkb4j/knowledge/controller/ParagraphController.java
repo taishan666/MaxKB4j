@@ -12,6 +12,7 @@ import com.maxkb4j.knowledge.dto.ParagraphAddDTO;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.service.IParagraphInternalService;
 import com.maxkb4j.knowledge.service.IProblemParagraphService;
+import com.maxkb4j.knowledge.service.impl.ParagraphMigrationService;
 import com.maxkb4j.knowledge.vo.ParagraphBaseVO;
 import com.maxkb4j.knowledge.vo.ParagraphPageVO;
 import com.maxkb4j.knowledge.vo.ProblemSimpleVO;
@@ -28,6 +29,7 @@ public class ParagraphController {
 
     private final IParagraphInternalService paragraphService;
     private final IProblemParagraphService problemParagraphService;
+    private final ParagraphMigrationService paragraphMigrationService;
 
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
@@ -93,7 +95,7 @@ public class ParagraphController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE)
     @PutMapping("/knowledge/{id}/document/{sourceDocId}/paragraph/migrate/knowledge/{targetKnowledgeId}/document/{targetDocId}")
     public R<Boolean> paragraphMigrate(@PathVariable("id") String sourceKnowledgeId, @PathVariable String sourceDocId, @PathVariable String targetKnowledgeId, @PathVariable String targetDocId, @Valid @RequestBody IdListDTO dto) {
-        return R.status(paragraphService.paragraphMigrate(sourceKnowledgeId, sourceDocId, targetKnowledgeId, targetDocId, dto.getIdList()));
+        return R.status(paragraphMigrationService.paragraphMigrate(sourceKnowledgeId, sourceDocId, targetKnowledgeId, targetDocId, dto.getIdList()));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)

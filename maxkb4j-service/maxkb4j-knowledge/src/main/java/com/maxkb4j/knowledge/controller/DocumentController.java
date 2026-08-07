@@ -10,7 +10,11 @@ import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.*;
 import com.maxkb4j.knowledge.entity.DocumentEntity;
+import com.maxkb4j.knowledge.service.DocumentWriteService;
 import com.maxkb4j.knowledge.service.IDocumentInternalService;
+import com.maxkb4j.knowledge.service.impl.DocumentImportService;
+import com.maxkb4j.knowledge.service.impl.DocumentMigrationService;
+import com.maxkb4j.knowledge.service.impl.DocumentSplitServiceImpl;
 import com.maxkb4j.knowledge.vo.DocumentVO;
 import com.maxkb4j.knowledge.vo.TextSegmentVO;
 import jakarta.validation.Valid;
@@ -31,48 +35,52 @@ import java.util.List;
 public class DocumentController {
 
     private final IDocumentInternalService documentService;
+    private final DocumentImportService documentImportService;
+    private final DocumentMigrationService documentMigrationService;
+    private final DocumentSplitServiceImpl documentSplitService;
+    private final DocumentWriteService documentWriteService;
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/web")
     public void web(@PathVariable("id") String id, @Valid @RequestBody WebUrlDTO params) throws IOException {
-        documentService.createWebDoc(id, params.getSourceUrlList(), params.getSelector());
+        documentImportService.createWebDoc(id, params.getSourceUrlList(), params.getSelector());
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_SYNC)
     @PutMapping("/knowledge/{id}/document/{docId}/sync")
     public void sync(@PathVariable("id") String id, @PathVariable("docId") String docId) {
-        documentService.syncWebDoc(id, docId);
+        documentImportService.syncWebDoc(id, docId);
     }
 
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/qa")
     public void importQa(@PathVariable("id") String id, MultipartFile[] file) throws IOException {
-        documentService.importQa(id, file);
+        documentImportService.importQa(id, file);
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/table")
     public void importTable(@PathVariable("id") String id, MultipartFile[] file) throws IOException {
-        documentService.importTable(id, file);
+        documentImportService.importTable(id, file);
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/split")
     public R<List<TextSegmentVO>> split(@PathVariable String id, MultipartFile[] file, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
-        return R.data(documentService.split(id,file, patterns, limit, withFilter));
+        return R.data(documentImportService.split(id,file, patterns, limit, withFilter));
     }
 
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PutMapping("/knowledge/{id}/document/batch_create")
     public R<Boolean> createBatchDoc(@PathVariable("id") String id, @RequestBody List<DocumentSimple> docs) {
-        return R.status(documentService.batchCreateDocs(id, KnowledgeType.BASE, docs));
+        return R.status(documentWriteService.batchCreateDocs(id, KnowledgeType.BASE, docs));
     }
 
     @GetMapping("/knowledge/{id}/document/split_pattern")
     public R<List<KeyAndValue>> splitPattern(@PathVariable("id") String id) {
-        return R.data(documentService.splitPattern());
+        return R.data(documentSplitService.splitPattern());
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
@@ -90,7 +98,7 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE)
     @PutMapping("/knowledge/{id}/document/migrate/{targetKnowledgeId}")
     public R<Boolean> migrateDoc(@PathVariable("id") String sourceKnowledgeId, @PathVariable("targetKnowledgeId") String targetKnowledgeId, @RequestBody List<String> docIds) {
-        return R.status(documentService.migrateDoc(sourceKnowledgeId, targetKnowledgeId, docIds));
+        return R.status(documentMigrationService.migrateDoc(sourceKnowledgeId, targetKnowledgeId, docIds));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)

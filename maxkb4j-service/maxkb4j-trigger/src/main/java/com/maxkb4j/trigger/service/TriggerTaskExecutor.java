@@ -15,6 +15,7 @@ import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolDTO;
+import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
 import com.maxkb4j.trigger.entity.EventTriggerTaskRecordEntity;
@@ -37,6 +38,7 @@ public class TriggerTaskExecutor {
     private final IEventTriggerTaskRecordService eventTriggerTaskRecordService;
     private final IApplicationChatService applicationChatService;
     private final IToolService toolService;
+    private final IToolExecuteService toolExecuteService;
 
     /**
      * 执行触发器的所有关联任务
@@ -150,10 +152,10 @@ public class TriggerTaskExecutor {
             JSONObject parameter = task.getParameter();
             Object response;
             if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())){
-                HttpResponse httpResponse = toolService.httpExecute(tool.getCode(),parameter);
+                HttpResponse httpResponse = toolExecuteService.httpExecute(tool.getCode(),parameter);
                 response = httpResponse.isOk()?httpResponse.body():null;
             }else {
-                response = toolService.customExecute(tool.getCode(), tool.getInitParams(),parameter);
+                response = toolExecuteService.customExecute(tool.getCode(), tool.getInitParams(),parameter);
             }
             float runTime = (System.currentTimeMillis() - startTime) / 1000f;
             TaskState state = (response != null) ? TaskState.SUCCESS : TaskState.FAILURE;

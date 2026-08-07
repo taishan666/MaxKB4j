@@ -14,6 +14,7 @@ import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;
+import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.tool.service.IToolInternalService;
 import com.maxkb4j.tool.vo.ToolCardVO;
 import com.maxkb4j.tool.vo.ToolListVO;
@@ -41,6 +42,7 @@ import java.util.*;
 public class ToolController {
 
     private final IToolInternalService toolService;
+    private final IToolExecuteService toolExecuteService;
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool/{current}/{size}")
@@ -105,10 +107,10 @@ public class ToolController {
         log.info("input params: {}", params);
         Object result;
         if (ToolConstants.ToolType.HTTP.equals(dto.getToolType())){
-            HttpResponse httpResponse = toolService.httpExecute(dto.getCode(),params);
+            HttpResponse httpResponse = toolExecuteService.httpExecute(dto.getCode(),params);
             result = httpResponse.body();
         }else {
-            result = toolService.customExecute(dto.getCode(), dto.getInitParams(),params);
+            result = toolExecuteService.customExecute(dto.getCode(), dto.getInitParams(),params);
         }
         return R.data(result);
 

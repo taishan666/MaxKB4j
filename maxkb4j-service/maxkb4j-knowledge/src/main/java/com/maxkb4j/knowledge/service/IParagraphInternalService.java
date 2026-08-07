@@ -35,7 +35,5 @@ public interface IParagraphInternalService extends IParagraphService, IService<P
 
     Boolean batchGenerateRelated(String knowledgeId, String docId, GenerateProblemDTO dto);
 
-    Boolean paragraphMigrate(String sourceKnowledgeId, String sourceDocId, String targetKnowledgeId, String targetDocId, List<String> paragraphIds);
-
     boolean adjustPosition(String knowledgeId, String documentId, String paragraphId,Integer newPosition,  Integer targetIndex);
 }

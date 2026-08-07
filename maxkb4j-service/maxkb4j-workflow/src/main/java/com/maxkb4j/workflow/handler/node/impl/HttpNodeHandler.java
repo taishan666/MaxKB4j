@@ -4,7 +4,7 @@ import cn.hutool.http.HttpResponse;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.tool.dto.ToolHttpRequest;
-import com.maxkb4j.tool.service.IToolService;
+import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
@@ -22,7 +22,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class HttpNodeHandler extends AbsNodeHandler {
 
-    private final IToolService toolService;
+    private final IToolExecuteService toolExecuteService;
 
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
@@ -30,7 +30,7 @@ public class HttpNodeHandler extends AbsNodeHandler {
         Map<String, Object> variables = workflow.getPromptVariables();
         String code = JSON.toJSONString(params);
         ToolHttpRequest  request = JSONObject.parseObject(code, ToolHttpRequest.class);
-        try (HttpResponse response = toolService.httpExecute(JSON.toJSONString(params), variables)) {
+        try (HttpResponse response = toolExecuteService.httpExecute(JSON.toJSONString(params), variables)) {
             int resStatus = response.getStatus();
             String resBody = response.body();
             // 使用辅助方法写入详情
