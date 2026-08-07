@@ -6,7 +6,10 @@ import com.maxkb4j.common.constant.ResourceType;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Getter
@@ -97,13 +100,24 @@ public enum PermissionEnum {
     }
 
 
+    /**
+     * 按资源类型分组的权限枚举索引，类加载时构建一次，避免每次权限解析都遍历全部枚举。
+     */
+    private static final Map<String, List<PermissionEnum>> PERMISSIONS_BY_RESOURCE_TYPE =
+            Arrays.stream(values()).collect(Collectors.groupingBy(PermissionEnum::getResourceType));
+
     private static List<PermissionEnum> getPermissions(String resourceType) {
-        return Arrays.stream(values()).filter(e -> e.resourceType.equals(resourceType))
-                .collect(Collectors.toList());
+        return PERMISSIONS_BY_RESOURCE_TYPE.getOrDefault(resourceType, List.of());
     }
 
     public static List<PermissionEnum> getPermissions(String resourceType, List<String> permissionList) {
-        return getPermissions(resourceType).stream().filter(e -> permissionList.contains(e.getPermission())).toList();
+        if (permissionList == null || permissionList.isEmpty()) {
+            return List.of();
+        }
+        Set<String> grantedPermissions = new HashSet<>(permissionList);
+        return getPermissions(resourceType).stream()
+                .filter(e -> grantedPermissions.contains(e.getPermission()))
+                .toList();
     }
 
     public String getResourcePerm() {

@@ -11,7 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * 自定义权限加载接口实现类
@@ -19,6 +22,29 @@ import java.util.List;
 @RequiredArgsConstructor
 @Component    // 保证此类被 SpringBoot 扫描，完成 Sa-Token 的自定义权限验证扩展
 public class StpInterfaceImpl implements StpInterface {
+
+    /**
+     * 所有账号默认拥有的权限码集合，静态常量只计算一次
+     */
+    private static final List<String> DEFAULT_PERMISSIONS = Stream.of(
+            PermissionEnum.APPLICATION_READ,
+            PermissionEnum.APPLICATION_CREATE,
+            PermissionEnum.APPLICATION_IMPORT,
+            PermissionEnum.APPLICATION_BATCH_DELETE,
+            PermissionEnum.KNOWLEDGE_CREATE,
+            PermissionEnum.KNOWLEDGE_READ,
+            PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE,
+            PermissionEnum.KNOWLEDGE_DOCUMENT_READ,
+            PermissionEnum.KNOWLEDGE_PROBLEM_CREATE,
+            PermissionEnum.KNOWLEDGE_BATCH_DELETE,
+            PermissionEnum.TOOL_CREATE,
+            PermissionEnum.TOOL_DEBUG,
+            PermissionEnum.TOOL_READ,
+            PermissionEnum.TOOL_IMPORT,
+            PermissionEnum.TOOL_BATCH_DELETE,
+            PermissionEnum.MODEL_CREATE,
+            PermissionEnum.MODEL_READ
+    ).map(PermissionEnum::getResourcePerm).toList();
 
     private final UserMapper userMapper;
     private final UserResourcePermissionServiceImpl userResourcePermissionService;
@@ -28,30 +54,17 @@ public class StpInterfaceImpl implements StpInterface {
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
-        List<String> permissions = new ArrayList<>();
-        permissions.add(PermissionEnum.APPLICATION_READ.getResourcePerm());
-        permissions.add(PermissionEnum.APPLICATION_CREATE.getResourcePerm());
-        permissions.add(PermissionEnum.APPLICATION_IMPORT.getResourcePerm());
-        permissions.add(PermissionEnum.APPLICATION_BATCH_DELETE.getResourcePerm());
-        permissions.add(PermissionEnum.KNOWLEDGE_CREATE.getResourcePerm());
-        permissions.add(PermissionEnum.KNOWLEDGE_READ.getResourcePerm());
-        permissions.add(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE.getResourcePerm());
-        permissions.add(PermissionEnum.KNOWLEDGE_DOCUMENT_READ.getResourcePerm());
-        permissions.add(PermissionEnum.KNOWLEDGE_PROBLEM_CREATE.getResourcePerm());
-        permissions.add(PermissionEnum.KNOWLEDGE_BATCH_DELETE.getResourcePerm());
-        permissions.add(PermissionEnum.TOOL_CREATE.getResourcePerm());
-        permissions.add(PermissionEnum.TOOL_DEBUG.getResourcePerm());
-        permissions.add(PermissionEnum.TOOL_READ.getResourcePerm());
-        permissions.add(PermissionEnum.TOOL_IMPORT.getResourcePerm());
-        permissions.add(PermissionEnum.TOOL_BATCH_DELETE.getResourcePerm());
-        permissions.add(PermissionEnum.MODEL_CREATE.getResourcePerm());
-        permissions.add(PermissionEnum.MODEL_READ.getResourcePerm());
         List<UserResourcePermissionEntity> userResourcePermissions = userResourcePermissionService.getByUserId(String.valueOf(loginId));
-        for (UserResourcePermissionEntity permission : userResourcePermissions) {
-            List<PermissionEnum> resourcePermissionEnums = PermissionEnum.getPermissions(permission.getAuthTargetType(),permission.getPermissionList());
-            resourcePermissionEnums.forEach(e -> permissions.add(e.getResourcePerm(permission.getWorkspaceId(),permission.getTargetId())));
+        Set<String> permissions = new LinkedHashSet<>(DEFAULT_PERMISSIONS);
+        for (UserResourcePermissionEntity userResourcePermission : userResourcePermissions) {
+            List<PermissionEnum> resourcePermissionEnums = PermissionEnum.getPermissions(
+                    userResourcePermission.getAuthTargetType(), userResourcePermission.getPermissionList());
+            for (PermissionEnum resourcePermissionEnum : resourcePermissionEnums) {
+                permissions.add(resourcePermissionEnum.getResourcePerm(
+                        userResourcePermission.getWorkspaceId(), userResourcePermission.getTargetId()));
+            }
         }
-        return permissions;
+        return new ArrayList<>(permissions);
     }
 
     /**
