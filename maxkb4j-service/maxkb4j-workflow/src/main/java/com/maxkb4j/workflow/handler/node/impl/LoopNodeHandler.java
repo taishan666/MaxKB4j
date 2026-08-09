@@ -1,8 +1,7 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChildNode;
@@ -124,8 +123,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     private List<Object> parseJsonArray(String jsonStr) {
         String trimmed = jsonStr.trim();
         if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-            return new Gson().fromJson(trimmed, new TypeToken<List<Object>>() {
-            }.getType());
+            return JSON.parseArray(trimmed, Object.class);
         }
         return List.of(jsonStr);
     }

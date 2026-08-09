@@ -4,8 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.maxkb4j.application.dto.*;
 import com.maxkb4j.application.service.IApplicationAccessTokenService;
 import com.maxkb4j.application.service.IApplicationChatRecordService;
@@ -44,7 +42,6 @@ public class ChatApiService {
     private final IApplicationChatService chatService;
     private final IApplicationChatRecordService chatRecordService;
     private final ChatTokenService chatTokenService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     public String authToken(JSONObject params) {
@@ -107,9 +104,8 @@ public class ChatApiService {
     @Async
     public void mcpHandleAsync(ApplicationApiKeyDTO apiKey, McpRequest req, ResponseBodyEmitter emitter) {
         McpResponse resp = this.mcpHandle(apiKey,req);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         try {
-            String line = objectMapper.writeValueAsString(resp) + "\n";
+            String line = JSON.toJSONString(resp) + "\n";
             emitter.send(line);
             emitter.complete();
         } catch (IOException e) {

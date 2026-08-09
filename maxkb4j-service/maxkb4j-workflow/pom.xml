@@ -44,10 +44,6 @@
             <artifactId>maxkb4j-application-api</artifactId>
             <version>${revision}</version>
         </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
         <!-- Regression tests for workflow engine flows (comparators, variable resolution, template rendering, condition evaluation, node lifecycle) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

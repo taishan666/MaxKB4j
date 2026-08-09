@@ -3,7 +3,7 @@ package com.maxkb4j.system.service.impl;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.StpInterface;
-import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -87,7 +87,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             try {
                 String encryptedData = dto.getEncryptedData();
                 String text = RSAUtil.rsaLongDecrypt(encryptedData, SystemCache.getPrivateKey());
-                dto = JSON.to(UserLoginDTO.class,text);
+                dto = JSON.parseObject(text, UserLoginDTO.class);
             } catch (Exception e) {
                 throw new LoginException("login.password.decrypt.error");
             }
