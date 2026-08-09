@@ -9,6 +9,7 @@ import com.maxkb4j.tool.provider.AbsToolHandler;
 import com.maxkb4j.tool.registry.ToolHandlerRegistry;
 import com.maxkb4j.tool.service.IAgentToolService;
 import com.maxkb4j.tool.service.IKnowledgeToolService;
+import com.maxkb4j.tool.service.IToolInternalService;
 import com.maxkb4j.tool.service.IToolProviderService;
 import com.maxkb4j.tool.service.SkillToolService;
 import dev.langchain4j.service.tool.AiServiceTool;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ToolProviderServiceImpl implements IToolProviderService {
 
-    private final ToolServiceImpl toolService;
+    private final IToolInternalService toolService;
     private final SkillToolService skillToolService;
     private final IAgentToolService agentToolService;
     private final IKnowledgeToolService knowledgeToolService;

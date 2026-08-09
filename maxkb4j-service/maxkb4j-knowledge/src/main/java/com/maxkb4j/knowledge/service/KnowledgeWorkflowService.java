@@ -8,7 +8,6 @@ import com.maxkb4j.common.domain.form.TextInputField;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.entity.*;
 import com.maxkb4j.knowledge.event.GenerateProblemEvent;
-import com.maxkb4j.knowledge.service.impl.*;
 import com.maxkb4j.user.service.IUserService;
 import com.maxkb4j.workflow.builder.NodeBuilder;
 import com.maxkb4j.workflow.logic.LogicFlow;
@@ -40,10 +39,10 @@ import static com.maxkb4j.workflow.enums.NodeType.DATA_SOURCE_WEB;
 @RequiredArgsConstructor
 public class KnowledgeWorkflowService {
 
-    private final KnowledgeServiceImpl knowledgeService;
-    private final DocumentServiceImpl documentService;
-    private final KnowledgeVersionServiceImpl knowledgeVersionService;
-    private final KnowledgeActionServiceImpl knowledgeActionService;
+    private final IKnowledgeInternalService knowledgeService;
+    private final IDocumentInternalService documentService;
+    private final IKnowledgeVersionService knowledgeVersionService;
+    private final IKnowledgeActionInternalService knowledgeActionService;
     private final IWorkFlowActuator workFlowActuator;
     private final NodeBuilder nodeBuilder;
     private final WorkflowFactory workflowFactory;
@@ -51,7 +50,7 @@ public class KnowledgeWorkflowService {
     private final IUserService userService;
     private final TaskExecutor workflowTaskExecutor;
     private final ApplicationEventPublisher eventPublisher;
-    private final ProblemServiceImpl problemService;
+    private final IProblemService problemService;
 
     /**
      * 数据源表单列表

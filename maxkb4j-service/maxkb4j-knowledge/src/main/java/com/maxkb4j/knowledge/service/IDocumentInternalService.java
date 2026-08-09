@@ -31,4 +31,14 @@ public interface IDocumentInternalService extends IService<DocumentEntity> {
     List<DocumentEntity> listDocByKnowledgeId(String id);
 
     boolean batchGenerateRelated(String knowledgeId, GenerateProblemDTO dto);
+
+    void updateStatusMetaById(String id);
+
+    void updateStatusById(String id, int type, int status);
+
+    void updateStatusByIds(List<String> ids, int type, int status);
+
+    List<String> getNoActiveDocIds(List<String> knowledgeIds);
+
+    void deleteByKnowledgeIds(List<String> knowledgeIds);
 }

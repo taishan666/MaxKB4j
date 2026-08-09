@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
 import com.maxkb4j.knowledge.service.IDocumentParseService;
+import com.maxkb4j.knowledge.service.IDocumentSplitService;
 import com.maxkb4j.knowledge.service.IDocumentWebService;
 import com.maxkb4j.knowledge.util.JsoupUtil;
 import com.maxkb4j.knowledge.util.WebContentCleaner;
@@ -40,7 +41,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class DocumentWebServiceImpl implements IDocumentWebService {
 
-    private final DocumentSplitServiceImpl documentSpiltService;
+    private final IDocumentSplitService documentSpiltService;
     private final IDocumentParseService documentParseService;
 
     /** MD文件输出目录 */

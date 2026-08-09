@@ -6,13 +6,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.knowledge.entity.KnowledgeActionEntity;
 import com.maxkb4j.knowledge.mapper.KnowledgeActionMapper;
-import com.maxkb4j.knowledge.service.IKnowledgeActionService;
+import com.maxkb4j.knowledge.service.IKnowledgeActionInternalService;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
 @Service
-public class KnowledgeActionServiceImpl extends ServiceImpl<KnowledgeActionMapper, KnowledgeActionEntity> implements IKnowledgeActionService {
+public class KnowledgeActionServiceImpl extends ServiceImpl<KnowledgeActionMapper, KnowledgeActionEntity> implements IKnowledgeActionInternalService {
 
     public void updateState(String id, JSONObject details, String state){
         KnowledgeActionEntity knowledgeActionEntity = baseMapper.selectById(id);

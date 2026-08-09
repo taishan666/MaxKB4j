@@ -25,4 +25,6 @@ public interface IUserResourcePermissionInternalService extends IUserResourcePer
     boolean userPermissionUpdate(String userId, String type, List<UserResourcePermissionVO> list);
 
     boolean resourcePermissionUpdate(String resourceId, String type, List<ResourceUserPermissionVO> list);
+
+    List<UserResourcePermissionEntity> getByUserId(String userId);
 }

@@ -3,8 +3,6 @@ package com.maxkb4j.application.builder;
 
 import com.maxkb4j.application.enums.AppType;
 import com.maxkb4j.application.service.IChatService;
-import com.maxkb4j.application.service.impl.ChatFlowServiceImpl;
-import com.maxkb4j.application.service.impl.ChatSimpleServiceImpl;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.SpringUtil;
 
@@ -16,8 +14,8 @@ public class ChatServiceBuilder {
     private static final Map<String, IChatService> ACTUATOR_POOL = new ConcurrentHashMap<>();
 
     static {
-        ACTUATOR_POOL.put(AppType.SIMPLE.name(), SpringUtil.getBean(ChatSimpleServiceImpl.class));
-        ACTUATOR_POOL.put(AppType.WORK_FLOW.name(), SpringUtil.getBean(ChatFlowServiceImpl.class));
+        ACTUATOR_POOL.put(AppType.SIMPLE.name(), SpringUtil.getBean("chatSimpleServiceImpl", IChatService.class));
+        ACTUATOR_POOL.put(AppType.WORK_FLOW.name(), SpringUtil.getBean("chatFlowServiceImpl", IChatService.class));
     }
 
     /**

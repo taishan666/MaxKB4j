@@ -14,7 +14,7 @@ import com.maxkb4j.knowledge.service.DocumentWriteService;
 import com.maxkb4j.knowledge.service.IDocumentInternalService;
 import com.maxkb4j.knowledge.service.impl.DocumentImportService;
 import com.maxkb4j.knowledge.service.impl.DocumentMigrationService;
-import com.maxkb4j.knowledge.service.impl.DocumentSplitServiceImpl;
+import com.maxkb4j.knowledge.service.IDocumentSplitService;
 import com.maxkb4j.knowledge.vo.DocumentVO;
 import com.maxkb4j.knowledge.vo.TextSegmentVO;
 import jakarta.validation.Valid;
@@ -37,7 +37,7 @@ public class DocumentController {
     private final IDocumentInternalService documentService;
     private final DocumentImportService documentImportService;
     private final DocumentMigrationService documentMigrationService;
-    private final DocumentSplitServiceImpl documentSplitService;
+    private final IDocumentSplitService documentSplitService;
     private final DocumentWriteService documentWriteService;
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)

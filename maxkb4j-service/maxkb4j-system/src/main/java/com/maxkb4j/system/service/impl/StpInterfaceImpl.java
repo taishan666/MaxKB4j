@@ -7,6 +7,7 @@ import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.entity.UserResourcePermissionEntity;
 import com.maxkb4j.system.mapper.UserMapper;
+import com.maxkb4j.system.service.IUserResourcePermissionInternalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -47,7 +48,7 @@ public class StpInterfaceImpl implements StpInterface {
     ).map(PermissionEnum::getResourcePerm).toList();
 
     private final UserMapper userMapper;
-    private final UserResourcePermissionServiceImpl userResourcePermissionService;
+    private final IUserResourcePermissionInternalService userResourcePermissionService;
 
     /**
      * 返回一个账号所拥有的权限码集合

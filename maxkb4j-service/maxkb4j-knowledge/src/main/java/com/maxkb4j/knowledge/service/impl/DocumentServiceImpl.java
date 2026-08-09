@@ -12,6 +12,8 @@ import com.maxkb4j.knowledge.event.GenerateProblemEvent;
 import com.maxkb4j.knowledge.mapper.DocumentMapper;
 import com.maxkb4j.knowledge.service.IDocumentInternalService;
 import com.maxkb4j.knowledge.service.IDocumentTagService;
+import com.maxkb4j.knowledge.service.IParagraphInternalService;
+import com.maxkb4j.knowledge.service.IProblemParagraphService;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.DocumentVO;
 import lombok.RequiredArgsConstructor;
@@ -33,8 +35,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEntity> implements IDocumentInternalService {
 
-    private final ParagraphServiceImpl paragraphService;
-    private final ProblemParagraphServiceImpl problemParagraphService;
+    private final IParagraphInternalService paragraphService;
+    private final IProblemParagraphService problemParagraphService;
     private final ApplicationEventPublisher eventPublisher;
     private final IDataStore compositeStore;
     private final IDocumentTagService documentTagService;

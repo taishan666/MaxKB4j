@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.entity.ApplicationLongTermMemoryEntity;
 import com.maxkb4j.application.mapper.ApplicationLongTermMemoryMapper;
+import com.maxkb4j.application.service.IApplicationChatRecordInternalService;
 import com.maxkb4j.application.service.IApplicationLongTermMemoryService;
 import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.model.chat.ChatModel;
@@ -97,7 +98,7 @@ public class ApplicationLongTermMemoryServiceImpl extends ServiceImpl<Applicatio
             """;
 
 
-    private final ApplicationChatRecordServiceImpl chatRecordService;
+    private final IApplicationChatRecordInternalService chatRecordService;
     private final IModelProviderService modelProviderService;
     private static final Pattern THINK_TAG_PATTERN = Pattern.compile("<think>.*?</think>", Pattern.DOTALL);
 

@@ -13,6 +13,7 @@ import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.mapper.ProblemMapper;
+import com.maxkb4j.knowledge.service.IProblemParagraphService;
 import com.maxkb4j.knowledge.service.IProblemService;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import com.maxkb4j.knowledge.store.IDataStore;
@@ -41,7 +42,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity> implements IProblemService {
 
-    private final ProblemParagraphServiceImpl problemParagraphService;
+    private final IProblemParagraphService problemParagraphService;
     private final IDataStore compositeStore;
     private final KnowledgeModelService knowledgeModelService;
 

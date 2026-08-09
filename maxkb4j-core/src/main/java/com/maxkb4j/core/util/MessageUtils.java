@@ -1,7 +1,7 @@
 package com.maxkb4j.core.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -24,28 +24,24 @@ public class MessageUtils {
      * @return 格式化后的工具消息字符串
      */
     public static String buildToolCallRender(String callId,Integer status,String icon, String name,String toolType, String input, String output) {
-        try {
-            // 构建内容结构
-            Map<String, Object> contentMap = new HashMap<>();
-            contentMap.put("input", input);
-            contentMap.put("output", output);
-            Map<String, Object> result = new HashMap<>();
-            if (icon!=null&&icon.startsWith(".")){
-                icon="/admin"+icon.substring(1);
-            }
-            result.put("id", callId);
-            result.put("icon", icon);
-            result.put("title", name);
-            result.put("type", "simple-tool-calls");
-            result.put("status", status);
-            result.put("toolType", toolType);
-            result.put("content", contentMap);
-            // 序列化为 JSON 字符串
-            String jsonContent = new ObjectMapper().writeValueAsString(result);
-            return "<tool_calls_render>" + jsonContent + "</tool_calls_render>";
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to generate tool message", e);
+        // 构建内容结构
+        Map<String, Object> contentMap = new HashMap<>();
+        contentMap.put("input", input);
+        contentMap.put("output", output);
+        Map<String, Object> result = new HashMap<>();
+        if (icon!=null&&icon.startsWith(".")){
+            icon="/admin"+icon.substring(1);
         }
+        result.put("id", callId);
+        result.put("icon", icon);
+        result.put("title", name);
+        result.put("type", "simple-tool-calls");
+        result.put("status", status);
+        result.put("toolType", toolType);
+        result.put("content", contentMap);
+        // 序列化为 JSON 字符串（WriteMapNullValue 保留 null 字段，保持与原 Jackson 默认输出一致）
+        String jsonContent = JSON.toJSONString(result, SerializerFeature.WriteMapNullValue);
+        return "<tool_calls_render>" + jsonContent + "</tool_calls_render>";
     }
 
 

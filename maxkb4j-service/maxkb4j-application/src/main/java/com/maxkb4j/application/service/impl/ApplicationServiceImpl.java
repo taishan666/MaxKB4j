@@ -20,6 +20,7 @@ import com.maxkb4j.application.service.ApplicationDetailAssembler;
 import com.maxkb4j.application.service.ApplicationMkImportService;
 import com.maxkb4j.application.service.ApplicationResourceMappingService;
 import com.maxkb4j.application.service.ApplicationVersionService;
+import com.maxkb4j.application.service.IApplicationAccessTokenInternalService;
 import com.maxkb4j.application.service.IApplicationInternalService;
 import com.maxkb4j.application.service.PublishedApplicationCache;
 import com.maxkb4j.application.util.WorkFlowNodes;
@@ -63,7 +64,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
 
     private final UserContext userContext;
     private final IUserService userService;
-    private final ApplicationAccessTokenServiceImpl accessTokenService;
+    private final IApplicationAccessTokenInternalService accessTokenService;
     private final ApplicationVersionService applicationVersionService;
     private final IUserResourcePermissionService userResourcePermissionService;
     private final DataPermissionSupport dataPermissionSupport;

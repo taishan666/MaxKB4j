@@ -22,4 +22,8 @@ public interface IApplicationChatRecordInternalService extends IApplicationChatR
 
     boolean removeImproveChatLog(String chatId, String chatRecordId, String knowledgeId, String paragraphId);
     List<ParagraphDTO> improveChatLog(String chatRecordId);
+
+    List<ApplicationChatRecordEntity> listByAppIdAndChatUserId(String applicationId, String chatUserId, int pageSize, int offset);
+
+    long countByAppIdAndChatUserId(String applicationId, String chatUserId);
 }

@@ -4,6 +4,8 @@ import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.event.ParagraphIndexEvent;
 import com.maxkb4j.knowledge.mapper.DocumentMapper;
+import com.maxkb4j.knowledge.service.IParagraphInternalService;
+import com.maxkb4j.knowledge.service.IProblemParagraphService;
 import com.maxkb4j.knowledge.store.IDataStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -22,8 +24,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ParagraphMigrationService {
 
-    private final ParagraphServiceImpl paragraphService;
-    private final ProblemParagraphServiceImpl problemParagraphService;
+    private final IParagraphInternalService paragraphService;
+    private final IProblemParagraphService problemParagraphService;
     private final IDataStore compositeStore;
     private final DocumentMapper documentMapper;
     private final ApplicationEventPublisher eventPublisher;

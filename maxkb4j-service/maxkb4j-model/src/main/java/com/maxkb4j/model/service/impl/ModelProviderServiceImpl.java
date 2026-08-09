@@ -5,6 +5,7 @@ import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.registry.ModelProviderRegistry;
 import com.maxkb4j.model.exception.ModelNotFoundException;
 import com.maxkb4j.model.provider.AbsModelProvider;
+import com.maxkb4j.model.service.IModelInternalService;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.model.service.ISTTModel;
 import com.maxkb4j.model.service.ITTSModel;
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ModelProviderServiceImpl implements IModelProviderService {
 
-    private final ModelServiceImpl modelService;
+    private final IModelInternalService modelService;
     private final ModelProviderRegistry providerRegistry;
 
     @Override

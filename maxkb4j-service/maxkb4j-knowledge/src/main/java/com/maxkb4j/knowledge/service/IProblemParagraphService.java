@@ -1,6 +1,7 @@
 package com.maxkb4j.knowledge.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 
 import java.util.List;
@@ -16,4 +17,6 @@ public interface IProblemParagraphService extends IService<ProblemParagraphEntit
 
     boolean association(String knowledgeId, String docId, String paragraphId, String problemId);
     boolean unAssociation(String knowledgeId, String docId, String paragraphId, String problemId);
+
+    List<ProblemEntity> getProblemsByParagraphId(String paragraphId);
 }

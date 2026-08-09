@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.knowledge.entity.DocumentTagEntity;
 import com.maxkb4j.knowledge.entity.TagEntity;
 import com.maxkb4j.knowledge.mapper.TagMapper;
+import com.maxkb4j.knowledge.service.IDocumentTagService;
 import com.maxkb4j.knowledge.service.ITagService;
 import com.maxkb4j.knowledge.vo.TagVO;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TagServiceImpl extends ServiceImpl<TagMapper, TagEntity> implements ITagService {
 
-    private final DocumentTagServiceImpl documentTagService;
+    private final IDocumentTagService documentTagService;
     @Override
     @Transactional
     public Boolean deleteTagId(String tagId) {

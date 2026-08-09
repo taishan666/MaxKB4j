@@ -58,10 +58,10 @@ import java.util.concurrent.CompletionException;
 @RequiredArgsConstructor
 public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMapper, ApplicationChatEntity> implements IApplicationChatInternalService {
 
-    private final ApplicationChatRecordServiceImpl chatRecordService;
+    private final IApplicationChatRecordInternalService chatRecordService;
     private final IApplicationService applicationService;
     private final ApplicationChatUserStatsService chatUserStatsService;
-    private final ApplicationAccessTokenServiceImpl accessTokenService;
+    private final IApplicationAccessTokenInternalService accessTokenService;
     private final ApplicationVersionService applicationVersionService;
     private final PostResponseHandler postResponseHandler;
     private final TaskExecutor chatTaskExecutor;

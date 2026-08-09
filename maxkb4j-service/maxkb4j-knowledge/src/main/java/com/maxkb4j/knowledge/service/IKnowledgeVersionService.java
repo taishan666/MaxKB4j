@@ -1,4 +1,7 @@
 package com.maxkb4j.knowledge.service;
 
-public interface IKnowledgeVersionService {
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.maxkb4j.knowledge.entity.KnowledgeVersionEntity;
+
+public interface IKnowledgeVersionService extends IService<KnowledgeVersionEntity> {
 }

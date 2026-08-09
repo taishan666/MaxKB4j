@@ -3,11 +3,9 @@ package com.maxkb4j.knowledge.service;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.knowledge.listener.DocumentIndexListener;
 import com.maxkb4j.knowledge.listener.ParagraphIndexListener;
-import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
 import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
-import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
 import com.maxkb4j.knowledge.store.IDataStore;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
@@ -37,8 +35,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ParagraphIndexBatcher {
 
-    private final DocumentServiceImpl documentService;
-    private final ParagraphServiceImpl paragraphService;
+    private final IDocumentInternalService documentService;
+    private final IParagraphInternalService paragraphService;
     private final IDataStore compositeStore;
 
     /**

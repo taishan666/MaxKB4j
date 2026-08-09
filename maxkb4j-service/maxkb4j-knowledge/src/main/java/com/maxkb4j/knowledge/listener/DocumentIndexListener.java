@@ -3,8 +3,8 @@ package com.maxkb4j.knowledge.listener;
 import com.maxkb4j.knowledge.event.DocumentIndexEvent;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import com.maxkb4j.knowledge.service.ParagraphIndexBatcher;
-import com.maxkb4j.knowledge.service.impl.DocumentServiceImpl;
-import com.maxkb4j.knowledge.service.impl.ParagraphServiceImpl;
+import com.maxkb4j.knowledge.service.IDocumentInternalService;
+import com.maxkb4j.knowledge.service.IParagraphInternalService;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +20,8 @@ import java.util.List;
 public class DocumentIndexListener {
 
     private final KnowledgeModelService knowledgeModelService;
-    private final DocumentServiceImpl documentService;
-    private final ParagraphServiceImpl paragraphService;
+    private final IDocumentInternalService documentService;
+    private final IParagraphInternalService paragraphService;
     private final ParagraphIndexBatcher indexBatcher;
 
     @Async

@@ -36,4 +36,12 @@ public interface IParagraphInternalService extends IParagraphService, IService<P
     Boolean batchGenerateRelated(String knowledgeId, String docId, GenerateProblemDTO dto);
 
     boolean adjustPosition(String knowledgeId, String documentId, String paragraphId,Integer newPosition,  Integer targetIndex);
+
+    void updateStatusById(String id, int type, int status);
+
+    void updateStatusByIds(List<String> paragraphIds, int type, int status);
+
+    ParagraphEntity createParagraph(String knowledgeId, String docId, String title, String content, Integer position);
+
+    List<String> listParagraphIdsByStates(String docId, int type, List<String> stateList);
 }

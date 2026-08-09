@@ -4,7 +4,7 @@ import com.maxkb4j.knowledge.event.CreateWebDocsEvent;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.service.DocumentWriteService;
-import com.maxkb4j.knowledge.service.impl.DocumentWebServiceImpl;
+import com.maxkb4j.knowledge.service.IDocumentWebService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -25,7 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebDocsListener {
 
-    private final DocumentWebServiceImpl documentWebService;
+    private final IDocumentWebService documentWebService;
     private final DocumentWriteService documentWriteService;
 
     @Async

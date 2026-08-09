@@ -8,7 +8,10 @@ import com.maxkb4j.knowledge.entity.KnowledgeEntity;
 import com.maxkb4j.knowledge.handler.DocumentHandler;
 import com.maxkb4j.knowledge.mapper.KnowledgeMapper;
 import com.maxkb4j.knowledge.service.DocumentWriteService;
+import com.maxkb4j.knowledge.service.IDocumentInternalService;
 import com.maxkb4j.knowledge.service.IDocumentParseService;
+import com.maxkb4j.knowledge.service.IDocumentSplitService;
+import com.maxkb4j.knowledge.service.IDocumentWebService;
 import com.maxkb4j.knowledge.util.FilePathSecurityUtil;
 import com.maxkb4j.knowledge.vo.DocFileVO;
 import com.maxkb4j.knowledge.vo.TextSegmentVO;
@@ -39,11 +42,11 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class DocumentImportService {
 
-    private final DocumentServiceImpl documentService;
+    private final IDocumentInternalService documentService;
     private final IDocumentParseService documentParseService;
-    private final DocumentSplitServiceImpl documentSpiltService;
+    private final IDocumentSplitService documentSpiltService;
     private final IOssService ossService;
-    private final DocumentWebServiceImpl documentWebService;
+    private final IDocumentWebService documentWebService;
     private final DocumentWriteService documentWriteService;
     private final DocumentHandler documentHandler;
     private final KnowledgeMapper knowledgeMapper;

@@ -7,9 +7,6 @@ import com.maxkb4j.application.entity.ApplicationChatShareLinkEntity;
 import com.maxkb4j.application.entity.ApplicationChatUserStatsEntity;
 import com.maxkb4j.application.entity.ApplicationLongTermMemoryEntity;
 import com.maxkb4j.application.entity.ApplicationVersionEntity;
-import com.maxkb4j.application.service.impl.ApplicationAccessTokenServiceImpl;
-import com.maxkb4j.application.service.impl.ApplicationApiKeyServiceImpl;
-import com.maxkb4j.application.service.impl.ApplicationLongTermMemoryServiceImpl;
 import com.maxkb4j.application.service.impl.ApplicationServiceImpl;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
@@ -26,14 +23,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ApplicationCascadeDeleteService {
 
-    private final ApplicationAccessTokenServiceImpl accessTokenService;
-    private final ApplicationApiKeyServiceImpl applicationApiKeyService;
+    private final IApplicationAccessTokenInternalService accessTokenService;
+    private final IApplicationApiKeyInternalService applicationApiKeyService;
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationVersionService applicationVersionService;
     private final IUserResourcePermissionService userResourcePermissionService;
     private final ApplicationResourceMappingService applicationResourceMappingService;
     private final ApplicationChatShareLinkService applicationChatShareLinkService;
-    private final ApplicationLongTermMemoryServiceImpl applicationLongTermMemoryService;
+    private final IApplicationLongTermMemoryService applicationLongTermMemoryService;
 
     /**
      * 删除应用关联的全部资源（不包括应用本身）。

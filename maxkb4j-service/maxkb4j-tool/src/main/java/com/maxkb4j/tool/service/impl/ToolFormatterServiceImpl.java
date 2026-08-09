@@ -5,6 +5,7 @@ import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IAgentToolMetaResolver;
 import com.maxkb4j.tool.service.IKnowledgeToolMetaResolver;
 import com.maxkb4j.tool.service.IToolFormatterService;
+import com.maxkb4j.tool.service.IToolInternalService;
 import com.maxkb4j.tool.util.ToolNaming;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.service.tool.BeforeToolExecution;
@@ -21,7 +22,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ToolFormatterServiceImpl implements IToolFormatterService {
 
-    private final ToolServiceImpl toolService;
+    private final IToolInternalService toolService;
     private final Optional<IAgentToolMetaResolver> agentMetaResolver;
     private final Optional<IKnowledgeToolMetaResolver> knowledgeToolMetaResolver;
 
