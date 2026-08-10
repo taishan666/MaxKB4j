@@ -2,6 +2,55 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.maxkb4j.application.mapper.ApplicationChatMapper">
 
+    <resultMap id="applicationChatResultMap" type="com.maxkb4j.application.entity.ApplicationChatEntity">
+        <result property="asker" column="asker" typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+        <result property="meta" column="meta" typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+        <result property="source" column="source" typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+    </resultMap>
+
+    <select id="chatLogs" resultMap="applicationChatResultMap">
+        SELECT
+            id,
+            summary,
+            application_id,
+            chat_user_id,
+            chat_user_type,
+            asker,
+            meta,
+            star_num,
+            trample_num,
+            chat_record_count,
+            mark_sum,
+            is_deleted,
+            ip_address,
+            source,
+            create_time,
+            update_time
+        FROM application_chat
+        <where>
+            application_id = #{appId}
+            <if test="query.summary != null and query.summary != ''">
+                AND summary LIKE '%' || #{query.summary} || '%'
+            </if>
+            <if test="query.username != null and query.username != ''">
+                AND asker ->> 'username' LIKE '%' || #{query.username} || '%'
+            </if>
+            <if test="query.startTime != null and query.startTime != ''">
+                AND <![CDATA[TO_CHAR(create_time, 'YYYY-MM-DD') >= #{query.startTime} ]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                AND <![CDATA[TO_CHAR(create_time, 'YYYY-MM-DD') <= #{query.endTime} ]]>
+            </if>
+            <if test="query.minStar != null">
+                AND <![CDATA[star_num >= #{query.minStar} ]]>
+            </if>
+            <if test="query.minTrample != null">
+                AND <![CDATA[trample_num >= #{query.minTrample} ]]>
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
 
     <select id="statistics" resultType="com.maxkb4j.application.vo.ApplicationStatisticsVO">
         SELECT SUM(chat.star_num) AS star_num,

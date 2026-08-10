@@ -30,7 +30,6 @@ import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.AccessNumLimitException;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.common.util.StpKit;
 import jakarta.servlet.http.HttpServletResponse;
@@ -42,8 +41,6 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -69,22 +66,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
 
 
     public IPage<ApplicationChatEntity> chatLogs(String appId, int page, int size, ChatQueryDTO query) {
-        Page<ApplicationChatEntity> chatPage = new Page<>(page, size);
-        LambdaQueryWrapper<ApplicationChatEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ApplicationChatEntity::getApplicationId, appId);
-        wrapper.like(StringUtils.isNotBlank(query.getSummary()), ApplicationChatEntity::getSummary, query.getSummary());
-        if (StringUtils.isNotBlank(query.getStartTime())) {
-            LocalDateTime startOfDay = DateTimeUtil.parseDate(query.getStartTime()).atStartOfDay();
-            wrapper.ge(ApplicationChatEntity::getCreateTime, startOfDay);
-        }
-        if (StringUtils.isNotBlank(query.getEndTime())) {
-            LocalDateTime endOfDay = DateTimeUtil.parseDate(query.getEndTime()).atTime(LocalTime.MAX);
-            wrapper.le(ApplicationChatEntity::getCreateTime, endOfDay);
-        }
-        wrapper.ge(Objects.nonNull(query.getMinStar()), ApplicationChatEntity::getStarNum, query.getMinStar());
-        wrapper.ge(Objects.nonNull(query.getMinTrample()), ApplicationChatEntity::getTrampleNum, query.getMinTrample());
-        wrapper.orderByDesc(ApplicationChatEntity::getCreateTime);
-        return this.page(chatPage, wrapper);
+        return baseMapper.chatLogs(new Page<>(page, size), appId, query);
     }
 
 

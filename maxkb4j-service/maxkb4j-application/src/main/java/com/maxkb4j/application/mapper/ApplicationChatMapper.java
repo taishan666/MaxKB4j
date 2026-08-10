@@ -1,11 +1,13 @@
 package com.maxkb4j.application.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.application.dto.ChatQueryDTO;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.vo.ApplicationStatisticsVO;
 import com.maxkb4j.application.vo.ChatRecordDetailVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -15,6 +17,8 @@ import java.util.List;
  */
 @Mapper
 public interface ApplicationChatMapper extends BaseMapper<ApplicationChatEntity>{
+
+    IPage<ApplicationChatEntity> chatLogs(IPage<ApplicationChatEntity> page, @Param("appId") String appId, @Param("query") ChatQueryDTO query);
 
     List<ChatRecordDetailVO> chatRecordDetail(List<String>  ids);
 
