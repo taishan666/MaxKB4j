@@ -7,10 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.maxkb4j.application.dto.ApplicationDTO;
-import com.maxkb4j.application.dto.ApplicationQuery;
-import com.maxkb4j.application.dto.ApplicationSimple;
-import com.maxkb4j.application.dto.MaxKb4J;
+import com.maxkb4j.application.dto.*;
 import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.entity.ApplicationVersionEntity;
@@ -100,6 +97,16 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
             success &= deleteByAppId(id);
         }
         return success;
+    }
+
+    @Override
+    public boolean batchCleanTime(ApplicationBatchEditDTO dto) {
+        List<String> idList=dto.getIdList();
+        if (CollectionUtils.isEmpty(idList)) {
+            return true;
+        }
+        dataPermissionSupport.checkManagePermission(AuthTargetType.APPLICATION, idList);
+        return this.lambdaUpdate().set(ApplicationEntity::getCleanTime, dto.getCleanTime()).in(ApplicationEntity::getId, idList).update();
     }
 
     @Override

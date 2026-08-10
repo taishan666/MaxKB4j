@@ -119,6 +119,12 @@ public class ApplicationController {
         return R.status(applicationService.deleteBatch(idList));
     }
 
+    @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
+    @PutMapping("/application/batch_clean_time")
+    public R<Boolean> batchCleanTime(@Valid @RequestBody ApplicationBatchEditDTO dto) {
+        return R.status(applicationService.batchCleanTime(dto));
+    }
+
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @PostMapping("/application/{id}/play_demo_text")
     public ResponseEntity<byte[]> playDemoText(@PathVariable("id") String id, @RequestBody JSONObject data) {

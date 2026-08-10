@@ -7,6 +7,7 @@ import lombok.Data;
 public class ChatQueryDTO {
 
     private String summary;
+    private String username;
     private String startTime;
     private String endTime;
     private Integer minStar;
