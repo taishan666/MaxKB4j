@@ -107,7 +107,7 @@ public class ApplicationMkImportService {
                 tool.setIsActive(true);
             });
             toolService.saveOrUpdateBatch(toolList);
-            app.setToolIds(toolList.stream().map(ToolDTO::getId).toList());
+            app.getToolIds().addAll(toolList.stream().map(ToolDTO::getId).toList());
         }
         normalizeLlmNodeModels(app.getWorkFlow());
     }

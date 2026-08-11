@@ -131,7 +131,8 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         return application;
     }
 
-    private ApplicationEntity createAppFromTemplate(String downloadUrl, ApplicationDTO application) {
+    @Transactional
+    protected ApplicationEntity createAppFromTemplate(String downloadUrl, ApplicationDTO application) {
         MaxKb4J maxKb4j = mkImportService.loadClasspathTemplate(downloadUrl);
         ApplicationEntity app = maxKb4j.getApplication();
         app.setId(null);
@@ -239,7 +240,8 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         return this.updateById(appDTO);
     }
 
-    private Boolean updateAppFromTemplate(String downloadUrl, ApplicationDTO appDTO) {
+    @Transactional
+    protected Boolean updateAppFromTemplate(String downloadUrl, ApplicationDTO appDTO) {
         MaxKb4J maxKb4j = mkImportService.loadClasspathTemplate(downloadUrl);
         ApplicationEntity app = maxKb4j.getApplication();
         app.setId(appDTO.getId());
