@@ -1,11 +1,13 @@
 package com.maxkb4j.workflow.engine.graph;
 
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.workflow.engine.WorkflowExecutionAccessor;
 import com.maxkb4j.workflow.engine.WorkflowOutputManager;
 import com.maxkb4j.workflow.model.IChatWorkflow;
 import lombok.Getter;
+import reactor.core.publisher.Sinks;
 
 /**
  * 聊天（应用）工作流
@@ -24,10 +26,13 @@ public class ChatWorkflow extends AbstractWorkflow implements IChatWorkflow {
      */
     private final ChatState chatState;
 
+    private final Sinks.Many<ChatMessageVO> sink;
+
     ChatWorkflow(ChatWorkflowBuilder builder) {
         super(compose(builder));
         this.chatParams = builder.chatParams;
         this.chatState = builder.chatState;
+        this.sink = builder.sink;
         // 加载节点状态（恢复执行）
         if (builder.restoreState) {
             this.executionAccessor.loadNodeState(this, builder.details,

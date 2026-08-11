@@ -1,7 +1,9 @@
 package com.maxkb4j.workflow.model;
 
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
+import reactor.core.publisher.Sinks;
 
 /**
  * 聊天系工作流契约
@@ -19,4 +21,5 @@ public interface IChatWorkflow extends IWorkflow {
      * 获取对话执行上下文（服务端解析的身份信息与历史记录）
      */
     ChatState getChatState();
+
 }

@@ -222,8 +222,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * @param node                   节点实例
      * @return 节点执行结果的 CompletableFuture
      */
-    protected CompletableFuture<NodeResult> writeContextStreamAsync(
-            StreamOptions options, TokenStream tokenStream, IWorkflow workflow, AbsNode node) {
+    protected CompletableFuture<NodeResult> writeContextStreamAsync(StreamOptions options, TokenStream tokenStream, IWorkflow workflow, AbsNode node) {
         List<String> answerTexts = new ArrayList<>();
         AtomicReference<String> errorMessage = new AtomicReference<>("");
         boolean isResult = options.isResult();

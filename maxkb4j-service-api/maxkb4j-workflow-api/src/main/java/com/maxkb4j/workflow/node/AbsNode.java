@@ -137,15 +137,22 @@ public abstract class AbsNode {
      * @return 聊天消息VO
      */
     public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String content, String reasoningContent, ChildNode childNode, boolean nodeIsEnd) {
+        return toChatMessageVO(chatId, chatRecordId, this.getNodeName(), content, reasoningContent, childNode, nodeIsEnd);
+    }
+
+    public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String nodeName,String content, String reasoningContent, ChildNode childNode, boolean nodeIsEnd) {
         String realNodeId=this.getRuntimeNodeId();
         if (childNode!=null){
             realNodeId=childNode.getRuntimeNodeId();
+        }
+        if (nodeName==null){
+            nodeName=this.getNodeName();
         }
         return MessageConverter.toChatMessageVO(
                 chatId,
                 chatRecordId,
                 this.getId(),
-                this.getNodeName(),
+                nodeName,
                 content,
                 reasoningContent,
                 this.getUpNodeIdList(),

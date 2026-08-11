@@ -34,6 +34,7 @@ public class ChatLoopWorkflow extends AbstractLoopWorkflow implements IChatWorkf
      */
     private final ChatState chatState;
 
+
     /**
      * 构造器（使用父工作流上下文）
      *
@@ -42,7 +43,6 @@ public class ChatLoopWorkflow extends AbstractLoopWorkflow implements IChatWorkf
      * @param edges      循环内边列表
      * @param loopParams 循环参数
      * @param details    上次执行的节点详情（可为 null）
-     * @param sink       输出 Sink
      */
     public ChatLoopWorkflow(ChatWorkflow parent, List<AbsNode> nodes, List<LfEdge> edges,
                             LoopParams loopParams, JSONObject details, Sinks.Many<ChatMessageVO> sink) {

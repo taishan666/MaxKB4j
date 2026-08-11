@@ -59,12 +59,12 @@ public class LoopNodeHandler extends AbsNodeHandler {
     @Override
     public NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         LoopNode.NodeParams nodeParams = parseParams(node, LoopNode.NodeParams.class);
+        emitIteration(workflow, node, null,true);
         List<JSONObject> loopDetails = executeLoop(workflow, node, nodeParams);
-
         node.getDetail().put(DETAIL_LOOP_DATA, loopDetails);
         node.getDetail().put(DETAIL_LOOP_TYPE, nodeParams.getLoopType());
         node.getDetail().put(DETAIL_NUMBER, nodeParams.getNumber());
-
+        emitIteration(workflow, node, null,true);
         return new NodeResult(workflow.getLoopContext(), true, this::getInterruptFlag);
     }
 
@@ -87,7 +87,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
      */
     private List<JSONObject> executeArrayLoop(IWorkflow workflow, AbsNode node, List<String> arrayRef, JSONObject loopBody) {
         Object value = workflow.getReferenceField(arrayRef);
-        if (value == null) {
+        if (value == null||"".equals(value)) {
             return new ArrayList<>();
         }
         List<Object> items = convertToList(value);
@@ -193,22 +193,21 @@ public class LoopNodeHandler extends AbsNodeHandler {
     private void executeSingleIteration(IWorkflow workflow, AbsNode node, List<Object> items, JSONObject loopBody, LoopExecutionContext ctx) {
         // 清理前一次迭代数据
         removePreviousIterationData(ctx);
-
         // 构建子工作流
-        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         LogicFlow logicFlow = LogicFlow.newInstance(loopBody);
         List<AbsNode> nodes = logicFlow.getNodes().stream()
                 .map(nodeBuilder::getNode)
                 .filter(Objects::nonNull)
                 .toList();
         LoopParams loopParams = new LoopParams(ctx.currentIndex, items.get(ctx.currentIndex));
-        AtomicReference<ChildNode> childNodeRef = subscribeToSink(sink, loopParams, ctx, workflow, node);
-        IWorkflow loopWorkflow = null;
+        IWorkflow loopWorkflow;
         if (workflow instanceof ChatWorkflow chatWorkflow) {
-            loopWorkflow = new ChatLoopWorkflow(chatWorkflow, nodes, logicFlow.getEdges(), loopParams, ctx.currentDetails, sink);
+            Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
+            AtomicReference<ChildNode> childNodeRef = subscribeToSink(sink, loopParams, ctx, workflow, node);
+            loopWorkflow = new ChatLoopWorkflow(chatWorkflow, nodes, logicFlow.getEdges(), loopParams, ctx.currentDetails,sink);
             workFlowActuator.execute(loopWorkflow);
-            // 发送结束标记
-            emitIterationEnd(workflow, node, childNodeRef);
+            // 发送单次结束标记
+            emitIteration(workflow, node, childNodeRef.get(),false);
             // 更新状态
             updateIterationState(node, loopWorkflow, ctx);
         }
@@ -277,19 +276,20 @@ public class LoopNodeHandler extends AbsNodeHandler {
     /**
      * 构建循环消息VO
      */
-    private void emitLoopMessageVO(ChatMessageVO source, IWorkflow workflow,
+    private void emitLoopMessageVO(ChatMessageVO message, IWorkflow workflow,
                                    AbsNode node, ChildNode childNode) {
         if (workflow instanceof IChatWorkflow chatWorkflow) {
             ChatParams chatParams = chatWorkflow.getChatParams();
             ChatMessageVO vo = node.toChatMessageVO(
                     chatParams.getChatId(),
                     chatParams.getChatRecordId(),
-                    source.getContent(),
-                    source.getReasoningContent(),
+                    message.getNodeName(),
+                    message.getContent(),
+                    message.getReasoningContent(),
                     childNode,
-                    false);
-            vo.setNodeType(source.getNodeType());
-            vo.setViewType(source.getViewType());
+                    message.getNodeIsEnd());
+            vo.setNodeType(message.getNodeType());
+            vo.setViewType(message.getViewType());
             workflow.output().emit(vo);
         }
 
@@ -298,7 +298,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     /**
      * 发送迭代结束标记
      */
-    private void emitIterationEnd(IWorkflow workflow, AbsNode node, AtomicReference<ChildNode> childNodeRef) {
+    private void emitIteration(IWorkflow workflow, AbsNode node, ChildNode childNode, boolean nodeIsEnd) {
         if (workflow instanceof IChatWorkflow chatWorkflow) {
             ChatParams chatParams = chatWorkflow.getChatParams();
             ChatMessageVO vo = node.toChatMessageVO(
@@ -306,8 +306,8 @@ public class LoopNodeHandler extends AbsNodeHandler {
                     chatParams.getChatRecordId(),
                     "",
                     "",
-                    childNodeRef.get(),
-                    false);
+                    childNode,
+                    nodeIsEnd);
             workflow.output().emit(vo);
         }
     }
