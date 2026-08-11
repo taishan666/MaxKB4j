@@ -102,11 +102,8 @@ public class ApplicationMkImportService {
         app.setUpdateTime(null);
         app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.LLM));
         if (!CollectionUtils.isEmpty(toolList)) {
-            toolList.forEach(tool -> {
-                tool.setUserId(userId);
-                tool.setIsActive(true);
-            });
-            toolService.saveOrUpdateBatch(toolList);
+            toolList.forEach(tool -> tool.setIsActive(true));
+            toolService.saveOrUpdateBatch(toolList,userId);
             app.getToolIds().addAll(toolList.stream().map(ToolDTO::getId).toList());
         }
         normalizeLlmNodeModels(app.getWorkFlow());

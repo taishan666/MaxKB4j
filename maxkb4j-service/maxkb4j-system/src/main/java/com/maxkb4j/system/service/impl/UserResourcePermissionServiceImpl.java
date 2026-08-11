@@ -43,28 +43,34 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
      */
     private final List<IResourcePermissionPageProvider> resourcePermissionProviders;
 
-    public boolean ownerSave(String type, String targetId, String userId) {
-        UserResourcePermissionEntity entity = new UserResourcePermissionEntity();
-        entity.setAuthTargetType(type);
-        entity.setTargetId(targetId);
-        entity.setUserId(userId);
-        entity.setPermissionList(List.of(Permission.VIEW, Permission.MANAGE));
-        entity.setAuthType("RESOURCE_PERMISSION_GROUP");
-        entity.setWorkspaceId(DEFAULT_ID);
-        return this.save(entity);
-    }
 
-
-    public boolean remove(String type, String targetId) {
-        return this.lambdaUpdate().eq(UserResourcePermissionEntity::getAuthTargetType, type).eq(UserResourcePermissionEntity::getTargetId, targetId).remove();
+    @Override
+    @Transactional
+    public boolean ownerSave(String targetType, List<String> targetIds, String userId) {
+        List<UserResourcePermissionEntity> entityList = targetIds.stream().map(targetId -> {
+            UserResourcePermissionEntity entity = new UserResourcePermissionEntity();
+            entity.setAuthTargetType(targetType);
+            entity.setTargetId(targetId);
+            entity.setUserId(userId);
+            entity.setPermissionList(List.of(Permission.VIEW, Permission.MANAGE));
+            entity.setAuthType("RESOURCE_PERMISSION_GROUP");
+            entity.setWorkspaceId(DEFAULT_ID);
+            return entity;
+        }).toList();
+        return this.saveBatch(entityList);
     }
 
     @Override
-    public boolean remove(String type, List<String> targetIds) {
+    public boolean remove(String targetType, String targetId) {
+        return this.lambdaUpdate().eq(UserResourcePermissionEntity::getAuthTargetType, targetType).eq(UserResourcePermissionEntity::getTargetId, targetId).remove();
+    }
+
+    @Override
+    public boolean remove(String targetType, List<String> targetIds) {
         if (CollectionUtils.isEmpty(targetIds)) {
             return false;
         }
-        return this.lambdaUpdate().eq(UserResourcePermissionEntity::getAuthTargetType, type).in(UserResourcePermissionEntity::getTargetId, targetIds).remove();
+        return this.lambdaUpdate().eq(UserResourcePermissionEntity::getAuthTargetType, targetType).in(UserResourcePermissionEntity::getTargetId, targetIds).remove();
     }
 
     public boolean update(String type, String targetId, String userId) {
@@ -191,10 +197,6 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
             return List.of(Permission.VIEW);
         }
         return List.of();
-    }
-
-    public List<String> getTargetIds(String authTargetType, String userId) {
-        return getTargetIds(authTargetType, userId, Permission.VIEW);
     }
 
     @Override

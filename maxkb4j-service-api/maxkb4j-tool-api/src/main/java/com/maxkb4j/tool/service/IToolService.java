@@ -11,6 +11,6 @@ public interface IToolService {
     ToolDTO getDtoById(String id);
     List<ToolDTO> listDtoByIds(List<String> ids);
     List<Map<String, Object>> listMapsByIds(List<String> ids);
-    void saveOrUpdateBatch(List<ToolDTO> toolDTOList);
+    void saveOrUpdateBatch(List<ToolDTO> toolDTOList,String userId);
     List<McpToolVO> getMcpToolVos(JSONObject mcpServersJson);
 }
