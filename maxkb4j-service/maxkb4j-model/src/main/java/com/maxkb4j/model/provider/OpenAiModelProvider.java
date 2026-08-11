@@ -89,7 +89,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .customParameters(params)
                 .sendThinking(true)
                 .returnThinking(true)
-                .strictJsonSchema(true)
+               // .strictJsonSchema(true)
                 .build();
     }
 
@@ -103,7 +103,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .customParameters(params)
                 .sendThinking(true)
                 .returnThinking(true)
-                .strictJsonSchema(true)
+               // .strictJsonSchema(true)
                 .build();
     }
 

@@ -28,7 +28,7 @@ class LoopWorkflowTest {
                 .build();
         LoopParams loopParams = new LoopParams(0, "item-0");
 
-        ChatLoopWorkflow loopWorkflow = new ChatLoopWorkflow(parent, List.of(), List.of(), loopParams, null);
+        ChatLoopWorkflow loopWorkflow = new ChatLoopWorkflow(parent, List.of(), List.of(), loopParams, null, null);
 
         assertThat(loopWorkflow.getChatParams()).isSameAs(chatParams);
         assertThat(loopWorkflow.getChatState()).isSameAs(chatState);
