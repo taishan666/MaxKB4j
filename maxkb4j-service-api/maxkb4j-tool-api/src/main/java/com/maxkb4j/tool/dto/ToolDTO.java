@@ -20,4 +20,9 @@ public class ToolDTO {
     private JSONObject initParams;
     private String userId;
     private Boolean isActive;
+    private String label;
+    private String scope;
+    private String templateId;
+    private String folderId;
+    private String version;
 }
