@@ -180,6 +180,12 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
     @Transactional
     public void saveOrUpdateBatch(List<ToolDTO> toolDTOList,String userId) {
         List<ToolEntity> toolEntities= BeanUtil.copyList(toolDTOList, ToolEntity.class);
+        // 工具可能来自 .mk 模板，DTO 携带的是模板作者的 userId，需重置为当前导入用户，
+        // 否则 tool.user_id 指向不存在的用户，违反 tool_user_id_fk_user_id 外键约束。
+        toolEntities.forEach(e -> {
+            e.setUserId(userId);
+            e.setIsActive(ToolConstants.Status.ACTIVE);
+        });
         this.saveOrUpdateBatch(toolEntities);
         List<String> toolIds = toolEntities.stream().map(ToolEntity::getId).toList();
         userResourcePermissionService.remove(AuthTargetType.TOOL, toolIds);

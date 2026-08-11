@@ -105,7 +105,6 @@ public class ApplicationMkImportService {
             app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.LLM));
         }
         if (!CollectionUtils.isEmpty(toolList)) {
-            toolList.forEach(tool -> tool.setIsActive(true));
             toolService.saveOrUpdateBatch(toolList,userId);
             if (AppType.SIMPLE.name().equals(app.getType())){
                 app.getToolIds().addAll(toolList.stream().map(ToolDTO::getId).toList());
