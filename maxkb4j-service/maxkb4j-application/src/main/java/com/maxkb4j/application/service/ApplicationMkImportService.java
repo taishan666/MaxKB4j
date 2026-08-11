@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.dto.MaxKb4J;
 import com.maxkb4j.application.entity.ApplicationEntity;
+import com.maxkb4j.application.enums.AppType;
 import com.maxkb4j.application.service.impl.ApplicationServiceImpl;
 import com.maxkb4j.application.util.ResourceUtil;
 import com.maxkb4j.application.util.WorkFlowNodes;
@@ -100,11 +101,15 @@ public class ApplicationMkImportService {
         app.setUserId(userId);
         app.setCreateTime(null);
         app.setUpdateTime(null);
-        app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.LLM));
+        if (AppType.SIMPLE.name().equals(app.getType())){
+            app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.LLM));
+        }
         if (!CollectionUtils.isEmpty(toolList)) {
             toolList.forEach(tool -> tool.setIsActive(true));
             toolService.saveOrUpdateBatch(toolList,userId);
-            app.getToolIds().addAll(toolList.stream().map(ToolDTO::getId).toList());
+            if (AppType.SIMPLE.name().equals(app.getType())){
+                app.getToolIds().addAll(toolList.stream().map(ToolDTO::getId).toList());
+            }
         }
         normalizeLlmNodeModels(app.getWorkFlow());
     }
