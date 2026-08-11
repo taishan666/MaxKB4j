@@ -22,12 +22,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 import java.util.Set;
 
-import static com.maxkb4j.workflow.enums.NodeType.AI_CHAT;
-import static com.maxkb4j.workflow.enums.NodeType.IMAGE_UNDERSTAND;
-import static com.maxkb4j.workflow.enums.NodeType.INTENT_CLASSIFY;
-import static com.maxkb4j.workflow.enums.NodeType.NL2SQL;
-import static com.maxkb4j.workflow.enums.NodeType.PARAMETER_EXTRACTION;
-import static com.maxkb4j.workflow.enums.NodeType.QUESTION;
+import static com.maxkb4j.workflow.enums.NodeType.*;
 
 /**
  * 应用 MK 模板导入逻辑，从 {@link ApplicationServiceImpl} 抽离。
@@ -120,7 +115,18 @@ public class ApplicationMkImportService {
         }
         for (int i = 0; i < nodes.size(); i++) {
             JSONObject node = nodes.getJSONObject(i);
-            if (node == null || !LLM_NODE_TYPES.contains(node.getString("type"))) {
+            if (node == null) {
+                continue;
+            }
+            String type = node.getString("type");
+            if (LOOP.name().equals(type)){
+                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
+                if (nodeData != null){
+                    JSONObject loopBody= nodeData.getJSONObject("loopBody");
+                    normalizeLlmNodeModels(loopBody);
+                }
+            }
+            if (!LLM_NODE_TYPES.contains(type)) {
                 continue;
             }
             JSONObject nodeData = WorkFlowNodes.getNodeData(node);
