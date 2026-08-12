@@ -49,13 +49,11 @@ public class UserSelectNode extends AbsNode {
         private List<Branch> branch;
         private JSONObject formData;
         private String labelName;
-        private Boolean isResult;
     }
 
     @Data
     public static class Branch {
         private String id;
-        private String type;
         private String option;
     }
 
