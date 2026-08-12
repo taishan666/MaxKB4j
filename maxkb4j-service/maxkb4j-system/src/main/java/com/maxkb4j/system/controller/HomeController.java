@@ -24,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(AppConst.ADMIN_WORKSPACE_API)
 @RequiredArgsConstructor
-public class homeController {
+public class HomeController {
 
     @GetMapping("/homepage/{type}/aggregation")
     public R<JSONObject> aggregation(@PathVariable String type) {
