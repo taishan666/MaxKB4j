@@ -118,14 +118,15 @@ public class homeController {
     }
 
     @GetMapping("/homepage/application/user_tokens_ranking/{current}/{size}")
-    public R<IPage<JSONObject>> userTokensRanking(@PathVariable("current") int current, @PathVariable("size") int size,HomeQuery query) {
-        Page<JSONObject> page=new Page<>(current,size);
+    public R<IPage<ChatUserStatDTO>> userTokensRanking(@PathVariable("current") int current, @PathVariable("size") int size,HomeQuery query) {
+        Page<ChatUserStatDTO> page=new Page<>(current,size);
         ChatUserStatDTO dto = new ChatUserStatDTO();
         dto.setChatUserId(IdWorker.get32UUID());
         dto.setChatUsertype(ChatUserType.ANONYMOUS_USER.getKey());
         dto.setAsker(new JSONObject(Map.of("username","游客")));
         dto.setTotalTokens(742);
         dto.setChatRecordCount(1);
+        page.setRecords(List.of(dto));
         return R.data(page);
     }
 
