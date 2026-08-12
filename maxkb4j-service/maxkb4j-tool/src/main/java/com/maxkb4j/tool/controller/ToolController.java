@@ -68,7 +68,8 @@ public class ToolController {
         dto.setId(null);
         dto.setUserId(userId);
         dto.setTemplateId(templateId);
-        dto.setScope("WORKSPACE");
+        dto.setScope(ToolConstants.Scope.WORKSPACE);
+        dto.setFolderId(ToolConstants.Defaults.DEFAULT_FOLDER_ID);
         dto.setToolType(ToolConstants.ToolType.CUSTOM);
         Date now = new Date();
         dto.setCreateTime(now);

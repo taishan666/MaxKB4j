@@ -22,6 +22,7 @@ public interface ToolConstants {
         String CUSTOM = "CUSTOM";
         String HTTP = "HTTP";
         String SKILL = "SKILL";
+        String DATA_SOURCE = "DATA_SOURCE";
     }
 
     /**
