@@ -69,7 +69,9 @@ public class ToolController {
         dto.setUserId(userId);
         dto.setTemplateId(templateId);
         dto.setScope(ToolConstants.Scope.WORKSPACE);
-        dto.setFolderId(ToolConstants.Defaults.DEFAULT_FOLDER_ID);
+        if (StringUtils.isBlank(dto.getFolderId())){
+            dto.setFolderId(ToolConstants.Defaults.DEFAULT_FOLDER_ID);
+        }
         dto.setToolType(ToolConstants.ToolType.CUSTOM);
         Date now = new Date();
         dto.setCreateTime(now);
@@ -85,6 +87,9 @@ public class ToolController {
         dto.setIsActive(true);
         if (StringUtils.isBlank(dto.getToolType())) {
             dto.setToolType(ToolConstants.ToolType.CUSTOM);
+        }
+        if (StringUtils.isBlank(dto.getFolderId())){
+            dto.setFolderId(ToolConstants.Defaults.DEFAULT_FOLDER_ID);
         }
         dto.setUserId(userId);
         dto.setScope("WORKSPACE");
