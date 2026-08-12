@@ -2,6 +2,7 @@ package com.maxkb4j.application.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.maxkb4j.application.dto.MaxKb4J;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.enums.AppType;
@@ -96,14 +97,17 @@ public class ApplicationMkImportService {
         app.setUserId(userId);
         app.setCreateTime(null);
         app.setUpdateTime(null);
-        if (AppType.SIMPLE.name().equals(app.getType())){
+        if (AppType.SIMPLE.name().equals(app.getType())&& StringUtils.isNotBlank(app.getModelId())){
             app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.LLM));
+        }
+        if (AppType.SIMPLE.name().equals(app.getType())&& StringUtils.isNotBlank(app.getTtsModelId())){
+            app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.TTS));
+        }
+        if (AppType.SIMPLE.name().equals(app.getType())&& StringUtils.isNotBlank(app.getSttModelId())){
+            app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.STT));
         }
         if (!CollectionUtils.isEmpty(toolList)) {
             toolService.saveOrUpdateBatch(toolList,userId);
-            if (AppType.SIMPLE.name().equals(app.getType())){
-                app.getToolIds().addAll(toolList.stream().map(ToolDTO::getId).toList());
-            }
         }
         normalizeLlmNodeModels(app.getWorkFlow());
     }
@@ -119,6 +123,19 @@ public class ApplicationMkImportService {
                 continue;
             }
             String type = node.getString("type");
+            if (BASE.name().equals(type)) {
+                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
+                if (nodeData != null) {
+                    String ttsModelId = nodeData.getString("ttsModelId");
+                    if (ttsModelId != null){
+                        nodeData.put("ttsModelId", modelService.getSafeModelId(ttsModelId, ModelType.TTS));
+                    }
+                    String sttModelId = nodeData.getString("sttModelId");
+                    if (sttModelId != null){
+                        nodeData.put("sttModelId", modelService.getSafeModelId(sttModelId, ModelType.STT));
+                    }
+                }
+            }
             if (LOOP.name().equals(type)){
                 JSONObject nodeData = WorkFlowNodes.getNodeData(node);
                 if (nodeData != null){
@@ -126,12 +143,41 @@ public class ApplicationMkImportService {
                     normalizeLlmNodeModels(loopBody);
                 }
             }
-            if (!LLM_NODE_TYPES.contains(type)) {
-                continue;
+            if (LLM_NODE_TYPES.contains(type)) {
+                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
+                if (nodeData != null) {
+                    String modelId = nodeData.getString("modelId");
+                    if (modelId != null){
+                        nodeData.put("modelId", modelService.getSafeModelId(modelId, ModelType.LLM));
+                    }
+                }
             }
-            JSONObject nodeData = WorkFlowNodes.getNodeData(node);
-            if (nodeData != null) {
-                nodeData.put("modelId", modelService.getSafeModelId(nodeData.getString("modelId"), ModelType.LLM));
+            if (IMAGE_GENERATE.name().equals(type)) {
+                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
+                if (nodeData != null) {
+                    String modelId = nodeData.getString("modelId");
+                    if (modelId != null){
+                        nodeData.put("modelId", modelService.getSafeModelId(modelId, ModelType.TTI));
+                    }
+                }
+            }
+            if (TEXT_TO_SPEECH.name().equals(type)) {
+                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
+                if (nodeData != null) {
+                    String ttsModelId = nodeData.getString("ttsModelId");
+                    if (ttsModelId != null){
+                        nodeData.put("ttsModelId", modelService.getSafeModelId(ttsModelId, ModelType.TTS));
+                    }
+                }
+            }
+            if (SPEECH_TO_TEXT.name().equals(type)) {
+                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
+                if (nodeData != null) {
+                    String sttModelId = nodeData.getString("sttModelId");
+                    if (sttModelId != null){
+                        nodeData.put("sttModelId", modelService.getSafeModelId(sttModelId, ModelType.STT));
+                    }
+                }
             }
         }
     }
