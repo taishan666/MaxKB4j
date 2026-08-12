@@ -32,11 +32,11 @@ public class FileController {
     }
 
     @GetMapping({
+            "/admin/oss/file/{fileId:[\\w-]+}",
             "/admin/*/oss/file/{fileId:[\\w-]+}",
             "/admin/*/*/oss/file/{fileId:[\\w-]+}",
             "/admin/*/*/*/oss/file/{fileId:[\\w-]+}",
             "/admin/*/*/*/*/oss/file/{fileId:[\\w-]+}",
-            "/admin/oss/file/{fileId:[\\w-]+}",
             "/chat/oss/file/{fileId:[\\w-]+}",
             "/chat/share/oss/file/{fileId:[\\w-]+}",
             "/oss/file/{fileId:[\\w-]+}"})

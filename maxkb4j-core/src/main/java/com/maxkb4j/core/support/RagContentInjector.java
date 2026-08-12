@@ -1,6 +1,8 @@
 package com.maxkb4j.core.support;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.PropertyFilter;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.maxkb4j.common.domain.RagContent;
@@ -47,7 +49,7 @@ public class RagContentInjector {
 
 
 
-    public String formatJson(List<? extends RagContent> contents, int maxCharNumber) {
+    public String formatJson1(List<? extends RagContent> contents, int maxCharNumber) {
         List<RagContent> ragContents=new ArrayList<>();
         int charNumber=0;
         for (RagContent content : contents) {
@@ -68,6 +70,54 @@ public class RagContentInjector {
             return allowedFields.contains(name);
         };
         return JSON.toJSONString(ragContents, filter, SerializerFeature.PrettyFormat);
+    }
+
+    public String formatJson(List<? extends RagContent> contents, int maxCharNumber) {
+        // 1. 字符数截断（保持原有逻辑，但避免拼接字符串产生的额外开销）
+        List<RagContent> truncated = new ArrayList<>();
+        int charCount = 0;
+        for (RagContent content : contents) {
+            // 直接累加长度，避免 title + content 创建新字符串
+            int len = (content.getTitle() == null ? 0 : content.getTitle().length())
+                    + (content.getContent() == null ? 0 : content.getContent().length());
+            if (charCount + len > maxCharNumber) {
+                break;
+            }
+            charCount += len;
+            truncated.add(content);
+        }
+
+        // 2. 分组 + 组内排序 + 构建JSON 一体化处理
+        JSONArray result = truncated.stream()
+                .collect(Collectors.groupingBy(
+                        c -> Optional.ofNullable(c.getDocumentName()).orElse(""),
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ))
+                .entrySet().stream()
+                .map(entry -> {
+                    // 组内按 position 升序，null 排最后
+                    JSONArray contentArray = entry.getValue().stream()
+                            .sorted(Comparator.comparing(
+                                    RagContent::getPosition,
+                                    Comparator.nullsLast(Comparator.naturalOrder())
+                            ))
+                            .map(e -> {
+                                JSONObject obj = new JSONObject();
+                                obj.put("title", e.getTitle());
+                                obj.put("content", e.getContent());
+                                obj.put("position", e.getPosition());
+                                return obj;
+                            })
+                            .collect(Collectors.toCollection(JSONArray::new)); // 直接收集为JSONArray
+                    JSONObject group = new JSONObject();
+                    group.put("documentName", entry.getKey());
+                    group.put("contents", contentArray);
+                    return group;
+                })
+                .collect(Collectors.toCollection(JSONArray::new));
+
+        return JSON.toJSONString(result, SerializerFeature.PrettyFormat);
     }
 
     public String format(List<? extends RagContent> contents, int maxCharNumber) {
