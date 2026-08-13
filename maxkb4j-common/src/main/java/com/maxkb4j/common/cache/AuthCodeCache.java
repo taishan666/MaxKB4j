@@ -7,14 +7,20 @@ import java.util.concurrent.TimeUnit;
 
 public class AuthCodeCache {
 
+    /** 缓存最大容量（邮件验证码条数）。 */
+    private static final int MAXIMUM_SIZE = 9999;
+
+    /** 验证码过期时间（分钟）。 */
+    private static final int EXPIRE_MINUTES = 1;
+
     // 创建缓存并配置
     private static final Cache<String, String> AUTH_CODE_CACHE = Caffeine.newBuilder()
             .initialCapacity(5)
             // 超出最大容量时淘汰
-            .maximumSize(9999)
+            .maximumSize(MAXIMUM_SIZE)
             //设置写缓存后n秒钟过期
-            .expireAfterWrite(1, TimeUnit.MINUTES)
-            .expireAfterAccess(1, TimeUnit.MINUTES)
+            .expireAfterWrite(EXPIRE_MINUTES, TimeUnit.MINUTES)
+            .expireAfterAccess(EXPIRE_MINUTES, TimeUnit.MINUTES)
             .build();
 
     public static void put(String email, String code) {

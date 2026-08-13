@@ -18,19 +18,20 @@ public class SystemCache {
         return CACHE.get(type);
     }
 
+    /**
+     * 获取类型安全的 RSA 密钥设置，未初始化时返回 null。
+     */
+    public static SystemKeySetting getKeySetting() {
+        return SystemKeySetting.from(CACHE.get(SettingType.KEY.getType()));
+    }
+
     public static String getPrivateKey() {
-        JSONObject json = CACHE.get(SettingType.KEY.getType());
-        if (json == null){
-            return null;
-        }
-        return json.getString("value");
+        SystemKeySetting setting = getKeySetting();
+        return setting == null ? null : setting.encryptedPrivateKeyPem();
     }
 
     public static String getPublicKey() {
-        JSONObject json = CACHE.get(SettingType.KEY.getType());
-        if (json == null){
-            return null;
-        }
-        return json.getString("key");
+        SystemKeySetting setting = getKeySetting();
+        return setting == null ? null : setting.publicKeyPem();
     }
 }

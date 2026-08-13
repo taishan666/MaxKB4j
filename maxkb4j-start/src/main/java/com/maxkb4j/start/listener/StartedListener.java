@@ -3,6 +3,7 @@ package com.maxkb4j.start.listener;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.cache.SystemCache;
+import com.maxkb4j.common.cache.SystemKeySetting;
 import com.maxkb4j.common.enums.SettingType;
 import com.maxkb4j.common.util.RSAUtil;
 import com.maxkb4j.system.entity.SystemSettingEntity;
@@ -52,7 +53,7 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
                 String publicKeyPem = RSAUtil.publicKeyPem(publicKey);
                 PrivateKey privateKey = keyPair.getPrivate();
                 String encryptPrivateKeyPem = RSAUtil.encryptPrivateKeyPem(privateKey);
-                JSONObject meta=new JSONObject(Map.of("key",publicKeyPem,"value",encryptPrivateKeyPem));
+                JSONObject meta = new SystemKeySetting(publicKeyPem, encryptPrivateKeyPem).toMetaJson();
                 systemSettingService.saveOrUpdate(meta, SettingType.KEY.getType());
                 SystemCache.put(SettingType.KEY.getType(),meta);
             } catch (Exception e) {

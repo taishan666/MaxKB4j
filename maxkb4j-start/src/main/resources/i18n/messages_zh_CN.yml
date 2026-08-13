@@ -15,6 +15,9 @@ common:
   file:
     limit:
       exceeded: 文件数量超出限制
+  request:
+    context:
+      missing: 无法获取请求上下文
 
 login:
   password:

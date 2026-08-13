@@ -4,6 +4,7 @@ import cn.dev33.satoken.exception.NotPermissionException;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.StpKit;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotNull;
@@ -30,7 +31,7 @@ public class SaCheckPermAspect {
         // 获取 HttpServletRequest
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
-            throw new RuntimeException("无法获取请求上下文");
+            throw new ApiException("common.request.context.missing");
         }
         String permissionStr = permissionStr(saCheckPerm, attributes);
         //校验权限（精确匹配）

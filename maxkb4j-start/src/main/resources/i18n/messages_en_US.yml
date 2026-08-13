@@ -15,6 +15,9 @@ common:
   file:
     limit:
       exceeded: File count exceeds the limit
+  request:
+    context:
+      missing: Request context is not available
 
 login:
   password:

@@ -42,16 +42,24 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> implements IModelInternalService {
 
+    private static final int MODEL_CACHE_INITIAL_CAPACITY = 100;
+
+    /** 模型缓存最大容量。 */
+    private static final int MODEL_CACHE_MAXIMUM_SIZE = 10000;
+
+    /** 模型缓存过期时间（分钟）。 */
+    private static final int MODEL_CACHE_EXPIRE_MINUTES = 1;
+
     private final IUserResourcePermissionService userResourcePermissionService;
     private final UserContext userContext;
     private final DataPermissionSupport dataPermissionSupport;
     private final ModelProviderRegistry providerRegistry;
 
     private static final Cache<String, ModelEntity> MODEL_CACHE = Caffeine.newBuilder()
-            .initialCapacity(100)
-            .maximumSize(10000)
-            .expireAfterWrite(1, TimeUnit.MINUTES)
-            .expireAfterAccess(1, TimeUnit.MINUTES)
+            .initialCapacity(MODEL_CACHE_INITIAL_CAPACITY)
+            .maximumSize(MODEL_CACHE_MAXIMUM_SIZE)
+            .expireAfterWrite(MODEL_CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES)
+            .expireAfterAccess(MODEL_CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES)
             .build();
 
     @Override
