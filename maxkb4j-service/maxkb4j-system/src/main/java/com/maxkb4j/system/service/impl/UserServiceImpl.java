@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.maxkb4j.common.cache.AuthCodeCache;
+import com.maxkb4j.system.cache.AuthCodeCache;
 import com.maxkb4j.common.cache.SystemCache;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.context.UserContext;
@@ -62,6 +62,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     private final UserContext userContext;
     private final PasswordService passwordService;
     private final LoginAttemptLimiter loginAttemptLimiter;
+    private final AuthCodeCache authCodeCache;
 
 
     public IPage<UserEntity> selectUserPage(int page, int size, UserDTO dto) {
@@ -225,7 +226,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         Context context = new Context();
         String code = generateCode();
         context.setVariable("code", code);
-        AuthCodeCache.put(email, code);
+        authCodeCache.put(email, code);
         try {
             emailService.sendMessage(email, subject, "email_template", context);
         } catch (MessagingException e) {
@@ -235,7 +236,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     }
 
     public boolean checkCode(String email, String code) {
-        String codeCache = AuthCodeCache.getIfPresent(email);
+        String codeCache = authCodeCache.getIfPresent(email);
         return  Objects.equals(codeCache, code);
     }
 

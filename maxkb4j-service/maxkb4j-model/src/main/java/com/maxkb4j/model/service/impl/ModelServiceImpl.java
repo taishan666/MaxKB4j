@@ -9,7 +9,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.exception.ApiException;
-import com.maxkb4j.common.mp.entity.ModelCredential;
+import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.common.util.DataMaskUtil;
 import com.maxkb4j.core.support.permission.DataPermissionScope;
 import com.maxkb4j.core.support.permission.DataPermissionSupport;

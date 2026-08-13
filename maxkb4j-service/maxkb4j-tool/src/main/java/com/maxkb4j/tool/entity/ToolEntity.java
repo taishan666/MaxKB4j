@@ -5,9 +5,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.maxkb4j.common.mp.base.BaseEntity;
-import com.maxkb4j.common.mp.entity.ToolInputField;
+import com.maxkb4j.tool.entity.ToolInputField;
 import com.maxkb4j.common.typehandler.JSONBTypeHandler;
-import com.maxkb4j.common.typehandler.ToolInputParamsTypeHandler;
+import com.maxkb4j.tool.typehandler.ToolInputParamsTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

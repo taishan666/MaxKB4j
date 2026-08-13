@@ -5,7 +5,7 @@ import com.alibaba.dashscope.audio.asr.translation.TranslationRecognizerRealtime
 import com.alibaba.dashscope.audio.asr.translation.results.TranslationRecognizerResult;
 import com.alibaba.dashscope.common.ResultCallback;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.mp.entity.ModelCredential;
+import com.maxkb4j.model.entity.ModelCredential;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;

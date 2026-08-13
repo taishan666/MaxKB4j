@@ -1,6 +1,7 @@
 package com.maxkb4j.trigger.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.trigger.model.TriggerSetting;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.util.I18nUtil;
@@ -42,15 +43,12 @@ public class WebhookTriggerController {
         if (!eventTrigger.getIsActive()){
             return R.fail(I18nUtil.get("trigger.event.disabled"));
         }
-        JSONObject triggerSetting=eventTrigger.getTriggerSetting();
-        if (Objects.nonNull(triggerSetting)){
-            if (triggerSetting.containsKey("token")){
-                String token=triggerSetting.getString("token");
-                String tokenValue=WebUtil.getTokenValue();
-                if (Objects.equals(tokenValue, token)){
-                    triggerTaskExecutor.execute(id,data);
-                    return R.data(true);
-                }
+        TriggerSetting setting = TriggerSetting.from(eventTrigger.getTriggerSetting());
+        if (Objects.nonNull(setting) && Objects.nonNull(setting.token())){
+            String tokenValue=WebUtil.getTokenValue();
+            if (Objects.equals(tokenValue, setting.token())){
+                triggerTaskExecutor.execute(id,data);
+                return R.data(true);
             }
         }
         return R.fail(I18nUtil.get("trigger.token.auth.failed"));

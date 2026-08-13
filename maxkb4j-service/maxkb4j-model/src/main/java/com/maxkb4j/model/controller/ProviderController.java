@@ -3,7 +3,7 @@ package com.maxkb4j.model.controller;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.KeyAndValue;
-import com.maxkb4j.common.domain.form.BaseField;
+import com.maxkb4j.model.form.BaseField;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.provider.AbsModelProvider;
 import com.maxkb4j.model.registry.ModelProviderRegistry;

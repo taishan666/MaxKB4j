@@ -1,7 +1,7 @@
 package com.maxkb4j.model.custom.params;
 
-import com.maxkb4j.common.domain.form.BaseField;
-import com.maxkb4j.common.domain.form.SingleSelectField;
+import com.maxkb4j.model.form.BaseField;
+import com.maxkb4j.model.form.SingleSelectField;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

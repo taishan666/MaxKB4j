@@ -2,9 +2,9 @@ package com.maxkb4j.knowledge.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.context.UserContext;
-import com.maxkb4j.common.domain.form.BaseField;
-import com.maxkb4j.common.domain.form.LocalFileUpload;
-import com.maxkb4j.common.domain.form.TextInputField;
+import com.maxkb4j.model.form.BaseField;
+import com.maxkb4j.model.form.LocalFileUpload;
+import com.maxkb4j.model.form.TextInputField;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.entity.*;
 import com.maxkb4j.knowledge.event.GenerateProblemEvent;

@@ -19,6 +19,21 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-core</artifactId>
         </dependency>
+        <!-- MyBatis-Plus（类型处理器基类） -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+        </dependency>
+        <!-- PostgreSQL jsonb 类型处理（PGobject） -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+        <!-- BaseField 表单字段使用 StringUtils -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

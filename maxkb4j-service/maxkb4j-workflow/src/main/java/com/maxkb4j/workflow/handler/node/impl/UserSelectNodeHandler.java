@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.form.RadioCardField;
+import com.maxkb4j.model.form.RadioCardField;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;

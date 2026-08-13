@@ -7,7 +7,7 @@ import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
-import com.maxkb4j.common.mp.entity.ToolInputField;
+import com.maxkb4j.tool.entity.ToolInputField;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.consts.ToolConstants;

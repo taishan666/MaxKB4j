@@ -1,12 +1,12 @@
 package com.maxkb4j.trigger.service;
 
-import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.trigger.model.TriggerSetting;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.trigger.entity.EventTriggerEntity;
-import com.maxkb4j.trigger.enums.ScheduleType;
+
 import com.maxkb4j.trigger.enums.TriggerType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,30 +66,28 @@ public class TriggerScheduler implements ApplicationRunner {
             return;
         }
         String triggerId = trigger.getId();
-        JSONObject triggerSetting = trigger.getTriggerSetting();
-        if (triggerSetting == null) {
+        TriggerSetting setting = TriggerSetting.from(trigger.getTriggerSetting());
+        if (setting == null) {
             log.warn("Trigger {} has no triggerSetting", triggerId);
             return;
         }
-        String scheduleTypeStr = triggerSetting.getString("scheduleType");
-        if (StringUtils.isBlank(scheduleTypeStr)) {
+        if (!setting.hasScheduleType()) {
             log.warn("Trigger {} has no scheduleType", triggerId);
             return;
         }
         if (isScheduled(triggerId)) {
             cancelSchedule(triggerId);
         }
-        ScheduleType scheduleType = ScheduleType.fromValue(scheduleTypeStr);
-        switch (scheduleType) {
-            case DAILY -> scheduleDaily(triggerId, triggerSetting);
-            case WEEKLY -> scheduleWeekly(triggerId, triggerSetting);
-            case MONTHLY -> scheduleMonthly(triggerId, triggerSetting);
-            case INTERVAL -> scheduleInterval(triggerId, triggerSetting);
+        switch (setting.scheduleType()) {
+            case DAILY -> scheduleDaily(triggerId, setting);
+            case WEEKLY -> scheduleWeekly(triggerId, setting);
+            case MONTHLY -> scheduleMonthly(triggerId, setting);
+            case INTERVAL -> scheduleInterval(triggerId, setting);
         }
-        log.info("Scheduled trigger {} with type {}", triggerId, scheduleType);
+        log.info("Scheduled trigger {} with type {}", triggerId, setting.scheduleType());
     }
 
-    private void scheduleDaily(String triggerId, JSONObject setting) {
+    private void scheduleDaily(String triggerId, TriggerSetting setting) {
         LocalDateTime nextRunTime = nextRunTimeCalculator.calculate(setting);
         if (nextRunTime == null) {
             log.warn("Failed to calculate next run time for daily trigger {}", triggerId);
@@ -98,7 +96,7 @@ public class TriggerScheduler implements ApplicationRunner {
         scheduleAtTime(triggerId, nextRunTime, true);
     }
 
-    private void scheduleWeekly(String triggerId, JSONObject setting) {
+    private void scheduleWeekly(String triggerId, TriggerSetting setting) {
         LocalDateTime nextRunTime = nextRunTimeCalculator.calculate(setting);
         if (nextRunTime == null) {
             log.warn("Failed to calculate next run time for weekly trigger {}", triggerId);
@@ -107,7 +105,7 @@ public class TriggerScheduler implements ApplicationRunner {
         scheduleAtTime(triggerId, nextRunTime, false);
     }
 
-    private void scheduleMonthly(String triggerId, JSONObject setting) {
+    private void scheduleMonthly(String triggerId, TriggerSetting setting) {
         LocalDateTime nextRunTime = nextRunTimeCalculator.calculate(setting);
         if (nextRunTime == null) {
             log.warn("Failed to calculate next run time for monthly trigger {}", triggerId);
@@ -116,9 +114,9 @@ public class TriggerScheduler implements ApplicationRunner {
         scheduleAtTime(triggerId, nextRunTime, false);
     }
 
-    private void scheduleInterval(String triggerId, JSONObject setting) {
-        Integer intervalValue = setting.getInteger("intervalValue");
-        String intervalUnit = setting.getString("intervalUnit");
+    private void scheduleInterval(String triggerId, TriggerSetting setting) {
+        Integer intervalValue = setting.intervalValue();
+        String intervalUnit = setting.intervalUnit();
         if (intervalValue == null || intervalValue <= 0 || StringUtils.isBlank(intervalUnit)) {
             log.warn("Invalid interval configuration for trigger {}", triggerId);
             return;
@@ -174,7 +172,7 @@ public class TriggerScheduler implements ApplicationRunner {
             cancelSchedule(triggerId);
             return;
         }
-        scheduleDaily(triggerId, trigger.getTriggerSetting());
+        scheduleDaily(triggerId, TriggerSetting.from(trigger.getTriggerSetting()));
     }
 
     private void rescheduleFromSetting(String triggerId) {

@@ -1,7 +1,7 @@
 package com.maxkb4j.model.dto;
 
 import com.alibaba.fastjson.JSONArray;
-import com.maxkb4j.common.mp.entity.ModelCredential;
+import com.maxkb4j.model.entity.ModelCredential;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 

@@ -1,7 +1,7 @@
 package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.mp.entity.ModelCredential;
+import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.model.annotation.ModelProviderType;
 import com.maxkb4j.model.custom.model.SiliconFlowImageModel;
 import com.maxkb4j.model.custom.model.SiliconFlowScoringModel;

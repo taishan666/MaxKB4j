@@ -6,7 +6,7 @@ import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.mp.entity.ModelCredential;
+import com.maxkb4j.model.entity.ModelCredential;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.model.scoring.ScoringModel;
