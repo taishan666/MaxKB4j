@@ -44,11 +44,11 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
     @Override
     public void execute(IWorkflow workflow) {
         AbsNode currentNode = workflow.execution().currentNode();
-        if (currentNode == null) {
-            currentNode = workflow.execution().startNode();
-        }
+        List<AbsNode> startNodes = currentNode == null ? workflow.startNodes() : List.of(currentNode);
         log.info("Workflow started");
-        runChainNodes(workflow, List.of(currentNode));
+        onProcessStart(workflow);
+        runChainNodes(workflow, startNodes);
+        onProcessCompleted(workflow);
         log.info("Workflow completed");
     }
 
@@ -221,6 +221,18 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * Hook called after successful node execution; subclasses may override.
      */
     protected void onNodeSuccess(IWorkflow workflow, AbsNode node, NodeResult result) {
+    }
+
+    /**
+     * Hook called after successful node execution; subclasses may override.
+     */
+    protected void onProcessStart(IWorkflow workflow) {
+    }
+
+    /**
+     * Hook called after successful node execution; subclasses may override.
+     */
+    protected void onProcessCompleted(IWorkflow workflow) {
     }
 
     /**

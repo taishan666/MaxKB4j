@@ -9,7 +9,6 @@ import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
 import reactor.core.publisher.Sinks;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,7 +18,6 @@ import java.util.Objects;
  * <ul>
  *   <li>复用父工作流的上下文（共享全局/聊天/循环变量）与历史管理器</li>
  *   <li>基于循环体节点与边构建独立的配置</li>
- *   <li>使用 {@link LoopExecutionAccessor} 覆盖 startNode 以返回 LoopStart 节点</li>
  * </ul>
  */
 @Getter
@@ -49,28 +47,16 @@ public abstract class AbstractLoopWorkflow extends AbstractWorkflow {
         WorkflowContext sharedContext = parent.workflowContext;
         EdgeNavigator navigator = new EdgeNavigator(edges);
         WorkflowExecutionAccessor executionAccessor =
-                new LoopExecutionAccessor(configuration, sharedContext, navigator);
+                new WorkflowExecutionAccessor(configuration, sharedContext, navigator);
         WorkflowOutputManager outputManager =
                 new WorkflowOutputManager(configuration, sharedContext, sink);
         return new Components(configuration, sharedContext, parent.historyManager,
                 executionAccessor, outputManager);
     }
 
-    /**
-     * 循环工作流的执行控制器
-     * 覆盖 startNode 以返回 LoopStart 节点
-     */
-    protected static class LoopExecutionAccessor extends WorkflowExecutionAccessor {
 
-        public LoopExecutionAccessor(WorkflowConfiguration configuration,
-                                     WorkflowContext context,
-                                     EdgeNavigator navigator) {
-            super(configuration, context, navigator);
-        }
-
-        @Override
-        public AbsNode startNode() {
-            return getNodeInstance(NodeType.LOOP_START.getKey(), Collections.emptyList(), null);
-        }
+    @Override
+    public List<AbsNode> startNodes() {
+        return List.of(getNodeInstance(NodeType.LOOP_START.getKey(), List.of(), null));
     }
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.OssFile;
+import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.ModelAwareParams;
@@ -56,7 +57,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
     public final CompletableFuture<NodeResult> execute(IWorkflow workflow, AbsNode node) throws Exception {
         long startTime = System.currentTimeMillis();
         try {
-            emitNodeStart(workflow, node);
+            onNodeStart(workflow, node);
             return doExecuteAsync(workflow, node)
                     .whenComplete((result, ex) -> {
                         if (ex == null) {
@@ -73,7 +74,8 @@ public abstract class AbsNodeHandler implements INodeHandler {
     /**
      * Emits an empty start message so the frontend can render the node before it finishes.
      */
-    private void emitNodeStart(IWorkflow workflow, AbsNode node) {
+    private void onNodeStart(IWorkflow workflow, AbsNode node) {
+        node.setStatus(NodeStatus.STARTED.getStatus());
         if (workflow instanceof IChatWorkflow chatWorkflow) {
             ChatParams chatParams = chatWorkflow.getChatParams();
             workflow.output().emit(node.toChatMessageVO(

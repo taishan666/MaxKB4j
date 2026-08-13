@@ -5,9 +5,13 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.workflow.engine.WorkflowExecutionAccessor;
 import com.maxkb4j.workflow.engine.WorkflowOutputManager;
+import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.model.IChatWorkflow;
+import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
 import reactor.core.publisher.Sinks;
+
+import java.util.List;
 
 /**
  * 聊天（应用）工作流
@@ -50,6 +54,16 @@ public class ChatWorkflow extends AbstractWorkflow implements IChatWorkflow {
                 builder.configuration, builder.context, builder.sink);
         return new Components(builder.configuration, builder.context, builder.historyManager,
                 executionAccessor, outputManager);
+    }
+
+    /**
+     * 获取开始节点
+     *
+     * @return 开始节点实例
+     */
+    @Override
+    public List<AbsNode> startNodes() {
+        return List.of(getNodeInstance(NodeType.START.getKey(), List.of(), null));
     }
 
 }

@@ -1,6 +1,5 @@
 package com.maxkb4j.workflow.model;
 
-import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.data.message.ChatMessage;
 
@@ -97,6 +96,12 @@ public interface IWorkflow {
      * @return 实际字段值
      */
     Object getFieldValue(Object value, String source);
+
+
+    /**
+     * 获取开始节点。
+     */
+    List<AbsNode> startNodes();
 
     /**
      * 根据节点 ID 获取节点。

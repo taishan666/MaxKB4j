@@ -5,15 +5,14 @@ import com.maxkb4j.workflow.engine.graph.KnowledgeWorkflow;
 import com.maxkb4j.workflow.enums.ActionStatus;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
-import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.IKnowledgeWorkflow;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.concurrent.Executor;
 
 @Slf4j
@@ -23,9 +22,9 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
     private final IKnowledgeActionService knowledgeActionService;
 
     public KnowledgeWorkflowHandler(NodeCenter nodeCenter,
-                                     @Qualifier("workflowTaskExecutor") Executor workflowTaskExecutor,
-                                     ExceptionResolverChain exceptionResolverChain,
-                                     IKnowledgeActionService knowledgeActionService) {
+                                    @Qualifier("workflowTaskExecutor") Executor workflowTaskExecutor,
+                                    ExceptionResolverChain exceptionResolverChain,
+                                    IKnowledgeActionService knowledgeActionService) {
         super(nodeCenter, workflowTaskExecutor, exceptionResolverChain);
         this.knowledgeActionService = knowledgeActionService;
     }
@@ -37,15 +36,14 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
     }
 
     @Override
-    public void execute(IWorkflow workflow) {
-        if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
-            List<AbsNode> nodes = knowledgeWorkflow.getStartNodes();
-            runChainNodes(workflow, nodes);
-            updateState(knowledgeWorkflow, ActionStatus.SUCCESS);
-        } else {
-            // 知识库循环工作流：从 LOOP_START 节点开始通用链式执行
-            super.execute(workflow);
-        }
+    protected void onNodeStart(IWorkflow workflow, AbsNode node) {
+        node.setStatus(NodeStatus.STARTED.getStatus());
+        updateState(workflow, ActionStatus.STARTED);
+    }
+
+    @Override
+    protected void onProcessCompleted(IWorkflow workflow) {
+        updateState(workflow, ActionStatus.SUCCESS);
     }
 
     public void updateState(IWorkflow workflow, ActionStatus actionStatus) {
@@ -53,11 +51,5 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
             String actionId = knowledgeWorkflow.getKnowledgeParams().getActionId();
             knowledgeActionService.updateState(actionId, knowledgeWorkflow.output().runtimeDetails(), actionStatus.name());
         }
-    }
-
-    @Override
-    protected void onNodeStart(IWorkflow workflow, AbsNode node) {
-        node.setStatus(NodeStatus.STARTED.getStatus());
-        updateState(workflow, ActionStatus.STARTED);
     }
 }
