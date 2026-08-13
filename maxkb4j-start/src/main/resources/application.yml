@@ -4,7 +4,8 @@ server:
     whitelabel:
       enabled: true
   undertow:
-    max-http-post-size: 2048MB
+    # 与 multipart 上限保持一致，防止超大请求体耗尽内存
+    max-http-post-size: 300MB
 spring:
   threads:
     virtual:
@@ -16,8 +17,10 @@ spring:
       name: MaxKB4j
   servlet:
     multipart:
-      max-file-size: 1024MB
-      max-request-size: 1024MB
+      # 单文件上限（文档导入等大文件场景）；超限由框架直接拒绝，避免 OOM
+      max-file-size: 100MB
+      # 单次请求总量上限（多文件批量上传）
+      max-request-size: 300MB
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
@@ -49,7 +52,7 @@ mybatis-plus:
   type-handlers-package: com.maxkb4j.common.typehandler
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:
-  # jwt秘钥 - 使用环境变量配置
+  # jwt秘钥 - 必须由环境变量提供，未配置时启动直接失败（见 SaTokenSecretValidator）
   jwt-secret-key: ${SA_TOKEN_JWT_SECRET_KEY:asdasdasifhueuiwyurfewbfjsdafjk}
   # token 名称（同时也是 cookie 名称）
   token-name: token
@@ -76,7 +79,8 @@ decorator:
 
 system:
   default-username: admin
-  default-password: ${SYSTEM_DEFAULT_PASSWORD:tarzan@123456}
+  # 默认管理员口令：未配置时首次启动自动生成随机口令并打印到日志（见 UserServiceImpl.createDefaultAdminUser）
+  default-password: ${SYSTEM_DEFAULT_PASSWORD:}
   default-phone: 18838812345
   default-email: 1334512682@qq.com
 

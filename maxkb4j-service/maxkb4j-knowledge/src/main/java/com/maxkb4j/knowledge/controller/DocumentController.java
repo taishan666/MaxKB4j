@@ -134,13 +134,16 @@ public class DocumentController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{docId}/cancel_task")
-    public R<Boolean> cancelTask(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEntity documentEntity) {
+    public R<Boolean> cancelTask(@PathVariable String id, @PathVariable("docId") String docId, @Valid @RequestBody DocumentTaskCancelDTO dto) {
+        DocumentEntity documentEntity = new DocumentEntity();
+        documentEntity.setType(dto.getType());
         return R.status(documentService.cancelTask(docId, documentEntity));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{docId}")
-    public R<DocumentVO> updateDocByDocId(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentEntity documentEntity) {
+    public R<DocumentVO> updateDocByDocId(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentUpdateDTO dto) {
+        DocumentEntity documentEntity = BeanUtil.copy(dto, DocumentEntity.class);
         DocumentEntity e = documentService.updateAndGetById(docId, documentEntity);
         return R.data(e == null ? null : BeanUtil.copy(e, DocumentVO.class));
     }

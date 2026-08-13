@@ -10,6 +10,7 @@ import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.service.IUserInternalService;
 import com.maxkb4j.system.dto.PasswordDTO;
+import com.maxkb4j.system.dto.UserLanguageDTO;
 import com.maxkb4j.system.vo.UserVO;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
@@ -34,7 +35,9 @@ public class UserController {
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
     @PostMapping("/user/language")
-    public R<Boolean> language(@RequestBody UserEntity user) {
+    public R<Boolean> language(@Valid @RequestBody UserLanguageDTO dto) {
+        UserEntity user = new UserEntity();
+        user.setLanguage(dto.getLanguage());
         return R.status(userService.updateLanguage(user));
     }
 

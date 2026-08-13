@@ -13,6 +13,8 @@ import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.service.IUserInternalService;
 import com.maxkb4j.system.dto.PasswordDTO;
 import com.maxkb4j.system.dto.UserDTO;
+import com.maxkb4j.system.dto.UserCreateDTO;
+import com.maxkb4j.system.dto.UserUpdateDTO;
 import com.maxkb4j.system.vo.UserVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +44,8 @@ public class UserManageController {
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
     @PostMapping("/user_manage")
-    public R<Boolean> createUser(@RequestBody UserEntity user) {
+    public R<Boolean> createUser(@Valid @RequestBody UserCreateDTO dto) {
+        UserEntity user = BeanUtil.copy(dto, UserEntity.class);
         return R.status(userService.createUser(user));
     }
 
@@ -54,7 +57,8 @@ public class UserManageController {
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
     @PutMapping("/user_manage/{id}")
-    public R<Boolean> updateUserById(@PathVariable("id") String id, @RequestBody UserEntity user) {
+    public R<Boolean> updateUserById(@PathVariable("id") String id, @RequestBody UserUpdateDTO dto) {
+        UserEntity user = BeanUtil.copy(dto, UserEntity.class);
         user.setId(id);
         return R.status(userService.updateById(user));
     }

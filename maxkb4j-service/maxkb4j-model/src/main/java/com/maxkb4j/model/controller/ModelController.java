@@ -7,12 +7,15 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.core.support.permission.DataPermissionSupport;
+import com.maxkb4j.model.dto.ModelCreateDTO;
+import com.maxkb4j.model.dto.ModelUpdateDTO;
 import com.maxkb4j.model.dto.ModelQuery;
 import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.service.IModelInternalService;
 import com.maxkb4j.model.vo.ModelListVO;
 import com.maxkb4j.model.vo.ModelVO;
 import com.maxkb4j.system.constant.AuthTargetType;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +36,8 @@ public class ModelController{
 
 	@SaCheckPerm(PermissionEnum.MODEL_CREATE)
 	@PostMapping("/model")
-	public R<Boolean> createModel(@RequestBody ModelEntity model){
+	public R<Boolean> createModel(@Valid @RequestBody ModelCreateDTO dto){
+		ModelEntity model = BeanUtil.copy(dto, ModelEntity.class);
 		return R.data(modelService.createModel(model));
 	}
 
@@ -68,7 +72,8 @@ public class ModelController{
 
 	@SaCheckPerm(PermissionEnum.MODEL_EDIT)
 	@PutMapping("/model/{id}")
-	public R<ModelVO> update(@PathVariable String id,@RequestBody ModelEntity model){
+	public R<ModelVO> update(@PathVariable String id,@RequestBody ModelUpdateDTO dto){
+		ModelEntity model = BeanUtil.copy(dto, ModelEntity.class);
 		ModelEntity entity = modelService.updateModel(id, model);
 		return R.data(entity == null ? null : BeanUtil.copy(entity, ModelVO.class));
 	}

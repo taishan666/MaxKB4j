@@ -7,6 +7,7 @@ import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.knowledge.dto.ProblemDTO;
+import com.maxkb4j.knowledge.dto.ProblemUpdateDTO;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.service.IKnowledgeInternalService;
 import com.maxkb4j.knowledge.service.IProblemService;
@@ -44,7 +45,9 @@ public class ProblemController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_PROBLEM_EDIT)
     @PutMapping("/knowledge/{id}/problem/{problemId}")
-    public R<Boolean> updateProblemByDatasetId(@PathVariable String id, @PathVariable String problemId, @RequestBody ProblemEntity problem) {
+    public R<Boolean> updateProblemByDatasetId(@PathVariable String id, @PathVariable String problemId, @Valid @RequestBody ProblemUpdateDTO dto) {
+        ProblemEntity problem = new ProblemEntity();
+        problem.setContent(dto.getContent());
         problem.setId(problemId);
         problem.setKnowledgeId(id);
         return R.status(problemService.updateProblemById(problem));

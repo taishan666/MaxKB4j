@@ -15,6 +15,12 @@ common:
   file:
     limit:
       exceeded: File count exceeds the limit
+      type:
+        not:
+          allowed: File type is not allowed
+      size:
+        exceeded: File size exceeds the limit (max {0} MB)
+    empty: File is empty
   request:
     context:
       missing: Request context is not available
@@ -33,6 +39,9 @@ login:
     disabled: The user has been disabled. Please contact the administrator.
   not:
     login: Not logged in
+  too:
+    many:
+      attempts: Too many failed login attempts. Please try again in 15 minutes.
   "no":
     permission: No permission
   access:

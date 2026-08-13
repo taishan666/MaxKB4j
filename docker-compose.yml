@@ -42,6 +42,10 @@ services:
         max-size: "30m"
         max-file: "3"
     environment:
+      # JWT 密钥必须由宿主机环境变量提供（未设置时 compose 直接报错，应用侧亦有 fail-fast 校验）
+      - SA_TOKEN_JWT_SECRET_KEY=${SA_TOKEN_JWT_SECRET_KEY:?请设置 SA_TOKEN_JWT_SECRET_KEY 环境变量（建议32位以上随机字符串）}
+      # 可选：默认管理员口令；不设置时首次启动自动生成随机口令并打印到日志
+      - SYSTEM_DEFAULT_PASSWORD=${SYSTEM_DEFAULT_PASSWORD:}
       - SPRING_DATA_MONGODB_URI=mongodb://tarzan_mongo:ycn4NRhjN2@mongo:27017/MaxKB4j?authSource=admin
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/MaxKB4j
       - SPRING_DATASOURCE_USERNAME=tarzan_postgres

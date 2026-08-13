@@ -1,6 +1,7 @@
 package com.maxkb4j.application.controller;
 
 import com.maxkb4j.application.entity.ApplicationVersionEntity;
+import com.maxkb4j.application.dto.ApplicationVersionUpdateDTO;
 import com.maxkb4j.application.vo.ApplicationVersionVO;
 import com.maxkb4j.application.service.IApplicationVersionService;
 import com.maxkb4j.common.annotation.SaCheckPerm;
@@ -34,7 +35,10 @@ public class ApplicationVersionController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/application_version/{versionId}")
-    public R<Boolean> updateWorkFlowVersion(@PathVariable("id") String id, @PathVariable("versionId") String versionId, @RequestBody ApplicationVersionEntity versionEntity) {
+    public R<Boolean> updateWorkFlowVersion(@PathVariable("id") String id, @PathVariable("versionId") String versionId, @RequestBody ApplicationVersionUpdateDTO dto) {
+        ApplicationVersionEntity versionEntity = new ApplicationVersionEntity();
+        versionEntity.setName(dto.getName());
+        versionEntity.setDesc(dto.getDesc());
         versionEntity.setId(versionId);
         return R.status(applicationVersionService.updateById(versionEntity));
     }

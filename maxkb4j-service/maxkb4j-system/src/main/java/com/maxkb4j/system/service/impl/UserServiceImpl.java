@@ -1,7 +1,6 @@
 package com.maxkb4j.system.service.impl;
 
 import cn.dev33.satoken.exception.NotLoginException;
-import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.StpInterface;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -20,6 +19,7 @@ import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.RSAUtil;
 import com.maxkb4j.common.util.StpKit;
+import com.maxkb4j.common.util.WebUtil;
 import com.maxkb4j.system.constant.UserLanguage;
 import com.maxkb4j.system.constant.UserSource;
 import com.maxkb4j.system.entity.UserEntity;
@@ -29,24 +29,29 @@ import com.maxkb4j.system.dto.PasswordDTO;
 import com.maxkb4j.system.dto.UserDTO;
 import com.maxkb4j.system.dto.UserLoginDTO;
 import com.maxkb4j.system.service.IUserInternalService;
+import com.maxkb4j.system.security.LoginAttemptLimiter;
+import com.maxkb4j.system.security.PasswordService;
 import com.maxkb4j.system.vo.UserNameVO;
 import com.maxkb4j.system.vo.UserVO;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 
+import java.security.SecureRandom;
 import java.util.*;
 
 /**
  * @author tarzan
  * @date 2024-12-25 11:27:27
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> implements IUserInternalService {
@@ -55,6 +60,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     private final StpInterface stpInterface;
     private final SystemProperties systemProperties;
     private final UserContext userContext;
+    private final PasswordService passwordService;
+    private final LoginAttemptLimiter loginAttemptLimiter;
 
 
     public IPage<UserEntity> selectUserPage(int page, int size, UserDTO dto) {
@@ -105,23 +112,40 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         if (StringUtils.isBlank(dto.getCaptcha()) || !sessionCaptcha.equalsIgnoreCase(dto.getCaptcha())) {
             throw new LoginException("login.captcha.error");
         }
-        String password = SaSecureUtil.md5(dto.getPassword());
+        String limiterKey = buildLimiterKey(dto.getUsername());
+        loginAttemptLimiter.checkLocked(limiterKey);
         UserEntity userEntity = this.lambdaQuery()
                 .select(UserEntity::getId, UserEntity::getIsActive, UserEntity::getLanguage, UserEntity::getPassword)
                 .eq(UserEntity::getUsername, dto.getUsername())
-                .eq(UserEntity::getPassword, password)
                 .eq(UserEntity::getSource, UserSource.LOCAL)
                 .one();
-        if (Objects.isNull(userEntity)) {
+        // 用户不存在与口令错误统一提示，避免用户名枚举
+        if (Objects.isNull(userEntity) || !passwordService.matches(dto.getPassword(), userEntity.getPassword())) {
+            loginAttemptLimiter.recordFailure(limiterKey);
             throw new LoginException("login.user.not.exists");
         }
         if (!userEntity.getIsActive()) {
             throw new LoginException("login.user.disabled");
         }
+        // 存量 MD5 口令验证通过后自动升级为 BCrypt
+        if (passwordService.isLegacyHash(userEntity.getPassword())) {
+            UserEntity upgrade = new UserEntity();
+            upgrade.setId(userEntity.getId());
+            upgrade.setPassword(passwordService.encode(dto.getPassword()));
+            this.updateById(upgrade);
+        }
+        loginAttemptLimiter.recordSuccess(limiterKey);
         // 登录成功后立刻按用户表语言切换当前请求的返回消息
         LocaleContextHolder.setLocale(userEntity.getLanguage() != null && userEntity.getLanguage().toLowerCase().startsWith("en") ? Locale.US : Locale.SIMPLIFIED_CHINESE);
         StpKit.ADMIN.login(userEntity.getId());
         return StpKit.ADMIN.getTokenValue();
+    }
+
+    /**
+     * 构建登录限流键：用户名 + 来源 IP，避免单一维度误伤。
+     */
+    private String buildLimiterKey(String username) {
+        return StringUtils.defaultString(username) + "|" + WebUtil.getIP();
     }
 
     @Transactional
@@ -138,16 +162,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
         user.setLanguage(StringUtils.defaultIfBlank(user.getLanguage(), UserLanguage.ZH_CN));
-        user.setPassword(SaSecureUtil.md5(user.getPassword()));
+        user.setPassword(passwordService.encode(user.getPassword()));
         return save(user);
     }
 
     @Transactional
     public void createDefaultAdminUser() {
+        String defaultPassword = systemProperties.getDefaultPassword();
+        if (StringUtils.isBlank(defaultPassword)) {
+            defaultPassword = generateRandomPassword(16);
+            systemProperties.setDefaultPassword(defaultPassword);
+            log.warn("==================================================================");
+            log.warn("未配置 SYSTEM_DEFAULT_PASSWORD，已为默认管理员账号生成随机口令：{}", defaultPassword);
+            log.warn("请登录后及时修改口令；或通过环境变量 SYSTEM_DEFAULT_PASSWORD 配置固定默认口令");
+            log.warn("==================================================================");
+        }
         UserEntity user = new UserEntity();
         user.setNickname(I18nUtil.get("user.admin.nickname"));
         user.setUsername(systemProperties.getDefaultUsername());
-        user.setPassword(SaSecureUtil.md5(systemProperties.getDefaultPassword()));
+        user.setPassword(passwordService.encode(defaultPassword));
         user.setRole(RoleType.ADMIN);
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
@@ -182,8 +215,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         List<Map<String, String>> workspaceList = new ArrayList<>();
         workspaceList.add(Map.of("id", "default", "name", "default"));
         user.setWorkspaceList(workspaceList);
-        String defaultPassword = SaSecureUtil.md5(systemProperties.getDefaultPassword());
-        user.setIsEditPassword(defaultPassword.equals(userEntity.getPassword()));
+        String defaultPassword = systemProperties.getDefaultPassword();
+        user.setIsEditPassword(StringUtils.isNotBlank(defaultPassword)
+                && passwordService.matches(defaultPassword, userEntity.getPassword()));
         return user;
     }
 
@@ -206,15 +240,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     }
 
     private String generateCode() {
-        Random random = new Random();
-        return String.format("%06d", random.nextInt(1000000));
+        return String.format("%06d", new SecureRandom().nextInt(1000000));
+    }
+
+    /**
+     * 生成随机口令：去除易混淆字符的大小写字母与数字。
+     */
+    private String generateRandomPassword(int length) {
+        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
     }
 
     public boolean resetPassword(PasswordDTO dto) {
         if (Objects.equals(dto.getPassword(), dto.getRePassword())) {
             UserEntity userEntity = new UserEntity();
             userEntity.setId(userContext.getUserId());
-            userEntity.setPassword(SaSecureUtil.md5(dto.getPassword()));
+            userEntity.setPassword(passwordService.encode(dto.getPassword()));
             return updateById(userEntity);
         }
         return false;
@@ -227,7 +273,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     public boolean updatePassword(String id, PasswordDTO dto) {
         UserEntity user = new UserEntity();
         user.setId(id);
-        user.setPassword(SaSecureUtil.md5(dto.getPassword()));
+        user.setPassword(passwordService.encode(dto.getPassword()));
         return updateById(user);
     }
 

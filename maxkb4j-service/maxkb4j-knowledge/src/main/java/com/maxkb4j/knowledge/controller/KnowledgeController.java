@@ -13,6 +13,8 @@ import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.DataSearchDTO;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.dto.KnowledgeQuery;
+import com.maxkb4j.knowledge.dto.KnowledgeSaveDTO;
+import com.maxkb4j.knowledge.dto.KnowledgeVersionUpdateDTO;
 import com.maxkb4j.knowledge.dto.WebKnowledgeDTO;
 import com.maxkb4j.knowledge.entity.KnowledgeActionEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
@@ -59,7 +61,8 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/base")
-    public R<KnowledgeVO> createKnowledgeBase(@RequestBody KnowledgeEntity knowledge) {
+    public R<KnowledgeVO> createKnowledgeBase(@Valid @RequestBody KnowledgeSaveDTO dto) {
+        KnowledgeEntity knowledge = BeanUtil.copy(dto, KnowledgeEntity.class);
         knowledge.setType(KnowledgeType.BASE);
         KnowledgeEntity ke = knowledgeService.createKnowledge(knowledge);
         return R.data(ke == null ? null : BeanUtil.copy(ke, KnowledgeVO.class));
@@ -75,7 +78,8 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/workflow")
-    public R<KnowledgeVO> createKnowledgeWorkflow(@RequestBody KnowledgeEntity knowledge) {
+    public R<KnowledgeVO> createKnowledgeWorkflow(@Valid @RequestBody KnowledgeSaveDTO dto) {
+        KnowledgeEntity knowledge = BeanUtil.copy(dto, KnowledgeEntity.class);
         knowledge.setType(KnowledgeType.WORKFLOW);
         KnowledgeEntity ke = knowledgeService.createKnowledge(knowledge);
         return R.data(ke == null ? null : BeanUtil.copy(ke, KnowledgeVO.class));
@@ -83,7 +87,8 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_WORKFLOW_EDIT)
     @PutMapping("/knowledge/{id}/workflow")
-    public R<KnowledgeVO> updateDatasetWorkflow(@PathVariable String id,@RequestBody KnowledgeEntity knowledge) {
+    public R<KnowledgeVO> updateDatasetWorkflow(@PathVariable String id,@RequestBody KnowledgeSaveDTO dto) {
+        KnowledgeEntity knowledge = BeanUtil.copy(dto, KnowledgeEntity.class);
         KnowledgeEntity ke = knowledgeWorkflowService.updateDatasetWorkflow(id,knowledge);
         return R.data(ke == null ? null : BeanUtil.copy(ke, KnowledgeVO.class));
     }
@@ -102,9 +107,10 @@ public class KnowledgeController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_EDIT)
     @PutMapping("/knowledge/{id}")
-    public R<KnowledgeVO> updatedKnowledge(@PathVariable("id") String id, @RequestBody KnowledgeEntity datasetEntity) {
-        knowledgeService.updateKnowledge(id, datasetEntity);
-        return R.data(BeanUtil.copy(datasetEntity, KnowledgeVO.class));
+    public R<KnowledgeVO> updatedKnowledge(@PathVariable("id") String id, @RequestBody KnowledgeSaveDTO dto) {
+        KnowledgeEntity knowledge = BeanUtil.copy(dto, KnowledgeEntity.class);
+        knowledgeService.updateKnowledge(id, knowledge);
+        return R.data(BeanUtil.copy(knowledge, KnowledgeVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_VECTOR)
@@ -184,7 +190,9 @@ public class KnowledgeController {
     }
 
     @PutMapping("/knowledge/{id}/knowledge_version/{versionId}")
-    public R<Boolean> knowledgeVersion(@PathVariable("id") String id,@PathVariable("versionId") String versionId,@RequestBody KnowledgeVersionEntity knowledgeVersionEntity) {
+    public R<Boolean> knowledgeVersion(@PathVariable("id") String id,@PathVariable("versionId") String versionId,@RequestBody KnowledgeVersionUpdateDTO dto) {
+        KnowledgeVersionEntity knowledgeVersionEntity = new KnowledgeVersionEntity();
+        knowledgeVersionEntity.setName(dto.getName());
         return R.status(knowledgePublishService.knowledgeVersion(versionId,knowledgeVersionEntity));
     }
 
