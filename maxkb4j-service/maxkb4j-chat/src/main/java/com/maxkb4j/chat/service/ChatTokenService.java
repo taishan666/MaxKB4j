@@ -16,6 +16,11 @@ import java.util.Map;
 public class ChatTokenService {
 
     /**
+     * 匿名聊天 token 有效期: -1 表示永久有效(永不失效)。
+     */
+    private static final long TOKEN_TIMEOUT_NEVER_EXPIRE = -1L;
+
+    /**
      * 为聊天用户签发 token(JWT),复用当前会话的设备标识。
      * <p>设备标识来自身份解析拦截器已桥接的 USER 会话;未登录(首次匿名)时为 {@code null}。
      *
@@ -24,6 +29,6 @@ public class ChatTokenService {
      * @return 签发的 token 字符串
      */
     public String issueAnonymousToken(String chatUserId, Map<String, Object> extraData) {
-        return StpKit.USER.createTokenValue(chatUserId, StpKit.USER.getLoginDevice(), -1L, extraData);
+        return StpKit.USER.createTokenValue(chatUserId, StpKit.USER.getLoginDevice(), TOKEN_TIMEOUT_NEVER_EXPIRE, extraData);
     }
 }
