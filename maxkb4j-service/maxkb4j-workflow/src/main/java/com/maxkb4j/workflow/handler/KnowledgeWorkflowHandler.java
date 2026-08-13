@@ -37,7 +37,6 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
 
     @Override
     protected void onNodeStart(IWorkflow workflow, AbsNode node) {
-        node.setStatus(NodeStatus.STARTED.getStatus());
         updateState(workflow, ActionStatus.STARTED);
     }
 
