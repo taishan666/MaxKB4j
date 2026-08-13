@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.maxkb4j.system.mapper.HomeMapper">
+
+    <!-- ==================== 资源数量聚合 ==================== -->
+
+    <select id="applicationAggregation" resultType="java.util.LinkedHashMap">
+        SELECT COUNT(*) AS total,
+               COUNT(*) FILTER (WHERE is_publish = true) AS publish_count,
+               COUNT(*) FILTER (WHERE is_publish IS DISTINCT FROM true) AS un_publish_count
+        FROM application
+    </select>
+
+    <select id="knowledgeAggregation" resultType="java.util.LinkedHashMap">
+        SELECT (SELECT COUNT(*) FROM knowledge) AS total,
+               (SELECT COUNT(*) FROM document) AS document_count,
+               (
+                   SELECT COUNT(*) FROM document
+                   WHERE SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 1 FOR 1) = '1'
+                      OR SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 2 FOR 1) = '1'
+               ) AS failure_count
+    </select>
+
+    <select id="toolAggregation" resultType="java.util.LinkedHashMap">
+        SELECT COUNT(*) AS total,
+               COUNT(*) FILTER (WHERE tool_type = 'CUSTOM')      AS custom_count,
+               COUNT(*) FILTER (WHERE tool_type = 'DATA_SOURCE') AS data_source_count,
+               COUNT(*) FILTER (WHERE tool_type = 'MCP')         AS mcp_count,
+               COUNT(*) FILTER (WHERE tool_type = 'SKILL')       AS skill_count,
+               COUNT(*) FILTER (WHERE tool_type = 'WORKFLOW')    AS workflow_count
+        FROM tool
+    </select>
+
+    <select id="modelAggregation" resultType="java.util.LinkedHashMap">
+        SELECT COUNT(*) AS total,
+               COUNT(*) FILTER (WHERE model_type = 'EMBEDDING') AS embedding_count,
+               COUNT(*) FILTER (WHERE model_type = 'LLM')       AS llm_count
+        FROM model
+    </select>
+
+    <!-- ==================== 监控：按天聚合 ==================== -->
+
+    <sql id="dailyStatsWhere">
+        <where>
+            <if test="query.startTime != null and query.startTime != ''">
+                AND <![CDATA[TO_CHAR(chat.create_time, 'YYYY-MM-DD') >= #{query.startTime}]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                AND <![CDATA[TO_CHAR(chat.create_time, 'YYYY-MM-DD') <= #{query.endTime}]]>
+            </if>
+            <if test="query.applicationId != null and query.applicationId != ''">
+                AND chat.application_id = #{query.applicationId}
+            </if>
+            <if test="query.name != null and query.name != ''">
+                AND chat.application_id IN (SELECT id FROM application WHERE name LIKE '%' || #{query.name} || '%')
+            </if>
+        </where>
+    </sql>
+
+    <!-- 全局按天聚合（与 ApplicationChatMapper.statistics 同构，去掉 appId 过滤）。
+         tokens 经聚合子查询按 chat_id 汇总，避免 record 级 join 造成行膨胀。 -->
+    <select id="dailyStats" resultType="com.maxkb4j.system.dto.DailyStatDTO">
+        SELECT COALESCE(SUM(chat.star_num), 0)           AS star_num,
+               COALESCE(SUM(chat.trample_num), 0)        AS trample_num,
+               COALESCE(SUM(chat.chat_record_count), 0)  AS chat_record_count,
+               COALESCE(SUM(chat_record.tokens_num), 0)  AS tokens_num,
+               COUNT(DISTINCT chat.chat_user_id)         AS customer_num,
+               chat.create_time :: DATE                   AS "day"
+        FROM application_chat chat
+        LEFT JOIN (
+            SELECT chat_id, SUM(message_tokens) + SUM(answer_tokens) AS tokens_num
+            FROM application_chat_record
+            GROUP BY chat_id
+        ) chat_record ON chat."id" = chat_record.chat_id
+        <include refid="dailyStatsWhere"/>
+        GROUP BY "day"
+    </select>
+
+    <!-- 每日新增客户数（沿用 application_chat_user_stats 语义，去掉 appId 过滤）。 -->
+    <select id="dailyNewCustomers" resultType="com.maxkb4j.system.dto.DailyStatDTO">
+        SELECT COUNT("id")                          AS customer_added_count,
+               create_time :: DATE                  AS "day"
+        FROM application_chat_user_stats
+        <where>
+            <if test="query.startTime != null and query.startTime != ''">
+                AND <![CDATA[TO_CHAR(create_time, 'YYYY-MM-DD') >= #{query.startTime}]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                AND <![CDATA[TO_CHAR(create_time, 'YYYY-MM-DD') <= #{query.endTime}]]>
+            </if>
+            <if test="query.applicationId != null and query.applicationId != ''">
+                AND application_id = #{query.applicationId}
+            </if>
+            <if test="query.name != null and query.name != ''">
+                AND application_id IN (SELECT id FROM application WHERE name LIKE '%' || #{query.name} || '%')
+            </if>
+        </where>
+        GROUP BY "day"
+    </select>
+
+    <!-- ==================== 总量 ==================== -->
+
+    <select id="chatRecordCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM application_chat_record
+        <where>
+            <if test="query.startTime != null and query.startTime != ''">
+                AND <![CDATA[TO_CHAR(create_time, 'YYYY-MM-DD') >= #{query.startTime}]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                AND <![CDATA[TO_CHAR(create_time, 'YYYY-MM-DD') <= #{query.endTime}]]>
+            </if>
+            <if test="query.applicationId != null and query.applicationId != ''">
+                AND chat_id IN (SELECT id FROM application_chat WHERE application_id = #{query.applicationId})
+            </if>
+        </where>
+    </select>
+
+    <select id="tokensCount" resultType="java.lang.Integer">
+        SELECT COALESCE(SUM(message_tokens), 0) + COALESCE(SUM(answer_tokens), 0)
+        FROM application_chat_record
+        <where>
+            <if test="query.startTime != null and query.startTime != ''">
+                AND <![CDATA[TO_CHAR(create_time, 'YYYY-MM-DD') >= #{query.startTime}]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                AND <![CDATA[TO_CHAR(create_time, 'YYYY-MM-DD') <= #{query.endTime}]]>
+            </if>
+            <if test="query.applicationId != null and query.applicationId != ''">
+                AND chat_id IN (SELECT id FROM application_chat WHERE application_id = #{query.applicationId})
+            </if>
+        </where>
+    </select>
+
+    <!-- ==================== 排行榜 ==================== -->
+
+    <!-- 应用排行榜公共 FROM：record 经聚合子查询按 chat_id 汇总，避免行膨胀。 -->
+    <sql id="appRankingFrom">
+        FROM application a
+        LEFT JOIN application_chat c ON c.application_id = a."id"
+        LEFT JOIN (
+            SELECT chat_id, SUM(message_tokens) + SUM(answer_tokens) AS total_tokens
+            FROM application_chat_record
+            GROUP BY chat_id
+        ) r ON r.chat_id = c."id"
+        <where>
+            <if test="query.name != null and query.name != ''">
+                AND a.name LIKE '%' || #{query.name} || '%'
+            </if>
+            <if test="query.startTime != null and query.startTime != ''">
+                AND <![CDATA[TO_CHAR(c.create_time, 'YYYY-MM-DD') >= #{query.startTime}]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                AND <![CDATA[TO_CHAR(c.create_time, 'YYYY-MM-DD') <= #{query.endTime}]]>
+            </if>
+        </where>
+    </sql>
+
+    <select id="tokensRanking" resultType="com.maxkb4j.system.dto.AgentStatDTO">
+        SELECT a."id",
+               a.name,
+               COALESCE(SUM(r.total_tokens), 0)        AS total_tokens,
+               COALESCE(SUM(c.chat_record_count), 0)  AS chat_record_count,
+               COUNT(DISTINCT c.chat_user_id)         AS chat_user_count
+        <include refid="appRankingFrom"/>
+        GROUP BY a."id", a.name
+        ORDER BY total_tokens DESC
+    </select>
+
+    <select id="questionRanking" resultType="com.maxkb4j.system.dto.AgentStatDTO">
+        SELECT a."id",
+               a.name,
+               COALESCE(SUM(r.total_tokens), 0)        AS total_tokens,
+               COALESCE(SUM(c.chat_record_count), 0)  AS chat_record_count,
+               COUNT(DISTINCT c.chat_user_id)         AS chat_user_count
+        <include refid="appRankingFrom"/>
+        GROUP BY a."id", a.name
+        ORDER BY chat_record_count DESC
+    </select>
+
+    <!-- 用户 Token 排行：直接用 application_chat.asker（JSONB）承载所有用户类型（含匿名「游客」），
+         不 INNER JOIN "user"，避免丢失匿名用户。 -->
+    <resultMap id="chatUserStatResultMap" type="com.maxkb4j.system.dto.ChatUserStatDTO">
+        <result property="asker" column="asker" typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+    </resultMap>
+
+    <select id="userTokensRanking" resultMap="chatUserStatResultMap">
+        SELECT c.chat_user_id,
+               c.chat_user_type,
+               c.asker,
+               COALESCE(SUM(r.message_tokens) + SUM(r.answer_tokens), 0) AS total_tokens,
+               COUNT(r."id")                                              AS chat_record_count
+        FROM application_chat c
+        LEFT JOIN application_chat_record r ON r.chat_id = c."id"
+        <where>
+            <if test="query.startTime != null and query.startTime != ''">
+                AND <![CDATA[TO_CHAR(c.create_time, 'YYYY-MM-DD') >= #{query.startTime}]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                AND <![CDATA[TO_CHAR(c.create_time, 'YYYY-MM-DD') <= #{query.endTime}]]>
+            </if>
+            <if test="query.applicationId != null and query.applicationId != ''">
+                AND c.application_id = #{query.applicationId}
+            </if>
+            <if test="query.name != null and query.name != ''">
+                AND c.asker ->> 'username' LIKE '%' || #{query.name} || '%'
+            </if>
+        </where>
+        GROUP BY c.chat_user_id, c.chat_user_type, c.asker
+        ORDER BY total_tokens DESC
+    </select>
+
+</mapper>
