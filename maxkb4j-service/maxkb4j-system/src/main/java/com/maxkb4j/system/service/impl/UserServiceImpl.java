@@ -345,5 +345,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         super.save(BeanUtil.copy(user, UserEntity.class));
     }
 
+    @Override
+    public IPage<UserDTO> pageList(String role, int current, int size, UserQuery query) {
+        Page<UserEntity> userPage = new Page<>(current, size);
+        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(UserEntity::getRole, role);
+        wrapper.like(StringUtils.isNotBlank(query.getNickname()), UserEntity::getNickname, query.getNickname());
+        wrapper.like(StringUtils.isNotBlank(query.getUsername()), UserEntity::getUsername, query.getUsername());
+        wrapper.orderByDesc(UserEntity::getCreateTime);
+        return PageUtil.copy(this.page(userPage,wrapper),UserDTO.class);
+    }
+
 
 }

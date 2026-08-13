@@ -1,6 +1,8 @@
 package com.maxkb4j.user.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.user.dto.UserDTO;
+import com.maxkb4j.user.dto.UserQuery;
 
 import java.util.Map;
 import java.util.Set;
@@ -19,4 +21,6 @@ public interface IUserService {
     UserDTO getByUsernameOrEmail(String username, String email);
 
     void saveDTO(UserDTO user);
+
+    IPage<UserDTO> pageList(String role, int current, int size, UserQuery query);
 }
