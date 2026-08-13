@@ -38,6 +38,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.regex.Pattern;
 
 /**
@@ -97,17 +98,31 @@ public class PdfParser implements DocumentParser {
         }
     }
 
+    /** 图片上传最大并发数，避免对对象存储产生过大并行压力 */
+    private static final int MAX_PARALLEL_UPLOADS = 8;
+
+    /**
+     * 并发上传 PDF 内图片。
+     * <p>
+     * 使用虚拟线程承载 IO 密集型的上传任务，并以信号量限制并发度；
+     * 执行器通过 try-with-resources 关闭，解析失败或上传异常时也不会泄漏线程。
+     * </p>
+     */
     private void uploadImagesInParallel(List<TextLine> lines, List<ImageData> pendingImages) {
         if (pendingImages.isEmpty()) return;
-        int threads = Math.min(pendingImages.size(), 8);
-        ExecutorService executor = Executors.newFixedThreadPool(threads);
-        try {
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            Semaphore permits = new Semaphore(MAX_PARALLEL_UPLOADS);
             Map<String, String> urlMap = new ConcurrentHashMap<>();
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (ImageData img : pendingImages) {
                 futures.add(CompletableFuture.runAsync(() -> {
-                    String imageUrl = ossService.uploadAndGetFileUrl(img.fileName(), img.bytes());
-                    urlMap.put(img.fileName(), imageUrl);
+                    permits.acquireUninterruptibly();
+                    try {
+                        String imageUrl = ossService.uploadAndGetFileUrl(img.fileName(), img.bytes());
+                        urlMap.put(img.fileName(), imageUrl);
+                    } finally {
+                        permits.release();
+                    }
                 }, executor));
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
@@ -118,7 +133,6 @@ public class PdfParser implements DocumentParser {
                 }
             }
         } finally {
-            executor.shutdown();
             pendingImages.clear();
         }
     }

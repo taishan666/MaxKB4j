@@ -75,7 +75,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
 
 
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean createModel(ModelEntity model) {
         String userId = userContext.getUserId();
         if (checkModelExists(null,model.getName(),userId)) {
@@ -135,7 +135,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
         return model;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean removeModelById(String id) {
         userResourcePermissionService.remove(AuthTargetType.MODEL, id);
         evictCache(id);

@@ -54,8 +54,10 @@ public class PipelineManage {
             try {
                 step.run(this);
             } catch (Exception e) {
-                if (sink != null) {
-                    sink.tryEmitError(e);
+                // 不在此处向 sink emit 错误：错误由 chatMessageAsync 的统一出口收尾，
+                // 避免与上层异常处理双发；保留原始异常类型，便于全局异常处理器映射 i18n
+                if (e instanceof RuntimeException runtimeException) {
+                    throw runtimeException;
                 }
                 throw new RuntimeException(e);
             }

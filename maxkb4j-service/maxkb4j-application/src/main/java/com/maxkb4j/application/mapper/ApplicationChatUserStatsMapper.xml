@@ -20,4 +20,21 @@
         GROUP BY "day";
     </select>
 
+    <insert id="insertIfAbsent">
+        INSERT INTO application_chat_user_stats (id, access_num, intra_day_access_num, application_id,
+                                                 chat_user_id, chat_user_type, create_time, update_time)
+        VALUES (#{id}, #{accessNum}, #{intraDayAccessNum}, #{applicationId},
+                #{chatUserId}, #{chatUserType}, NOW(), NOW())
+        ON CONFLICT (chat_user_id, application_id) DO NOTHING
+    </insert>
+
+    <update id="incrementAccessNum">
+        UPDATE application_chat_user_stats
+        SET access_num           = access_num + 1,
+            intra_day_access_num = intra_day_access_num + 1,
+            update_time          = NOW()
+        WHERE chat_user_id = #{chatUserId}
+          AND application_id = #{applicationId}
+    </update>
+
 </mapper>

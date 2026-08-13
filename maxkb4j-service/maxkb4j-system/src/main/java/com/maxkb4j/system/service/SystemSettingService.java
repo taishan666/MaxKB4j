@@ -22,7 +22,7 @@ public class SystemSettingService extends ServiceImpl<SystemSettingMapper, Syste
        return emailService.testConnect(meta);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean saveOrUpdate(JSONObject meta,int type) {
         SystemSettingEntity systemSetting=new SystemSettingEntity();
         systemSetting.setMeta(meta);

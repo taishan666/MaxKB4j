@@ -45,7 +45,7 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
 
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean ownerSave(String targetType, List<String> targetIds, String userId) {
         List<UserResourcePermissionEntity> entityList = targetIds.stream().map(targetId -> {
             UserResourcePermissionEntity entity = new UserResourcePermissionEntity();
@@ -159,7 +159,7 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
     }
 
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean userPermissionUpdate(String userId, String type, List<UserResourcePermissionVO> list) {
         List<String> targetIds = list.stream().map(UserResourcePermissionVO::getTargetId).toList();
         this.remove(Wrappers.<UserResourcePermissionEntity>lambdaUpdate().eq(UserResourcePermissionEntity::getUserId, userId).eq(UserResourcePermissionEntity::getAuthTargetType, type).in(UserResourcePermissionEntity::getTargetId, targetIds));
@@ -175,7 +175,7 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
         return this.saveBatch(saveList);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean resourcePermissionUpdate(String resourceId, String type, List<ResourceUserPermissionVO> list) {
         List<String> userIds = list.stream().map(ResourceUserPermissionVO::getUserId).toList();
         this.remove(Wrappers.<UserResourcePermissionEntity>lambdaUpdate().eq(UserResourcePermissionEntity::getTargetId, resourceId).eq(UserResourcePermissionEntity::getAuthTargetType, type).in(UserResourcePermissionEntity::getUserId, userIds));

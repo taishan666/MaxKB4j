@@ -9,15 +9,77 @@
                COUNT(*) FILTER (WHERE is_publish = true) AS publish_count,
                COUNT(*) FILTER (WHERE is_publish IS DISTINCT FROM true) AS un_publish_count
         FROM application
+        <where>
+            <if test="isAdmin == null or !isAdmin">
+                <choose>
+                    <when test="targetIds != null and !targetIds.isEmpty()">
+                        AND id IN
+                        <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
+                            #{targetId}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        AND id = ''
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
     </select>
 
     <select id="knowledgeAggregation" resultType="java.util.LinkedHashMap">
-        SELECT (SELECT COUNT(*) FROM knowledge) AS total,
-               (SELECT COUNT(*) FROM document) AS document_count,
+        SELECT (SELECT COUNT(*) FROM knowledge
+                <where>
+                    <if test="isAdmin == null or !isAdmin">
+                        <choose>
+                            <when test="targetIds != null and !targetIds.isEmpty()">
+                                AND id IN
+                                <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
+                                    #{targetId}
+                                </foreach>
+                            </when>
+                            <otherwise>
+                                AND id = ''
+                            </otherwise>
+                        </choose>
+                    </if>
+                </where>
+               ) AS total,
+               (SELECT COUNT(*) FROM document
+                <where>
+                    <if test="isAdmin == null or !isAdmin">
+                        <choose>
+                            <when test="targetIds != null and !targetIds.isEmpty()">
+                                AND knowledge_id IN
+                                <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
+                                    #{targetId}
+                                </foreach>
+                            </when>
+                            <otherwise>
+                                AND knowledge_id = ''
+                            </otherwise>
+                        </choose>
+                    </if>
+                </where>
+               ) AS document_count,
                (
                    SELECT COUNT(*) FROM document
-                   WHERE SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 1 FOR 1) = '1'
-                      OR SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 2 FOR 1) = '1'
+                   WHERE (
+                       SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 1 FOR 1) = '1'
+                          OR SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 2 FOR 1) = '1'
+                   )
+                   <if test="isAdmin == null or !isAdmin">
+                       <choose>
+                           <when test="targetIds != null and !targetIds.isEmpty()">
+                               AND knowledge_id IN
+                               <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
+                                   #{targetId}
+                               </foreach>
+                           </when>
+                           <otherwise>
+                               AND knowledge_id = ''
+                           </otherwise>
+                       </choose>
+                   </if>
                ) AS failure_count
     </select>
 
@@ -29,6 +91,21 @@
                COUNT(*) FILTER (WHERE tool_type = 'SKILL')       AS skill_count,
                COUNT(*) FILTER (WHERE tool_type = 'WORKFLOW')    AS workflow_count
         FROM tool
+        <where>
+            <if test="isAdmin == null or !isAdmin">
+                <choose>
+                    <when test="targetIds != null and !targetIds.isEmpty()">
+                        AND id IN
+                        <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
+                            #{targetId}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        AND id = ''
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
     </select>
 
     <select id="modelAggregation" resultType="java.util.LinkedHashMap">
@@ -36,6 +113,21 @@
                COUNT(*) FILTER (WHERE model_type = 'EMBEDDING') AS embedding_count,
                COUNT(*) FILTER (WHERE model_type = 'LLM')       AS llm_count
         FROM model
+        <where>
+            <if test="isAdmin == null or !isAdmin">
+                <choose>
+                    <when test="targetIds != null and !targetIds.isEmpty()">
+                        AND id IN
+                        <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
+                            #{targetId}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        AND id = ''
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
     </select>
 
     <!-- ==================== 监控：按天聚合 ==================== -->
@@ -53,6 +145,19 @@
             </if>
             <if test="query.name != null and query.name != ''">
                 AND chat.application_id IN (SELECT id FROM application WHERE name LIKE '%' || #{query.name} || '%')
+            </if>
+            <if test="query.isAdmin == null or !query.isAdmin">
+                <choose>
+                    <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                        AND chat.application_id IN
+                        <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                            #{targetId}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        AND chat.application_id = ''
+                    </otherwise>
+                </choose>
             </if>
         </where>
     </sql>
@@ -94,6 +199,19 @@
             <if test="query.name != null and query.name != ''">
                 AND application_id IN (SELECT id FROM application WHERE name LIKE '%' || #{query.name} || '%')
             </if>
+            <if test="query.isAdmin == null or !query.isAdmin">
+                <choose>
+                    <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                        AND application_id IN
+                        <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                            #{targetId}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        AND application_id = ''
+                    </otherwise>
+                </choose>
+            </if>
         </where>
         GROUP BY "day"
     </select>
@@ -113,6 +231,21 @@
             <if test="query.applicationId != null and query.applicationId != ''">
                 AND chat_id IN (SELECT id FROM application_chat WHERE application_id = #{query.applicationId})
             </if>
+            <if test="query.isAdmin == null or !query.isAdmin">
+                <choose>
+                    <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                        AND chat_id IN (
+                            SELECT id FROM application_chat WHERE application_id IN
+                            <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                                #{targetId}
+                            </foreach>
+                        )
+                    </when>
+                    <otherwise>
+                        AND chat_id IN (SELECT id FROM application_chat WHERE application_id = '')
+                    </otherwise>
+                </choose>
+            </if>
         </where>
     </select>
 
@@ -128,6 +261,21 @@
             </if>
             <if test="query.applicationId != null and query.applicationId != ''">
                 AND chat_id IN (SELECT id FROM application_chat WHERE application_id = #{query.applicationId})
+            </if>
+            <if test="query.isAdmin == null or !query.isAdmin">
+                <choose>
+                    <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                        AND chat_id IN (
+                            SELECT id FROM application_chat WHERE application_id IN
+                            <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                                #{targetId}
+                            </foreach>
+                        )
+                    </when>
+                    <otherwise>
+                        AND chat_id IN (SELECT id FROM application_chat WHERE application_id = '')
+                    </otherwise>
+                </choose>
             </if>
         </where>
     </select>
@@ -152,6 +300,19 @@
             </if>
             <if test="query.endTime != null and query.endTime != ''">
                 AND <![CDATA[TO_CHAR(c.create_time, 'YYYY-MM-DD') <= #{query.endTime}]]>
+            </if>
+            <if test="query.isAdmin == null or !query.isAdmin">
+                <choose>
+                    <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                        AND a.id IN
+                        <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                            #{targetId}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        AND a.id = ''
+                    </otherwise>
+                </choose>
             </if>
         </where>
     </sql>
@@ -204,6 +365,19 @@
             </if>
             <if test="query.name != null and query.name != ''">
                 AND c.asker ->> 'username' LIKE '%' || #{query.name} || '%'
+            </if>
+            <if test="query.isAdmin == null or !query.isAdmin">
+                <choose>
+                    <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                        AND c.application_id IN
+                        <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                            #{targetId}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        AND c.application_id = ''
+                    </otherwise>
+                </choose>
             </if>
         </where>
         GROUP BY c.chat_user_id, c.chat_user_type, c.asker

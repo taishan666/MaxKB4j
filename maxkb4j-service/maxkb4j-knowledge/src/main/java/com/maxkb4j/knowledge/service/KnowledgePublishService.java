@@ -35,7 +35,7 @@ public class KnowledgePublishService {
     /**
      * 发布知识库
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean publish(String id) {
         KnowledgeEntity knowledge = new KnowledgeEntity();
         knowledge.setId(id);

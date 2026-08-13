@@ -38,7 +38,7 @@ public class DocumentWriteService extends ServiceImpl<DocumentMapper, DocumentEn
     private final ApplicationEventPublisher eventPublisher;
 
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean batchCreateDocs(String knowledgeId,int knowledgeType, List<DocumentSimple> docs) {
         if (CollectionUtils.isEmpty(docs)) {

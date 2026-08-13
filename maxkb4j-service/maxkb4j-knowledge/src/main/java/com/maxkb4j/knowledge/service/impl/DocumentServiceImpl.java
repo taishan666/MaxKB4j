@@ -57,7 +57,7 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
         return this.lambdaQuery().eq(DocumentEntity::getKnowledgeId, id).list();
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean batchHitHandling(String knowledgeId, DatasetBatchHitHandlingDTO dto) {
         List<String> ids = dto.getIdList();
         if (CollectionUtils.isEmpty(ids)) {
@@ -83,7 +83,7 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
         return excludeDocuments.stream().map(DocumentEntity::getId).toList();
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteDocByIds(String knowledgeId, List<String> docIds) {
         if (CollectionUtils.isEmpty(docIds)) {
             return false;
@@ -100,7 +100,7 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
     /**
      * 批量删除多个知识库下的文档及其标签，用 {@code IN (...)} 合并查询，避免逐个知识库往返。
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteByKnowledgeIds(List<String> knowledgeIds) {
         if (CollectionUtils.isEmpty(knowledgeIds)) {
             return;

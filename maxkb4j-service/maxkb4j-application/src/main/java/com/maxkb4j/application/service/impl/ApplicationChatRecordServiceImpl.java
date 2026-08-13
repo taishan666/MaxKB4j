@@ -172,7 +172,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     }
 
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean addChatLogs(String appId, AddChatImproveDTO dto) {
         List<ApplicationChatRecordEntity> chatRecords = this.lambdaQuery().select(ApplicationChatRecordEntity::getProblemText, ApplicationChatRecordEntity::getAnswerText).in(ApplicationChatRecordEntity::getChatId, dto.getChatIds()).list();
         List<ParagraphDTO> paragraphs=new ArrayList<>();
@@ -183,7 +183,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
         return paragraphService.saveDtoBatch(paragraphs);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ApplicationChatRecordEntity improveChatLog(String chatId, String chatRecordId, String knowledgeId, String docId, ChatImproveDTO dto) {
         ParagraphDTO paragraphDTO = new ParagraphDTO(knowledgeId, docId, dto.getTitle(), dto.getContent(), null);
         paragraphService.saveParagraphAndProblem(paragraphDTO,List.of(dto.getProblemText()));
@@ -200,7 +200,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
         return this.getById(chatRecordId);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean removeImproveChatLog(String chatId,String chatRecordId,String knowledgeId,String paragraphId) {
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
         chatRecord.setId(chatRecordId);

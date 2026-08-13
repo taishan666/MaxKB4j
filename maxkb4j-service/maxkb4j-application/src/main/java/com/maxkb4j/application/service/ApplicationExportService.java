@@ -37,7 +37,7 @@ public class ApplicationExportService {
      * @param file 上传的 .mk 文件
      * @return 是否导入成功
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean appImport(MultipartFile file) {
         String filename = file.getOriginalFilename();
         if (filename == null || !filename.endsWith(".mk")) {

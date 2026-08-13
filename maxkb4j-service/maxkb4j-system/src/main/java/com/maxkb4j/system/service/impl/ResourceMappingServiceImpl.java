@@ -44,7 +44,7 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
         this.resolverMap = resolvers.stream().collect(Collectors.toMap(SourceResourceResolver::resourceType, Function.identity()));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void relation(String sourceType, String sourceId, List<TargetResource> targets) {
         this.remove(Wrappers.<ResourceMappingEntity>lambdaQuery().eq(ResourceMappingEntity::getSourceType, sourceType).eq(ResourceMappingEntity::getSourceId, sourceId));

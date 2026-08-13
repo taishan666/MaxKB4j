@@ -28,17 +28,27 @@ public interface HomeMapper {
 
     /* ==================== 资源数量聚合 ==================== */
 
-    /** 应用统计：total / publish_count / un_publish_count。 */
-    Map<String, Object> applicationAggregation();
+    /**
+     * 应用统计：total / publish_count / un_publish_count。
+     * <p>非 admin 用户按 {@code targetIds}（已授权应用，含自建）过滤；admin 不附加过滤。
+     */
+    Map<String, Object> applicationAggregation(@Param("isAdmin") boolean isAdmin,
+                                              @Param("targetIds") List<String> targetIds);
 
-    /** 知识库统计：total / document_count / failure_count。 */
-    Map<String, Object> knowledgeAggregation();
+    /**
+     * 知识库统计：total / document_count / failure_count。
+     * <p>非 admin 用户按 {@code targetIds}（已授权知识库，含自建）过滤 knowledge 与 document。
+     */
+    Map<String, Object> knowledgeAggregation(@Param("isAdmin") boolean isAdmin,
+                                             @Param("targetIds") List<String> targetIds);
 
     /** 工具统计：total / custom_count / data_source_count / mcp_count / skill_count / workflow_count。 */
-    Map<String, Object> toolAggregation();
+    Map<String, Object> toolAggregation(@Param("isAdmin") boolean isAdmin,
+                                        @Param("targetIds") List<String> targetIds);
 
     /** 模型统计：total / embedding_count / llm_count。 */
-    Map<String, Object> modelAggregation();
+    Map<String, Object> modelAggregation(@Param("isAdmin") boolean isAdmin,
+                                         @Param("targetIds") List<String> targetIds);
 
     /* ==================== 监控（按天） ==================== */
 

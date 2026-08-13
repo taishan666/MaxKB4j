@@ -3,11 +3,12 @@ package com.maxkb4j.tool.executor;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import com.maxkb4j.common.util.I18nUtil;
+import com.maxkb4j.common.util.MD5Util;
 import com.maxkb4j.tool.sandbox.GroovySandboxInterceptor;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyShell;
+import groovy.lang.Script;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.groovy.ast.expr.AttributeExpression;
 import org.codehaus.groovy.ast.expr.ClassExpression;
@@ -16,12 +17,18 @@ import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.expr.MethodPointerExpression;
 import org.codehaus.groovy.ast.expr.PropertyExpression;
 import org.codehaus.groovy.ast.expr.StaticMethodCallExpression;
+import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.ErrorCollector;
+import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
+import org.codehaus.groovy.control.messages.ExceptionMessage;
+import org.codehaus.groovy.control.messages.Message;
 import org.kohsuke.groovy.sandbox.SandboxTransformer;
 
-import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -118,16 +125,53 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
                 "java.lang.ProcessBuilder"
         ));
 
+        // 注意：Groovy 4 的 SecureASTCustomizer.visitVariableExpression 会复用该白名单校验
+        // 变量的静态类型，类型不在名单中的脚本变量会在编译期被拒绝，而脚本绑定变量与
+        // def 声明变量的推断类型均为 java.lang.Object，因此名单必须覆盖 Object、基本类型
+        // 及运行期白名单（GroovySandboxInterceptor）中的常见安全类型，否则正常业务脚本会被误杀。
         @SuppressWarnings("rawtypes")
         List<Class> allowedConstants = new ArrayList<>();
+        // 脚本绑定变量 / 闭包参数的默认静态类型
+        allowedConstants.add(Object.class);
+        // 基本类型（int x = 5 一类的显式类型声明与字面量）
+        allowedConstants.add(int.class);
+        allowedConstants.add(long.class);
+        allowedConstants.add(double.class);
+        allowedConstants.add(float.class);
+        allowedConstants.add(boolean.class);
+        allowedConstants.add(char.class);
+        allowedConstants.add(byte.class);
+        allowedConstants.add(short.class);
+        // 字面量常量类型
         allowedConstants.add(String.class);
         allowedConstants.add(Integer.class);
         allowedConstants.add(Long.class);
         allowedConstants.add(Double.class);
         allowedConstants.add(Float.class);
         allowedConstants.add(Boolean.class);
+        allowedConstants.add(Character.class);
         allowedConstants.add(BigDecimal.class);
         allowedConstants.add(BigInteger.class);
+        // 显式类型声明常用类型（与运行期白名单 GroovySandboxInterceptor 保持一致）
+        allowedConstants.add(Number.class);
+        allowedConstants.add(java.util.Collection.class);
+        allowedConstants.add(java.util.List.class);
+        allowedConstants.add(java.util.ArrayList.class);
+        allowedConstants.add(java.util.LinkedList.class);
+        allowedConstants.add(java.util.Map.class);
+        allowedConstants.add(java.util.HashMap.class);
+        allowedConstants.add(java.util.LinkedHashMap.class);
+        allowedConstants.add(java.util.Set.class);
+        allowedConstants.add(java.util.HashSet.class);
+        allowedConstants.add(java.util.LinkedHashSet.class);
+        allowedConstants.add(StringBuilder.class);
+        allowedConstants.add(StringBuffer.class);
+        allowedConstants.add(groovy.lang.GString.class);
+        allowedConstants.add(java.util.Date.class);
+        allowedConstants.add(java.time.LocalDate.class);
+        allowedConstants.add(java.time.LocalDateTime.class);
+        allowedConstants.add(java.time.LocalTime.class);
+        allowedConstants.add(java.time.Instant.class);
         ast.setAllowedConstantTypesClasses(allowedConstants);
 
         // ========== 3. Groovy Sandbox 运行期沙箱 ==========
@@ -142,12 +186,69 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         SAFE_CONFIG = config;
     }
 
+    /** 编译缓存最大条目数，超出按 LRU 淘汰 */
+    private static final int MAX_CACHED_SCRIPTS = 256;
+
+    /**
+     * 已编译脚本缓存：key 为脚本内容摘要，value 为脚本类及其专属 ClassLoader。
+     * <p>
+     * Groovy 每次编译都会生成新的 Class，重复编译既浪费 CPU 又导致 metaspace 增长。
+     * 相同脚本只编译一次，后续执行仅新建 Script 实例（实例独立、线程安全）。
+     * 每个唯一脚本使用独立 GroovyClassLoader，缓存淘汰后整个 loader 连同其加载的类可被 GC 回收。
+     * </p>
+     */
+    private static final Map<String, CompiledScript> SCRIPT_CACHE =
+            Collections.synchronizedMap(new LinkedHashMap<String, CompiledScript>(32, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, CompiledScript> eldest) {
+                    return size() > MAX_CACHED_SCRIPTS;
+                }
+            });
+
+    private record CompiledScript(GroovyClassLoader loader, Class<?> scriptClass) {
+    }
+
     private final String code;
     private final Map<String, Object> initParams;
 
     public GroovyScriptExecutor(String code, Map<String, Object> initParams) {
         this.code = code;
         this.initParams = initParams;
+    }
+
+    /** 供测试检查编译缓存命中情况 */
+    static boolean isScriptCached(String code) {
+        return SCRIPT_CACHE.containsKey(cacheKey(code));
+    }
+
+    private static String cacheKey(String code) {
+        return MD5Util.encrypt(code);
+    }
+
+    private static CompiledScript cachedScript(String code) {
+        synchronized (SCRIPT_CACHE) {
+            return SCRIPT_CACHE.computeIfAbsent(cacheKey(code), key -> compileScript(code));
+        }
+    }
+
+    private static CompiledScript compileScript(String code) {
+        GroovyClassLoader loader = new GroovyClassLoader(GroovyScriptExecutor.class.getClassLoader(), SAFE_CONFIG);
+        Class<?> scriptClass;
+        try {
+            scriptClass = loader.parseClass(code);
+        } catch (CompilationFailedException e) {
+            // SecureAST 在编译期抛出的 SecurityException 会被包装进编译失败异常，
+            // 这里还原原始 SecurityException，保持与运行期沙箱拒绝一致的错误语义
+            SecurityException securityException = findCompileSecurityException(e);
+            if (securityException != null) {
+                throw securityException;
+            }
+            throw new RuntimeException(I18nUtil.get("tool.groovy.script.execution.failed", e.getMessage()), e);
+        }
+        if (!Script.class.isAssignableFrom(scriptClass)) {
+            throw new RuntimeException(I18nUtil.get("tool.groovy.script.execution.failed", "unsupported script structure"));
+        }
+        return new CompiledScript(loader, scriptClass);
     }
 
     @Override
@@ -177,9 +278,8 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         validateScriptContent(code);
 
         Binding binding = new Binding(params);
-        GroovyClassLoader groovyClassLoader = new GroovyClassLoader(
-                GroovyScriptExecutor.class.getClassLoader(), SAFE_CONFIG);
-        GroovyShell shell = new GroovyShell(groovyClassLoader, binding);
+        // 编译结果复用：相同脚本只编译一次，每次执行新建 Script 实例保证隔离
+        CompiledScript compiled = cachedScript(code);
 
         ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
             Thread t = new Thread(r, "groovy-sandbox-worker");
@@ -193,7 +293,9 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
                 // 注册白名单拦截器（SandboxTransformer 已将调用注入到字节码中）
                 interceptor.register();
                 try {
-                    Object result = shell.evaluate(code);
+                    Script script = (Script) compiled.scriptClass().getDeclaredConstructor().newInstance();
+                    script.setBinding(binding);
+                    Object result = script.run();
                     return result == null ? "" : result;
                 } finally {
                     interceptor.unregister();
@@ -216,11 +318,6 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
             throw new RuntimeException(I18nUtil.get("tool.groovy.script.execution.interrupted"), e);
         } finally {
             executor.shutdownNow();
-            try {
-                groovyClassLoader.close();
-            } catch (IOException e) {
-                log.warn("Failed to close GroovyClassLoader", e);
-            }
         }
     }
 
@@ -264,6 +361,36 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
                 return securityException;
             }
             throwable = throwable.getCause();
+        }
+        return null;
+    }
+
+    /**
+     * 从编译失败异常中提取 SecureASTCustomizer 抛出的 SecurityException。
+     * 编译期安全拒绝会被逐层包装为 MultipleCompilationErrorsException，
+     * 原始异常保存在错误收集器的 ExceptionMessage 中。
+     */
+    private static SecurityException findCompileSecurityException(CompilationFailedException exception) {
+        SecurityException fromCauseChain = findSecurityException(exception);
+        if (fromCauseChain != null) {
+            return fromCauseChain;
+        }
+        if (exception instanceof MultipleCompilationErrorsException multi) {
+            ErrorCollector collector = multi.getErrorCollector();
+            for (int i = 0; collector != null && i < collector.getErrorCount(); i++) {
+                Message message = collector.getError(i);
+                if (message instanceof ExceptionMessage exceptionMessage) {
+                    SecurityException found = findSecurityException(exceptionMessage.getCause());
+                    if (found != null) {
+                        return found;
+                    }
+                }
+            }
+            // 兜底：cause 链丢失时依据错误文本判定安全拒绝
+            String message = multi.getMessage();
+            if (message != null && message.contains(SecurityException.class.getName())) {
+                return new SecurityException(message);
+            }
         }
         return null;
     }

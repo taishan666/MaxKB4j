@@ -1,12 +1,11 @@
 package com.maxkb4j.system.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
-import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.system.dto.AgentStatDTO;
 import com.maxkb4j.system.dto.ChatUserStatDTO;
 import com.maxkb4j.system.dto.DailyStatDTO;
@@ -32,31 +31,31 @@ public class HomeController {
 
     private final HomeService homeService;
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/{type}/aggregation")
     public R<JSONObject> aggregation(@PathVariable String type) {
         return R.data(homeService.aggregation(type));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/monitoring/aggregation")
     public R<List<DailyStatDTO>> monitoring(HomeQuery query) {
         return R.data(homeService.monitoring(query));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/chat_record/aggregation")
     public R<Integer> chatRecordAggregation(HomeQuery query) {
         return R.data(homeService.chatRecordCount(query));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/tokens/aggregation")
     public R<Integer> tokensAggregation(HomeQuery query) {
         return R.data(homeService.tokensCount(query));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/application/tokens_ranking/{current}/{size}")
     public R<IPage<AgentStatDTO>> tokensRanking(@PathVariable("current") int current,
                                                  @PathVariable("size") int size,
@@ -64,7 +63,7 @@ public class HomeController {
         return R.data(homeService.tokensRanking(current, size, query));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/application/question_ranking/{current}/{size}")
     public R<IPage<AgentStatDTO>> questionRanking(@PathVariable("current") int current,
                                                   @PathVariable("size") int size,
@@ -72,7 +71,7 @@ public class HomeController {
         return R.data(homeService.questionRanking(current, size, query));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/application/user_tokens_ranking/{current}/{size}")
     public R<IPage<ChatUserStatDTO>> userTokensRanking(@PathVariable("current") int current,
                                                         @PathVariable("size") int size,

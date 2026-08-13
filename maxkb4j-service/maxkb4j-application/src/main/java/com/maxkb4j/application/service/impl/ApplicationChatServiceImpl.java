@@ -30,7 +30,6 @@ import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.domain.dto.ChatState;
-import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.AccessNumLimitException;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
@@ -49,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 /**
  * @author tarzan
@@ -132,38 +130,55 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         return chatResponse;
     }
 
+    /**
+     * 异步执行对话，并负责 SSE 流的统一收尾。
+     * <p>
+     * sink 错误出口唯一：业务抛出异常时由本方法的 whenComplete 统一 tryEmitError；
+     * 业务正常返回时由业务侧自行 emit 终止信号，本方法不再重复 emit。
+     * 约定：下层（pipeline/workflow）不得先向 sink emit 错误再抛异常，否则会重复收尾。
+     * </p>
+     */
     public void chatMessageAsync(ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
-        CompletableFuture.supplyAsync(() -> chatMessage(chatParams, chatState, sink), chatTaskExecutor)
-                .exceptionally(throwable -> {
+        CompletableFuture
+                .runAsync(() -> chatMessage(chatParams, chatState, sink), chatTaskExecutor)
+                .whenComplete((ignored, throwable) -> {
+                    if (throwable == null) {
+                        return;
+                    }
                     log.error("Async chatMessage failed", throwable);
-                    sink.tryEmitError(throwable);
-                    throw new CompletionException(throwable);
+                    Sinks.EmitResult result = sink.tryEmitError(throwable);
+                    if (result.isFailure()) {
+                        log.debug("SSE sink already terminated, skip error emit: " + result);
+                    }
                 });
     }
 
+    /**
+     * 判断当日访问次数是否已达上限。
+     * <p>
+     * 统计行通过数据库唯一索引 (chat_user_id, application_id) + ON CONFLICT DO NOTHING
+     * 原子创建，计数通过 UPDATE ... +1 原子自增，避免并发下的重复行与丢失更新。
+     * </p>
+     */
     public boolean visitCountOver(ChatState chatState) {
         String appId = chatState.getAppId();
         String chatUserId = chatState.getChatUserId();
         boolean debug = chatState.getDebug();
-        if (!debug && Objects.nonNull(appId)) {
-            ApplicationChatUserStatsEntity chatUserStats = chatUserStatsService.getByUserIdAndAppId(chatUserId, appId);
-            if (Objects.isNull(chatUserStats)) {
-                ChatUserType chatUserType = chatState.getChatUserType();
-                chatUserStats = new ApplicationChatUserStatsEntity();
-                chatUserStats.setChatUserId(chatUserId);
-                chatUserStats.setChatUserType(chatUserType.getKey());
-                chatUserStats.setApplicationId(appId);
-                chatUserStats.setAccessNum(0);
-                chatUserStats.setIntraDayAccessNum(0);
-                chatUserStatsService.save(chatUserStats);
-            }else {
-                ApplicationAccessTokenEntity appAccessToken = accessTokenService.lambdaQuery().select(ApplicationAccessTokenEntity::getAccessNum).eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
-                if (Objects.nonNull(appAccessToken)) {
-                    return  chatUserStats.getIntraDayAccessNum()>=appAccessToken.getAccessNum();
-                }
-            }
+        if (debug || Objects.isNull(appId)) {
+            return false;
         }
-        return false;
+        boolean firstVisit = chatUserStatsService.ensureStatsExists(chatUserId, chatState.getChatUserType(), appId);
+        if (firstVisit) {
+            // 首次访问尚无计数，保持原语义直接放行
+            return false;
+        }
+        ApplicationAccessTokenEntity appAccessToken = accessTokenService.accessToken(appId);
+        if (Objects.isNull(appAccessToken) || Objects.isNull(appAccessToken.getAccessNum())) {
+            return false;
+        }
+        ApplicationChatUserStatsEntity chatUserStats = chatUserStatsService.getByUserIdAndAppId(chatUserId, appId);
+        return Objects.nonNull(chatUserStats)
+                && chatUserStats.getIntraDayAccessNum() >= appAccessToken.getAccessNum();
     }
 
 
@@ -176,7 +191,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean deleteById(String chatId) {
         chatRecordService.lambdaUpdate().eq(ApplicationChatRecordEntity::getChatId, chatId).remove();
         ChatCache.remove(chatId);

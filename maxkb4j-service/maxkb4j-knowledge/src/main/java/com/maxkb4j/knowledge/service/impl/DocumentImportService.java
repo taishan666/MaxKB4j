@@ -51,7 +51,7 @@ public class DocumentImportService {
     private final DocumentHandler documentHandler;
     private final KnowledgeMapper knowledgeMapper;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void importQa(String knowledgeId, MultipartFile[] files) throws IOException {
         if (checkFileLimit(knowledgeId, files)) {
             throw new FileLimitExceededException("common.file.limit.exceeded");
@@ -78,7 +78,7 @@ public class DocumentImportService {
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void importTable(String knowledgeId, MultipartFile[] files) throws IOException {
         if (checkFileLimit(knowledgeId, files)) {
             throw new FileLimitExceededException("common.file.limit.exceeded");
@@ -103,7 +103,7 @@ public class DocumentImportService {
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void createWebDoc(String knowledgeId, List<String> sourceUrlList, String selector) {
         for (String sourceUrl : sourceUrlList) {
             List<DocumentSimple> docs = documentWebService.getWebDocuments(sourceUrl, selector, false);
@@ -111,7 +111,7 @@ public class DocumentImportService {
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void syncWebDoc(String knowledgeId, String docId) {
         DocumentEntity doc = documentService.getById(docId);
         if (doc == null || doc.getMeta() == null) return;

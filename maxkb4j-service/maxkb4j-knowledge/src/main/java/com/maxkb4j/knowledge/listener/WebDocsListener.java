@@ -29,7 +29,7 @@ public class WebDocsListener {
     private final DocumentWriteService documentWriteService;
 
     @Async
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @EventListener
     public void handleEvent(CreateWebDocsEvent event) {
         log.info("收到Web文档创建事件: knowledgeId={}, sourceUrl={}", event.getKnowledgeId(), event.getSourceUrl());

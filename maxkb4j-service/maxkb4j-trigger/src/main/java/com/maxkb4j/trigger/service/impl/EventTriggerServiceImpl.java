@@ -86,7 +86,7 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void saveTrigger(EventTriggerDTO dto, Boolean isEdit) {
         if (dto == null) {
             return;
@@ -141,7 +141,7 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean batchActivate(String id, Boolean isActive) {
         if (StringUtils.isBlank(id)) {
             return false;
@@ -177,7 +177,7 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteTrigger(String id) {
         if (StringUtils.isBlank(id)) {
             return false;

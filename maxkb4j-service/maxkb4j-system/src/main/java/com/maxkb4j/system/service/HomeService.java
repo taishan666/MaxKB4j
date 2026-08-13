@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.maxkb4j.common.util.DateTimeUtil;
+import com.maxkb4j.core.support.permission.DataPermissionScope;
+import com.maxkb4j.core.support.permission.DataPermissionSupport;
+import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.system.dto.AgentStatDTO;
 import com.maxkb4j.system.dto.ChatUserStatDTO;
 import com.maxkb4j.system.dto.DailyStatDTO;
@@ -36,6 +39,7 @@ import java.util.Optional;
 public class HomeService {
 
     private final HomeMapper homeMapper;
+    private final DataPermissionSupport dataPermissionSupport;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     /* ==================== 资源数量聚合 ==================== */
@@ -43,17 +47,32 @@ public class HomeService {
     /**
      * 按 type 分派到对应的聚合查询，返回 total / 各分类计数。
      *
+     * <p>数据权限：admin 不附加过滤；普通用户仅统计其已授权（含自建）资源。
+     *
      * @param type application / knowledge / tool / model
      */
     public JSONObject aggregation(String type) {
         if (type == null) {
             return new JSONObject();
         }
+        String authTargetType = switch (type) {
+            case "application" -> AuthTargetType.APPLICATION;
+            case "knowledge"   -> AuthTargetType.KNOWLEDGE;
+            case "tool"         -> AuthTargetType.TOOL;
+            case "model"        -> AuthTargetType.MODEL;
+            default             -> null;
+        };
+        if (authTargetType == null) {
+            return new JSONObject();
+        }
+        DataPermissionScope scope = dataPermissionSupport.resolve(authTargetType);
+        boolean isAdmin = scope.isAdmin();
+        List<String> targetIds = scope.getTargetIds();
         Map<String, Object> data = switch (type) {
-            case "application" -> homeMapper.applicationAggregation();
-            case "knowledge"   -> homeMapper.knowledgeAggregation();
-            case "tool"         -> homeMapper.toolAggregation();
-            case "model"        -> homeMapper.modelAggregation();
+            case "application" -> homeMapper.applicationAggregation(isAdmin, targetIds);
+            case "knowledge"   -> homeMapper.knowledgeAggregation(isAdmin, targetIds);
+            case "tool"         -> homeMapper.toolAggregation(isAdmin, targetIds);
+            case "model"        -> homeMapper.modelAggregation(isAdmin, targetIds);
             default             -> Map.of();
         };
         return data == null ? new JSONObject() : new JSONObject(data);
@@ -70,6 +89,7 @@ public class HomeService {
         if (Objects.isNull(query.getStartTime()) || Objects.isNull(query.getEndTime())) {
             return result;
         }
+        dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         List<DailyStatDTO> dailyStats = homeMapper.dailyStats(query);
         List<DailyStatDTO> dailyNewCustomers = homeMapper.dailyNewCustomers(query);
         LocalDate startDate = DateTimeUtil.parseDate(query.getStartTime());
@@ -117,12 +137,14 @@ public class HomeService {
 
     /** 时间范围内的聊天记录总数（null -> 0）。 */
     public int chatRecordCount(HomeQuery query) {
+        dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         Integer count = homeMapper.chatRecordCount(query);
         return count == null ? 0 : count;
     }
 
     /** 时间范围内的 Token 总数（null -> 0）。 */
     public int tokensCount(HomeQuery query) {
+        dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         Integer count = homeMapper.tokensCount(query);
         return count == null ? 0 : count;
     }
@@ -131,16 +153,19 @@ public class HomeService {
 
     /** 应用 Token 排行（按 total_tokens 降序）。 */
     public IPage<AgentStatDTO> tokensRanking(int current, int size, HomeQuery query) {
+        dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         return homeMapper.tokensRanking(new Page<>(current, size), query);
     }
 
     /** 应用问题数排行（按 chat_record_count 降序）。 */
     public IPage<AgentStatDTO> questionRanking(int current, int size, HomeQuery query) {
+        dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         return homeMapper.questionRanking(new Page<>(current, size), query);
     }
 
     /** 用户 Token 排行（按 total_tokens 降序）。 */
     public IPage<ChatUserStatDTO> userTokensRanking(int current, int size, HomeQuery query) {
+        dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         return homeMapper.userTokensRanking(new Page<>(current, size), query);
     }
 }

@@ -161,7 +161,7 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
     }
 
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public KnowledgeEntity createKnowledge(KnowledgeEntity knowledge) {
         knowledge.setUserId(userContext.getUserId());
         if (knowledge.getMeta() == null){
@@ -176,7 +176,7 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
         return knowledge;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public KnowledgeEntity createKnowledgeWeb(WebKnowledgeDTO knowledge) {
         knowledge.setMeta(new JSONObject(Map.of("sourceUrl", knowledge.getSourceUrl(), "selector", knowledge.getSelector())));
         createKnowledge(knowledge);

@@ -86,7 +86,7 @@ public class ChatApiService {
         return chatService.clear(appId, userId);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean updateConversation(String chatId, String chatRecordId, ApplicationChatRecordDTO chatRecord) {
         chatRecord.setChatId(chatId);
         chatRecord.setId(chatRecordId);

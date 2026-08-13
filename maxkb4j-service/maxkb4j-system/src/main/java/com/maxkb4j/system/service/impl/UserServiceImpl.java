@@ -84,7 +84,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         return this.page(userPage, wrapper);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteUserById(String userId) {
         return removeById(userId);
     }
@@ -149,7 +149,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         return StringUtils.defaultString(username) + "|" + WebUtil.getIP();
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean createUser(UserEntity user) {
         long usernameNum = this.lambdaQuery().eq(UserEntity::getUsername, user.getUsername()).count();
         if (usernameNum > 0) {
@@ -167,7 +167,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         return save(user);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void createDefaultAdminUser() {
         String defaultPassword = systemProperties.getDefaultPassword();
         if (StringUtils.isBlank(defaultPassword)) {
