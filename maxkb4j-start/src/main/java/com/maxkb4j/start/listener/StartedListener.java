@@ -24,7 +24,6 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -54,7 +53,7 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
                 PrivateKey privateKey = keyPair.getPrivate();
                 String encryptPrivateKeyPem = RSAUtil.encryptPrivateKeyPem(privateKey);
                 JSONObject meta = new SystemKeySetting(publicKeyPem, encryptPrivateKeyPem).toMetaJson();
-                systemSettingService.saveOrUpdate(meta, SettingType.KEY.getType());
+                systemSettingService.saveOrUpdate(meta, SettingType.KEY);
                 SystemCache.put(SettingType.KEY.getType(),meta);
             } catch (Exception e) {
                 throw new RuntimeException(e);

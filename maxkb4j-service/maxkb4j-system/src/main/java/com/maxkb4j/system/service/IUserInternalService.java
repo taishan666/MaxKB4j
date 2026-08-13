@@ -2,12 +2,12 @@ package com.maxkb4j.system.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.maxkb4j.system.dto.PasswordDTO;
-import com.maxkb4j.system.dto.UserDTO;
+import com.maxkb4j.user.dto.PasswordDTO;
 import com.maxkb4j.system.dto.UserLoginDTO;
 import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.vo.UserNameVO;
 import com.maxkb4j.system.vo.UserVO;
+import com.maxkb4j.user.dto.UserQuery;
 import com.maxkb4j.user.service.IUserService;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -23,7 +23,7 @@ import java.util.List;
  */
 public interface IUserInternalService extends IUserService, IService<UserEntity> {
 
-    IPage<UserEntity> selectUserPage(int page, int size, UserDTO dto);
+    IPage<UserEntity> selectUserPage(int page, int size, UserQuery dto);
 
     boolean deleteUserById(String userId);
 

@@ -1,4 +1,4 @@
-package com.maxkb4j.system.dto;
+package com.maxkb4j.user.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

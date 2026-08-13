@@ -8,31 +8,28 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.maxkb4j.system.cache.AuthCodeCache;
 import com.maxkb4j.common.cache.SystemCache;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.exception.LoginException;
 import com.maxkb4j.common.props.SystemProperties;
-import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.common.util.I18nUtil;
-import com.maxkb4j.common.util.RSAUtil;
-import com.maxkb4j.common.util.StpKit;
-import com.maxkb4j.common.util.WebUtil;
+import com.maxkb4j.common.util.*;
+import com.maxkb4j.system.cache.AuthCodeCache;
 import com.maxkb4j.system.constant.UserLanguage;
-import com.maxkb4j.system.constant.UserSource;
+import com.maxkb4j.user.constant.UserSource;
+import com.maxkb4j.system.dto.UserLoginDTO;
 import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.mapper.UserMapper;
-import com.maxkb4j.system.service.EmailService;
-import com.maxkb4j.system.dto.PasswordDTO;
-import com.maxkb4j.system.dto.UserDTO;
-import com.maxkb4j.system.dto.UserLoginDTO;
-import com.maxkb4j.system.service.IUserInternalService;
 import com.maxkb4j.system.security.LoginAttemptLimiter;
 import com.maxkb4j.system.security.PasswordService;
+import com.maxkb4j.system.service.EmailService;
+import com.maxkb4j.system.service.IUserInternalService;
 import com.maxkb4j.system.vo.UserNameVO;
 import com.maxkb4j.system.vo.UserVO;
+import com.maxkb4j.user.dto.PasswordDTO;
+import com.maxkb4j.user.dto.UserDTO;
+import com.maxkb4j.user.dto.UserQuery;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -64,8 +61,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     private final LoginAttemptLimiter loginAttemptLimiter;
     private final AuthCodeCache authCodeCache;
 
-
-    public IPage<UserEntity> selectUserPage(int page, int size, UserDTO dto) {
+    @Override
+    public IPage<UserEntity> selectUserPage(int page, int size, UserQuery dto) {
         Page<UserEntity> userPage = new Page<>(page, size);
         LambdaQueryWrapper<UserEntity> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(dto.getNickname())) {
@@ -330,6 +327,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     public String getLanguage(String userId) {
         List<UserEntity> list = this.lambdaQuery().select(UserEntity::getLanguage).eq(UserEntity::getId, userId).list();
         return list.isEmpty() ? "" : list.getFirst().getLanguage();
+    }
+
+    @Override
+    public UserDTO getByUsernameOrEmail(String username, String email) {
+        UserEntity user = this.lambdaQuery()
+                .and(i -> i.eq(UserEntity::getUsername, username)
+                        .or()
+                        .eq(UserEntity::getEmail, email))
+                .last("limit 1")
+                .one();
+        return user == null ? null : BeanUtil.copy(user, UserDTO.class);
+    }
+
+    @Override
+    public void saveDTO(UserDTO user) {
+        super.save(BeanUtil.copy(user, UserEntity.class));
     }
 
 

@@ -58,7 +58,7 @@ public class SystemSettingController{
 	@SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
 	@PutMapping("/email_setting")
 	public R<Boolean> saveEmailSetting(@RequestBody JSONObject meta){
-		return R.status(systemSettingService.saveOrUpdate(meta, SettingType.Email.getType()));
+		return R.status(systemSettingService.saveOrUpdate(meta, SettingType.Email));
 	}
 
 }

@@ -1,4 +1,4 @@
-package com.maxkb4j.system.constant;
+package com.maxkb4j.user.constant;
 
 public interface UserSource {
     String LOCAL = "LOCAL";

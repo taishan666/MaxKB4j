@@ -9,7 +9,7 @@ import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.service.IUserInternalService;
-import com.maxkb4j.system.dto.PasswordDTO;
+import com.maxkb4j.user.dto.PasswordDTO;
 import com.maxkb4j.system.dto.UserLanguageDTO;
 import com.maxkb4j.system.vo.UserVO;
 import jakarta.mail.MessagingException;
