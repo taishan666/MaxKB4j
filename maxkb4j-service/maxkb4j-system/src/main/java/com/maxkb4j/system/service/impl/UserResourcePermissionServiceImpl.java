@@ -141,29 +141,12 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
      */
     private Map<String, String> resolvePermissionMap(LambdaQueryWrapper<UserResourcePermissionEntity> wrapper, SFunction<UserResourcePermissionEntity, String> keyGetter) {
         return baseMapper.selectList(wrapper).stream()
-                .collect(Collectors.toMap(keyGetter, e -> getPermissionFromList(e.getPermissionList()), (a, b) -> a));
+                .collect(Collectors.toMap(keyGetter, e -> PermissionDefUtil.findKey(e.getAuthType(),e.getPermissionList()), (a, b) -> a));
     }
 
     private Set<String> toPermissionSet(String[] permissions) {
         return permissions == null ? Set.of() : Arrays.stream(permissions).collect(Collectors.toSet());
     }
-
-    private String getPermissionFromList(List<String> permissionList) {
-        if (CollectionUtils.isNotEmpty(permissionList)) {
-            if (permissionList.contains(Permission.ROLE)) {
-                return Permission.ROLE;
-            }else if (permissionList.contains(Permission.MANAGE)) {
-                return Permission.MANAGE;
-            } else if (permissionList.contains(Permission.VIEW)) {
-                return Permission.VIEW;
-            } else {
-                return Permission.NOT_AUTH;
-            }
-        } else {
-            return Permission.NOT_AUTH;
-        }
-    }
-
 
     @Transactional(rollbackFor = Exception.class)
     public boolean userPermissionUpdate(String userId, String resourceType, List<UserPermissionUpdateVO> list) {

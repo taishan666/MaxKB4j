@@ -36,4 +36,23 @@ public final class PermissionDefUtil {
         return PERMISSION_MAP.getOrDefault(key,new PermissionDef(AuthType.RESOURCE_PERMISSION_GROUP, List.of(Permission.NOT_AUTH)));
     }
 
+    /**
+     * 根据 type 和 permissions 反向查找对应的 Map key
+     *
+     * @param authType        权限类型，如 "RESOURCE_PERMISSION_GROUP"
+     * @param permissionList 权限列表，如 ["MANAGE", "VIEW"]
+     * @return 匹配的 key，未找到时返回 Optional.empty()
+     */
+    public static String findKey(String authType, List<String> permissionList) {
+        if (authType == null || permissionList == null) {
+            return Permission.NOT_AUTH;
+        }
+        // List.of 保证顺序敏感匹配；如需无序匹配可改用 Set
+        return PERMISSION_MAP.entrySet().stream()
+                .filter(e -> e.getValue().authType().equals(authType)
+                        && e.getValue().permissionList().equals(permissionList))
+                .map(Map.Entry::getKey)
+                .findFirst().orElse(Permission.NOT_AUTH);
+    }
+
 }
