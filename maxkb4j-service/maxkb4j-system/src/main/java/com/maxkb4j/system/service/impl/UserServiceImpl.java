@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.cache.SystemCache;
-import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.constant.RoleConst;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.exception.LoginException;
@@ -164,7 +164,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         if (emailNum > 0) {
             throw new ApiException("user.email.exists");
         }
-        user.setRole(RoleType.USER);
+        user.setRole(RoleConst.USER);
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
         user.setLanguage(StringUtils.defaultIfBlank(user.getLanguage(), UserLanguage.ZH_CN));
@@ -187,7 +187,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         user.setNickname(I18nUtil.get("user.admin.nickname"));
         user.setUsername(systemProperties.getDefaultUsername());
         user.setPassword(passwordService.encode(defaultPassword));
-        user.setRole(RoleType.ADMIN);
+        user.setRole(RoleConst.ADMIN);
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
         user.setLanguage(UserLanguage.ZH_CN);
@@ -212,10 +212,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         user.setRoleName(Set.of(userEntity.getRole()));
         Set<String> role=new HashSet<>();
         role.add(userEntity.getRole());
-        if (RoleType.ADMIN.equals(userEntity.getRole())) {
-            role.add(RoleType.WORKSPACE_MANAGE+":/WORKSPACE/default");
+        if (RoleConst.ADMIN.equals(userEntity.getRole())) {
+            role.add(RoleConst.WORKSPACE_MANAGE+":/WORKSPACE/default");
         } else {
-            role.add(RoleType.USER+":/WORKSPACE/default");
+            role.add(RoleConst.USER+":/WORKSPACE/default");
         }
         user.setRole(role);
         List<Map<String, String>> workspaceList = new ArrayList<>();
@@ -273,7 +273,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     }
 
     public boolean batchDelete(List<String> ids) {
-        return this.lambdaUpdate().eq(UserEntity::getRole, RoleType.USER).in(UserEntity::getId, ids).remove();
+        return this.lambdaUpdate().eq(UserEntity::getRole, RoleConst.USER).in(UserEntity::getId, ids).remove();
     }
 
     public boolean updatePassword(String id, PasswordDTO dto) {
@@ -310,7 +310,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
     public List<UserEntity> listActiveMembers() {
         return this.lambdaQuery()
-                .eq(UserEntity::getRole, RoleType.USER)
+                .eq(UserEntity::getRole, RoleConst.USER)
                 .eq(UserEntity::getIsActive, true)
                 .list();
     }

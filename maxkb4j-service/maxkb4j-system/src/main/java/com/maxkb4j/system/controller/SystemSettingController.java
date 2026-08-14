@@ -7,7 +7,7 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.cache.SystemCache;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
-import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.constant.RoleConst;
 import com.maxkb4j.common.enums.SettingType;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.system.entity.SystemSettingEntity;
@@ -37,7 +37,7 @@ public class SystemSettingController{
 		return R.data(json);
 	}
 
-	@SaCheckRole(type= LoginType.ADMIN,value = RoleType.ADMIN)
+	@SaCheckRole(type= LoginType.ADMIN,value = RoleConst.ADMIN)
 	@GetMapping("/email_setting")
 	public R<JSONObject> getEmailSetting(){
 		SystemSettingEntity systemSetting=systemSettingService.lambdaQuery().eq(SystemSettingEntity::getType, SettingType.Email.getType()).one();
@@ -45,7 +45,7 @@ public class SystemSettingController{
 		return R.data(json);
 	}
 
-	@SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
+	@SaCheckRole(type=LoginType.ADMIN,value = RoleConst.ADMIN)
 	@PostMapping("/email_setting")
 	public R<Boolean> testEmail(@RequestBody JSONObject meta){
 		if(systemSettingService.testConnect(meta)){
@@ -55,7 +55,7 @@ public class SystemSettingController{
 		}
 	}
 
-	@SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
+	@SaCheckRole(type=LoginType.ADMIN,value = RoleConst.ADMIN)
 	@PutMapping("/email_setting")
 	public R<Boolean> saveEmailSetting(@RequestBody JSONObject meta){
 		return R.status(systemSettingService.saveOrUpdate(meta, SettingType.Email));

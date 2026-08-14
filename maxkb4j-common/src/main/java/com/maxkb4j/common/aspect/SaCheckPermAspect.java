@@ -2,7 +2,7 @@ package com.maxkb4j.common.aspect;
 
 import cn.dev33.satoken.exception.NotPermissionException;
 import com.maxkb4j.common.annotation.SaCheckPerm;
-import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.constant.RoleConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.StpKit;
@@ -35,7 +35,7 @@ public class SaCheckPermAspect {
         }
         String permissionStr = permissionStr(saCheckPerm, attributes);
         //校验权限（精确匹配）
-        if (StpKit.ADMIN.hasPermission(permissionStr)||StpKit.ADMIN.hasRole(RoleType.ADMIN)) {
+        if (StpKit.ADMIN.hasPermission(permissionStr)||StpKit.ADMIN.hasRole(RoleConst.ADMIN)) {
             // 放行
             return joinPoint.proceed();
         }else {

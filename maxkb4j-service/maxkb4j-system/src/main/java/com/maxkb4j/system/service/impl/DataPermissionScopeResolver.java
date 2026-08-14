@@ -1,7 +1,7 @@
 package com.maxkb4j.system.service.impl;
 
 import com.maxkb4j.common.constant.Permission;
-import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.constant.RoleConst;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.core.support.permission.DataPermissionScope;
 import com.maxkb4j.core.support.permission.IDataPermissionScopeResolver;
@@ -50,7 +50,7 @@ public class DataPermissionScopeResolver implements IDataPermissionScopeResolver
         if (CollectionUtils.isEmpty(roles)) {
             return DataPermissionScope.empty();
         }
-        if (roles.contains(RoleType.ADMIN)) {
+        if (roles.contains(RoleConst.ADMIN)) {
             return DataPermissionScope.admin();
         }
         List<String> targetIds = userResourcePermissionService.getTargetIds(authTargetType, loginId, permission);

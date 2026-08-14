@@ -6,7 +6,7 @@ import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
-import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.constant.RoleConst;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.system.dto.UserLanguageDTO;
 import com.maxkb4j.system.entity.UserEntity;
@@ -36,13 +36,13 @@ public class UserController {
         return R.data(userService.getUserProfileById(userId));
     }
 
-    @SaCheckRole(type= LoginType.ADMIN,value = {RoleType.ADMIN, RoleType.USER},mode = SaMode.OR)
+    @SaCheckRole(type= LoginType.ADMIN,value = {RoleConst.ADMIN, RoleConst.USER},mode = SaMode.OR)
     @GetMapping("/user/list")
     public R<List<UserNameVO>> userList(){
         return R.data(userService.listActiveUserNames());
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @PostMapping("/user/language")
     public R<Boolean> language(@Valid @RequestBody UserLanguageDTO dto) {
         UserEntity user = new UserEntity();
@@ -50,14 +50,14 @@ public class UserController {
         return R.status(userService.updateLanguage(user));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @PostMapping("/user/current/send_email")
     public R<Boolean> sendEmail(@CurrentUserId String userId) {
         String email = userService.getEmail(userId);
         return R.status(userService.sendEmailCode(email, I18nUtil.get("email.subject.modify.password")));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @PostMapping("/user/current/reset_password")
     public R<Boolean> resetPassword(@Valid @RequestBody PasswordDTO dto) {
         return R.status(userService.resetPassword(dto));
