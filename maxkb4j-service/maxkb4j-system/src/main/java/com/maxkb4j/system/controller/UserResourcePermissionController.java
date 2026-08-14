@@ -10,9 +10,7 @@ import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.core.support.vo.UserResourcePermissionVO;
 import com.maxkb4j.system.service.IUserInternalService;
 import com.maxkb4j.system.service.IUserResourcePermissionInternalService;
-import com.maxkb4j.system.vo.ResourceUserPermissionVO;
-import com.maxkb4j.system.vo.UserNameVO;
-import com.maxkb4j.system.vo.UserVO;
+import com.maxkb4j.system.vo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,14 +56,14 @@ public class UserResourcePermissionController {
     }
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
-    @PutMapping("/resource_user_permission/resource/{resourceId}/resource/{type}")
-    public R<Boolean> resourcePermissionUpdate(@PathVariable String resourceId, @PathVariable String type, @RequestBody List<ResourceUserPermissionVO> list){
-        return R.status(userResourcePermissionService.resourcePermissionUpdate(resourceId,type,list));
+    @PutMapping("/resource_user_permission/resource/{resourceId}/resource/{resourceType}")
+    public R<Boolean> resourcePermissionUpdate(@PathVariable String resourceId, @PathVariable String resourceType, @RequestBody List<ResourcePermissionUpdateVO> list){
+        return R.status(userResourcePermissionService.resourcePermissionUpdate(resourceId,resourceType,list));
     }
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)
-    @PutMapping("/user_resource_permission/user/{userId}/resource/{type}")
-    public R<Boolean> userPermissionUpdate(@PathVariable String userId, @PathVariable String type, @RequestBody List<UserResourcePermissionVO> list){
-        return R.status(userResourcePermissionService.userPermissionUpdate(userId,type,list));
+    @PutMapping("/user_resource_permission/user/{userId}/resource/{resourceType}")
+    public R<Boolean> userPermissionUpdate(@PathVariable String userId, @PathVariable String resourceType, @RequestBody List<UserPermissionUpdateVO> list){
+        return R.status(userResourcePermissionService.userPermissionUpdate(userId,resourceType,list));
     }
 }
