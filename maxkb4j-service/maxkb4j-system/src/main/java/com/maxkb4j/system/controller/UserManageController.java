@@ -38,7 +38,7 @@ public class UserManageController {
     @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
     @GetMapping("/user_manage/{page}/{size}")
     public R<IPage<UserVO>> userManage(@PathVariable("page") int page, @PathVariable("size") int size, UserQuery dto) {
-        return R.data(BeanUtil.copyPage(userService.selectUserPage(page, size, dto), UserVO.class));
+        return R.data(userService.selectUserPage(page, size, dto));
     }
 
 

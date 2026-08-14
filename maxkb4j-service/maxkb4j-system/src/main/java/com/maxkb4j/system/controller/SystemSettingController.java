@@ -30,9 +30,9 @@ public class SystemSettingController{
 	@GetMapping("/profile")
 	public R<JSONObject> getProfile(){
 		JSONObject json=new JSONObject();
-		json.put("edition","CE");
+		json.put("edition","PE");
 		json.put("version","v2.10.0 (build at 2026-06-23T15:28)");
-		json.put("license_is_valid",false);
+		json.put("license_is_valid",true);
 		json.put("rsa", SystemCache.getPublicKey());
 		return R.data(json);
 	}

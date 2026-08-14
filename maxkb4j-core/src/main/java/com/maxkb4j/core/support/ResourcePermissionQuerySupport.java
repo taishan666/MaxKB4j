@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.Permission;
 import com.maxkb4j.common.mp.base.BaseEntity;
-import com.maxkb4j.common.util.PageUtil;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.core.support.vo.UserResourcePermissionVO;
 import org.apache.commons.lang3.StringUtils;
 
@@ -68,7 +68,7 @@ public final class ResourcePermissionQuerySupport {
             extraConditions.accept(wrapper);
         }
         mapper.selectPage(page, wrapper);
-        return PageUtil.copy(page, e -> buildResourceVO(e.getId(), nameField.apply(e), iconGetter.apply(e), type, permissionMap.getOrDefault(e.getId(), Permission.NOT_AUTH)));
+        return BeanUtil.copyPage(page, e -> buildResourceVO(e.getId(), nameField.apply(e), iconGetter.apply(e), type, permissionMap.getOrDefault(e.getId(), Permission.NOT_AUTH)));
     }
 
     public static UserResourcePermissionVO buildResourceVO(String id, String name, String icon, String type, String permission) {

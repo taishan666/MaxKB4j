@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author tarzan
@@ -39,7 +40,9 @@ public class UserResourcePermissionController {
     @SaCheckRole(type= LoginType.ADMIN,value = RoleType.ADMIN)
     @GetMapping("/user_member")
     public R<List<UserVO>> userMembers(){
-        return R.data(BeanUtil.copyList(userService.listActiveMembers(), UserVO.class));
+        List<UserVO> users=BeanUtil.copyList(userService.listActiveMembers(), UserVO.class);
+        users.forEach(user -> user.setRoles(Set.of(user.getRole())));
+        return R.data(users);
     }
 
     @SaCheckRole(type=LoginType.ADMIN,value = RoleType.ADMIN)

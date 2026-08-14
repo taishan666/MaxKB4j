@@ -1,21 +1,24 @@
 package com.maxkb4j.system.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
+import cn.dev33.satoken.annotation.SaMode;
 import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleType;
 import com.maxkb4j.common.util.I18nUtil;
+import com.maxkb4j.system.dto.UserLanguageDTO;
 import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.service.IUserInternalService;
+import com.maxkb4j.system.vo.UserNameVO;
+import com.maxkb4j.system.vo.UserProfileVO;
 import com.maxkb4j.user.dto.PasswordDTO;
-import com.maxkb4j.system.dto.UserLanguageDTO;
-import com.maxkb4j.system.vo.UserVO;
-import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author tarzan
@@ -29,8 +32,14 @@ public class UserController {
     private final IUserInternalService userService;
 
     @GetMapping("user/profile")
-    public R<UserVO> getUserProfile(@CurrentUserId String userId){
-        return R.data(userService.getUserById(userId));
+    public R<UserProfileVO> getUserProfile(@CurrentUserId String userId){
+        return R.data(userService.getUserProfileById(userId));
+    }
+
+    @SaCheckRole(type= LoginType.ADMIN,value = {RoleType.ADMIN, RoleType.USER},mode = SaMode.OR)
+    @GetMapping("/user/list")
+    public R<List<UserNameVO>> userList(){
+        return R.data(userService.listActiveUserNames());
     }
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
@@ -43,7 +52,7 @@ public class UserController {
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
     @PostMapping("/user/current/send_email")
-    public R<Boolean> sendEmail(@CurrentUserId String userId) throws MessagingException {
+    public R<Boolean> sendEmail(@CurrentUserId String userId) {
         String email = userService.getEmail(userId);
         return R.status(userService.sendEmailCode(email, I18nUtil.get("email.subject.modify.password")));
     }
@@ -53,7 +62,5 @@ public class UserController {
     public R<Boolean> resetPassword(@Valid @RequestBody PasswordDTO dto) {
         return R.status(userService.resetPassword(dto));
     }
-
-
 
 }

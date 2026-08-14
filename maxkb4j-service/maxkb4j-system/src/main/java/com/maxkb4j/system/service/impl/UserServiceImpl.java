@@ -17,7 +17,6 @@ import com.maxkb4j.common.props.SystemProperties;
 import com.maxkb4j.common.util.*;
 import com.maxkb4j.system.cache.AuthCodeCache;
 import com.maxkb4j.system.constant.UserLanguage;
-import com.maxkb4j.user.constant.UserSource;
 import com.maxkb4j.system.dto.UserLoginDTO;
 import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.mapper.UserMapper;
@@ -26,7 +25,9 @@ import com.maxkb4j.system.security.PasswordService;
 import com.maxkb4j.system.service.EmailService;
 import com.maxkb4j.system.service.IUserInternalService;
 import com.maxkb4j.system.vo.UserNameVO;
+import com.maxkb4j.system.vo.UserProfileVO;
 import com.maxkb4j.system.vo.UserVO;
+import com.maxkb4j.user.constant.UserSource;
 import com.maxkb4j.user.dto.PasswordDTO;
 import com.maxkb4j.user.dto.UserDTO;
 import com.maxkb4j.user.dto.UserQuery;
@@ -62,7 +63,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     private final AuthCodeCache authCodeCache;
 
     @Override
-    public IPage<UserEntity> selectUserPage(int page, int size, UserQuery dto) {
+    public IPage<UserVO> selectUserPage(int page, int size, UserQuery dto) {
         Page<UserEntity> userPage = new Page<>(page, size);
         LambdaQueryWrapper<UserEntity> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(dto.getNickname())) {
@@ -78,7 +79,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             wrapper.eq(UserEntity::getIsActive, dto.getIsActive());
         }
         wrapper.orderByDesc(UserEntity::getCreateTime);
-        return this.page(userPage, wrapper);
+        return BeanUtil.copyPage(this.page(userPage, wrapper),user -> {
+            UserVO userVO = BeanUtil.copy(user, UserVO.class);
+            Map<String,List<String>>roleWorkspace = new HashMap<>();
+            roleWorkspace.put(user.getRole(), List.of("DEFAULT"));
+            userVO.setRoleWorkspace(roleWorkspace);
+            userVO.setRoleName(Set.of("USER"));
+            return userVO;
+        });
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -188,7 +196,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         save(user);
     }
 
-    public UserVO getUserById(String userId) {
+    public UserProfileVO getUserProfileById(String userId) {
         UserEntity userEntity = this.lambdaQuery()
                 .select(UserEntity::getId, UserEntity::getEmail, UserEntity::getPhone,
                         UserEntity::getNickname, UserEntity::getUsername, UserEntity::getPassword,
@@ -199,7 +207,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         if (Objects.isNull(userEntity)) {
             throw new NotLoginException(I18nUtil.get("login.user.not.found"), "", "");
         }
-        UserVO user = BeanUtil.copy(userEntity, UserVO.class);
+        UserProfileVO user = BeanUtil.copy(userEntity, UserProfileVO.class);
         user.setPermissions(stpInterface.getPermissionList(userId, null));
         user.setRoleName(Set.of(userEntity.getRole()));
         Set<String> role=new HashSet<>();
@@ -353,7 +361,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         wrapper.like(StringUtils.isNotBlank(query.getNickname()), UserEntity::getNickname, query.getNickname());
         wrapper.like(StringUtils.isNotBlank(query.getUsername()), UserEntity::getUsername, query.getUsername());
         wrapper.orderByDesc(UserEntity::getCreateTime);
-        return PageUtil.copy(this.page(userPage,wrapper),UserDTO.class);
+        return BeanUtil.copyPage(this.page(userPage,wrapper),user->{
+            UserDTO dto= BeanUtil.copy(user, UserDTO.class);
+            dto.setWorkspaceName("默认空间");
+            return dto;
+        });
+    }
+
+    @Override
+    public Boolean removeMember(String role, String id) {
+        return this.lambdaUpdate().set(UserEntity::getRole, null).eq(UserEntity::getId, id).update();
     }
 
 

@@ -80,7 +80,7 @@ decorator:
 system:
   default-username: admin
   # 默认管理员口令：未配置时首次启动自动生成随机口令并打印到日志（见 UserServiceImpl.createDefaultAdminUser）
-  default-password: ${SYSTEM_DEFAULT_PASSWORD:}
+  default-password: ${SYSTEM_DEFAULT_PASSWORD:tarzan@123456}
   default-phone: 18838812345
   default-email: 1334512682@qq.com
 

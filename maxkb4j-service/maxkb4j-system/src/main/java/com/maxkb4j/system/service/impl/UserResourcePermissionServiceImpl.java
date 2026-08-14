@@ -10,7 +10,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.constant.Permission;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.entity.UserResourcePermissionEntity;
 import com.maxkb4j.system.mapper.UserMapper;
@@ -118,7 +117,7 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
             userWrapper.notIn(UserEntity::getId, filter.excludeIds());
         }
         Page<UserEntity> userPage = userMapper.selectPage(new Page<>(current, size), userWrapper);
-        return PageUtil.copy(userPage, e -> {
+        return BeanUtil.copyPage(userPage, e -> {
             ResourceUserPermissionVO vo = new ResourceUserPermissionVO();
             vo.setId(e.getId());
             vo.setNickname(e.getNickname());

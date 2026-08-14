@@ -22,7 +22,6 @@ import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.application.vo.ParagraphRecordVO;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.knowledge.dto.ParagraphDTO;
 import com.maxkb4j.knowledge.service.IParagraphService;
 import lombok.RequiredArgsConstructor;
@@ -134,7 +133,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
         LambdaQueryWrapper<ApplicationChatRecordEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatRecordEntity::getChatId, chatId);
         IPage<ApplicationChatRecordEntity> chatRecordIpage = this.page(chatRecordpage, wrapper);
-        return PageUtil.copy(chatRecordIpage, this::convert);
+        return BeanUtil.copyPage(chatRecordIpage, this::convert);
     }
 
     @Override

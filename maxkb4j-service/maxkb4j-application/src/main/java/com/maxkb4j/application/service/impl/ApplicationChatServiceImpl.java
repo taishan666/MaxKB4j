@@ -33,7 +33,6 @@ import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.exception.AccessNumLimitException;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.common.util.StpKit;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -251,7 +250,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
         wrapper.orderByDesc(ApplicationChatEntity::getCreateTime);
-        return PageUtil.copy(this.page(page, wrapper), ApplicationChatDTO.class);
+        return BeanUtil.copyPage(this.page(page, wrapper), ApplicationChatDTO.class);
     }
 
     @Override

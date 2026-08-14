@@ -14,4 +14,5 @@ public class UserDTO {
     private Boolean isActive;
     private String source;
     private String language;
+    private String workspaceName;
 }

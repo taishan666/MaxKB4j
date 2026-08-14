@@ -23,4 +23,6 @@ public interface IUserService {
     void saveDTO(UserDTO user);
 
     IPage<UserDTO> pageList(String role, int current, int size, UserQuery query);
+
+    Boolean removeMember(String role, String id);
 }
