@@ -1,4 +1,4 @@
-package com.maxkb4j.system.service;
+package com.maxkb4j.system.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -12,6 +12,7 @@ import com.maxkb4j.system.dto.ChatUserStatDTO;
 import com.maxkb4j.system.dto.DailyStatDTO;
 import com.maxkb4j.system.dto.HomeQuery;
 import com.maxkb4j.system.mapper.HomeMapper;
+import com.maxkb4j.system.service.IHomeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -36,7 +37,7 @@ import java.util.Optional;
  */
 @RequiredArgsConstructor
 @Service
-public class HomeService {
+public class HomeServiceImpl implements IHomeService {
 
     private final HomeMapper homeMapper;
     private final DataPermissionSupport dataPermissionSupport;
@@ -51,6 +52,7 @@ public class HomeService {
      *
      * @param type application / knowledge / tool / model
      */
+    @Override
     public JSONObject aggregation(String type) {
         if (type == null) {
             return new JSONObject();
@@ -84,6 +86,7 @@ public class HomeService {
      * 全局监控：按天聚合 star/trample/tokens/chatRecord/customer，并合并每日新增客户数。
      * 缺失的日期以零值补齐，保证返回连续的按天序列。
      */
+    @Override
     public List<DailyStatDTO> monitoring(HomeQuery query) {
         List<DailyStatDTO> result = new ArrayList<>();
         if (Objects.isNull(query.getStartTime()) || Objects.isNull(query.getEndTime())) {
@@ -136,6 +139,7 @@ public class HomeService {
     /* ==================== 总量 ==================== */
 
     /** 时间范围内的聊天记录总数（null -> 0）。 */
+    @Override
     public int chatRecordCount(HomeQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         Integer count = homeMapper.chatRecordCount(query);
@@ -143,6 +147,7 @@ public class HomeService {
     }
 
     /** 时间范围内的 Token 总数（null -> 0）。 */
+    @Override
     public int tokensCount(HomeQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         Integer count = homeMapper.tokensCount(query);
@@ -152,18 +157,21 @@ public class HomeService {
     /* ==================== 排行榜（分页） ==================== */
 
     /** 应用 Token 排行（按 total_tokens 降序）。 */
+    @Override
     public IPage<AgentStatDTO> tokensRanking(int current, int size, HomeQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         return homeMapper.tokensRanking(new Page<>(current, size), query);
     }
 
     /** 应用问题数排行（按 chat_record_count 降序）。 */
+    @Override
     public IPage<AgentStatDTO> questionRanking(int current, int size, HomeQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         return homeMapper.questionRanking(new Page<>(current, size), query);
     }
 
     /** 用户 Token 排行（按 total_tokens 降序）。 */
+    @Override
     public IPage<ChatUserStatDTO> userTokensRanking(int current, int size, HomeQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         return homeMapper.userTokensRanking(new Page<>(current, size), query);

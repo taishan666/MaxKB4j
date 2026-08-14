@@ -10,7 +10,7 @@ import com.maxkb4j.system.dto.AgentStatDTO;
 import com.maxkb4j.system.dto.ChatUserStatDTO;
 import com.maxkb4j.system.dto.DailyStatDTO;
 import com.maxkb4j.system.dto.HomeQuery;
-import com.maxkb4j.system.service.HomeService;
+import com.maxkb4j.system.service.IHomeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +29,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class HomeController {
 
-    private final HomeService homeService;
+    private final IHomeService homeService;
 
     @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/{type}/aggregation")
