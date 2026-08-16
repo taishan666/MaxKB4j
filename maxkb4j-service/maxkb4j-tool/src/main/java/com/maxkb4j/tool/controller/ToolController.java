@@ -7,18 +7,19 @@ import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
-import com.maxkb4j.tool.entity.ToolInputField;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.consts.ToolConstants;
+import com.maxkb4j.tool.dto.ToolConnectionTestDTO;
 import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.dto.ToolSaveDTO;
-import com.maxkb4j.tool.dto.ToolConnectionTestDTO;
 import com.maxkb4j.tool.entity.ToolEntity;
+import com.maxkb4j.tool.entity.ToolInputField;
 import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.tool.service.IToolInternalService;
 import com.maxkb4j.tool.vo.ToolCardVO;
+import com.maxkb4j.tool.vo.ToolItemVO;
 import com.maxkb4j.tool.vo.ToolListVO;
 import com.maxkb4j.tool.vo.ToolVO;
 import jakarta.servlet.http.HttpServletResponse;
@@ -54,7 +55,7 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool")
-    public R<Map<String, List<ToolCardVO>>> tools(String folderId, String[] toolTypeList) {
+    public R<Map<String, List<ToolItemVO>>> tools(String folderId, String[] toolTypeList) {
         return R.data(Map.of("folders", List.of(), "tools", toolService.listTools(folderId,ToolConstants.Scope.WORKSPACE, toolTypeList)));
     }
 

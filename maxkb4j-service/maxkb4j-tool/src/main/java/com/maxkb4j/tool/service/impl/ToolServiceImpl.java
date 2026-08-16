@@ -20,10 +20,7 @@ import com.maxkb4j.tool.handler.*;
 import com.maxkb4j.tool.mapper.ToolMapper;
 import com.maxkb4j.tool.service.IToolInternalService;
 import com.maxkb4j.tool.util.McpToolUtil;
-import com.maxkb4j.tool.vo.McpToolVO;
-import com.maxkb4j.tool.vo.ToolCardVO;
-import com.maxkb4j.tool.vo.ToolListVO;
-import com.maxkb4j.tool.vo.ToolVO;
+import com.maxkb4j.tool.vo.*;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -113,7 +110,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
     }
 
     /** 完整字段版本：供需要 code / initParams / inputFieldList 等执行所需信息的场景使用。 */
-    public List<ToolCardVO> listTools(String folderId, String scope, String[] toolTypeList) {
+    public List<ToolItemVO> listTools(String folderId, String scope, String[] toolTypeList) {
         ToolQuery query = new ToolQuery();
         query.setFolderId(folderId);
         query.setScope(scope);

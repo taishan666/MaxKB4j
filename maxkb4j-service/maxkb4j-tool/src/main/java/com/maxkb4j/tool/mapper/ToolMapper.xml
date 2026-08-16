@@ -61,13 +61,15 @@
     </select>
 
 
-    <select id="listTools" resultType="com.maxkb4j.tool.vo.ToolCardVO">
+    <select id="listTools" resultType="com.maxkb4j.tool.vo.ToolItemVO">
         SELECT
         t.id,
         t.name,
         t."desc",
         t.icon,
         t.tool_type,
+        t.input_field_list,
+        t.init_params,
         t.is_active,
         t.create_time,
         u.nickname
