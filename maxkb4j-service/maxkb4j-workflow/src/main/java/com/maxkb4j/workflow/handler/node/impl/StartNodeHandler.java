@@ -87,7 +87,7 @@ public class StartNodeHandler extends AbsNodeHandler {
                 for (int i = 0; i < chatFields.size(); i++) {
                     JSONObject chatField = chatFields.getJSONObject(i);
                     String key = chatField.getString("value");
-                    resultMap.put(key, chatVariable.getOrDefault(key, null));
+                    resultMap.put(key, chatVariable.getOrDefault(key, "None"));
                 }
             }
         }
