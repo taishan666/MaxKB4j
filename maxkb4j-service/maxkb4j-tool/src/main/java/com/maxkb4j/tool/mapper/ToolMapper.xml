@@ -2,7 +2,13 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.maxkb4j.tool.mapper.ToolMapper">
 
-    <select id="pageList" resultType="com.maxkb4j.tool.vo.ToolCardVO">
+    <resultMap id="toolCardResultMap" type="com.maxkb4j.tool.vo.ToolCardVO">
+        <result property="initFieldList" column="init_field_list" typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+        <result property="initParams" column="init_params" typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+        <result property="inputFieldList" column="input_field_list" typeHandler="com.maxkb4j.common.typehandler.ToolInputParamsTypeHandler"/>
+    </resultMap>
+
+    <select id="pageList" resultMap="toolCardResultMap">
         SELECT
         t.ID,
         t.name,
@@ -14,6 +20,9 @@
         t.template_id,
         t.version,
         t.create_time,
+        t.init_field_list,
+        t.init_params,
+        t.input_field_list,
         COALESCE(
         (
         SELECT COUNT(*)
@@ -61,7 +70,7 @@
     </select>
 
 
-    <select id="listTools" resultType="com.maxkb4j.tool.vo.ToolCardVO">
+    <select id="listTools" resultMap="toolCardResultMap">
         SELECT
         t.id,
         t.name,
@@ -70,6 +79,9 @@
         t.tool_type,
         t.is_active,
         t.create_time,
+        t.init_field_list,
+        t.init_params,
+        t.input_field_list,
         u.nickname
         FROM tool t
         LEFT JOIN "user" u ON t.user_id = u.id
