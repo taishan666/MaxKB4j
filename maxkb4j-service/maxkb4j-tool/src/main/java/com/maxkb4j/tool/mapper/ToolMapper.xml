@@ -61,7 +61,14 @@
     </select>
 
 
-    <select id="listTools" resultType="com.maxkb4j.tool.vo.ToolItemVO">
+    <resultMap id="toolItemVoResultMap" type="com.maxkb4j.tool.vo.ToolItemVO">
+        <result property="inputFieldList" column="input_field_list"
+                typeHandler="com.maxkb4j.tool.typehandler.ToolInputParamsTypeHandler"/>
+        <result property="initParams" column="init_params"
+                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+    </resultMap>
+
+    <select id="listTools" resultMap="toolItemVoResultMap">
         SELECT
         t.id,
         t.name,
