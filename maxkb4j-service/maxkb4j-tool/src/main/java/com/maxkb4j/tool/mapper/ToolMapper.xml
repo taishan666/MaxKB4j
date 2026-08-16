@@ -2,13 +2,19 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.maxkb4j.tool.mapper.ToolMapper">
 
-    <select id="pageList" resultType="com.maxkb4j.tool.vo.ToolCardVO">
+    <resultMap id="toolCardVoResultMap" type="com.maxkb4j.tool.vo.ToolCardVO">
+        <result property="initFieldList" column="init_field_list"
+                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+    </resultMap>
+
+    <select id="pageList" resultMap="toolCardVoResultMap">
         SELECT
         t.ID,
         t.name,
         t.desc,
         t.icon,
         t.tool_type,
+        t.init_field_list,
         u.nickname,
         t.is_active,
         t.template_id,

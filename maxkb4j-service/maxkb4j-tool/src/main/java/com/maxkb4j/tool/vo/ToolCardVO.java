@@ -1,5 +1,6 @@
 package com.maxkb4j.tool.vo;
 
+import com.alibaba.fastjson.JSONArray;
 import lombok.Data;
 
 import java.util.Date;
@@ -11,6 +12,7 @@ public class ToolCardVO {
     private String desc;
     private String icon;
     private String toolType;
+    private JSONArray initFieldList;
     private Boolean isActive;
     private String templateId;
     private String version;
