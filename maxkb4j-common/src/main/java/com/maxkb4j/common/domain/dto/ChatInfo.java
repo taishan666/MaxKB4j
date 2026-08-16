@@ -26,6 +26,11 @@ public class ChatInfo implements Serializable {
         this.appId = appId;
     }
 
+    public void putChatVariables(Map<String, Object> chatVariables) {
+        this.chatVariables.putAll(chatVariables);
+    }
+
+
     public void addChatRecord(ChatRecordDTO chatRecord) {
         this.chatRecordList.add(chatRecord);
     }

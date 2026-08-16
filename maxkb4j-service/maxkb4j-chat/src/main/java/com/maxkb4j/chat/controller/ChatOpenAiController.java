@@ -7,7 +7,7 @@ import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.chat.dto.OpenAIChatCompletionRequest;
 import com.maxkb4j.chat.dto.OpenAIChatCompletionResponse;
 import com.maxkb4j.chat.dto.OpenAIMessage;
-import com.maxkb4j.common.cache.ChatInfoCacheService;
+import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.constant.AppConst;
@@ -42,7 +42,6 @@ import java.util.UUID;
 public class ChatOpenAiController {
 
     private final IApplicationChatService chatService;
-    private final ChatInfoCacheService chatInfoCacheService;
 
     @Operation(summary = "聊天对话", description = "兼容 OpenAI Chat Completions API 格式")
     @PostMapping("/{appId}/chat/completions")
@@ -157,10 +156,10 @@ public class ChatOpenAiController {
         if (history.isEmpty()) {
             return;
         }
-        ChatInfo chatInfo = chatInfoCacheService.get(chatId);
+        ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo != null) {
             chatInfo.setChatRecordList(history);
-            chatInfoCacheService.put(chatId, chatInfo);
+            ChatCache.put(chatId, chatInfo);
         }
     }
 

@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.maxkb4j.common.cache.ChatInfoCacheService;
+import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -10,7 +10,6 @@ import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.VariableAssignNode;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -20,10 +19,8 @@ import java.util.Map;
 
 @NodeHandlerType(NodeType.VARIABLE_ASSIGN)
 @Component
-@RequiredArgsConstructor
 public class VariableAssignNodeHandler extends AbsNodeHandler {
 
-    private final ChatInfoCacheService chatInfoCacheService;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -43,7 +40,14 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
                 resultList.add(getGlobalHandleResult(workflow, variable, fields));
             }
             if ("chat".equals(scope)) {
-                resultList.add(getChatHandleResult(workflow, variable, fields));
+                Map<String, Object> chatVariables = getChatHandleResult(workflow, variable, fields);
+                resultList.add(chatVariables);
+                String chatId = (String) workflow.getGlobalContext().get("chatId");
+                if (chatId != null){
+                    ChatInfo chatInfo = ChatCache.get(chatId);
+                    chatInfo.putChatVariables(chatVariables);
+                    ChatCache.put(chatId, chatInfo);
+                }
             }
             if ("loop".equals(scope)) {
                 resultList.add(getLoopHandleResult(workflow, variable, fields));
@@ -89,7 +93,7 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         // Update chat variables
         String chatId = (String) workflow.getGlobalContext().get("chatId");
         if (chatId!= null) {
-            ChatInfo chatInfo = chatInfoCacheService.get(chatId);
+            ChatInfo chatInfo = ChatCache.get(chatId);
             if (chatInfo != null && chatInfo.getChatVariables() != null) {
                 chatInfo.getChatVariables().put(varName,value);
             }

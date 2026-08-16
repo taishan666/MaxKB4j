@@ -24,7 +24,7 @@ import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.application.vo.ChatRecordDetailVO;
 import com.maxkb4j.application.vo.ShareChatVO;
-import com.maxkb4j.common.cache.ChatInfoCacheService;
+import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
@@ -64,7 +64,6 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
     private final PostResponseHandler postResponseHandler;
     private final TaskExecutor chatTaskExecutor;
     private final ApplicationChatShareLinkMapper chatShareLinkMapper;
-    private final ChatInfoCacheService chatInfoCacheService;
 
 
     public IPage<ApplicationChatEntity> chatLogs(String appId, int page, int size, ChatQueryDTO query) {
@@ -80,13 +79,13 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
             }
         }
         ChatInfo chatInfo = new ChatInfo(IdWorker.get32UUID(), appId);
-        chatInfoCacheService.put(chatInfo.getChatId(), chatInfo);
+        ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
     }
 
 
     public ChatInfo getChatInfo(String chatId, String appId) {
-        ChatInfo chatInfo = chatInfoCacheService.get(chatId);
+        ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo == null) {
             if (StringUtils.isBlank(appId)) {
                 ApplicationChatEntity chatEntity = this.lambdaQuery().select(ApplicationChatEntity::getApplicationId).eq(ApplicationChatEntity::getId, chatId).one();
@@ -96,7 +95,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
             }
             chatInfo = new ChatInfo(chatId, appId);
             chatInfo.setChatRecordList(chatRecordService.getChatRecords(chatId));
-            chatInfoCacheService.put(chatInfo.getChatId(), chatInfo);
+            ChatCache.put(chatInfo.getChatId(), chatInfo);
             return chatInfo;
         }
         return chatInfo;
@@ -194,7 +193,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
     @Transactional(rollbackFor = Exception.class)
     public Boolean deleteById(String chatId) {
         chatRecordService.lambdaUpdate().eq(ApplicationChatRecordEntity::getChatId, chatId).remove();
-        chatInfoCacheService.remove(chatId);
+        ChatCache.remove(chatId);
         return this.removeById(chatId);
     }
 

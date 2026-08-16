@@ -49,7 +49,7 @@
             <artifactId>maxkb4j-workflow-api</artifactId>
             <version>${revision}</version>
         </dependency>
-        <!-- ChatInfoCacheService 等缓存组件测试 -->
+        <!-- 缓存组件测试 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
