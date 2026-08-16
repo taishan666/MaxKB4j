@@ -4,8 +4,9 @@ import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.ChatInfoCacheService;
 import com.maxkb4j.common.domain.dto.ChatInfo;
+import com.maxkb4j.common.util.SpringUtil;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 
@@ -33,7 +34,7 @@ public class StartNode extends AbsNode {
             workflow.getGlobalContext().put(key, value);
         }
         String chatId = (String) workflow.getGlobalContext().get("chatId");
-        ChatInfo chatInfo = ChatCache.get(chatId);
+        ChatInfo chatInfo = SpringUtil.getBean(ChatInfoCacheService.class).get(chatId);
         if (chatInfo != null){
             workflow.getChatContext().putAll(chatInfo.getChatVariables());
         }

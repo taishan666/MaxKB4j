@@ -6,6 +6,7 @@ import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatShareLinkMapper;
 import com.maxkb4j.application.mapper.ApplicationChatUserStatsMapper;
 import com.maxkb4j.application.service.impl.ApplicationChatServiceImpl;
+import com.maxkb4j.common.cache.ChatInfoCacheService;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatUserType;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +61,8 @@ class VisitCountOverTest {
                 mock(ApplicationVersionService.class),
                 mock(PostResponseHandler.class),
                 mock(TaskExecutor.class),
-                mock(ApplicationChatShareLinkMapper.class));
+                mock(ApplicationChatShareLinkMapper.class),
+                new ChatInfoCacheService());
     }
 
     private static ChatState.ChatStateBuilder chatState() {

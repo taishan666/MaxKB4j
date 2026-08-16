@@ -17,7 +17,7 @@ import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.service.IApplicationChatRecordInternalService;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.ChatInfoCacheService;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.application.vo.ParagraphRecordVO;
@@ -47,6 +47,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
 
     private final IParagraphService paragraphService;
     private final ApplicationChatMapper chatMapper;
+    private final ChatInfoCacheService chatInfoCacheService;
 
     private ChatRecordDTO getChatRecordEntity(ChatInfo chatInfo, String chatRecordId) {
         ChatRecordDTO chatRecord = null;
@@ -73,7 +74,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     }
 
     public ApplicationChatRecordVO getChatRecordInfo(String chatId, String chatRecordId) {
-        ChatInfo chatInfo = ChatCache.get(chatId);
+        ChatInfo chatInfo = chatInfoCacheService.get(chatId);
         ChatRecordDTO chatRecord = getChatRecordEntity(chatInfo, chatRecordId);
         return convert(chatRecord);
     }

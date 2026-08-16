@@ -153,3 +153,8 @@ workflow:
   condition:
     "no":
       match: The condition node did not match any branch
+
+knowledge:
+  split:
+    pattern:
+      invalid: "Invalid split pattern: {0}"

@@ -4,7 +4,7 @@ import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatShareLinkMapper;
 import com.maxkb4j.application.service.impl.ApplicationChatServiceImpl;
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.ChatInfoCacheService;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
@@ -41,12 +41,15 @@ class ChatMessageAsyncTest {
 
     private static final String CHAT_ID = "chat-async-test";
 
+    private final ChatInfoCacheService chatInfoCacheService = new ChatInfoCacheService();
+
     @AfterEach
     void tearDown() {
-        ChatCache.remove(CHAT_ID);
+        chatInfoCacheService.remove(CHAT_ID);
     }
 
-    private ApplicationChatServiceImpl newChatService(ApplicationChatUserStatsService statsServiceMock,
+    private ApplicationChatServiceImpl newChatService(ChatInfoCacheService chatInfoCacheService,
+                                                      ApplicationChatUserStatsService statsServiceMock,
                                                       IApplicationService applicationService) {
         return new ApplicationChatServiceImpl(
                 mock(IApplicationChatRecordInternalService.class),
@@ -56,7 +59,8 @@ class ChatMessageAsyncTest {
                 mock(ApplicationVersionService.class),
                 mock(PostResponseHandler.class),
                 Runnable::run,
-                mock(ApplicationChatShareLinkMapper.class));
+                mock(ApplicationChatShareLinkMapper.class),
+                chatInfoCacheService);
     }
 
     private static ChatParams chatParams() {
@@ -90,7 +94,7 @@ class ChatMessageAsyncTest {
         ApplicationChatUserStatsService statsServiceMock = mock(ApplicationChatUserStatsService.class);
         when(statsServiceMock.ensureStatsExists(anyString(), any(), anyString()))
                 .thenThrow(new IllegalStateException("stats backend unavailable"));
-        ApplicationChatServiceImpl chatService = newChatService(statsServiceMock, mock(IApplicationService.class));
+        ApplicationChatServiceImpl chatService = newChatService(chatInfoCacheService, statsServiceMock, mock(IApplicationService.class));
 
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         chatService.chatMessageAsync(chatParams(), chatState(), sink);
@@ -108,8 +112,8 @@ class ChatMessageAsyncTest {
         when(statsServiceMock.ensureStatsExists(anyString(), any(), anyString())).thenReturn(true);
         IApplicationService applicationService = mock(IApplicationService.class);
         when(applicationService.getAppDetail(anyString(), anyBoolean())).thenReturn(null);
-        ApplicationChatServiceImpl chatService = newChatService(statsServiceMock, applicationService);
-        ChatCache.put(CHAT_ID, new ChatInfo(CHAT_ID, "app-1"));
+        ApplicationChatServiceImpl chatService = newChatService(chatInfoCacheService, statsServiceMock, applicationService);
+        chatInfoCacheService.put(CHAT_ID, new ChatInfo(CHAT_ID, "app-1"));
 
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         chatService.chatMessageAsync(chatParams(), chatState(), sink);

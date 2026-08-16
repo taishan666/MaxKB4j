@@ -97,9 +97,11 @@ public class ChatApiController {
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")
     public Object chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         String userId = StpKit.USER.getLoginIdAsString();
+        String appId = (String) StpKit.USER.getExtra("applicationId");
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
         ChatState chatState = ChatState.builder()
+                .appId(appId)
                 .chatUserId(userId)
                 .chatUserType(ChatUserType.ANONYMOUS_USER)
                 .source(ChatSource.ONLINE)

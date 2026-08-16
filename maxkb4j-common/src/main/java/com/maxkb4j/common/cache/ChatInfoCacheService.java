@@ -1,18 +1,18 @@
-package com.maxkb4j.application.cache;
+package com.maxkb4j.common.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.maxkb4j.common.cache.ChatCache;
-import com.maxkb4j.common.cache.ChatInfoStore;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- * 聊天会话缓存 Bean 化实现（第 3 期）。
- * <p>构造器注入 Caffeine 实例，测试可替换缓存实现；构造时注册到
- * {@link ChatCache} 静态门面，替换其默认实现，行为与重构前保持一致。</p>
+ * 聊天会话缓存 Spring Bean 实现（第 3 期完成态）。
+ *
+ * <p>作为统一缓存组件供 chat / workflow / application 各模块注入使用；
+ * 默认构造器内置 Caffeine 本地缓存，也可通过构造器传入自定义
+ * {@link Cache} 以便测试替换缓存实现。</p>
  */
 @Service
 public class ChatInfoCacheService implements ChatInfoStore {
@@ -21,7 +21,7 @@ public class ChatInfoCacheService implements ChatInfoStore {
     private static final int MAXIMUM_SIZE = 9999;
 
     /** 会话过期时间（分钟），写入后计时。 */
-    private static final int EXPIRE_AFTER_WRITE_MINUTES = 30;
+    private static final int EXPIRE_AFTER_WRITE_MINUTES = 1440;
 
     private final Cache<String, ChatInfo> cache;
 
@@ -34,7 +34,6 @@ public class ChatInfoCacheService implements ChatInfoStore {
 
     public ChatInfoCacheService(Cache<String, ChatInfo> cache) {
         this.cache = cache;
-        ChatCache.init(this);
     }
 
     @Override

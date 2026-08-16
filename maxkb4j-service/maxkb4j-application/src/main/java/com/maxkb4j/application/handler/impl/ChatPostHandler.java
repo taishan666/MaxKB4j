@@ -10,7 +10,7 @@ import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.service.ApplicationChatUserStatsService;
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.ChatInfoCacheService;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
@@ -34,6 +34,7 @@ public class ChatPostHandler implements PostResponseHandler {
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationChatMapper chatMapper;
     private final ApplicationChatRecordMapper chatRecordMapper;
+    private final ChatInfoCacheService chatInfoCacheService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -45,7 +46,7 @@ public class ChatPostHandler implements PostResponseHandler {
         ChatUserType chatUserType = chatState.getChatUserType();
         boolean debug = chatState.getDebug();
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
-        ChatInfo chatInfo = ChatCache.get(chatId);
+        ChatInfo chatInfo = chatInfoCacheService.get(chatId);
         String answerText = chatResponse.getAnswer();
         JSONArray answerTextList=chatResponse.getAnswerJSONArray();
         int messageTokens = chatResponse.getMessageTokens();
@@ -85,7 +86,7 @@ public class ChatPostHandler implements PostResponseHandler {
         }
         chatInfo.addChatRecord(chatRecordDTO);
         // 重新设置缓存
-        ChatCache.put(chatId, chatInfo);
+        chatInfoCacheService.put(chatId, chatInfo);
         if (!debug) {
             // 原子自增，避免并发"读-改-写"丢失更新；统计行已由 visitCountOver 确保存在
             chatUserStatsService.incrementAccessNum(chatUserId, chatInfo.getAppId());

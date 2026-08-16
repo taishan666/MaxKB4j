@@ -153,3 +153,8 @@ workflow:
   condition:
     "no":
       match: 条件节点未匹配到任何分支
+
+knowledge:
+  split:
+    pattern:
+      invalid: 分段正则表达式无效：{0}
