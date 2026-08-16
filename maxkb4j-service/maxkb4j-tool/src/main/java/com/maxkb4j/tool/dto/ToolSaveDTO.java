@@ -32,6 +32,8 @@ public class ToolSaveDTO {
 
     private String icon;
 
+    private Boolean isActive;
+
     private String version;
 
     private String folderId;
