@@ -24,7 +24,7 @@ public interface IApplicationInternalService extends IApplicationService, IServi
 
     boolean deleteByAppId(String appId);
 
-    ApplicationEntity createApp(ApplicationDTO application);
+    ApplicationVO createApp(ApplicationDTO application);
 
     /**
      * 导入/更新 .mk 文件解析出的应用与工具。

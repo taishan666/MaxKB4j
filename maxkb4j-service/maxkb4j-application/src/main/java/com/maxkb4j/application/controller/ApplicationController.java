@@ -65,8 +65,7 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_CREATE)
     @PostMapping("/application")
     public R<ApplicationVO> createApp(@Valid @RequestBody ApplicationDTO application) {
-        ApplicationEntity e = applicationService.createApp(application);
-        return R.data(e == null ? null : BeanUtil.copy(e, ApplicationVO.class));
+        return R.data(applicationService.createApp(application));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_IMPORT)

@@ -111,7 +111,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApplicationEntity createApp(ApplicationDTO application) {
+    public ApplicationVO createApp(ApplicationDTO application) {
         String downloadUrl = getTemplateDownloadUrl(application.getWorkFlowTemplate());
         if (StringUtils.isNotBlank(downloadUrl)) {
             return createAppFromTemplate(downloadUrl, application);
@@ -128,11 +128,11 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         application.setApplicationIds(new ArrayList<>());
         this.saveOrUpdateApp(application);
         applicationResourceMappingService.saveResourceMappings(application);
-        return application;
+        return BeanUtil.copy(application, ApplicationVO.class);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    protected ApplicationEntity createAppFromTemplate(String downloadUrl, ApplicationDTO application) {
+    protected ApplicationVO createAppFromTemplate(String downloadUrl, ApplicationDTO application) {
         MaxKb4J maxKb4j = mkImportService.loadClasspathTemplate(downloadUrl);
         ApplicationEntity app = maxKb4j.getApplication();
         app.setId(null);
@@ -144,7 +144,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         mkImportService.normalizeForImport(app, maxKb4j.getToolList());
         this.saveOrUpdateApp(app);
         applicationResourceMappingService.saveResourceMappings(app);
-        return app;
+        return BeanUtil.copy(app, ApplicationVO.class);
     }
 
     @Override

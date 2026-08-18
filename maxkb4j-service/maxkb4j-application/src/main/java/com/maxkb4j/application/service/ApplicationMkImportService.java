@@ -123,7 +123,7 @@ public class ApplicationMkImportService {
                 continue;
             }
             String type = node.getString("type");
-            if (BASE.name().equals(type)) {
+            if (BASE.getKey().equals(type)) {
                 JSONObject nodeData = WorkFlowNodes.getNodeData(node);
                 if (nodeData != null) {
                     String ttsModelId = nodeData.getString("ttsModelId");
@@ -134,13 +134,6 @@ public class ApplicationMkImportService {
                     if (sttModelId != null){
                         nodeData.put("sttModelId", modelService.getSafeModelId(sttModelId, ModelType.STT));
                     }
-                }
-            }
-            if (LOOP.name().equals(type)){
-                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
-                if (nodeData != null){
-                    JSONObject loopBody= nodeData.getJSONObject("loopBody");
-                    normalizeLlmNodeModels(loopBody);
                 }
             }
             if (LLM_NODE_TYPES.contains(type)) {
@@ -152,7 +145,7 @@ public class ApplicationMkImportService {
                     }
                 }
             }
-            if (IMAGE_GENERATE.name().equals(type)) {
+            if (IMAGE_GENERATE.getKey().equals(type)) {
                 JSONObject nodeData = WorkFlowNodes.getNodeData(node);
                 if (nodeData != null) {
                     String modelId = nodeData.getString("modelId");
@@ -161,7 +154,7 @@ public class ApplicationMkImportService {
                     }
                 }
             }
-            if (TEXT_TO_SPEECH.name().equals(type)) {
+            if (TEXT_TO_SPEECH.getKey().equals(type)) {
                 JSONObject nodeData = WorkFlowNodes.getNodeData(node);
                 if (nodeData != null) {
                     String ttsModelId = nodeData.getString("ttsModelId");
@@ -170,13 +163,20 @@ public class ApplicationMkImportService {
                     }
                 }
             }
-            if (SPEECH_TO_TEXT.name().equals(type)) {
+            if (SPEECH_TO_TEXT.getKey().equals(type)) {
                 JSONObject nodeData = WorkFlowNodes.getNodeData(node);
                 if (nodeData != null) {
                     String sttModelId = nodeData.getString("sttModelId");
                     if (sttModelId != null){
                         nodeData.put("sttModelId", modelService.getSafeModelId(sttModelId, ModelType.STT));
                     }
+                }
+            }
+            if (LOOP.getKey().equals(type)){
+                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
+                if (nodeData != null){
+                    JSONObject loopBody= nodeData.getJSONObject("loopBody");
+                    normalizeLlmNodeModels(loopBody);
                 }
             }
         }
