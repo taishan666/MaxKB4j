@@ -318,6 +318,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 - 📘 [Open-source Model Library](https://modelscope.cn/models)
 - 🐦 [MCP Plaza](https://modelscope.cn/mcp)
 - 🌐 [Skills Center](https://modelscope.cn/skills)
+- 🐦 [Skillhub](https://skillhub.cloud.tencent.com/)
 
 >  🌟 **Star this project to support China's open-source AI ecosystem!** </br>
 
