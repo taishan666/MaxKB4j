@@ -237,7 +237,8 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         syncFromBaseNode(appDTO);
         applicationResourceMappingService.saveResourceMappings(appDTO);
         publishedApplicationCache.invalidate(appDTO.getId());
-        return this.updateById(appDTO);
+        ApplicationEntity entity=BeanUtil.copy(appDTO, ApplicationEntity.class);
+        return this.updateById(entity);
     }
 
     @Transactional(rollbackFor = Exception.class)
