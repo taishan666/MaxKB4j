@@ -143,7 +143,7 @@ public class GlobalExceptionHandler {
         log.warn(e.getMessage());
         // 判断是否已登录
         if (StpKit.ADMIN.isLogin()) {
-            return "redirect:/admin/application";
+            return "redirect:/admin/home";
         } else {
             return "redirect:/admin/login";
         }
