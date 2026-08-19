@@ -44,11 +44,11 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
     public void execute(IWorkflow workflow) {
         AbsNode currentNode = workflow.execution().currentNode();
         List<AbsNode> startNodes = currentNode == null ? workflow.startNodes() : List.of(currentNode);
-        log.info("Workflow started");
+        log.info("{} workflow started", workflow.getWorkflowMode());
         onProcessStart(workflow);
         runChainNodes(workflow, startNodes);
         onProcessCompleted(workflow);
-        log.info("Workflow completed");
+        log.info("{} workflow completed", workflow.getWorkflowMode());
     }
 
     protected void runChainNodes(IWorkflow workflow, List<AbsNode> nodeList) {

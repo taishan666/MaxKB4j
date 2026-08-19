@@ -3,6 +3,7 @@ package com.maxkb4j.workflow.engine.graph;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.engine.*;
 import com.maxkb4j.workflow.enums.NodeType;
+import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -42,7 +43,13 @@ public abstract class AbstractLoopWorkflow extends AbstractWorkflow {
     protected static Components composeLoopComponents(AbstractWorkflow parent, List<AbsNode> nodes,
                                                       List<LfEdge> edges, Sinks.Many<ChatMessageVO> sink) {
         Objects.requireNonNull(parent, "parent workflow cannot be null");
-        WorkflowConfiguration configuration = new WorkflowConfiguration(parent.configuration.getWorkflowMode(), nodes, edges);
+        WorkflowMode workflowMode=parent.configuration.getWorkflowMode();
+        if (WorkflowMode.APPLICATION.equals(workflowMode)){
+            workflowMode = WorkflowMode.APPLICATION_LOOP;
+        } else if (WorkflowMode.KNOWLEDGE.equals(workflowMode)){
+            workflowMode = WorkflowMode.KNOWLEDGE_LOOP;
+        }
+        WorkflowConfiguration configuration = new WorkflowConfiguration(workflowMode, nodes, edges);
         WorkflowContext sharedContext = new WorkflowContext(parent.workflowContext);
         EdgeNavigator navigator = new EdgeNavigator(edges);
         WorkflowExecutionAccessor executionAccessor = new WorkflowExecutionAccessor(configuration, sharedContext, navigator);
