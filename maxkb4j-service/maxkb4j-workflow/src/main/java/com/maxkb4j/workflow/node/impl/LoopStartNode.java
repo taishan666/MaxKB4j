@@ -1,4 +1,5 @@
 package com.maxkb4j.workflow.node.impl;
+import com.alibaba.fastjson.JSONArray;
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
@@ -20,6 +21,13 @@ public class LoopStartNode extends AbsNode {
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
         context.put("index", detail.get("current_index"));
         context.put("item", detail.get("current_item"));
+        JSONArray loopInputFieldList= (JSONArray) detail.get("loopInputFieldList");
+        for (int i = 0; i < loopInputFieldList.size(); i++) {
+            JSONObject loopInputField=loopInputFieldList.getJSONObject(i);
+            String key=loopInputField.getString("field");
+            Object value=loopInputField.get("value");
+            workflow.getLoopContext().put(key, value);
+        }
     }
 
     @Override
