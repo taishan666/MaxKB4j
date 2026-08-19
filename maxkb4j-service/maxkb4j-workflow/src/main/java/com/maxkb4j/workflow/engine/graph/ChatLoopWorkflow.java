@@ -64,7 +64,11 @@ public class ChatLoopWorkflow extends AbstractLoopWorkflow implements IChatWorkf
             log.warn("Skip restoring loop node state: chatParams is null");
             return;
         }
+        String  currentNodeId=chatParams.getRuntimeNodeId();
+        if (chatParams.getChildNode() != null){
+            currentNodeId=chatParams.getChildNode().getRuntimeNodeId();
+        }
         this.executionAccessor.loadNodeState(this, details,
-                chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+                currentNodeId, chatParams.getNodeData());
     }
 }
