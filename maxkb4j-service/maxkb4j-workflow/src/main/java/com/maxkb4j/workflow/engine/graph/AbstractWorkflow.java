@@ -2,6 +2,7 @@ package com.maxkb4j.workflow.engine.graph;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.engine.*;
+import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.model.*;
 import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.data.message.ChatMessage;
@@ -40,6 +41,12 @@ public abstract class AbstractWorkflow implements IWorkflow {
     protected final HistoryManager historyManager;
     protected final WorkflowExecutionAccessor executionAccessor;
     protected final WorkflowOutputManager outputManager;
+
+
+    @Override
+    public WorkflowMode getWorkflowMode() {
+        return configuration.getWorkflowMode();
+    }
 
     /**
      * 工作流内部组件束

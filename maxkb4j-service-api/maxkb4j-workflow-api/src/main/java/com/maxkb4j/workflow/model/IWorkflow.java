@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.model;
 
+import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.data.message.ChatMessage;
 
@@ -19,6 +20,11 @@ import java.util.Map;
  * </ul>
  */
 public interface IWorkflow {
+
+    /**
+     * 输出访问器。
+     */
+    WorkflowMode getWorkflowMode();
 
     /**
      * 输出访问器。

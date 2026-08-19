@@ -42,14 +42,11 @@ public abstract class AbstractLoopWorkflow extends AbstractWorkflow {
     protected static Components composeLoopComponents(AbstractWorkflow parent, List<AbsNode> nodes,
                                                       List<LfEdge> edges, Sinks.Many<ChatMessageVO> sink) {
         Objects.requireNonNull(parent, "parent workflow cannot be null");
-        WorkflowConfiguration configuration = new WorkflowConfiguration(
-                parent.configuration.getWorkflowMode(), nodes, edges);
-        WorkflowContext sharedContext = parent.workflowContext;
+        WorkflowConfiguration configuration = new WorkflowConfiguration(parent.configuration.getWorkflowMode(), nodes, edges);
+        WorkflowContext sharedContext = new WorkflowContext(parent.workflowContext);
         EdgeNavigator navigator = new EdgeNavigator(edges);
-        WorkflowExecutionAccessor executionAccessor =
-                new WorkflowExecutionAccessor(configuration, sharedContext, navigator);
-        WorkflowOutputManager outputManager =
-                new WorkflowOutputManager(configuration, sharedContext, sink);
+        WorkflowExecutionAccessor executionAccessor = new WorkflowExecutionAccessor(configuration, sharedContext, navigator);
+        WorkflowOutputManager outputManager = new WorkflowOutputManager(configuration, sharedContext, sink);
         return new Components(configuration, sharedContext, parent.historyManager,
                 executionAccessor, outputManager);
     }

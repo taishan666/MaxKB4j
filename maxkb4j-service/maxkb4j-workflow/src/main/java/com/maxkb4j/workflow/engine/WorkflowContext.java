@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.engine;
 
-import com.maxkb4j.workflow.model.NodeReference;
 import com.maxkb4j.workflow.model.IWorkflowContext;
+import com.maxkb4j.workflow.model.NodeReference;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 
@@ -31,11 +31,10 @@ public class WorkflowContext implements IWorkflowContext {
     private final Map<String, Object> chatContext;
     /**
      * 节点变量上下文列表
-     * 获取或设置节点上下文
      */
     private final List<AbsNode> nodeContext;
 
-    private Map<String, Object> loopContext;
+    private final Map<String, Object> loopContext;
 
     protected VariableResolver variableResolver;
     protected TemplateRenderer templateRenderer;
@@ -46,7 +45,15 @@ public class WorkflowContext implements IWorkflowContext {
         this.chatContext = new ConcurrentHashMap<>();
         this.nodeContext = new CopyOnWriteArrayList<>();
         this.loopContext = new ConcurrentHashMap<>();
-        // 2. 依赖组件初始化（顺序敏感）
+        this.variableResolver = new VariableResolver(this);
+        this.templateRenderer = new TemplateRenderer(this.variableResolver);
+    }
+
+    public WorkflowContext(WorkflowContext parent) {
+        this.globalContext = parent.globalContext;
+        this.chatContext = parent.chatContext;
+        this.nodeContext = new CopyOnWriteArrayList<>(parent.nodeContext);
+        this.loopContext = parent.getLoopContext();
         this.variableResolver = new VariableResolver(this);
         this.templateRenderer = new TemplateRenderer(this.variableResolver);
     }
@@ -64,7 +71,6 @@ public class WorkflowContext implements IWorkflowContext {
             }
         }
         this.nodeContext.add(currentNode);
-
     }
 
     @Override

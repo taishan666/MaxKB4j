@@ -49,7 +49,9 @@ public class ChatLoopWorkflow extends AbstractLoopWorkflow implements IChatWorkf
         super(composeLoopComponents(parent, nodes, edges, sink), loopParams);
         this.chatParams = parent.getChatParams();
         this.chatState = parent.getChatState();
-        restoreNodeState(details);
+        if (details != null&&!details.isEmpty()){
+            restoreNodeState(details);
+        }
     }
 
     /**
