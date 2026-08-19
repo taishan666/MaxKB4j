@@ -83,9 +83,13 @@ public class PipelineManage {
                 if (!details.isEmpty()) {
                     if (problemText.equals(chatRecord.getProblemText()) && details.containsKey("search_step")) {
                         JSONObject searchStep = details.getJSONObject("search_step");
-                        List<ParagraphRagVO> paragraphList = searchStep.getJSONArray("paragraphList").toJavaList(ParagraphRagVO.class);
-                        if (!CollectionUtils.isEmpty(paragraphList)) {
-                            excludeParagraphIds.addAll(paragraphList.stream().map(ParagraphRagVO::getId).toList());
+                        // 历史数据可能缺少 paragraphList 键，判空避免 NPE
+                        JSONArray paragraphArray = searchStep.getJSONArray("paragraphList");
+                        if (paragraphArray != null) {
+                            List<ParagraphRagVO> paragraphList = paragraphArray.toJavaList(ParagraphRagVO.class);
+                            if (!CollectionUtils.isEmpty(paragraphList)) {
+                                excludeParagraphIds.addAll(paragraphList.stream().map(ParagraphRagVO::getId).toList());
+                            }
                         }
                     }
                 }

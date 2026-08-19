@@ -84,20 +84,29 @@ public class BaiLianASRRealtime extends AbsSTTModel {
         };
 
         Recognition recognizer = new Recognition();
-        recognizer.call(param, callback);
-        int sendFrameLength = 3200;
-        for (int i = 0; i * sendFrameLength < audioBytes.length; i ++) {
-            int start = i * sendFrameLength;
-            int end = Math.min(start + sendFrameLength, audioBytes.length);
-            ByteBuffer byteBuffer = ByteBuffer.wrap(audioBytes, start, end - start);
-            recognizer.sendAudioFrame(byteBuffer);
+        try {
+            recognizer.call(param, callback);
+            int sendFrameLength = 3200;
+            for (int i = 0; i * sendFrameLength < audioBytes.length; i ++) {
+                int start = i * sendFrameLength;
+                int end = Math.min(start + sendFrameLength, audioBytes.length);
+                ByteBuffer byteBuffer = ByteBuffer.wrap(audioBytes, start, end - start);
+                recognizer.sendAudioFrame(byteBuffer);
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException(e);
+                }
+            }
+        } finally {
+            // 无论正常结束还是异常/中断，都要停止识别器，释放 WebSocket 连接
             try {
-                Thread.sleep(20);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                recognizer.stop();
+            } catch (Exception e) {
+                log.warn("停止语音识别器失败", e);
             }
         }
-        recognizer.stop();
         log.info("最终识别文本: [{}]", resultText.get());
         log.info("========== 语音识别结束 ==========");
         return resultText.get();

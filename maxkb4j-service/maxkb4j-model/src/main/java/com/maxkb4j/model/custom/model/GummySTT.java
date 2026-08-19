@@ -68,21 +68,30 @@ public class GummySTT extends AbsSTTModel {
         this.param.setSampleRate(sampleRate);
         String format = suffix != null ? suffix.toLowerCase() : "mp3";
         this.param.setFormat(format);
-        // 将录音音频数据发送给流式识别服务
-        translator.call(param, callback);
-        int sendFrameLength = 3200;
-        for (int i = 0; i * sendFrameLength < audioBytes.length; i ++) {
-            int start = i * sendFrameLength;
-            int end = Math.min(start + sendFrameLength, audioBytes.length);
-            ByteBuffer byteBuffer = ByteBuffer.wrap(audioBytes, start, end - start);
-            translator.sendAudioFrame(byteBuffer);
+        try {
+            // 将录音音频数据发送给流式识别服务
+            translator.call(param, callback);
+            int sendFrameLength = 3200;
+            for (int i = 0; i * sendFrameLength < audioBytes.length; i ++) {
+                int start = i * sendFrameLength;
+                int end = Math.min(start + sendFrameLength, audioBytes.length);
+                ByteBuffer byteBuffer = ByteBuffer.wrap(audioBytes, start, end - start);
+                translator.sendAudioFrame(byteBuffer);
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException(e);
+                }
+            }
+        } finally {
+            // 无论正常结束还是异常/中断，都要停止识别器，释放 WebSocket 连接
             try {
-                Thread.sleep(20);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                translator.stop();
+            } catch (Exception e) {
+                log.warn("停止实时翻译识别器失败", e);
             }
         }
-        translator.stop();
         return resultText.get();
     }
 }

@@ -37,10 +37,12 @@ public class DocumentExtractNodeHandler extends AbsNodeHandler {
         List<String> contentList = new LinkedList<>();
         List<DocumentSimple> documentList = new ArrayList<>();
         for (OssFile sysFile : documentFiles) {
-            InputStream ins = ossService.getStream(sysFile.getFileId());
-            String text = documentParseService.extractText(sysFile.getName(), ins);
-            contentList.add(text);
-            documentList.add(new DocumentSimple(sysFile.getName(), text, sysFile.getFileId()));
+            // GridFS 流占用 Mongo 连接/游标，必须显式关闭
+            try (InputStream ins = ossService.getStream(sysFile.getFileId())) {
+                String text = documentParseService.extractText(sysFile.getName(), ins);
+                contentList.add(text);
+                documentList.add(new DocumentSimple(sysFile.getName(), text, sysFile.getFileId()));
+            }
         }
 
         return new NodeResult(Map.of(

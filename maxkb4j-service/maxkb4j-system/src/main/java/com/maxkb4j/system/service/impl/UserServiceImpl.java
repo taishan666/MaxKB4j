@@ -42,6 +42,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.SecureRandom;
 import java.util.*;
 
@@ -179,8 +185,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             defaultPassword = generateRandomPassword(16);
             systemProperties.setDefaultPassword(defaultPassword);
             log.warn("==================================================================");
-            log.warn("未配置 SYSTEM_DEFAULT_PASSWORD，已为默认管理员账号生成随机口令：{}", defaultPassword);
-            log.warn("请登录后及时修改口令；或通过环境变量 SYSTEM_DEFAULT_PASSWORD 配置固定默认口令");
+            Path passwordFile = writeInitialAdminPassword(defaultPassword);
+            if (passwordFile != null) {
+                // 口令写入本地受限文件，避免明文口令进入持久化日志
+                log.warn("未配置 SYSTEM_DEFAULT_PASSWORD，已为默认管理员账号生成随机口令，保存于: {}", passwordFile);
+                log.warn("请查看该文件并登录后及时修改口令（建议登录成功后删除该文件）；或通过环境变量 SYSTEM_DEFAULT_PASSWORD 配置固定默认口令");
+            } else {
+                log.warn("未配置 SYSTEM_DEFAULT_PASSWORD，已为默认管理员账号生成随机口令：{}", defaultPassword);
+                log.warn("口令文件写入失败，仅在此处输出一次，请立即登录并修改；或通过环境变量 SYSTEM_DEFAULT_PASSWORD 配置固定默认口令");
+            }
             log.warn("==================================================================");
         }
         UserEntity user = new UserEntity();
@@ -194,6 +207,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         user.setPhone(systemProperties.getDefaultPhone());
         user.setEmail(systemProperties.getDefaultEmail());
         save(user);
+    }
+
+    /**
+     * 将初始管理员口令写入本地文件（权限仅限当前用户），避免明文口令进入持久化日志文件。
+     *
+     * @return 口令文件路径；写入失败时返回 null
+     */
+    private Path writeInitialAdminPassword(String password) {
+        try {
+            Path file = Paths.get(System.getProperty("user.home"), ".maxkb4j", "admin-initial-password.txt");
+            Files.createDirectories(file.getParent());
+            Files.writeString(file, password, StandardCharsets.UTF_8);
+            try {
+                Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("rw-------"));
+            } catch (Exception ignored) {
+                // Windows 等平台不支持 POSIX 权限或权限设置失败时忽略（尽力加固）
+            }
+            return file;
+        } catch (IOException e) {
+            log.error("写入初始管理员口令文件失败", e);
+            return null;
+        }
     }
 
     public UserProfileVO getUserProfileById(String userId) {

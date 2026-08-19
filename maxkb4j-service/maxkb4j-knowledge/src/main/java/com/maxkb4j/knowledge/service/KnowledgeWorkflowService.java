@@ -1,5 +1,6 @@
 package com.maxkb4j.knowledge.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.model.form.BaseField;
@@ -79,7 +80,12 @@ public class KnowledgeWorkflowService {
             }
             Integer fileCountLimit = nodeData.getInteger("fileCountLimit");
             Integer fileSizeLimit = nodeData.getInteger("fileSizeLimit");
-            List<String> fileTypeList = nodeData.getJSONArray("fileTypeList").toJavaList(String.class);
+            JSONArray fileTypeArray = nodeData.getJSONArray("fileTypeList");
+            // 字段缺失或为空时回退默认配置，避免 NPE 与 Integer 拆箱异常
+            if (fileCountLimit == null || fileSizeLimit == null || fileTypeArray == null || fileTypeArray.isEmpty()) {
+                return List.of(localFileUpload);
+            }
+            List<String> fileTypeList = fileTypeArray.toJavaList(String.class);
             return List.of(new LocalFileUpload(fileCountLimit, fileSizeLimit, fileTypeList));
         }
     }
@@ -131,7 +137,14 @@ public class KnowledgeWorkflowService {
         params.setKnowledgeId(id);
         params.setDebug(debug);
         IWorkflow workflow = workflowFactory.createKnowledge(nodes, logicFlow.getEdges(), params);
-        CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow), workflowTaskExecutor);
+        // 异步任务的异常存放在被丢弃的 future 中，既不触发 UncaughtExceptionHandler 也无日志，
+        // 必须通过 whenComplete 记录，否则文档处理失败后状态将永久停留在 STARTED 且无从排查
+        CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow), workflowTaskExecutor)
+                .whenComplete((ignored, throwable) -> {
+                    if (throwable != null) {
+                        log.error("知识库工作流异步执行失败, knowledgeId: {}, actionId: {}", id, knowledgeAction.getId(), throwable);
+                    }
+                });
         return knowledgeAction;
     }
 

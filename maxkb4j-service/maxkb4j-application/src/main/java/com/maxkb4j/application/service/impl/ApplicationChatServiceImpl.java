@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author tarzan
@@ -94,7 +95,9 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
                 }
             }
             chatInfo = new ChatInfo(chatId, appId);
-            chatInfo.setChatRecordList(chatRecordService.getChatRecords(chatId));
+            // ChatInfo.chatRecordList 设计为 CopyOnWriteArrayList 供多线程共享，
+            // 必须包装回并发容器，避免被普通 ArrayList 覆盖后并发写导致记录丢失/越界
+            chatInfo.setChatRecordList(new CopyOnWriteArrayList<>(chatRecordService.getChatRecords(chatId)));
             ChatCache.put(chatInfo.getChatId(), chatInfo);
             return chatInfo;
         }

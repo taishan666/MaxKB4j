@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.model.service.ISTTModel;
 import com.openai.client.OpenAIClient;
-import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.models.audio.transcriptions.TranscriptionCreateParams;
 import com.openai.models.audio.transcriptions.TranscriptionCreateResponse;
 import lombok.Data;
@@ -17,10 +16,8 @@ public class OpenAiSTTModel implements ISTTModel {
     private JSONObject params;
 
     public OpenAiSTTModel(String modelName, ModelCredential credential, JSONObject params) {
-        OpenAIOkHttpClient.Builder builder = OpenAIOkHttpClient.builder();
-        builder.baseUrl(credential.getBaseUrl());
-        builder.apiKey(credential.getApiKey());
-        this.client= builder.build();
+        // 复用客户端，避免每次调用新建 OkHttp 连接池与线程池
+        this.client = OpenAiClientHolder.getOrCreate(credential);
         this.modelName = modelName;
         this.params = params;
     }

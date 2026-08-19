@@ -98,6 +98,7 @@
             </if>
             <if test="query.tagExclude != null and query.tagExclude">
                 <if test="query.tags != null and !query.tags.isEmpty()">
+                    <bind name="tagCount" value="query.tags.size()"/>
                     AND d.ID NOT IN (
                     SELECT dt.document_id
                     FROM document_tag dt
@@ -106,11 +107,12 @@
                         #{tagId}
                     </foreach>
                     GROUP BY dt.document_id
-                    HAVING COUNT(DISTINCT dt.tag_id) = ${query.tags.size()}
+                    HAVING COUNT(DISTINCT dt.tag_id) = #{tagCount}
                     )
                 </if>
             </if>
             <if test="(query.tagExclude == null or !query.tagExclude) and (query.tags != null and !query.tags.isEmpty())">
+                    <bind name="tagCount" value="query.tags.size()"/>
                     AND d.ID  IN (
                     SELECT dt.document_id
                     FROM document_tag dt
@@ -119,7 +121,7 @@
                         #{tagId}
                     </foreach>
                     GROUP BY dt.document_id
-                    HAVING COUNT(DISTINCT dt.tag_id) = ${query.tags.size()}
+                    HAVING COUNT(DISTINCT dt.tag_id) = #{tagCount}
                     )
             </if>
         </where>
