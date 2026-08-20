@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.model;
 
-import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.data.message.ChatMessage;
 
@@ -20,6 +20,11 @@ import java.util.Map;
  * </ul>
  */
 public interface IWorkflow {
+
+    /**
+     * 输出访问器。
+     */
+    WorkflowMode getWorkflowMode();
 
     /**
      * 输出访问器。
@@ -82,12 +87,20 @@ public interface IWorkflow {
     Map<String, Object> getPromptVariables();
 
     /**
-     * 获取引用字段值。
+     * 获取引用字段值（兼容层，内部委托 {@link NodeReference}；新代码请使用类型化重载）。
      *
      * @param reference 字段引用路径 [nodeId, fieldName]
-     * @return 字段值
+     * @return 字段值，引用非法时返回 null
      */
     Object getReferenceField(List<String> reference);
+
+    /**
+     * 获取引用字段值（类型化引用）。
+     *
+     * @param reference 类型化节点引用，null 时返回 null
+     * @return 字段值
+     */
+    Object getReferenceField(NodeReference reference);
 
     /**
      * 获取字段值。
@@ -97,6 +110,12 @@ public interface IWorkflow {
      * @return 实际字段值
      */
     Object getFieldValue(Object value, String source);
+
+
+    /**
+     * 获取开始节点。
+     */
+    List<AbsNode> startNodes();
 
     /**
      * 根据节点 ID 获取节点。

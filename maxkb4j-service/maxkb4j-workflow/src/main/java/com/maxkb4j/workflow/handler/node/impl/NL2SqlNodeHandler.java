@@ -43,22 +43,33 @@ public class NL2SqlNodeHandler extends AbsNodeHandler {
         DataSource dataSource = DatabaseUtil.getDataSource(
                 databaseSetting.getType(), databaseSetting.getHost(), databaseSetting.getPort(),
                 databaseSetting.getUsername(), databaseSetting.getPassword(), databaseSetting.getDatabase());
+        try {
+            String sqlDialect = DatabaseUtil.getSqlDialect(dataSource);
+            String databaseStructure = DatabaseUtil.generateDDL(dataSource);
+            List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), params.getDialogueType(), node.getRuntimeNodeId());
+            String chatId = (String) workflow.getGlobalContext().get("chatId");
+            NL2SqlAssistant assistant = AiServiceFactory.builder(NL2SqlAssistant.class)
+                    .chatModel(chatModel)
+                    .chatMemory(AiChatMemory.withMessages(chatId, historyMessages))
+                    .build();
 
-        String sqlDialect = DatabaseUtil.getSqlDialect(dataSource);
-        String databaseStructure = DatabaseUtil.generateDDL(dataSource);
-        List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), params.getDialogueType(), node.getRuntimeNodeId());
-        String chatId = (String) workflow.getGlobalContext().get("chatId");
-        NL2SqlAssistant assistant = AiServiceFactory.builder(NL2SqlAssistant.class)
-                .chatModel(chatModel)
-                .chatMemory(AiChatMemory.withMessages(chatId,historyMessages))
-                .build();
+            Result<String> result = assistant.generateSqlQuery(sqlDialect, databaseStructure, question);
+            String sql = DatabaseUtil.cleanSql(result.content());
+            // 执行清洗后的 SQL（去除 markdown 代码块围栏），而非 LLM 原始输出
+            String sqlResult = DatabaseUtil.executeSqlQuery(sql, dataSource);
 
-        Result<String> result = assistant.generateSqlQuery(sqlDialect, databaseStructure, question);
-        String sql = DatabaseUtil.cleanSql(result.content());
-        String sqlResult = DatabaseUtil.executeSqlQuery(result.content(), dataSource);
-
-        putDetail(node, "question", question);
-        recordTokenUsage(node, result.tokenUsage());
-        return new NodeResult(Map.of("sql", sql, "result", sqlResult));
+            putDetail(node, "question", question);
+            recordTokenUsage(node, result.tokenUsage());
+            return new NodeResult(Map.of("sql", sql, "result", sqlResult));
+        } finally {
+            // getDataSource 每次调用都会新建 HikariDataSource（含连接池与后台线程），必须关闭，否则持续泄漏连接与线程
+            if (dataSource instanceof AutoCloseable closeable) {
+                try {
+                    closeable.close();
+                } catch (Exception e) {
+                    log.warn("Failed to close NL2SQL datasource", e);
+                }
+            }
+        }
     }
 }

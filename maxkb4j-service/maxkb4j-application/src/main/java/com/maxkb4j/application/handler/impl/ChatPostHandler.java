@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
-import com.maxkb4j.application.entity.ApplicationChatUserStatsEntity;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
@@ -37,7 +36,7 @@ public class ChatPostHandler implements PostResponseHandler {
     private final ApplicationChatRecordMapper chatRecordMapper;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void handler(ChatParams chatParams, ChatState chatState, ChatResponse chatResponse, long startTime) {
         String chatId = chatParams.getChatId();
         String chatRecordId = chatParams.getChatRecordId();
@@ -88,12 +87,8 @@ public class ChatPostHandler implements PostResponseHandler {
         // 重新设置缓存
         ChatCache.put(chatId, chatInfo);
         if (!debug) {
-            ApplicationChatUserStatsEntity chatUserStats = chatUserStatsService.getByUserIdAndAppId(chatUserId, chatInfo.getAppId());
-            if (chatUserStats != null) {
-                chatUserStats.setAccessNum(chatUserStats.getAccessNum() + 1);
-                chatUserStats.setIntraDayAccessNum(chatUserStats.getIntraDayAccessNum() + 1);
-                chatUserStatsService.updateById(chatUserStats);
-            }
+            // 原子自增，避免并发"读-改-写"丢失更新；统计行已由 visitCountOver 确保存在
+            chatUserStatsService.incrementAccessNum(chatUserId, chatInfo.getAppId());
             long chatCount = chatMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getId, chatId));
             ApplicationChatEntity chatEntity = new ApplicationChatEntity();
             chatEntity.setId(chatId);

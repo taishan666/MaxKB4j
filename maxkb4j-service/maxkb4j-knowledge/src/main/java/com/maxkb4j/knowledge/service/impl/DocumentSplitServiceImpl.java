@@ -1,6 +1,7 @@
 package com.maxkb4j.knowledge.service.impl;
 
 import com.maxkb4j.common.domain.dto.KeyAndValue;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.knowledge.service.IDocumentSplitService;
 import com.maxkb4j.knowledge.util.SentenceSplitter;
 import com.maxkb4j.knowledge.util.TextSplitter;
@@ -15,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 @Component
 public class DocumentSplitServiceImpl implements IDocumentSplitService {
@@ -186,7 +188,11 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
             compiledPatterns = new Pattern[patterns.length];
             for (int i = 0; i < patterns.length; i++) {
                 if (patterns[i] != null && !patterns[i].isEmpty()) {
-                    compiledPatterns[i] = Pattern.compile(patterns[i]);
+                    try {
+                        compiledPatterns[i] = Pattern.compile(patterns[i]);
+                    } catch (PatternSyntaxException e) {
+                        throw new ApiException("knowledge.split.pattern.invalid", patterns[i]);
+                    }
                 }
             }
         }
@@ -300,7 +306,7 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
             if (isTableLine) {
                 if (!inTable) {
                     // 切换到表格模式，先把前面的非表格内容输出
-                    if (nonTableBuffer.length() > 0) {
+                    if (!nonTableBuffer.isEmpty()) {
                         segments.add(nonTableBuffer.toString());
                         nonTableBuffer = new StringBuilder();
                     }
@@ -322,7 +328,7 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
         if (inTable) {
             segments.add("{{TABLE}}" + tableBuffer.toString() + "{{/TABLE}}");
         }
-        if (nonTableBuffer.length() > 0) {
+        if (!nonTableBuffer.isEmpty()) {
             segments.add(nonTableBuffer.toString());
         }
 

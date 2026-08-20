@@ -2,7 +2,7 @@ package com.maxkb4j.application.vo;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
-import com.maxkb4j.common.mp.entity.LlmModelSetting;
+import com.maxkb4j.application.entity.LlmModelSetting;
 import lombok.Data;
 
 import java.util.Date;

@@ -93,7 +93,9 @@ public class HttpRequestExecutor extends AbsToolExecutor {
             }
         }
         data.setTimeout(data.getTimeout()==null?30:data.getTimeout());
-        request.timeout(data.getTimeout()*1000);
+        // 用 long 计算避免 int 溢出（timeout 秒值来自用户工具配置，无上限校验）
+        long timeoutMillis = data.getTimeout() * 1000L;
+        request.timeout((int) Math.min(timeoutMillis, Integer.MAX_VALUE));
         return request.execute();
     }
 

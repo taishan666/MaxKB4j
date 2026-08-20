@@ -1,0 +1,21 @@
+package com.maxkb4j.model.form;
+
+import com.alibaba.fastjson.JSONObject;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.util.List;
+
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class LocalFileUpload extends BaseField {
+
+    public LocalFileUpload(int fileCountLimit, int fileSizeLimit,List<String> fileTypeList) {
+        super("LocalFileUpload","","fileList","",true,null);
+        JSONObject attrs =new JSONObject();
+        attrs.put("fileCountLimit",fileCountLimit);
+        attrs.put("fileSizeLimit",fileSizeLimit);
+        attrs.put("fileTypeList", fileTypeList);
+        super.setAttrs(attrs);
+    }
+}

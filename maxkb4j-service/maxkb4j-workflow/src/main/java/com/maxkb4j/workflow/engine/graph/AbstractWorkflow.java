@@ -1,11 +1,8 @@
 package com.maxkb4j.workflow.engine.graph;
 
-import com.maxkb4j.common.domain.dto.ChatRecordDTO;
-import com.maxkb4j.workflow.engine.HistoryManager;
-import com.maxkb4j.workflow.engine.WorkflowConfiguration;
-import com.maxkb4j.workflow.engine.WorkflowContext;
-import com.maxkb4j.workflow.engine.WorkflowExecutionAccessor;
-import com.maxkb4j.workflow.engine.WorkflowOutputManager;
+import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.workflow.engine.*;
+import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.model.*;
 import com.maxkb4j.workflow.node.AbsNode;
 import dev.langchain4j.data.message.ChatMessage;
@@ -13,6 +10,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * 工作流门面抽象基类
@@ -43,6 +41,12 @@ public abstract class AbstractWorkflow implements IWorkflow {
     protected final HistoryManager historyManager;
     protected final WorkflowExecutionAccessor executionAccessor;
     protected final WorkflowOutputManager outputManager;
+
+
+    @Override
+    public WorkflowMode getWorkflowMode() {
+        return configuration.getWorkflowMode();
+    }
 
     /**
      * 工作流内部组件束
@@ -169,6 +173,17 @@ public abstract class AbstractWorkflow implements IWorkflow {
     }
 
     /**
+     * 获取引用字段值（类型化引用）
+     *
+     * @param reference 类型化节点引用
+     * @return 字段值
+     */
+    @Override
+    public Object getReferenceField(NodeReference reference) {
+        return workflowContext.getReferenceField(reference);
+    }
+
+    /**
      * 获取字段值
      *
      * @param value  字段值或引用路径
@@ -222,6 +237,25 @@ public abstract class AbstractWorkflow implements IWorkflow {
     @Override
     public IWorkflowExecutionAccessor execution() {
         return executionAccessor;
+    }
+
+    /**
+     * 根据节点ID获取节点实例
+     *
+     * @param nodeId          节点ID
+     * @param upNodeIds       上游节点ID列表
+     * @param getNodeProperties 节点属性处理函数
+     * @return 节点实例
+     */
+    public AbsNode getNodeInstance(String nodeId, List<String> upNodeIds, Function<AbsNode, JSONObject> getNodeProperties) {
+        AbsNode node = configuration.getNode(nodeId);
+        if (node != null) {
+            node.setUpNodeIdList(upNodeIds);
+            if (getNodeProperties != null) {
+                getNodeProperties.apply(node);
+            }
+        }
+        return node;
     }
 
 }

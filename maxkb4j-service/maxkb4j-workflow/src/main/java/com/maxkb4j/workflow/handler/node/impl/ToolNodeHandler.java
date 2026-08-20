@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import cn.hutool.http.HttpResponse;
-import com.maxkb4j.common.mp.entity.ToolInputField;
+import com.maxkb4j.tool.entity.ToolInputField;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;

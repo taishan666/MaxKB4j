@@ -3,11 +3,10 @@ package com.maxkb4j.workflow.engine;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.workflow.enums.NodeStatus;
-import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.logic.LfEdge;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.IWorkflowExecutionAccessor;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -67,16 +66,6 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
     @Override
     public AbsNode currentNode() {
         return currentNode;
-    }
-
-    /**
-     * 获取开始节点
-     *
-     * @return 开始节点实例
-     */
-    @Override
-    public AbsNode startNode() {
-        return getNodeInstance(NodeType.START.getKey(), List.of(), null);
     }
 
     /**

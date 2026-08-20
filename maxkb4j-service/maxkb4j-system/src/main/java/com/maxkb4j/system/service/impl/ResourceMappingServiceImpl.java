@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.system.entity.ResourceMappingEntity;
 import com.maxkb4j.system.dto.SourceResource;
 import com.maxkb4j.system.dto.TargetResource;
@@ -44,7 +43,7 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
         this.resolverMap = resolvers.stream().collect(Collectors.toMap(SourceResourceResolver::resourceType, Function.identity()));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void relation(String sourceType, String sourceId, List<TargetResource> targets) {
         this.remove(Wrappers.<ResourceMappingEntity>lambdaQuery().eq(ResourceMappingEntity::getSourceType, sourceType).eq(ResourceMappingEntity::getSourceId, sourceId));
@@ -119,7 +118,7 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
                 .collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
         Map<String, SourceResource> resourceMaps = filterSources.stream()
                 .collect(Collectors.toMap(SourceResource::getId, Function.identity()));
-        return PageUtil.copy(resourcePage, resource -> {
+        return BeanUtil.copyPage(resourcePage, resource -> {
             ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
             SourceResource sourceResource = resourceMaps.get(direction.otherIdGetter.apply(resource));
             if (sourceResource != null) {

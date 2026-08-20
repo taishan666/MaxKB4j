@@ -26,7 +26,20 @@ public class ChatInfo implements Serializable {
         this.appId = appId;
     }
 
+    public void putChatVariables(Map<String, Object> chatVariables) {
+        this.chatVariables.putAll(chatVariables);
+    }
+
+
     public void addChatRecord(ChatRecordDTO chatRecord) {
+        String chatRecordId = chatRecord.getId();
+        // 存在相同 id 的记录时替换，否则添加
+        for (int i = 0; i < this.chatRecordList.size(); i++) {
+            if (this.chatRecordList.get(i).getId().equals(chatRecordId)) {
+                this.chatRecordList.set(i, chatRecord);
+                return;
+            }
+        }
         this.chatRecordList.add(chatRecord);
     }
 

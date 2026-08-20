@@ -54,8 +54,10 @@ public class PipelineManage {
             try {
                 step.run(this);
             } catch (Exception e) {
-                if (sink != null) {
-                    sink.tryEmitError(e);
+                // 不在此处向 sink emit 错误：错误由 chatMessageAsync 的统一出口收尾，
+                // 避免与上层异常处理双发；保留原始异常类型，便于全局异常处理器映射 i18n
+                if (e instanceof RuntimeException runtimeException) {
+                    throw runtimeException;
                 }
                 throw new RuntimeException(e);
             }
@@ -81,9 +83,13 @@ public class PipelineManage {
                 if (!details.isEmpty()) {
                     if (problemText.equals(chatRecord.getProblemText()) && details.containsKey("search_step")) {
                         JSONObject searchStep = details.getJSONObject("search_step");
-                        List<ParagraphRagVO> paragraphList = searchStep.getJSONArray("paragraphList").toJavaList(ParagraphRagVO.class);
-                        if (!CollectionUtils.isEmpty(paragraphList)) {
-                            excludeParagraphIds.addAll(paragraphList.stream().map(ParagraphRagVO::getId).toList());
+                        // 历史数据可能缺少 paragraphList 键，判空避免 NPE
+                        JSONArray paragraphArray = searchStep.getJSONArray("paragraphList");
+                        if (paragraphArray != null) {
+                            List<ParagraphRagVO> paragraphList = paragraphArray.toJavaList(ParagraphRagVO.class);
+                            if (!CollectionUtils.isEmpty(paragraphList)) {
+                                excludeParagraphIds.addAll(paragraphList.stream().map(ParagraphRagVO::getId).toList());
+                            }
                         }
                     }
                 }

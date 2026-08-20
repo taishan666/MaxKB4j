@@ -7,19 +7,23 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.maxkb4j.common.constant.AuthType;
 import com.maxkb4j.common.constant.Permission;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.common.util.PageUtil;
+import com.maxkb4j.core.support.IResourcePermissionPageProvider;
+import com.maxkb4j.core.support.ResourcePermissionQuerySupport;
+import com.maxkb4j.core.support.vo.UserResourcePermissionVO;
 import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.entity.UserResourcePermissionEntity;
 import com.maxkb4j.system.mapper.UserMapper;
 import com.maxkb4j.system.mapper.UserResourcePermissionMapper;
-import com.maxkb4j.core.support.IResourcePermissionPageProvider;
 import com.maxkb4j.system.service.IUserResourcePermissionInternalService;
-import com.maxkb4j.core.support.ResourcePermissionQuerySupport;
+import com.maxkb4j.system.util.PermissionDef;
+import com.maxkb4j.system.util.PermissionDefUtil;
+import com.maxkb4j.system.vo.ResourcePermissionUpdateVO;
 import com.maxkb4j.system.vo.ResourceUserPermissionVO;
-import com.maxkb4j.core.support.vo.UserResourcePermissionVO;
+import com.maxkb4j.system.vo.UserPermissionUpdateVO;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -45,7 +49,7 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
 
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean ownerSave(String targetType, List<String> targetIds, String userId) {
         List<UserResourcePermissionEntity> entityList = targetIds.stream().map(targetId -> {
             UserResourcePermissionEntity entity = new UserResourcePermissionEntity();
@@ -53,7 +57,7 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
             entity.setTargetId(targetId);
             entity.setUserId(userId);
             entity.setPermissionList(List.of(Permission.VIEW, Permission.MANAGE));
-            entity.setAuthType("RESOURCE_PERMISSION_GROUP");
+            entity.setAuthType(AuthType.RESOURCE_PERMISSION_GROUP);
             entity.setWorkspaceId(DEFAULT_ID);
             return entity;
         }).toList();
@@ -118,7 +122,7 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
             userWrapper.notIn(UserEntity::getId, filter.excludeIds());
         }
         Page<UserEntity> userPage = userMapper.selectPage(new Page<>(current, size), userWrapper);
-        return PageUtil.copy(userPage, e -> {
+        return BeanUtil.copyPage(userPage, e -> {
             ResourceUserPermissionVO vo = new ResourceUserPermissionVO();
             vo.setId(e.getId());
             vo.setNickname(e.getNickname());
@@ -137,66 +141,47 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
      */
     private Map<String, String> resolvePermissionMap(LambdaQueryWrapper<UserResourcePermissionEntity> wrapper, SFunction<UserResourcePermissionEntity, String> keyGetter) {
         return baseMapper.selectList(wrapper).stream()
-                .collect(Collectors.toMap(keyGetter, e -> getPermissionFromList(e.getPermissionList()), (a, b) -> a));
+                .collect(Collectors.toMap(keyGetter, e -> PermissionDefUtil.findKey(e.getAuthType(),e.getPermissionList()), (a, b) -> a));
     }
 
     private Set<String> toPermissionSet(String[] permissions) {
         return permissions == null ? Set.of() : Arrays.stream(permissions).collect(Collectors.toSet());
     }
 
-    private String getPermissionFromList(List<String> permissionList) {
-        if (CollectionUtils.isNotEmpty(permissionList)) {
-            if (permissionList.contains(Permission.MANAGE)) {
-                return Permission.MANAGE;
-            } else if (permissionList.contains(Permission.VIEW)) {
-                return Permission.VIEW;
-            } else {
-                return Permission.NOT_AUTH;
-            }
-        } else {
-            return Permission.NOT_AUTH;
-        }
-    }
-
-
-    @Transactional
-    public boolean userPermissionUpdate(String userId, String type, List<UserResourcePermissionVO> list) {
-        List<String> targetIds = list.stream().map(UserResourcePermissionVO::getTargetId).toList();
-        this.remove(Wrappers.<UserResourcePermissionEntity>lambdaUpdate().eq(UserResourcePermissionEntity::getUserId, userId).eq(UserResourcePermissionEntity::getAuthTargetType, type).in(UserResourcePermissionEntity::getTargetId, targetIds));
+    @Transactional(rollbackFor = Exception.class)
+    public boolean userPermissionUpdate(String userId, String resourceType, List<UserPermissionUpdateVO> list) {
+        List<String> targetIds = list.stream().map(UserPermissionUpdateVO::getTargetId).toList();
+        this.remove(Wrappers.<UserResourcePermissionEntity>lambdaUpdate().eq(UserResourcePermissionEntity::getUserId, userId).eq(UserResourcePermissionEntity::getAuthTargetType, resourceType).in(UserResourcePermissionEntity::getTargetId, targetIds));
         List<UserResourcePermissionEntity> saveList = list.stream().map(vo -> {
-            vo.setPermissionList(getPermissionFromList(vo.getPermission()));
-            vo.setUserId(userId);
-            vo.setAuthType("RESOURCE_PERMISSION_GROUP");
-            vo.setWorkspaceId(DEFAULT_ID);
-            vo.setAuthTargetType(type);
-            vo.setFolderId(DEFAULT_ID);
-            return BeanUtil.copy(vo, UserResourcePermissionEntity.class);
+            UserResourcePermissionEntity entity = new UserResourcePermissionEntity();
+            entity.setWorkspaceId(DEFAULT_ID);
+            entity.setAuthTargetType(resourceType);
+            entity.setTargetId(vo.getTargetId());
+            entity.setUserId(userId);
+            PermissionDef permissionDef = PermissionDefUtil.get(vo.getPermission());
+            entity.setAuthType(permissionDef.authType());
+            entity.setPermissionList(permissionDef.permissionList());
+            return entity;
         }).toList();
         return this.saveBatch(saveList);
     }
 
-    @Transactional
-    public boolean resourcePermissionUpdate(String resourceId, String type, List<ResourceUserPermissionVO> list) {
-        List<String> userIds = list.stream().map(ResourceUserPermissionVO::getUserId).toList();
-        this.remove(Wrappers.<UserResourcePermissionEntity>lambdaUpdate().eq(UserResourcePermissionEntity::getTargetId, resourceId).eq(UserResourcePermissionEntity::getAuthTargetType, type).in(UserResourcePermissionEntity::getUserId, userIds));
+    @Transactional(rollbackFor = Exception.class)
+    public boolean resourcePermissionUpdate(String resourceId, String resourceType, List<ResourcePermissionUpdateVO> list) {
+        List<String> userIds = list.stream().map(ResourcePermissionUpdateVO::getUserId).toList();
+        this.remove(Wrappers.<UserResourcePermissionEntity>lambdaUpdate().eq(UserResourcePermissionEntity::getTargetId, resourceId).eq(UserResourcePermissionEntity::getAuthTargetType, resourceType).in(UserResourcePermissionEntity::getUserId, userIds));
         List<UserResourcePermissionEntity> saveList = list.stream().map(vo -> {
-            vo.setPermissionList(getPermissionFromList(vo.getPermission()));
-            vo.setTargetId(resourceId);
-            vo.setAuthType("RESOURCE_PERMISSION_GROUP");
-            vo.setWorkspaceId(DEFAULT_ID);
-            vo.setAuthTargetType(type);
-            return BeanUtil.copy(vo, UserResourcePermissionEntity.class);
+            UserResourcePermissionEntity entity = new UserResourcePermissionEntity();
+            entity.setWorkspaceId(DEFAULT_ID);
+            entity.setAuthTargetType(resourceType);
+            entity.setTargetId(resourceId);
+            entity.setUserId(vo.getUserId());
+            PermissionDef permissionDef = PermissionDefUtil.get(vo.getPermission());
+            entity.setAuthType(permissionDef.authType());
+            entity.setPermissionList(permissionDef.permissionList());
+            return entity;
         }).toList();
         return this.saveBatch(saveList);
-    }
-
-    private List<String> getPermissionFromList(String permission) {
-        if (Permission.MANAGE.equals(permission)) {
-            return List.of(Permission.MANAGE, Permission.VIEW);
-        } else if (Permission.VIEW.equals(permission)) {
-            return List.of(Permission.VIEW);
-        }
-        return List.of();
     }
 
     @Override

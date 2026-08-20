@@ -49,6 +49,17 @@
             <artifactId>maxkb4j-workflow-api</artifactId>
             <version>${revision}</version>
         </dependency>
+        <!-- 缓存组件测试 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- DatasetSettingTypeHandler 编译期需要 PGobject（覆盖父 pom 的 runtime scope） -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

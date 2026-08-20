@@ -19,6 +19,7 @@ import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.trigger.dto.EventQuery;
 import com.maxkb4j.trigger.dto.EventTriggerDTO;
 import com.maxkb4j.trigger.entity.EventTriggerEntity;
+import com.maxkb4j.trigger.model.TriggerSetting;
 import com.maxkb4j.trigger.entity.EventTriggerTaskEntity;
 import com.maxkb4j.trigger.enums.TriggerType;
 import com.maxkb4j.trigger.mapper.EventTriggerMapper;
@@ -73,7 +74,7 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
             List<EventTriggerTaskVO> triggerTasks = taskMap.getOrDefault(eventTrigger.getId(), List.of());
             EventTriggerTaskProcessor.PageResult result = taskProcessor.processForPage(triggerTasks);
             if (TriggerType.SCHEDULED.name().equals(eventTrigger.getTriggerType())) {
-                String nextRunTime = nextRunTimeCalculator.calculateStr(eventTrigger.getTriggerSetting());
+                String nextRunTime = nextRunTimeCalculator.calculateStr(TriggerSetting.from(eventTrigger.getTriggerSetting()));
                 if (StringUtils.isNotBlank(nextRunTime)) {
                     eventTrigger.setNextRunTime(nextRunTime);
                 }
@@ -85,14 +86,14 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void saveTrigger(EventTriggerDTO dto, Boolean isEdit) {
         if (dto == null) {
             return;
         }
         if (TriggerType.SCHEDULED.name().equals(dto.getTriggerType())) {
             JSONObject triggerSetting = dto.getTriggerSetting();
-            if (triggerSetting == null || !triggerSetting.containsKey("scheduleType")) {
+            if (triggerSetting == null || !triggerSetting.containsKey(TriggerSetting.FIELD_SCHEDULE_TYPE)) {
                 throw new ApiException("trigger.schedule.type.required");
             }
         }
@@ -140,7 +141,7 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean batchActivate(String id, Boolean isActive) {
         if (StringUtils.isBlank(id)) {
             return false;
@@ -176,7 +177,7 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteTrigger(String id) {
         if (StringUtils.isBlank(id)) {
             return false;

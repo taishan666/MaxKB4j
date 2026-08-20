@@ -52,7 +52,9 @@ public class ApplicationPromptService {
         String detail = StringUtils.isBlank(app.getDesc()) ? app.getName() : app.getDesc();
         prompt = prompt.replace("{application_name}", app.getName())
                 .replace("{detail}", detail)
-                .replace("{userInput}", dto.getMessages().get(messages.size() - 1).getContent());
+                // 注意：messages 是过滤后的列表，取"最后一条输入"必须用原始列表自身的 size，
+                // 否则存在 system 等角色时 {userInput} 会被错误替换为中间某条消息
+                .replace("{userInput}", dto.getMessages().get(dto.getMessages().size() - 1).getContent());
         List<ChatMessage> finalMessages = new ArrayList<>(messages);
         finalMessages.set(finalMessages.size() - 1, UserMessage.from(prompt));
         Sinks.Many<Map<String, String>> sink = Sinks.many().unicast().onBackpressureBuffer();

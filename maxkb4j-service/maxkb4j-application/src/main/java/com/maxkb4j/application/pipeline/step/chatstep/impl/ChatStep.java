@@ -5,7 +5,6 @@ import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.chatstep.AbsChatStep;
 import com.maxkb4j.application.service.IApplicationLongTermMemoryService;
 import com.maxkb4j.application.vo.ApplicationVO;
-import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AiChatMemory;
@@ -64,15 +63,12 @@ public class ChatStep extends AbsChatStep {
             }
         }
         KnowledgeSetting datasetSetting = Optional.ofNullable(application.getKnowledgeSetting()).orElse(new KnowledgeSetting());
-        try {
-            aiServicesBuilder.toolProviders(toolProvider.getToolProviders(toolIds, applicationIds));
-            if(Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
-                List<String> knowledgeIds = Optional.ofNullable(application.getKnowledgeIds()).orElse(List.of());
-                aiServicesBuilder.tools(toolProvider.getKnowledgeTools(knowledgeIds, datasetSetting));
-            }
-        } catch (ApiException e) {
-            manage.sink.tryEmitError(e);
-            return "";
+        // 工具装配失败时异常向上传播，由 chatMessageAsync 统一收尾，
+        // 避免 emit 错误后继续执行并写入空答案记录
+        aiServicesBuilder.toolProviders(toolProvider.getToolProviders(toolIds, applicationIds));
+        if(Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
+            List<String> knowledgeIds = Optional.ofNullable(application.getKnowledgeIds()).orElse(List.of());
+            aiServicesBuilder.tools(toolProvider.getKnowledgeTools(knowledgeIds, datasetSetting));
         }
         aiServicesBuilder.chatMemory(AiChatMemory.withMessages(chatId,historyMessages));
         Assistant assistant = aiServicesBuilder.streamingChatModel(chatModel).build();

@@ -6,8 +6,14 @@ import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.chat.dto.OpenAIChatCompletionRequest;
 import com.maxkb4j.chat.dto.OpenAIChatCompletionResponse;
+import com.maxkb4j.chat.dto.OpenAIMessage;
+import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.domain.dto.ChatInfo;
+import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.dto.*;
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.util.WebUtil;
@@ -23,6 +29,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Tag(name = "MaxKB4J兼容 OpenAI API 格式")
@@ -39,10 +48,12 @@ public class ChatOpenAiController {
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")
     public Object chatCompletion(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
         String chatId = chatService.chatOpen(appId, false);
+        seedConversationHistory(chatId, request);
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         // 构建 ChatParams（请求入参）与 ChatContext（服务端上下文）
         ChatParams params = convertToChatParams(request, chatId);
         ChatState chatState = ChatState.builder()
+                .appId(appId)
                 .chatUserId(IdWorker.get32UUID())
                 .chatUserType(ChatUserType.APPLICATION_API_KEY)
                 .source(ChatSource.API_CALL)
@@ -99,6 +110,14 @@ public class ChatOpenAiController {
                 .doOnError(error -> log.error("Stream error: {}", error.getMessage(), error))
                 .onErrorResume(e -> Flux.just(
                         ServerSentEvent.<String>builder()
+                                .data(toJson(Map.of(
+                                        "error", Map.of(
+                                                "message", buildErrorMessage(e),
+                                                "type", "server_error"
+                                        )
+                                )))
+                                .build(),
+                        ServerSentEvent.<String>builder()
                                 .data("[DONE]")
                                 .build()
                 ));
@@ -128,6 +147,72 @@ public class ChatOpenAiController {
     /**
      * 生成 OpenAI 格式的 completion ID
      */
+    /**
+     * 将 OpenAI 请求携带的历史消息（当前问题之前的 user/assistant 轮次）预置到会话缓存，
+     * 使对话流水线基于完整上下文生成回答，避免多轮上下文丢失。
+     */
+    private void seedConversationHistory(String chatId, OpenAIChatCompletionRequest request) {
+        List<ChatRecordDTO> history = buildHistoryRecords(request.getMessages());
+        if (history.isEmpty()) {
+            return;
+        }
+        ChatInfo chatInfo = ChatCache.get(chatId);
+        if (chatInfo != null) {
+            chatInfo.setChatRecordList(history);
+            ChatCache.put(chatId, chatInfo);
+        }
+    }
+
+    /**
+     * 取 messages 中最后一个 user 消息之前的 user/assistant 轮次，转换为内部聊天记录；
+     * 末尾的 user 消息为当前问题，不纳入历史；system 消息不进入对话历史。
+     */
+    static List<ChatRecordDTO> buildHistoryRecords(List<OpenAIMessage> messages) {
+        List<ChatRecordDTO> history = new ArrayList<>();
+        if (messages == null || messages.size() < 2) {
+            return history;
+        }
+        int lastUserIndex = -1;
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            OpenAIMessage msg = messages.get(i);
+            if (msg != null && "user".equals(msg.getRole())) {
+                lastUserIndex = i;
+                break;
+            }
+        }
+        if (lastUserIndex <= 0) {
+            return history;
+        }
+        for (int i = 0; i < lastUserIndex; i++) {
+            OpenAIMessage msg = messages.get(i);
+            if (msg == null || !"user".equals(msg.getRole())) {
+                continue;
+            }
+            String answer = "";
+            for (int j = i + 1; j < messages.size(); j++) {
+                OpenAIMessage next = messages.get(j);
+                if (next != null && "assistant".equals(next.getRole())) {
+                    answer = next.getContent();
+                    break;
+                }
+            }
+            ChatRecordDTO record = new ChatRecordDTO();
+            record.setProblemText(msg.getContent());
+            record.setAnswerText(answer);
+            history.add(record);
+        }
+        return history;
+    }
+
+    private String buildErrorMessage(Throwable throwable) {
+        Throwable cause = throwable;
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
+        }
+        String message = cause.getMessage();
+        return message == null || message.isBlank() ? "chat request failed" : message;
+    }
+
     private String generateCompletionId() {
         return "chatcmpl-" + UUID.randomUUID().toString().replace("-", "").substring(0, 24);
     }

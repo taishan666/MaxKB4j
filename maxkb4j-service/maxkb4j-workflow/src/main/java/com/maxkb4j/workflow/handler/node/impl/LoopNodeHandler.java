@@ -21,6 +21,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.LoopNode;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
 
@@ -144,7 +145,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
      */
     private List<JSONObject> executeIterations(IWorkflow workflow, AbsNode node, List<Object> items, JSONObject loopBody) {
         LoopExecutionContext ctx = prepareLoopContext(node);
-        while (ctx.currentIndex < items.size() && !ctx.shouldBreak.get()) {
+        while (ctx.currentIndex < items.size() && !ctx.isInterrupted.get()) {
             executeSingleIteration(workflow, node, items, loopBody, ctx);
             ctx.currentIndex++;
         }
@@ -157,21 +158,22 @@ public class LoopNodeHandler extends AbsNodeHandler {
     private static class LoopExecutionContext {
         int currentIndex;
         final List<JSONObject> loopDetails;
-        JSONObject currentDetails;
-        final AtomicBoolean shouldBreak;
         final AtomicBoolean isInterrupted;
 
         LoopExecutionContext(int startIndex, List<JSONObject> existingDetails) {
             this.currentIndex = startIndex;
             this.loopDetails = existingDetails;
-            this.currentDetails = new JSONObject();
-            this.shouldBreak = new AtomicBoolean(false);
             this.isInterrupted = new AtomicBoolean(false);
 
+
+        }
+
+        JSONObject getCurrentDetails() {
             // 恢复之前迭代的详情
-            if (loopDetails.size() > startIndex) {
-                currentDetails = loopDetails.get(startIndex);
+            if (loopDetails.size() > currentIndex) {
+                return loopDetails.get(currentIndex);
             }
+            return new JSONObject();
         }
     }
 
@@ -191,8 +193,6 @@ public class LoopNodeHandler extends AbsNodeHandler {
      * 执行单次循环迭代
      */
     private void executeSingleIteration(IWorkflow workflow, AbsNode node, List<Object> items, JSONObject loopBody, LoopExecutionContext ctx) {
-        // 清理前一次迭代数据
-        removePreviousIterationData(ctx);
         // 构建子工作流
         LogicFlow logicFlow = LogicFlow.newInstance(loopBody);
         List<AbsNode> nodes = logicFlow.getNodes().stream()
@@ -204,7 +204,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
         if (workflow instanceof ChatWorkflow chatWorkflow) {
             Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
             AtomicReference<ChildNode> childNodeRef = subscribeToSink(sink, loopParams, ctx, workflow, node);
-            loopWorkflow = new ChatLoopWorkflow(chatWorkflow, nodes, logicFlow.getEdges(), loopParams, ctx.currentDetails,sink);
+            loopWorkflow = new ChatLoopWorkflow(chatWorkflow, nodes, logicFlow.getEdges(), loopParams, ctx.getCurrentDetails(),sink);
             workFlowActuator.execute(loopWorkflow);
             // 发送单次结束标记
             emitIteration(workflow, node, childNodeRef.get(),false);
@@ -236,7 +236,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
         AtomicReference<ChildNode> childNodeRef = new AtomicReference<>(null);
         sink.asFlux().subscribe(message -> {
             if (isBreakSignal(message)) {
-                ctx.shouldBreak.set(true);
+                ctx.isInterrupted.set(true);
             } else {
                 handleLoopMessage(message, loopParams, ctx, childNodeRef, workflow, node);
             }
@@ -257,13 +257,12 @@ public class LoopNodeHandler extends AbsNodeHandler {
     private void handleLoopMessage(ChatMessageVO message, LoopParams loopParams, LoopExecutionContext ctx,
                                    AtomicReference<ChildNode> childNodeRef, IWorkflow workflow, AbsNode node) {
         String nodeType = message.getNodeType();
-
         // 表单和用户选择节点需要中断
         if (FORM.getKey().equals(nodeType) || USER_SELECT.getKey().equals(nodeType)) {
-            ctx.shouldBreak.set(true);
-            ctx.isInterrupted.set(true);
+            if(StringUtils.isNotBlank(message.getContent())){
+                ctx.isInterrupted.set(true);
+            }
         }
-
         // 更新子节点引用
         String runtimeNodeId = message.getRuntimeNodeId() + "_" + loopParams.getIndex();
         childNodeRef.set(new ChildNode(message.getChatRecordId(), runtimeNodeId));
@@ -322,6 +321,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
         // 收集运行时详情
         JSONObject runtimeDetails = loopWorkflow.output().runtimeDetails();
         appendIterationIndex(runtimeDetails, ctx.currentIndex);
+        removePreviousIterationData(ctx);
         ctx.loopDetails.add(runtimeDetails);
     }
 

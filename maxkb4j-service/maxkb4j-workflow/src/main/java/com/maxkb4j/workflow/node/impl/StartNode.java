@@ -1,11 +1,9 @@
 package com.maxkb4j.workflow.node.impl;
-import com.maxkb4j.workflow.annotation.NodeCreatorType;
-import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.cache.ChatCache;
-import com.maxkb4j.common.domain.dto.ChatInfo;
+import com.maxkb4j.workflow.annotation.NodeCreatorType;
+import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 
@@ -32,10 +30,12 @@ public class StartNode extends AbsNode {
             Object value=globalField.get("value");
             workflow.getGlobalContext().put(key, value);
         }
-        String chatId = (String) workflow.getGlobalContext().get("chatId");
-        ChatInfo chatInfo = ChatCache.get(chatId);
-        if (chatInfo != null){
-            workflow.getChatContext().putAll(chatInfo.getChatVariables());
+        JSONArray chatFields= (JSONArray) detail.get("chatFields");
+        for (int i = 0; i < chatFields.size(); i++) {
+            JSONObject chatField=chatFields.getJSONObject(i);
+            String key=chatField.getString("key");
+            Object value=chatField.get("value");
+            workflow.getChatContext().put(key, value);
         }
     }
 

@@ -167,10 +167,12 @@ public class DocumentWebServiceImpl implements IDocumentWebService {
             List<String> baseSegments = getStrings(baseUri);
             int targetDepth = baseSegments.size() + 1;
 
-            String origin = baseUri.getScheme() + "://" + baseUri.getHost();
+            String scheme = baseUri.getScheme();
+            String origin = scheme + "://" + baseUri.getHost();
             int port = baseUri.getPort();
-            if (port > 0 && ((baseUri.getScheme().equals("http") && port != 80) ||
-                    (baseUri.getScheme().equals("https") && port != 443))) {
+            // scheme 可能为 null（如无协议形式的 URL），字面量在前避免 NPE
+            if (port > 0 && (("http".equals(scheme) && port != 80) ||
+                    ("https".equals(scheme) && port != 443))) {
                 origin += ":" + port;
             }
 

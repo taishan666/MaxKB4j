@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 import reactor.core.publisher.Sinks;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +85,7 @@ public class ChatApiService {
         return chatService.clear(appId, userId);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean updateConversation(String chatId, String chatRecordId, ApplicationChatRecordDTO chatRecord) {
         chatRecord.setChatId(chatId);
         chatRecord.setId(chatRecordId);
@@ -103,15 +102,16 @@ public class ChatApiService {
 
     @Async
     public void mcpHandleAsync(ApplicationApiKeyDTO apiKey, McpRequest req, ResponseBodyEmitter emitter) {
-        McpResponse resp = this.mcpHandle(apiKey,req);
         try {
+            McpResponse resp = this.mcpHandle(apiKey, req);
             String line = JSON.toJSONString(resp) + "\n";
             emitter.send(line);
             emitter.complete();
-        } catch (IOException e) {
+        } catch (Exception e) {
+            // 任何异常（含 JSON 序列化的 RuntimeException、emitter 已终止等）都必须收尾 emitter，
+            // 否则 MCP 客户端将一直挂起直至容器异步超时
             emitter.completeWithError(e);
         }
-
     }
 
     public McpResponse mcpHandle(ApplicationApiKeyDTO apiKey, McpRequest req) {
@@ -144,8 +144,12 @@ public class ChatApiService {
                     ));
                 }
                 case "tools/call" -> {
-                    JSONObject args = req.params.getJSONObject("arguments");
-                    String message = args.getString("message");
+                    JSONObject args = req.params == null ? null : req.params.getJSONObject("arguments");
+                    String message = args == null ? null : args.getString("message");
+                    if (message == null || message.isBlank()) {
+                        resp.error = Map.of("code", -32602, "message", "Invalid params: 'arguments.message' is required");
+                        break;
+                    }
                     String chatId = chatService.chatOpen(apiKey.getApplicationId(), false);
                     ChatParams params = ChatParams.builder()
                             .message(message)

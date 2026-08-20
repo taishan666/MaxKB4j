@@ -5,15 +5,17 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
-import com.maxkb4j.common.constant.RoleType;
+import com.maxkb4j.common.constant.RoleConst;
 import com.maxkb4j.common.props.SystemProperties;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.I18nUtil;
+import com.maxkb4j.system.dto.UserCreateDTO;
+import com.maxkb4j.system.dto.UserUpdateDTO;
 import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.service.IUserInternalService;
-import com.maxkb4j.system.dto.PasswordDTO;
-import com.maxkb4j.system.dto.UserDTO;
 import com.maxkb4j.system.vo.UserVO;
+import com.maxkb4j.user.dto.PasswordDTO;
+import com.maxkb4j.user.dto.UserQuery;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -33,46 +35,48 @@ public class UserManageController {
     private final IUserInternalService userService;
 	private final SystemProperties systemProperties;
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @GetMapping("/user_manage/{page}/{size}")
-    public R<IPage<UserVO>> userManage(@PathVariable("page") int page, @PathVariable("size") int size, UserDTO dto) {
-        return R.data(BeanUtil.copyPage(userService.selectUserPage(page, size, dto), UserVO.class));
+    public R<IPage<UserVO>> userManage(@PathVariable("page") int page, @PathVariable("size") int size, UserQuery dto) {
+        return R.data(userService.selectUserPage(page, size, dto));
     }
 
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @PostMapping("/user_manage")
-    public R<Boolean> createUser(@RequestBody UserEntity user) {
+    public R<Boolean> createUser(@Valid @RequestBody UserCreateDTO dto) {
+        UserEntity user = BeanUtil.copy(dto, UserEntity.class);
         return R.status(userService.createUser(user));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @GetMapping("/user_manage/password")
     public R<Map<String, String>> password() {
         return R.data(Map.of("password", systemProperties.getDefaultPassword()));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @PutMapping("/user_manage/{id}")
-    public R<Boolean> updateUserById(@PathVariable("id") String id, @RequestBody UserEntity user) {
+    public R<Boolean> updateUserById(@PathVariable("id") String id, @RequestBody UserUpdateDTO dto) {
+        UserEntity user = BeanUtil.copy(dto, UserEntity.class);
         user.setId(id);
         return R.status(userService.updateById(user));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @DeleteMapping("/user_manage/{id}")
     public R<Boolean> deleteUserById(@PathVariable("id") String id) {
         return R.status(userService.deleteUserById(id));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @PostMapping("/user_manage/batch_delete")
     public R<Boolean> batchDelete(@Valid @RequestBody List<String> ids) {
         return R.status(userService.batchDelete(ids));
     }
 
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleType.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @PutMapping("/user_manage/{id}/re_password")
     public R<Boolean> updatePassword(@PathVariable("id") String id, @Valid @RequestBody PasswordDTO dto) {
         if (!dto.getPassword().equals(dto.getRePassword())) {

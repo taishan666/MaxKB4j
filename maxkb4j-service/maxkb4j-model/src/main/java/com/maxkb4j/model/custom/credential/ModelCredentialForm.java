@@ -1,8 +1,8 @@
 package com.maxkb4j.model.custom.credential;
 
 
-import com.maxkb4j.common.domain.form.BaseField;
-import com.maxkb4j.common.domain.form.TextInputField;
+import com.maxkb4j.model.form.BaseField;
+import com.maxkb4j.model.form.TextInputField;
 
 import java.util.ArrayList;
 import java.util.List;

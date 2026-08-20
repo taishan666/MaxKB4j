@@ -20,10 +20,7 @@ import com.maxkb4j.tool.handler.*;
 import com.maxkb4j.tool.mapper.ToolMapper;
 import com.maxkb4j.tool.service.IToolInternalService;
 import com.maxkb4j.tool.util.McpToolUtil;
-import com.maxkb4j.tool.vo.McpToolVO;
-import com.maxkb4j.tool.vo.ToolCardVO;
-import com.maxkb4j.tool.vo.ToolListVO;
-import com.maxkb4j.tool.vo.ToolVO;
+import com.maxkb4j.tool.vo.*;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -66,7 +63,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
         return baseMapper.pageList(page, query);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean saveTool(ToolEntity entity) {
         this.save(entity);
         skillHandler.onCreate(entity);
@@ -85,7 +82,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
         importExportHandler.exportTool(entity, response);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean toolImport(MultipartFile file, String folderId) {
         ToolEntity tool = importExportHandler.importTool(file, folderId);
         return this.saveTool(tool);
@@ -100,7 +97,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean removeToolById(String id) {
         ToolEntity entity = this.getById(id);
         if (entity == null) {
@@ -113,7 +110,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
     }
 
     /** 完整字段版本：供需要 code / initParams / inputFieldList 等执行所需信息的场景使用。 */
-    public List<ToolCardVO> listTools(String folderId, String scope, String[] toolTypeList) {
+    public List<ToolItemVO> listTools(String folderId, String scope, String[] toolTypeList) {
         ToolQuery query = new ToolQuery();
         query.setFolderId(folderId);
         query.setScope(scope);
@@ -177,7 +174,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void saveOrUpdateBatch(List<ToolDTO> toolDTOList,String userId) {
         List<ToolEntity> toolEntities= BeanUtil.copyList(toolDTOList, ToolEntity.class);
         // 工具可能来自 .mk 模板，DTO 携带的是模板作者的 userId，需重置为当前导入用户，
@@ -197,7 +194,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
         return McpToolUtil.getToolVos(mcpServersJson);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean delMulApplication(List<String> idList) {
         dataPermissionSupport.checkManagePermission(AuthTargetType.TOOL, idList);
         boolean result = true;

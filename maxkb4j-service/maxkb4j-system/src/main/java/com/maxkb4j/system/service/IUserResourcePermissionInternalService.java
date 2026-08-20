@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.core.support.vo.UserResourcePermissionVO;
 import com.maxkb4j.system.entity.UserResourcePermissionEntity;
+import com.maxkb4j.system.vo.ResourcePermissionUpdateVO;
 import com.maxkb4j.system.vo.ResourceUserPermissionVO;
+import com.maxkb4j.system.vo.UserPermissionUpdateVO;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 
 import java.util.List;
@@ -22,9 +24,9 @@ public interface IUserResourcePermissionInternalService extends IUserResourcePer
 
     IPage<ResourceUserPermissionVO> resourceUserPermissionPage(String resourceId, String type, int current, int size, String nickname, String username, String[] permissions);
 
-    boolean userPermissionUpdate(String userId, String type, List<UserResourcePermissionVO> list);
+    boolean userPermissionUpdate(String userId, String resourceType, List<UserPermissionUpdateVO> list);
 
-    boolean resourcePermissionUpdate(String resourceId, String type, List<ResourceUserPermissionVO> list);
+    boolean resourcePermissionUpdate(String resourceId, String resourceType, List<ResourcePermissionUpdateVO> list);
 
     List<UserResourcePermissionEntity> getByUserId(String userId);
 }

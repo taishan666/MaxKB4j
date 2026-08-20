@@ -24,21 +24,26 @@ public class TemplateService {
     public void exportTemplate(String type, HttpServletResponse response, String csvPath, String excelPath, String csvFileName, String excelFileName) throws Exception {
         // 设置字符编码
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String fileName = "";
-        String contentType = "";
-        InputStream inputStream = null;
-        ClassLoader classLoader = getClass().getClassLoader();
+        String fileName;
+        String contentType;
+        String resourcePath;
         if ("csv".equals(type)) {
             contentType = "text/csv";
             fileName = URLEncoder.encode(csvFileName, StandardCharsets.UTF_8);
-            inputStream = classLoader.getResourceAsStream(csvPath);
+            resourcePath = csvPath;
         } else if ("excel".equals(type)) {
             contentType = "application/vnd.ms-excel"; // 更准确的Excel MIME类型
             fileName = URLEncoder.encode(excelFileName, StandardCharsets.UTF_8);
-            inputStream = classLoader.getResourceAsStream(excelPath);
+            resourcePath = excelPath;
+        } else {
+            throw new Exception("无法找到指定类型的模板文件");
         }
 
-        if (inputStream != null) {
+        // 资源流必须显式关闭，不能依赖 GC 兜底
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
+            if (inputStream == null) {
+                throw new Exception("无法找到指定类型的模板文件");
+            }
             try (OutputStream outputStream = response.getOutputStream()) {
                 // 设置响应内容类型和头部信息
                 response.setContentType(contentType);
@@ -51,8 +56,6 @@ public class TemplateService {
                 }
                 outputStream.flush();
             }
-        } else {
-            throw new Exception("无法找到指定类型的模板文件");
         }
     }
 

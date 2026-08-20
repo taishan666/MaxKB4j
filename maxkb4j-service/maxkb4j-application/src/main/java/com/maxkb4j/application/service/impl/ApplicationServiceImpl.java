@@ -78,7 +78,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteByAppId(String appId) {
         cascadeDeleteService.deleteRelatedResources(appId);
         publishedApplicationCache.invalidate(appId);
@@ -86,7 +86,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteBatch(List<String> idList) {
         if (CollectionUtils.isEmpty(idList)) {
             return true;
@@ -110,8 +110,8 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     }
 
     @Override
-    @Transactional
-    public ApplicationEntity createApp(ApplicationDTO application) {
+    @Transactional(rollbackFor = Exception.class)
+    public ApplicationVO createApp(ApplicationDTO application) {
         String downloadUrl = getTemplateDownloadUrl(application.getWorkFlowTemplate());
         if (StringUtils.isNotBlank(downloadUrl)) {
             return createAppFromTemplate(downloadUrl, application);
@@ -128,11 +128,11 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         application.setApplicationIds(new ArrayList<>());
         this.saveOrUpdateApp(application);
         applicationResourceMappingService.saveResourceMappings(application);
-        return application;
+        return BeanUtil.copy(application, ApplicationVO.class);
     }
 
-    @Transactional
-    protected ApplicationEntity createAppFromTemplate(String downloadUrl, ApplicationDTO application) {
+    @Transactional(rollbackFor = Exception.class)
+    protected ApplicationVO createAppFromTemplate(String downloadUrl, ApplicationDTO application) {
         MaxKb4J maxKb4j = mkImportService.loadClasspathTemplate(downloadUrl);
         ApplicationEntity app = maxKb4j.getApplication();
         app.setId(null);
@@ -144,11 +144,11 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         mkImportService.normalizeForImport(app, maxKb4j.getToolList());
         this.saveOrUpdateApp(app);
         applicationResourceMappingService.saveResourceMappings(app);
-        return app;
+        return BeanUtil.copy(app, ApplicationVO.class);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean upsertMk(ApplicationEntity app, List<ToolDTO> toolList) {
         mkImportService.normalizeForImport(app, toolList);
         boolean result = this.saveOrUpdateApp(app);
@@ -156,7 +156,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         return result;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean saveOrUpdateApp(ApplicationEntity application) {
         if (application.getId() == null) {
             this.save(application);
@@ -228,7 +228,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean updateAppById(ApplicationDTO appDTO) {
         String downloadUrl = getTemplateDownloadUrl(appDTO.getWorkFlowTemplate());
         if (StringUtils.isNotBlank(downloadUrl)) {
@@ -237,10 +237,11 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         syncFromBaseNode(appDTO);
         applicationResourceMappingService.saveResourceMappings(appDTO);
         publishedApplicationCache.invalidate(appDTO.getId());
-        return this.updateById(appDTO);
+        ApplicationEntity entity=BeanUtil.copy(appDTO, ApplicationEntity.class);
+        return this.updateById(entity);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     protected Boolean updateAppFromTemplate(String downloadUrl, ApplicationDTO appDTO) {
         MaxKb4J maxKb4j = mkImportService.loadClasspathTemplate(downloadUrl);
         ApplicationEntity app = maxKb4j.getApplication();
@@ -296,7 +297,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ApplicationEntity publish(String id, JSONObject params) {
         ApplicationEntity application = this.getById(id);
         if (application == null) {

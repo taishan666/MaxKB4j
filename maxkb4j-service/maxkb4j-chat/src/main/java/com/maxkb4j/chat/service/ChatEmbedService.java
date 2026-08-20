@@ -10,7 +10,6 @@ import com.maxkb4j.common.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -35,8 +34,6 @@ public class ChatEmbedService {
         return embed(new EmbedQuery(protocol,host,token,params));
     }
     public String embed(EmbedQuery query) {
-        ClassLoader classLoader = getClass().getClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream("template/embed.txt");
         ApplicationAccessTokenDTO token = accessTokenService.getByAccessToken(query.getToken());
         if (token == null || !token.getIsActive()) {
             throw new ApiException("application.token.invalid.or.disabled");
@@ -45,7 +42,8 @@ public class ChatEmbedService {
         if (token.getWhiteActive() && !whiteList.contains(WebUtil.getIP())) {
             throw new ApiException("application.access.white.list.required");
         }
-        String content = IoUtil.readToString(inputStream, StandardCharsets.UTF_8);
+        // 校验通过后再打开资源流，避免校验失败时流泄漏（readToString 内部会关闭流）
+        String content = IoUtil.readToString(getClass().getClassLoader().getResourceAsStream("template/embed.txt"), StandardCharsets.UTF_8);
         return render(content, getParamsMap(token, query));
     }
 

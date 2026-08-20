@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.engine;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.workflow.model.NodeReference;
 import com.maxkb4j.workflow.node.AbsNode;
 import org.junit.jupiter.api.Test;
 
@@ -48,5 +49,33 @@ class WorkflowContextTest {
         assertThat(ctx.render("Hello {{global.name}}")).isEqualTo("Hello world");
         assertThat(ctx.getPromptVariables().get("global.name")).isEqualTo("world");
         assertThat(ctx.getReferenceField("global", "name")).isEqualTo("world");
+    }
+    @Test
+    void getReferenceField_typedReference_resolvesGlobalScope() {
+        WorkflowContext ctx = new WorkflowContext();
+        ctx.getGlobalContext().put("name", "world");
+
+        assertThat(ctx.getReferenceField(new NodeReference("global", "name"))).isEqualTo("world");
+        assertThat(ctx.getReferenceField((NodeReference) null)).isNull();
+    }
+
+    @Test
+    void getReferenceField_listCompatLayer_invalidReturnsNull() {
+        WorkflowContext ctx = new WorkflowContext();
+        ctx.getGlobalContext().put("name", "world");
+
+        assertThat(ctx.getReferenceField(java.util.List.of("global", "name"))).isEqualTo("world");
+        assertThat(ctx.getReferenceField(java.util.List.of("global"))).isNull();
+        assertThat(ctx.getReferenceField((java.util.List<String>) null)).isNull();
+    }
+
+    @Test
+    void getFieldValue_referenceSource_resolvesOrReturnsRawValue() {
+        WorkflowContext ctx = new WorkflowContext();
+        ctx.getGlobalContext().put("name", "world");
+
+        assertThat(ctx.getFieldValue(java.util.List.of("global", "name"), "reference")).isEqualTo("world");
+        assertThat(ctx.getFieldValue("raw", "reference")).isEqualTo("raw");
+        assertThat(ctx.getFieldValue(java.util.List.of("global"), "reference")).isEqualTo(java.util.List.of("global"));
     }
 }

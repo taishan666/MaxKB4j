@@ -3,6 +3,7 @@ package com.maxkb4j.knowledge.parser.impl;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.benjaminwan.ocrlibrary.OcrResult;
 import com.maxkb4j.knowledge.parser.DocumentParser;
+import com.maxkb4j.common.exception.FileLimitExceededException;
 import com.maxkb4j.oss.service.IOssService;
 import io.github.mymonstercat.Model;
 import io.github.mymonstercat.ocr.InferenceEngine;
@@ -20,6 +21,7 @@ import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
@@ -36,6 +38,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.regex.Pattern;
 
 /**
@@ -52,6 +55,11 @@ import java.util.regex.Pattern;
 public class PdfParser implements DocumentParser {
 
     private final IOssService ossService;
+
+    /** 单个 PDF 允许的最大尺寸（MB），超限拒绝解析，防止超大文件耗尽内存。 */
+    @Value("${knowledge.pdf.max-size-mb:100}")
+    private int maxPdfSizeMb;
+
     private static final String IMAGE_STYLE = "IMAGE";
     private static final InferenceEngine engine = InferenceEngine.getInstance(Model.ONNX_PPOCR_V4);
     private static final Pattern PAGE_NUM_DASH = Pattern.compile("^—\\d+—$");
@@ -67,6 +75,9 @@ public class PdfParser implements DocumentParser {
     public String handle(InputStream inputStream) {
         try {
             byte[] bytes = inputStream.readAllBytes();
+            if (bytes.length > maxPdfSizeMb * 1024L * 1024L) {
+                throw new FileLimitExceededException("common.file.size.exceeded", maxPdfSizeMb);
+            }
             TextLineStripper stripper;
             try (PDDocument document = Loader.loadPDF(bytes)) {
                 if (isScannedPDF(document)) {
@@ -87,17 +98,31 @@ public class PdfParser implements DocumentParser {
         }
     }
 
+    /** 图片上传最大并发数，避免对对象存储产生过大并行压力 */
+    private static final int MAX_PARALLEL_UPLOADS = 8;
+
+    /**
+     * 并发上传 PDF 内图片。
+     * <p>
+     * 使用虚拟线程承载 IO 密集型的上传任务，并以信号量限制并发度；
+     * 执行器通过 try-with-resources 关闭，解析失败或上传异常时也不会泄漏线程。
+     * </p>
+     */
     private void uploadImagesInParallel(List<TextLine> lines, List<ImageData> pendingImages) {
         if (pendingImages.isEmpty()) return;
-        int threads = Math.min(pendingImages.size(), 8);
-        ExecutorService executor = Executors.newFixedThreadPool(threads);
-        try {
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            Semaphore permits = new Semaphore(MAX_PARALLEL_UPLOADS);
             Map<String, String> urlMap = new ConcurrentHashMap<>();
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (ImageData img : pendingImages) {
                 futures.add(CompletableFuture.runAsync(() -> {
-                    String imageUrl = ossService.uploadAndGetFileUrl(img.fileName(), img.bytes());
-                    urlMap.put(img.fileName(), imageUrl);
+                    permits.acquireUninterruptibly();
+                    try {
+                        String imageUrl = ossService.uploadAndGetFileUrl(img.fileName(), img.bytes());
+                        urlMap.put(img.fileName(), imageUrl);
+                    } finally {
+                        permits.release();
+                    }
                 }, executor));
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
@@ -108,7 +133,6 @@ public class PdfParser implements DocumentParser {
                 }
             }
         } finally {
-            executor.shutdown();
             pendingImages.clear();
         }
     }

@@ -7,16 +7,19 @@ import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
-import com.maxkb4j.common.mp.entity.ToolInputField;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.consts.ToolConstants;
+import com.maxkb4j.tool.dto.ToolConnectionTestDTO;
 import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.dto.ToolQuery;
+import com.maxkb4j.tool.dto.ToolSaveDTO;
 import com.maxkb4j.tool.entity.ToolEntity;
+import com.maxkb4j.tool.entity.ToolInputField;
 import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.tool.service.IToolInternalService;
 import com.maxkb4j.tool.vo.ToolCardVO;
+import com.maxkb4j.tool.vo.ToolItemVO;
 import com.maxkb4j.tool.vo.ToolListVO;
 import com.maxkb4j.tool.vo.ToolVO;
 import jakarta.servlet.http.HttpServletResponse;
@@ -52,7 +55,7 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool")
-    public R<Map<String, List<ToolCardVO>>> tools(String folderId, String[] toolTypeList) {
+    public R<Map<String, List<ToolItemVO>>> tools(String folderId, String[] toolTypeList) {
         return R.data(Map.of("folders", List.of(), "tools", toolService.listTools(folderId,ToolConstants.Scope.WORKSPACE, toolTypeList)));
     }
 
@@ -64,35 +67,43 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)
     @PostMapping("/tool/{templateId}/add_internal_tool")
-    public R<ToolVO> addInternalTool(@PathVariable String templateId,@RequestBody ToolEntity dto, @CurrentUserId String userId) {
-        dto.setId(null);
-        dto.setUserId(userId);
-        dto.setTemplateId(templateId);
-        dto.setScope("WORKSPACE");
-        dto.setToolType(ToolConstants.ToolType.CUSTOM);
+    public R<ToolVO> addInternalTool(@PathVariable String templateId,@RequestBody ToolSaveDTO dto, @CurrentUserId String userId) {
+        ToolEntity entity = BeanUtil.copy(dto, ToolEntity.class);
+        entity.setId(null);
+        entity.setUserId(userId);
+        entity.setTemplateId(templateId);
+        entity.setScope(ToolConstants.Scope.WORKSPACE);
+        if (StringUtils.isBlank(entity.getFolderId())){
+            entity.setFolderId(ToolConstants.Defaults.DEFAULT_FOLDER_ID);
+        }
+        entity.setToolType(ToolConstants.ToolType.CUSTOM);
         Date now = new Date();
-        dto.setCreateTime(now);
-        dto.setUpdateTime(now);
-        dto.setIsActive(false);
-        toolService.saveTool(dto);
-        return R.data(BeanUtil.copy(dto, ToolVO.class));
+        entity.setCreateTime(now);
+        entity.setUpdateTime(now);
+        entity.setIsActive(false);
+        toolService.saveTool(entity);
+        return R.data(BeanUtil.copy(entity, ToolVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)
     @PostMapping("/tool")
-    public R<ToolVO> toolLib(@RequestBody ToolEntity dto, @CurrentUserId String userId) {
-        dto.setIsActive(true);
-        if (StringUtils.isBlank(dto.getToolType())) {
-            dto.setToolType(ToolConstants.ToolType.CUSTOM);
+    public R<ToolVO> toolLib(@RequestBody ToolSaveDTO dto, @CurrentUserId String userId) {
+        ToolEntity entity = BeanUtil.copy(dto, ToolEntity.class);
+        entity.setIsActive(true);
+        if (StringUtils.isBlank(entity.getToolType())) {
+            entity.setToolType(ToolConstants.ToolType.CUSTOM);
         }
-        dto.setUserId(userId);
-        dto.setScope("WORKSPACE");
-        if (toolService.mcpServerConfigValid(dto)){
-            toolService.saveTool(dto);
+        if (StringUtils.isBlank(entity.getFolderId())){
+            entity.setFolderId(ToolConstants.Defaults.DEFAULT_FOLDER_ID);
+        }
+        entity.setUserId(userId);
+        entity.setScope("WORKSPACE");
+        if (toolService.mcpServerConfigValid(entity)){
+            toolService.saveTool(entity);
         }else {
             return R.fail(I18nUtil.get("tool.config.invalid"));
         }
-        return R.data(BeanUtil.copy(dto, ToolVO.class));
+        return R.data(BeanUtil.copy(entity, ToolVO.class));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_DEBUG)
@@ -124,10 +135,11 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_EDIT)
     @PutMapping("/tool/{id}")
-    public R<ToolVO> tool(@PathVariable String id, @RequestBody ToolEntity dto) throws IOException {
-        dto.setId(id);
-        if (toolService.mcpServerConfigValid(dto)){
-            return R.data(toolService.updateTool(dto));
+    public R<ToolVO> tool(@PathVariable String id, @RequestBody ToolSaveDTO dto) throws IOException {
+        ToolEntity entity = BeanUtil.copy(dto, ToolEntity.class);
+        entity.setId(id);
+        if (toolService.mcpServerConfigValid(entity)){
+            return R.data(toolService.updateTool(entity));
         }else {
             return R.fail(I18nUtil.get("tool.config.invalid"));
         }
@@ -146,7 +158,7 @@ public class ToolController {
     }
 
     @PostMapping("/tool/pylint")
-    public R<List<ToolVO>> pylint(@RequestBody ToolEntity dto) {
+    public R<List<ToolVO>> pylint() {
         return R.data(Collections.emptyList());
     }
 
@@ -164,7 +176,7 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_EDIT)
     @PostMapping("/tool/test_connection")
-    public R<Boolean> testConnection(@RequestBody ToolEntity dto) {
+    public R<Boolean> testConnection(@RequestBody ToolConnectionTestDTO dto) {
         return R.status(toolService.testConnection(dto.getCode()));
     }
 

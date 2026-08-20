@@ -140,20 +140,20 @@ public class DatabaseUtil {
 
     private static String generateCreateTableStatement(String tableName, DatabaseMetaData metaData) {
         StringBuilder createTableStatement = new StringBuilder();
-        try {
-            ResultSet columns = metaData.getColumns(null, null, tableName, null);
-            ResultSet pk = metaData.getPrimaryKeys(null, null, tableName);
-            ResultSet fks = metaData.getImportedKeys(null, null, tableName);
+        try (ResultSet columns = metaData.getColumns(null, null, tableName, null);
+             ResultSet pk = metaData.getPrimaryKeys(null, null, tableName);
+             ResultSet fks = metaData.getImportedKeys(null, null, tableName)) {
             String primaryKeyColumn = "";
             if (pk.next()) {
                 primaryKeyColumn = pk.getString("COLUMN_NAME");
             }
             createTableStatement.append("TABLE ").append(tableName);
-            ResultSet tableRemarks = metaData.getTables(null, null, tableName, null);
-            if (tableRemarks.next()) {
-                String tableComment = tableRemarks.getString("REMARKS");
-                if (tableComment != null && !tableComment.isEmpty()) {
-                    createTableStatement.append("(").append(tableComment).append(")");
+            try (ResultSet tableRemarks = metaData.getTables(null, null, tableName, null)) {
+                if (tableRemarks.next()) {
+                    String tableComment = tableRemarks.getString("REMARKS");
+                    if (tableComment != null && !tableComment.isEmpty()) {
+                        createTableStatement.append("(").append(tableComment).append(")");
+                    }
                 }
             }
             createTableStatement.append(" {\n");

@@ -26,14 +26,16 @@ public class LoopStartNodeHandler extends AbsNodeHandler {
             LoopParams loopParams = loopWorkFlow.getLoopParams();
             index = loopParams.getIndex();
             item = loopParams.getItem();
-            JSONArray loopInputFieldList = node.getProperties().getJSONArray("loopInputFieldList");
-            if (loopInputFieldList != null) {
-                for (int i = 0; i < loopInputFieldList.size(); i++) {
-                    JSONObject loopInputField = loopInputFieldList.getJSONObject(i);
-                    String key = loopInputField.getString("field");
-                    if (!loopWorkFlow.getLoopContext().containsKey(key)){
-                        loopWorkFlow.getLoopContext().put(key, "");
+            JSONObject properties = node.getProperties();
+            if (properties != null){
+                JSONArray loopInputFieldList = properties.getJSONArray("loopInputFieldList");
+                if (loopInputFieldList != null) {
+                    for (int i = 0; i < loopInputFieldList.size(); i++) {
+                        JSONObject loopInputField = loopInputFieldList.getJSONObject(i);
+                        String key = loopInputField.getString("field");
+                        loopInputField.put("value", workflow.getLoopContext().getOrDefault(key,"None"));
                     }
+                    putDetail(node, "loopInputFieldList", loopInputFieldList);
                 }
             }
         }

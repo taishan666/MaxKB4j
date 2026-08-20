@@ -33,9 +33,7 @@ public class CsvParser implements DocumentParser {
             return "";
         }
 
-        try {
-            // 将输入流包装为 TikaInputStream（支持 mark/reset）
-            TikaInputStream tikaStream = TikaInputStream.get(inputStream);
+        try (TikaInputStream tikaStream = TikaInputStream.get(inputStream)) {
             // 检测字符编码
             Metadata metadata = new Metadata();
             // 可选：设置文件名帮助检测

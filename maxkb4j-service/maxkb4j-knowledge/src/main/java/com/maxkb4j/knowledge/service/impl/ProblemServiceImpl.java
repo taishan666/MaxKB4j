@@ -57,7 +57,7 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
     /**
      * 基于段落内容生成相关问题，并建立关联
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void generateRelated(
             ChatModel chatModel,
             EmbeddingModel embeddingModel,
@@ -123,7 +123,7 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
         log.info("完成段落 [{}] 的问题生成，新增 {} 个问题，建立 {} 个关联", paragraph.getId(), newProblems.size(), associations.size());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean saveBatchProblems(List<ProblemEntity> problems){
         if (!problems.isEmpty()) {
             boolean saved = this.saveBatch(problems);
@@ -286,7 +286,7 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
                 .orElse(null);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean updateProblemById(ProblemEntity problem) {
         compositeStore.deleteByProblemIds(problem.getKnowledgeId(),List.of(problem.getId()));
         reIndexBatch(problem.getKnowledgeId(),List.of(problem.getId()));

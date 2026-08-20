@@ -137,15 +137,24 @@ public class BeanUtil {
      * 复制分页对象：将 IPage<S> 的记录逐条拷贝为 target 类型，保留分页元数据。
      */
     public static <S, T> IPage<T> copyPage(IPage<S> source, Class<T> target) {
+        return copyPage(source, r -> copy(r, target));
+    }
+
+    public static <S, T> IPage<T>  copyPage(IPage<S> source, Function<? super S, ? extends T> mapper) {
         Page<T> page = new Page<>();
         if (source == null) {
             return page;
         }
-        page.setRecords(copyList(source.getRecords(), target));
         page.setCurrent(source.getCurrent());
         page.setSize(source.getSize());
         page.setTotal(source.getTotal());
-        page.setPages(source.getPages());
+        // 对数据列表进行转换
+        List<S> originalList = source.getRecords();
+        List<T> transformedList = originalList.stream()
+                .map(mapper)
+                .collect(Collectors.toList());
+        // 设置转换后的列表到新页面
+        page.setRecords(transformedList);
         return page;
     }
 }

@@ -25,14 +25,14 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, TagEntity> implements
 
     private final IDocumentTagService documentTagService;
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean deleteTagId(String tagId) {
         documentTagService.lambdaUpdate().eq(DocumentTagEntity::getTagId,tagId).remove();
         return this.removeById(tagId);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean batchDelete(List<String> tagIds) {
         documentTagService.lambdaUpdate().in(DocumentTagEntity::getTagId,tagIds).remove();
         return this.removeByIds(tagIds);

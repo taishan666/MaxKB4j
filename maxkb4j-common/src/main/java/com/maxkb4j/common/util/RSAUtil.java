@@ -201,20 +201,16 @@ public class RSAUtil{
         try (PEMParser pemParser = new PEMParser(new StringReader(encryptPrivateKey))) {
             Object o = pemParser.readObject();
             if (o instanceof PKCS8EncryptedPrivateKeyInfo) { // encrypted private key in pkcs8-format
-              //  System.out.println("key in pkcs8 encoding");
                 PKCS8EncryptedPrivateKeyInfo epki = (PKCS8EncryptedPrivateKeyInfo) o;
-              //  System.out.println("encryption algorithm: " + epki.getEncryptionAlgorithm().getAlgorithm());
                 JcePKCSPBEInputDecryptorProviderBuilder builder =
                         new JcePKCSPBEInputDecryptorProviderBuilder().setProvider(PROVIDER);
                 InputDecryptorProvider idp = builder.build(passphrase.toCharArray());
                 pki = epki.decryptPrivateKeyInfo(idp);
             } else if (o instanceof PEMEncryptedKeyPair) { // encrypted private key in pkcs1-format
-             //   System.out.println("key in pkcs1 encoding");
                 PEMEncryptedKeyPair epki = (PEMEncryptedKeyPair) o;
                 PEMKeyPair pkp = epki.decryptKeyPair(new BcPEMDecryptorProvider(passphrase.toCharArray()));
                 pki = pkp.getPrivateKeyInfo();
             } else if (o instanceof PEMKeyPair) { // unencrypted private key
-              //  System.out.println("key unencrypted");
                 PEMKeyPair pkp = (PEMKeyPair) o;
                 pki = pkp.getPrivateKeyInfo();
             } else {

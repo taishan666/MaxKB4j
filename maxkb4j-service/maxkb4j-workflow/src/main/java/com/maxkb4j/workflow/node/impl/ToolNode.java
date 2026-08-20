@@ -3,7 +3,7 @@ import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.mp.entity.ToolInputField;
+import com.maxkb4j.tool.entity.ToolInputField;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;

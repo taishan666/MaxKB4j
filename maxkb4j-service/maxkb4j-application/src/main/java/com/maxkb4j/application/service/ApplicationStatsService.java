@@ -64,7 +64,9 @@ public class ApplicationStatsService {
         if (!CollectionUtils.isEmpty(list)) {
             Optional<ApplicationStatisticsVO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
             if (optional.isPresent()) {
-                return optional.get().getCustomerAddedCount();
+                // customerAddedCount 为 Integer，判空避免自动拆箱 NPE
+                Integer count = optional.get().getCustomerAddedCount();
+                return count == null ? 0 : count;
             }
         }
         return 0;

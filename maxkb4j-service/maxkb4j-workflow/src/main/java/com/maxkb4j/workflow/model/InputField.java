@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.model;
 
-import com.maxkb4j.common.domain.form.BaseField;
+import com.maxkb4j.model.form.BaseField;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

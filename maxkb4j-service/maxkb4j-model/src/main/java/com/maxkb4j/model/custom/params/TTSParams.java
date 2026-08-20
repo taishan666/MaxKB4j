@@ -1,8 +1,8 @@
 package com.maxkb4j.model.custom.params;
 
-import com.maxkb4j.common.domain.form.BaseField;
-import com.maxkb4j.common.domain.form.SingleSelectField;
-import com.maxkb4j.common.domain.form.SliderField;
+import com.maxkb4j.model.form.BaseField;
+import com.maxkb4j.model.form.SingleSelectField;
+import com.maxkb4j.model.form.SliderField;
 import com.maxkb4j.model.service.IModelParams;
 import lombok.Data;
 

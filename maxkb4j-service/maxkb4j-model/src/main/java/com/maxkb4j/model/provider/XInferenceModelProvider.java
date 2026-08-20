@@ -3,7 +3,7 @@ import com.maxkb4j.model.annotation.ModelProviderType;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.mp.entity.ModelCredential;
+import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.model.OpenAiSTTModel;
 import com.maxkb4j.model.custom.model.OpenAiTTSModel;

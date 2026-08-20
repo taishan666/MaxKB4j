@@ -33,12 +33,20 @@ public interface IWorkflowContext {
      */
     Map<String, Object> getPromptVariables();
     /**
-     * 获取引用字段值。
+     * 获取引用字段值（兼容层，内部委托 {@link NodeReference}；新代码请使用类型化重载）。
      *
      * @param reference 字段引用路径 [nodeId, fieldName]
-     * @return 字段值
+     * @return 字段值，引用非法时返回 null
      */
     Object getReferenceField(List<String> reference);
+
+    /**
+     * 获取引用字段值（类型化引用）。
+     *
+     * @param reference 类型化节点引用，null 时返回 null
+     * @return 字段值
+     */
+    Object getReferenceField(NodeReference reference);
 
     /**
      * 获取引用字段值（nodeId 为节点 ID 或作用域名 global/chat/loop）。

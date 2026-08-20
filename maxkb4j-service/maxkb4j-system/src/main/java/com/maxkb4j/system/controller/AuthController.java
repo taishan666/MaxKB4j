@@ -1,7 +1,6 @@
 package com.maxkb4j.system.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
-import cn.dev33.satoken.secure.SaSecureUtil;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
@@ -11,6 +10,7 @@ import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.service.IUserInternalService;
 import com.maxkb4j.system.dto.ResetPasswordDTO;
 import com.maxkb4j.system.dto.UserLoginDTO;
+import com.maxkb4j.system.security.PasswordService;
 import com.wf.captcha.SpecCaptcha;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +32,7 @@ import java.util.Objects;
 public class AuthController {
 
 	private final IUserInternalService userService;
+	private final PasswordService passwordService;
 
 	@PostMapping("/user/login")
 	public R<String> login(@Valid @RequestBody UserLoginDTO dto, HttpServletRequest request){
@@ -68,7 +69,7 @@ public class AuthController {
 		if (Objects.equals(password, rePassword)){
 			UserEntity user=new UserEntity();
 			user.setId(StpKit.ADMIN.getLoginIdAsString());
-			user.setPassword(SaSecureUtil.md5(password));
+			user.setPassword(passwordService.encode(password));
 			return R.status(userService.updateById(user));
 		}
 		return R.status(false);

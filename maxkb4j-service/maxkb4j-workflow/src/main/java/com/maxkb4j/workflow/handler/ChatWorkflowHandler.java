@@ -5,7 +5,7 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.model.IWorkflow;
-import com.maxkb4j.workflow.model.NodeResultFuture;
+import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +31,8 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
     }
 
     @Override
-    protected NodeResultFuture handleNodeError(IWorkflow workflow, AbsNode node, Exception ex) {
-        NodeResultFuture result = super.handleNodeError(workflow, node, ex);
+    protected NodeResult handleNodeError(IWorkflow workflow, AbsNode node, Exception ex) {
+        NodeResult result = super.handleNodeError(workflow, node, ex);
         emitErrorToSink(workflow, node, ex);
         return result;
     }

@@ -36,7 +36,7 @@ public class ProblemParagraphServiceImpl extends ServiceImpl<ProblemParagraphMap
         return baseMapper.getActivePPbyProblemIds(problemIds);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean association(String knowledgeId, String docId, String paragraphId, String problemId) {
         ProblemParagraphVO problemParagraph = new ProblemParagraphVO();
         problemParagraph.setKnowledgeId(knowledgeId);
@@ -49,7 +49,7 @@ public class ProblemParagraphServiceImpl extends ServiceImpl<ProblemParagraphMap
         return this.save(problemParagraph);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean unAssociation(String knowledgeId, String docId, String paragraphId, String problemId) {
         return this.lambdaUpdate()
                 .eq(ProblemParagraphEntity::getParagraphId, paragraphId)

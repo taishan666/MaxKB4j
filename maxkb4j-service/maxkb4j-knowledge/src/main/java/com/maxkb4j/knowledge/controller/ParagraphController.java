@@ -9,6 +9,7 @@ import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.dto.IdListDTO;
 import com.maxkb4j.knowledge.dto.ParagraphAddDTO;
+import com.maxkb4j.knowledge.dto.ParagraphUpdateDTO;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.service.IParagraphInternalService;
 import com.maxkb4j.knowledge.service.IProblemParagraphService;
@@ -48,7 +49,8 @@ public class ParagraphController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{docId}/paragraph/{paragraphId}")
-    public R<ParagraphBaseVO> updateParagraphById(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @RequestBody ParagraphEntity paragraph) {
+    public R<ParagraphBaseVO> updateParagraphById(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId, @RequestBody ParagraphUpdateDTO dto) {
+        ParagraphEntity paragraph = BeanUtil.copy(dto, ParagraphEntity.class);
         paragraph.setId(paragraphId);
         paragraphService.updateParagraphById(id, docId, paragraph);
         ParagraphEntity e = paragraphService.getById(paragraphId);

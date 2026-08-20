@@ -1,83 +1,70 @@
 package com.maxkb4j.trigger.service;
 
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.trigger.enums.ScheduleType;
+import com.maxkb4j.trigger.model.TriggerSetting;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
- * 下次执行时间计算器
+ * 下次执行时间计算器（第 3 期：入参类型化为 {@link TriggerSetting}）。
  */
 @Component
 public class NextRunTimeCalculator {
 
-
-    public LocalDateTime calculate(JSONObject triggerSetting){
-        if (triggerSetting == null) {
+    public LocalDateTime calculate(TriggerSetting setting) {
+        if (setting == null || setting.scheduleType() == null) {
             return null;
         }
-        String scheduleType = triggerSetting.getString("scheduleType");
-        if (scheduleType == null) {
+        if (setting.scheduleType() == ScheduleType.INTERVAL) {
+            return calculateInterval(setting);
+        }
+        String timeStr = setting.firstTime();
+        if (timeStr == null) {
             return null;
         }
-        if (ScheduleType.INTERVAL.getValue().equals(scheduleType)){
-            return calculateInterval(triggerSetting);
-        }else {
-            List<String> timeList = triggerSetting.getObject("time", new TypeReference<List<String>>() {});
-            if (CollectionUtils.isEmpty(timeList)) {
-                return null;
-            }
-            String timeStr = timeList.get(0);
-            String[] timeParts = timeStr.split(":");
-            if (timeParts.length < 2) {
-                return null;
-            }
-            try {
-                int hour = Integer.parseInt(timeParts[0]);
-                int minute = Integer.parseInt(timeParts[1]);
-                return switch (ScheduleType.fromValue(scheduleType)) {
-                    case DAILY -> DateTimeUtil.getNextDayAtTime(hour, minute, 0);
-                    case WEEKLY -> calculateWeekly(triggerSetting, hour, minute);
-                    case MONTHLY -> calculateMonthly(triggerSetting, hour, minute);
-                    // 处理未匹配的情况或 null
-                    default -> throw new IllegalArgumentException("Unsupported schedule type: " + scheduleType);
-                };
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException(e);
-            }
+        String[] timeParts = timeStr.split(":");
+        if (timeParts.length < 2) {
+            return null;
         }
+        int hour = Integer.parseInt(timeParts[0]);
+        int minute = Integer.parseInt(timeParts[1]);
+        return switch (setting.scheduleType()) {
+            case DAILY -> DateTimeUtil.getNextDayAtTime(hour, minute, 0);
+            case WEEKLY -> calculateWeekly(setting, hour, minute);
+            case MONTHLY -> calculateMonthly(setting, hour, minute);
+            case INTERVAL -> throw new IllegalStateException("INTERVAL already handled above");
+        };
     }
-    public String calculateStr(JSONObject triggerSetting) {
-        LocalDateTime nextRunTime = calculate(triggerSetting);
-        if (nextRunTime == null){
-            return "";
-        }else {
-            return nextRunTime.toString();
+
+    public String calculateStr(TriggerSetting setting) {
+        LocalDateTime nextRunTime = calculate(setting);
+        return nextRunTime == null ? "" : nextRunTime.toString();
+    }
+
+    private LocalDateTime calculateWeekly(TriggerSetting setting, int hour, int minute) {
+        String day = setting.firstDay();
+        if (day == null) {
+            return null;
         }
+        return DateTimeUtil.getSameDayNextWeek(Integer.parseInt(day), hour, minute, 0);
     }
 
-    private LocalDateTime calculateWeekly(JSONObject setting, int hour, int minute) {
-        List<String> days = setting.getObject("days", new TypeReference<List<String>>() {});
-        if (CollectionUtils.isEmpty(days)) return null;
-        return DateTimeUtil.getSameDayNextWeek(Integer.parseInt(days.get(0)), hour, minute, 0);
+    private LocalDateTime calculateMonthly(TriggerSetting setting, int hour, int minute) {
+        String day = setting.firstDay();
+        if (day == null) {
+            return null;
+        }
+        return DateTimeUtil.getSameDayNextMonth(Integer.parseInt(day), hour, minute, 0);
     }
 
-    private LocalDateTime calculateMonthly(JSONObject setting, int hour, int minute) {
-        List<String> days =setting.getObject("days", new TypeReference<List<String>>() {});
-        if (CollectionUtils.isEmpty(days)) return null;
-        return DateTimeUtil.getSameDayNextMonth(Integer.parseInt(days.get(0)), hour, minute, 0);
-    }
-
-    private LocalDateTime calculateInterval(JSONObject setting) {
-        Object value = setting.get("intervalValue");
-        String unit = setting.getString("intervalUnit");
-        if (value == null || unit == null) return null;
+    private LocalDateTime calculateInterval(TriggerSetting setting) {
+        Integer value = setting.intervalValue();
+        String unit = setting.intervalUnit();
+        if (value == null || unit == null) {
+            return null;
+        }
         return DateTimeUtil.getSameDayNextInterval(value.toString(), unit, 0);
     }
-
 }

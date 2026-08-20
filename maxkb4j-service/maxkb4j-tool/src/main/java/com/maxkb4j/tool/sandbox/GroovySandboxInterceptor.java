@@ -1,6 +1,7 @@
 package com.maxkb4j.tool.sandbox;
 
 import groovy.lang.Closure;
+import groovy.lang.Script;
 import org.kohsuke.groovy.sandbox.GroovyInterceptor;
 
 import java.lang.reflect.AccessibleObject;
@@ -254,6 +255,12 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             return validateReturnValue(invoker.call(receiver, method, args));
         }
 
+        if (receiver instanceof Script) {
+            // 脚本自身实例：方法体已通过编译期 SecureAST 校验并被沙箱转换，
+            // 对绑定变量与脚本内自定义函数的访问直接放行，其发起的外部调用仍会被逐层拦截
+            return validateReturnValue(invoker.call(receiver, method, args));
+        }
+
         Class<?> receiverClass = receiver.getClass();
         String className = normalizeClassName(receiverClass);
         if (!isAllowedReceiver(receiverClass, method)) {
@@ -302,6 +309,11 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             return validateReturnValue(invoker.call(receiver, property));
         }
 
+        if (receiver instanceof Script) {
+            // 脚本读取自身绑定变量（Script.getProperty 会回退到 Binding）
+            return validateReturnValue(invoker.call(receiver, property));
+        }
+
         Class<?> receiverClass = receiver.getClass();
         String className = normalizeClassName(receiverClass);
         if (!isAllowedType(receiverClass)) {
@@ -317,6 +329,11 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
         }
         validateValue(value);
         if (receiver == null) {
+            return validateReturnValue(invoker.call(receiver, property, value));
+        }
+
+        if (receiver instanceof Script) {
+            // 脚本写入自身绑定变量（Script.setProperty 会回退到 Binding）
             return validateReturnValue(invoker.call(receiver, property, value));
         }
 

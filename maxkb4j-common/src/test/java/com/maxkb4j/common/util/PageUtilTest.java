@@ -39,7 +39,7 @@ class PageUtilTest {
 
     @Test
     void copy_byClass_copiesRecordsAndMetadata() {
-        IPage<Target> result = PageUtil.copy(
+        IPage<Target> result = BeanUtil.copyPage(
                 page(List.of(new Source("a"), new Source("b"))), Target.class);
 
         assertThat(result.getRecords()).hasSize(2);
@@ -49,19 +49,10 @@ class PageUtilTest {
         assertThat(result.getTotal()).isEqualTo(55L);
     }
 
-    @Test
-    void copy_byClassAndList_usesProvidedList() {
-        Page<Source> page = page(List.of(new Source("ignored")));
-        IPage<Target> result = PageUtil.copy(
-                page, List.of(new Source("x"), new Source("y"), new Source("z")), Target.class);
-
-        assertThat(result.getRecords()).hasSize(3);
-        assertThat(result.getRecords().get(2).getName()).isEqualTo("z");
-    }
 
     @Test
     void copy_byMapper_transformsRecords() {
-        IPage<String> result = PageUtil.copy(
+        IPage<String> result = BeanUtil.copyPage(
                 page(List.of(new Source("a"), new Source("b"))), Source::getName);
 
         assertThat(result.getRecords()).containsExactly("a", "b");

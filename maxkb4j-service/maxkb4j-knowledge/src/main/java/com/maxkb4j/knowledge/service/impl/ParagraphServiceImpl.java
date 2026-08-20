@@ -75,7 +75,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateParagraphById(String knowledgeId,String docId,ParagraphEntity paragraph) {
         this.updateById(paragraph);
         if (Objects.nonNull(paragraph.getContent())){
@@ -86,7 +86,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean deleteBatchByIds(String knowledgeId,String docId, List<String> paragraphIds) {
         compositeStore.deleteByParagraphIds(knowledgeId,paragraphIds);
         this.removeByIds(paragraphIds);
@@ -94,7 +94,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean saveParagraphAndProblem(String knowledgeId, String docId, ParagraphAddDTO addDTO) {
         ParagraphDTO paragraph= new ParagraphDTO(knowledgeId, docId, addDTO.getTitle(), addDTO.getContent(),addDTO.getPosition());
         List<ProblemDTO> problemList = addDTO.getProblemList();
@@ -107,7 +107,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
 
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean saveParagraphAndProblem(ParagraphDTO paragraph, List<String> problems) {
         this.save(BeanUtil.copy(paragraph, ParagraphEntity.class));
         if (!CollectionUtils.isEmpty(problems)) {
@@ -150,7 +150,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean save(ParagraphEntity paragraph) {
         List<ParagraphEntity> list = this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, paragraph.getKnowledgeId()).eq(ParagraphEntity::getDocumentId, paragraph.getDocumentId()).list();
         List<ParagraphEntity> updateList=list.stream().filter(e->e.getPosition()>=paragraph.getPosition()).peek(e-> e.setPosition(e.getPosition()+1)).toList();
@@ -162,7 +162,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
 
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean saveDtoBatch(List<ParagraphDTO> paragraphs) {
         Map<String,List<ParagraphDTO>> knowledgeGroup = paragraphs.stream()
                 .filter(e -> e.getKnowledgeId() != null)
@@ -218,7 +218,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
         return true;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean adjustPosition(String knowledgeId, String documentId, String paragraphId, Integer newPosition, Integer targetIndex) {
         if (newPosition == null || newPosition < 1) {
             return false;
@@ -299,7 +299,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteById(String knowledgeId,String paragraphId) {
         compositeStore.deleteByParagraphId(knowledgeId, paragraphId);
         problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getParagraphId, paragraphId).remove();

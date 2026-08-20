@@ -319,6 +319,7 @@ Copyright © 2025–2035 洛阳泰山 TARZAN. All rights reserved.
 - 📘 [开源模型库](https://modelscope.cn/models)
 - 🐦 [MCP 广场](https://modelscope.cn/mcp)
 - 🌐 [Skills 中心](https://modelscope.cn/skills)
+- 🐦 [Skillhub](https://skillhub.cloud.tencent.com/)
 
 >  🌟 **Star 本项目，助力国产开源 AI 生态！** </br>
 

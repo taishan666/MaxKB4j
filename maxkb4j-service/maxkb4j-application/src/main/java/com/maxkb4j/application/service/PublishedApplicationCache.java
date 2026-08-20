@@ -21,13 +21,21 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class PublishedApplicationCache {
 
+    private static final int INITIAL_CAPACITY = 64;
+
+    /** 缓存最大容量（应用数）。 */
+    private static final int MAXIMUM_SIZE = 1000;
+
+    /** 缓存过期时间（分钟）。 */
+    private static final int EXPIRE_AFTER_WRITE_MINUTES = 10;
+
     private final ApplicationVersionService applicationVersionService;
     private final ApplicationDetailAssembler detailAssembler;
 
     private final Cache<String, ApplicationVO> cache = Caffeine.newBuilder()
-            .initialCapacity(64)
-            .maximumSize(1000)
-            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .initialCapacity(INITIAL_CAPACITY)
+            .maximumSize(MAXIMUM_SIZE)
+            .expireAfterWrite(EXPIRE_AFTER_WRITE_MINUTES, TimeUnit.MINUTES)
             .build();
 
     /**

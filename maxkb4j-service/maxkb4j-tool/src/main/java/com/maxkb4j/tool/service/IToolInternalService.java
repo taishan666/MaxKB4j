@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.vo.ToolCardVO;
+import com.maxkb4j.tool.vo.ToolItemVO;
 import com.maxkb4j.tool.vo.ToolListVO;
 import com.maxkb4j.tool.vo.ToolVO;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,7 +37,7 @@ public interface IToolInternalService extends IToolService, IService<ToolEntity>
 
     boolean removeToolById(String id);
 
-    List<ToolCardVO> listTools(String folderId, String scope, String[] toolTypeList);
+    List<ToolItemVO> listTools(String folderId, String scope, String[] toolTypeList);
 
     List<ToolListVO> toolList(String scope, String toolType);
 

@@ -3,13 +3,13 @@ package com.maxkb4j.workflow.engine.graph;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.engine.*;
 import com.maxkb4j.workflow.enums.NodeType;
+import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
 import reactor.core.publisher.Sinks;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,7 +19,6 @@ import java.util.Objects;
  * <ul>
  *   <li>复用父工作流的上下文（共享全局/聊天/循环变量）与历史管理器</li>
  *   <li>基于循环体节点与边构建独立的配置</li>
- *   <li>使用 {@link LoopExecutionAccessor} 覆盖 startNode 以返回 LoopStart 节点</li>
  * </ul>
  */
 @Getter
@@ -44,33 +43,24 @@ public abstract class AbstractLoopWorkflow extends AbstractWorkflow {
     protected static Components composeLoopComponents(AbstractWorkflow parent, List<AbsNode> nodes,
                                                       List<LfEdge> edges, Sinks.Many<ChatMessageVO> sink) {
         Objects.requireNonNull(parent, "parent workflow cannot be null");
-        WorkflowConfiguration configuration = new WorkflowConfiguration(
-                parent.configuration.getWorkflowMode(), nodes, edges);
-        WorkflowContext sharedContext = parent.workflowContext;
+        WorkflowMode workflowMode=parent.configuration.getWorkflowMode();
+        if (WorkflowMode.APPLICATION.equals(workflowMode)){
+            workflowMode = WorkflowMode.APPLICATION_LOOP;
+        } else if (WorkflowMode.KNOWLEDGE.equals(workflowMode)){
+            workflowMode = WorkflowMode.KNOWLEDGE_LOOP;
+        }
+        WorkflowConfiguration configuration = new WorkflowConfiguration(workflowMode, nodes, edges);
+        WorkflowContext sharedContext = new WorkflowContext(parent.workflowContext);
         EdgeNavigator navigator = new EdgeNavigator(edges);
-        WorkflowExecutionAccessor executionAccessor =
-                new LoopExecutionAccessor(configuration, sharedContext, navigator);
-        WorkflowOutputManager outputManager =
-                new WorkflowOutputManager(configuration, sharedContext, sink);
+        WorkflowExecutionAccessor executionAccessor = new WorkflowExecutionAccessor(configuration, sharedContext, navigator);
+        WorkflowOutputManager outputManager = new WorkflowOutputManager(configuration, sharedContext, sink);
         return new Components(configuration, sharedContext, parent.historyManager,
                 executionAccessor, outputManager);
     }
 
-    /**
-     * 循环工作流的执行控制器
-     * 覆盖 startNode 以返回 LoopStart 节点
-     */
-    protected static class LoopExecutionAccessor extends WorkflowExecutionAccessor {
 
-        public LoopExecutionAccessor(WorkflowConfiguration configuration,
-                                     WorkflowContext context,
-                                     EdgeNavigator navigator) {
-            super(configuration, context, navigator);
-        }
-
-        @Override
-        public AbsNode startNode() {
-            return getNodeInstance(NodeType.LOOP_START.getKey(), Collections.emptyList(), null);
-        }
+    @Override
+    public List<AbsNode> startNodes() {
+        return List.of(getNodeInstance(NodeType.LOOP_START.getKey(), List.of(), null));
     }
 }

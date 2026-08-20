@@ -87,7 +87,6 @@ public class TriggerTaskExecutor {
             } catch (Exception e) {
                 log.error("Error executing task {} for trigger {}: {}",
                         task.getId(), triggerId, e.getMessage(), e);
-                saveRecord(triggerId, task.getId(), task.getSourceType(), task.getSourceId(), TaskState.FAILURE, 0f, new JSONObject());
             }
         }
     }

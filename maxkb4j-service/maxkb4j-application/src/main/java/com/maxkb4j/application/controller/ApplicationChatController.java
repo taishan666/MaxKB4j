@@ -2,6 +2,7 @@ package com.maxkb4j.application.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.application.dto.ChatQueryDTO;
+import com.maxkb4j.application.dto.ChatUpdateDTO;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.vo.ApplicationChatVO;
 import com.maxkb4j.application.service.IApplicationChatInternalService;
@@ -34,7 +35,10 @@ public class ApplicationChatController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/chat/client/{chatId}")
-    public R<Boolean> updateChat(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @RequestBody ApplicationChatEntity chatEntity) {
+    public R<Boolean> updateChat(@PathVariable("id") String id, @PathVariable("chatId") String chatId, @RequestBody ChatUpdateDTO dto) {
+        ApplicationChatEntity chatEntity = new ApplicationChatEntity();
+        chatEntity.setSummary(dto.getSummary());
+        chatEntity.setMarkSum(dto.getMarkSum());
         return R.status(chatService.updateByApplicationId(id, chatId, chatEntity));
     }
 

@@ -3,6 +3,7 @@ package com.maxkb4j.common.api;
 
 import com.maxkb4j.common.util.I18nUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -10,6 +11,7 @@ import java.io.Serializable;
  * @author tarzan
  * @date 2024-12-25 10:20:33
  */
+@Data
 @Schema(description = "返回信息")
 public class R<T> implements Serializable {
     @Serial
@@ -78,7 +80,7 @@ public class R<T> implements Serializable {
     }
 
     public static <T> R<T> fail(int code, String message) {
-        return new R(code, (Object)null, message);
+        return new R<>(code, null, message);
     }
 
     public static <T> R<T> fail(IResultCode resultCode) {
@@ -99,35 +101,6 @@ public class R<T> implements Serializable {
 
     public static <T> R<T> notExists() {
         return new R(ResultCode.FAILURE, I18nUtil.get("common.record.not.exists"));
-    }
-
-    public int getCode() {
-        return this.code;
-    }
-
-    public T getData() {
-        return this.data;
-    }
-
-    public String getMessage() {
-        return this.message;
-    }
-
-    public void setCode(final int code) {
-        this.code = code;
-    }
-
-
-    public void setData(final T data) {
-        this.data = data;
-    }
-
-    public void setMessage(final String message) {
-        this.message = message;
-    }
-
-    public String toString() {
-        return "R(code=" + this.getCode() + ", data=" + this.getData() + ", message=" + this.getMessage() + ")";
     }
 
     public R() {

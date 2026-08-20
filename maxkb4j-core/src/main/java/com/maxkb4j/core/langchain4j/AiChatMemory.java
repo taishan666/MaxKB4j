@@ -82,6 +82,7 @@ public class AiChatMemory implements ChatMemory {
         if (Objects.nonNull(chatId)){
             return builder().id(chatId).messages(historyMessages).build();
         }
-        return builder().messages(List.of()).build();
+        // 不能使用 List.of()：不可变列表会导致后续 add() 抛 UnsupportedOperationException
+        return builder().messages(new ArrayList<>()).build();
     }
 }

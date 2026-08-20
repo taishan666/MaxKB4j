@@ -35,7 +35,7 @@ public class DocumentMigrationService {
     private final IDocumentTagService documentTagService;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean migrateDoc(String sourceKnowledgeId, String targetKnowledgeId, List<String> docIds) {
         if (CollectionUtils.isEmpty(docIds)) {
             return false;

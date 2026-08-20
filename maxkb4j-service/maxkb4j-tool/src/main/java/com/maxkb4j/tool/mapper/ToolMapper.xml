@@ -2,27 +2,24 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.maxkb4j.tool.mapper.ToolMapper">
 
-    <resultMap id="toolCardResultMap" type="com.maxkb4j.tool.vo.ToolCardVO">
-        <result property="initFieldList" column="init_field_list" typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
-        <result property="initParams" column="init_params" typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
-        <result property="inputFieldList" column="input_field_list" typeHandler="com.maxkb4j.common.typehandler.ToolInputParamsTypeHandler"/>
+    <resultMap id="toolCardVoResultMap" type="com.maxkb4j.tool.vo.ToolCardVO">
+        <result property="initFieldList" column="init_field_list"
+                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
     </resultMap>
 
-    <select id="pageList" resultMap="toolCardResultMap">
+    <select id="pageList" resultMap="toolCardVoResultMap">
         SELECT
         t.ID,
         t.name,
         t.desc,
         t.icon,
         t.tool_type,
+        t.init_field_list,
         u.nickname,
         t.is_active,
         t.template_id,
         t.version,
         t.create_time,
-        t.init_field_list,
-        t.init_params,
-        t.input_field_list,
         COALESCE(
         (
         SELECT COUNT(*)
@@ -70,18 +67,24 @@
     </select>
 
 
-    <select id="listTools" resultMap="toolCardResultMap">
+    <resultMap id="toolItemVoResultMap" type="com.maxkb4j.tool.vo.ToolItemVO">
+        <result property="inputFieldList" column="input_field_list"
+                typeHandler="com.maxkb4j.tool.typehandler.ToolInputParamsTypeHandler"/>
+        <result property="initParams" column="init_params"
+                typeHandler="com.maxkb4j.common.typehandler.JSONBTypeHandler"/>
+    </resultMap>
+
+    <select id="listTools" resultMap="toolItemVoResultMap">
         SELECT
         t.id,
         t.name,
         t."desc",
         t.icon,
         t.tool_type,
+        t.input_field_list,
+        t.init_params,
         t.is_active,
         t.create_time,
-        t.init_field_list,
-        t.init_params,
-        t.input_field_list,
         u.nickname
         FROM tool t
         LEFT JOIN "user" u ON t.user_id = u.id

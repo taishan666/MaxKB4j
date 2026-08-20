@@ -15,6 +15,15 @@ common:
   file:
     limit:
       exceeded: 文件数量超出限制
+      type:
+        not:
+          allowed: 不支持的文件类型
+      size:
+        exceeded: 文件大小超出限制（最大 {0} MB）
+    empty: 文件内容为空
+  request:
+    context:
+      missing: 无法获取请求上下文
 
 login:
   password:
@@ -30,6 +39,9 @@ login:
     disabled: 该用户已被禁用，请联系管理员！
   not:
     login: 未登录
+  too:
+    many:
+      attempts: 登录失败次数过多，请15分钟后再试
   "no":
     permission: 无此权限
   access:
@@ -141,3 +153,8 @@ workflow:
   condition:
     "no":
       match: 条件节点未匹配到任何分支
+
+knowledge:
+  split:
+    pattern:
+      invalid: 分段正则表达式无效：{0}

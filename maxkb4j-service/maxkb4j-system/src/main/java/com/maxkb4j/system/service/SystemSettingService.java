@@ -3,6 +3,7 @@ package com.maxkb4j.system.service;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.system.entity.SystemSettingEntity;
+import com.maxkb4j.common.enums.SettingType;
 import com.maxkb4j.system.mapper.SystemSettingMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class SystemSettingService extends ServiceImpl<SystemSettingMapper, SystemSettingEntity>{
+public class SystemSettingService extends ServiceImpl<SystemSettingMapper, SystemSettingEntity> implements ISystemSettingService {
 
     private final EmailService emailService;
 
@@ -22,11 +23,19 @@ public class SystemSettingService extends ServiceImpl<SystemSettingMapper, Syste
        return emailService.testConnect(meta);
     }
 
-    @Transactional
-    public boolean saveOrUpdate(JSONObject meta,int type) {
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean saveOrUpdate(JSONObject meta,SettingType settingType) {
         SystemSettingEntity systemSetting=new SystemSettingEntity();
         systemSetting.setMeta(meta);
-        systemSetting.setType(type);
+        systemSetting.setType(settingType.getType());
         return this.saveOrUpdate(systemSetting);
+    }
+
+    @Override
+    public JSONObject getSettingMeta(SettingType settingType) {
+        SystemSettingEntity systemSetting = this.lambdaQuery()
+                .eq(SystemSettingEntity::getType, settingType.getType()).one();
+        return systemSetting == null ? null : systemSetting.getMeta();
     }
 }

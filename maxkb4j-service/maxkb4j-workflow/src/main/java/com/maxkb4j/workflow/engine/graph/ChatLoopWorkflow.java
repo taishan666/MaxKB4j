@@ -49,7 +49,9 @@ public class ChatLoopWorkflow extends AbstractLoopWorkflow implements IChatWorkf
         super(composeLoopComponents(parent, nodes, edges, sink), loopParams);
         this.chatParams = parent.getChatParams();
         this.chatState = parent.getChatState();
-        restoreNodeState(details);
+        if (details != null&&!details.isEmpty()){
+            restoreNodeState(details);
+        }
     }
 
     /**
@@ -64,7 +66,11 @@ public class ChatLoopWorkflow extends AbstractLoopWorkflow implements IChatWorkf
             log.warn("Skip restoring loop node state: chatParams is null");
             return;
         }
+        String  currentNodeId=chatParams.getRuntimeNodeId();
+        if (chatParams.getChildNode() != null){
+            currentNodeId=chatParams.getChildNode().getRuntimeNodeId();
+        }
         this.executionAccessor.loadNodeState(this, details,
-                chatParams.getRuntimeNodeId(), chatParams.getNodeData());
+                currentNodeId, chatParams.getNodeData());
     }
 }

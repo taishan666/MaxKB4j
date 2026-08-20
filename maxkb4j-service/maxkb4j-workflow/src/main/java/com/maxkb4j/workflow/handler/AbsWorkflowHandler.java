@@ -4,7 +4,6 @@ import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.NodeResultFuture;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
@@ -44,12 +43,12 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
     @Override
     public void execute(IWorkflow workflow) {
         AbsNode currentNode = workflow.execution().currentNode();
-        if (currentNode == null) {
-            currentNode = workflow.execution().startNode();
-        }
-        log.info("Workflow started");
-        runChainNodes(workflow, List.of(currentNode));
-        log.info("Workflow completed");
+        List<AbsNode> startNodes = currentNode == null ? workflow.startNodes() : List.of(currentNode);
+        log.info("{} workflow started", workflow.getWorkflowMode());
+        onProcessStart(workflow);
+        runChainNodes(workflow, startNodes);
+        onProcessCompleted(workflow);
+        log.info("{} workflow completed", workflow.getWorkflowMode());
     }
 
     protected void runChainNodes(IWorkflow workflow, List<AbsNode> nodeList) {
@@ -129,9 +128,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         if (!workflow.execution().dependenciesExecuted(node) || !node.tryClaimRunning()) {
             return List.of();
         }
-        NodeResultFuture nodeResultFuture = runNodeFuture(workflow, node);
-        node.setStatus(nodeResultFuture.getStatus());
-        NodeResult result = nodeResultFuture.getResult();
+        NodeResult result = runNode(workflow, node);
         if (result != null) {
             result.writeDetail(node);
             result.writeContext(node, workflow);
@@ -158,16 +155,14 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             resultFuture = nodeHandler.execute(workflow, node);
         } catch (Exception ex) {
             // Synchronous exception thrown by execute() itself (e.g. pre-processing failure)
-            NodeResultFuture errorResult = handleNodeError(workflow, node, ex);
-            node.setStatus(errorResult.getStatus());
+            handleNodeError(workflow, node, ex);
             return CompletableFuture.completedFuture(List.of());
         }
         return resultFuture.handle((result, ex) -> {
             if (ex != null) {
                 Throwable cause = ex instanceof CompletionException ? ex.getCause() : ex;
                 Exception realEx = cause instanceof Exception ? (Exception) cause : new RuntimeException(cause);
-                NodeResultFuture errorResult = handleNodeError(workflow, node, realEx);
-                node.setStatus(errorResult.getStatus());
+                handleNodeError(workflow, node, realEx);
                 return List.of();
             }
             if (result != null) {
@@ -192,16 +187,18 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
     }
 
     /**
-     * Runs the node handler and converts failures into an error {@link NodeResultFuture}.
+     * Runs the node handler and converts failures into an error {@link NodeResult},
+     * setting the outcome status (SUCCESS/ERROR) on the node directly.
      * Error handling is unified in the {@link ExceptionResolverChain}.
      */
-    protected NodeResultFuture runNodeFuture(IWorkflow workflow, AbsNode node) {
+    protected NodeResult runNode(IWorkflow workflow, AbsNode node) {
         try {
             onNodeStart(workflow, node);
             workflow.execution().recordExecution(node);
             INodeHandler nodeHandler = nodeCenter.getHandler(node.getType());
             NodeResult result = nodeHandler.execute(workflow, node).join();
-            return new NodeResultFuture(NodeStatus.SUCCESS.getStatus(), result, null);
+            node.setStatus(NodeStatus.SUCCESS.getStatus());
+            return result;
         } catch (CompletionException ex) {
             Throwable cause = ex.getCause();
             Exception realEx = cause instanceof Exception ? (Exception) cause : new RuntimeException(cause);
@@ -224,12 +221,25 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
     }
 
     /**
-     * Handles node execution errors through the {@link ExceptionResolverChain}.
+     * Hook called after successful node execution; subclasses may override.
      */
-    protected NodeResultFuture handleNodeError(IWorkflow workflow, AbsNode node, Exception ex) {
+    protected void onProcessStart(IWorkflow workflow) {
+    }
+
+    /**
+     * Hook called after successful node execution; subclasses may override.
+     */
+    protected void onProcessCompleted(IWorkflow workflow) {
+    }
+
+    /**
+     * Handles node execution errors through the {@link ExceptionResolverChain}.
+     * Sets ERROR status on the node and returns an empty error NodeResult.
+     */
+    protected NodeResult handleNodeError(IWorkflow workflow, AbsNode node, Exception ex) {
         exceptionResolverChain.resolve(workflow, node, ex);
-        NodeResult errorResult = new NodeResult(Map.of());
-        return new NodeResultFuture(NodeStatus.ERROR.getStatus(), errorResult, ex);
+        node.setStatus(NodeStatus.ERROR.getStatus());
+        return new NodeResult(Map.of());
     }
 
 }

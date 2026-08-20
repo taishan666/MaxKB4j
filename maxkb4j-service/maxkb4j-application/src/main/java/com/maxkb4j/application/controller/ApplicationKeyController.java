@@ -1,6 +1,7 @@
 package com.maxkb4j.application.controller;
 
 import com.maxkb4j.application.entity.ApplicationApiKeyEntity;
+import com.maxkb4j.application.dto.ApiKeyUpdateDTO;
 import com.maxkb4j.application.vo.ApplicationApiKeyVO;
 import com.maxkb4j.application.service.IApplicationApiKeyInternalService;
 import com.maxkb4j.common.annotation.SaCheckPerm;
@@ -38,7 +39,11 @@ public class ApplicationKeyController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PutMapping("/application/{id}/application_key/{apiKeyId}")
-    public R<Boolean> updateApikey(@PathVariable("id") String id, @PathVariable("apiKeyId") String apiKeyId, @RequestBody ApplicationApiKeyEntity apiKeyEntity) {
+    public R<Boolean> updateApikey(@PathVariable("id") String id, @PathVariable("apiKeyId") String apiKeyId, @RequestBody ApiKeyUpdateDTO dto) {
+        ApplicationApiKeyEntity apiKeyEntity = new ApplicationApiKeyEntity();
+        apiKeyEntity.setIsActive(dto.getIsActive());
+        apiKeyEntity.setAllowCrossDomain(dto.getAllowCrossDomain());
+        apiKeyEntity.setCrossDomainList(dto.getCrossDomainList());
         return R.status(apiKeyService.updateApikey(id, apiKeyId, apiKeyEntity));
     }
 

@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.application.pipeline.step.generatehumanmessagestep.AbsGenerateHumanMessageStep;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
-import com.maxkb4j.common.mp.entity.LlmModelSetting;
+import com.maxkb4j.application.entity.LlmModelSetting;
 import com.maxkb4j.core.support.RagContentInjector;
 import com.maxkb4j.knowledge.vo.ParagraphRagVO;
 import org.springframework.stereotype.Component;

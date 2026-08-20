@@ -36,16 +36,33 @@ public class ApplicationChatRecordCleanJob {
         appWrapper.select(ApplicationEntity::getId,ApplicationEntity::getCleanTime);
         List<ApplicationEntity> applications = applicationService.list(appWrapper);
         for (ApplicationEntity application : applications) {
-            long cleanTime = application.getCleanTime();
-            Date cleanTimeAgo = Date.from(Instant.now().minusSeconds(cleanTime * 24 * 60 * 60));
-            LambdaQueryWrapper<ApplicationChatEntity> chatWrapper=Wrappers.lambdaQuery();
-            chatWrapper.eq(ApplicationChatEntity::getId,application.getId());
-            chatWrapper.lt(ApplicationChatEntity::getCreateTime,cleanTimeAgo);
-            chatService.remove(chatWrapper);
-            LambdaQueryWrapper<ApplicationChatRecordEntity> chatRecordWrapper=Wrappers.lambdaQuery();
-            chatRecordWrapper.eq(ApplicationChatRecordEntity::getId,application.getId());
-            chatRecordWrapper.lt(ApplicationChatRecordEntity::getCreateTime,cleanTimeAgo);
-            chatRecordService.remove(chatRecordWrapper);
+            // 单个应用清理失败不应中断其余应用的清理
+            try {
+                Integer cleanTimeDays = application.getCleanTime();
+                // cleanTime 为空或 <=0 表示不自动清理
+                if (cleanTimeDays == null || cleanTimeDays <= 0) {
+                    continue;
+                }
+                Date cleanTimeAgo = Date.from(Instant.now().minusSeconds(cleanTimeDays * 24L * 60 * 60));
+                // 先查出该应用下过期的会话，再级联清理其聊天记录
+                LambdaQueryWrapper<ApplicationChatEntity> chatWrapper = Wrappers.lambdaQuery();
+                chatWrapper.select(ApplicationChatEntity::getId);
+                chatWrapper.eq(ApplicationChatEntity::getApplicationId, application.getId());
+                chatWrapper.lt(ApplicationChatEntity::getCreateTime, cleanTimeAgo);
+                List<String> expiredChatIds = chatService.list(chatWrapper)
+                        .stream().map(ApplicationChatEntity::getId).toList();
+                if (expiredChatIds.isEmpty()) {
+                    continue;
+                }
+                LambdaQueryWrapper<ApplicationChatRecordEntity> chatRecordWrapper = Wrappers.lambdaQuery();
+                chatRecordWrapper.in(ApplicationChatRecordEntity::getChatId, expiredChatIds);
+                chatRecordService.remove(chatRecordWrapper);
+                LambdaQueryWrapper<ApplicationChatEntity> removeChatWrapper = Wrappers.lambdaQuery();
+                removeChatWrapper.in(ApplicationChatEntity::getId, expiredChatIds);
+                chatService.remove(removeChatWrapper);
+            } catch (Exception e) {
+                log.error("清理应用[{}]聊天记录失败", application.getId(), e);
+            }
         }
         log.info("结束清理应用聊天记录");
     }

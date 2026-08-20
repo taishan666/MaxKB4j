@@ -5,6 +5,8 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.dto.IdListDTO;
+import com.maxkb4j.knowledge.dto.TagAddDTO;
+import com.maxkb4j.knowledge.dto.TagUpdateDTO;
 import com.maxkb4j.knowledge.entity.TagEntity;
 import com.maxkb4j.knowledge.service.ITagService;
 import com.maxkb4j.knowledge.util.TagUtil;
@@ -29,8 +31,14 @@ public class KnowledgeTagsController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/{id}/tags")
-    public R<Boolean> addTags(@PathVariable String id, @RequestBody List<TagEntity> tags) {
-        return R.status(tagService.addTags(id, tags));
+    public R<Boolean> addTags(@PathVariable String id, @RequestBody List<TagAddDTO> tags) {
+        List<TagEntity> entities = tags == null ? List.of() : tags.stream().map(dto -> {
+            TagEntity entity = new TagEntity();
+            entity.setKey(dto.getKey());
+            entity.setValue(dto.getValue());
+            return entity;
+        }).toList();
+        return R.status(tagService.addTags(id, entities));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_READ)
@@ -43,7 +51,11 @@ public class KnowledgeTagsController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_EDIT)
     @PutMapping("/knowledge/{id}/tags/{tagId}")
-    public R<Boolean> updateTagId(@PathVariable("id") String id, @PathVariable String tagId, @RequestBody TagEntity tagEntity) {
+    public R<Boolean> updateTagId(@PathVariable("id") String id, @PathVariable String tagId, @RequestBody TagUpdateDTO dto) {
+        TagEntity tagEntity = new TagEntity();
+        tagEntity.setId(tagId);
+        tagEntity.setKey(dto.getKey());
+        tagEntity.setValue(dto.getValue());
         return R.status(tagService.updateById(tagEntity));
     }
 

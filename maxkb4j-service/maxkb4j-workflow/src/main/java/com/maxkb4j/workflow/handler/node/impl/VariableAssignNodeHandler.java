@@ -21,6 +21,7 @@ import java.util.Map;
 @Component
 public class VariableAssignNodeHandler extends AbsNodeHandler {
 
+
     @SuppressWarnings("unchecked")
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
@@ -39,7 +40,14 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
                 resultList.add(getGlobalHandleResult(workflow, variable, fields));
             }
             if ("chat".equals(scope)) {
-                resultList.add(getChatHandleResult(workflow, variable, fields));
+                Map<String, Object> chatVariables = getChatHandleResult(workflow, variable, fields);
+                resultList.add(chatVariables);
+                String chatId = (String) workflow.getGlobalContext().get("chatId");
+                if (chatId != null){
+                    ChatInfo chatInfo = ChatCache.get(chatId);
+                    chatInfo.putChatVariables(chatVariables);
+                    ChatCache.put(chatId, chatInfo);
+                }
             }
             if ("loop".equals(scope)) {
                 resultList.add(getLoopHandleResult(workflow, variable, fields));

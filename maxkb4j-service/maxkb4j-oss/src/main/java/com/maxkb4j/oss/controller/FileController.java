@@ -2,6 +2,7 @@ package com.maxkb4j.oss.controller;
 
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.oss.service.MongoFileService;
+import com.maxkb4j.oss.support.UploadValidator;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,7 @@ import java.io.IOException;
 public class FileController {
 
     private final MongoFileService ossService;
+    private final UploadValidator uploadValidator;
 
 
     @PostMapping(value = {
@@ -28,15 +30,16 @@ public class FileController {
             "/chat/api/oss/file"
     })
     public R<String> uploadFile(MultipartFile file) throws IOException {
+        uploadValidator.validate(file);
         return R.data(ossService.uploadAndGetFileUrl(file));
     }
 
     @GetMapping({
+            "/admin/oss/file/{fileId:[\\w-]+}",
             "/admin/*/oss/file/{fileId:[\\w-]+}",
             "/admin/*/*/oss/file/{fileId:[\\w-]+}",
             "/admin/*/*/*/oss/file/{fileId:[\\w-]+}",
             "/admin/*/*/*/*/oss/file/{fileId:[\\w-]+}",
-            "/admin/oss/file/{fileId:[\\w-]+}",
             "/chat/oss/file/{fileId:[\\w-]+}",
             "/chat/share/oss/file/{fileId:[\\w-]+}",
             "/oss/file/{fileId:[\\w-]+}"})

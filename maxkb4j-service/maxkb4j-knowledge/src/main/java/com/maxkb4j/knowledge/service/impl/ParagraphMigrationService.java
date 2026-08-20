@@ -30,7 +30,7 @@ public class ParagraphMigrationService {
     private final DocumentMapper documentMapper;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean paragraphMigrate(String sourceKnowledgeId, String sourceDocId, String targetKnowledgeId, String targetDocId, List<String> paragraphIds) {
         compositeStore.deleteByParagraphIds(sourceKnowledgeId,paragraphIds);
         if (sourceKnowledgeId.equals(targetKnowledgeId)){

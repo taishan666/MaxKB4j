@@ -3,7 +3,7 @@ package com.maxkb4j.model.controller;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.KeyAndValue;
-import com.maxkb4j.common.domain.form.BaseField;
+import com.maxkb4j.model.form.BaseField;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.provider.AbsModelProvider;
 import com.maxkb4j.model.registry.ModelProviderRegistry;
@@ -47,6 +47,9 @@ public class ProviderController {
     @GetMapping("/provider/model_type_list")
     public R<List<KeyAndValue>> modelTypeList(String provider) {
         AbsModelProvider modelProvider = providerRegistry.get(provider);
+        if (modelProvider == null) {
+            return R.data(List.of());
+        }
         List<ModelInfo> modelInfos = modelProvider.getModelList();
         Map<ModelType, List<ModelInfo>> map = modelInfos.stream().collect(Collectors.groupingBy(ModelInfo::getModelType));
         Set<ModelType> keys = map.keySet();
@@ -57,6 +60,9 @@ public class ProviderController {
     @GetMapping("/provider/model_form")
     public R<List<BaseField>> modelForm(String provider, String modelType, String modelName) {
         AbsModelProvider modelProvider = providerRegistry.get(provider);
+        if (modelProvider == null) {
+            return R.data(List.of());
+        }
         return R.data(modelProvider.getModelCredential().toForm());
     }
 
@@ -78,6 +84,9 @@ public class ProviderController {
     @GetMapping("/provider/model_list")
     public R<List<ModelInfo>> modelList(String provider, String modelType) {
         AbsModelProvider modelProvider = providerRegistry.get(provider);
+        if (modelProvider == null) {
+            return R.data(List.of());
+        }
         List<ModelInfo> modelInfos = modelProvider.getModelList();
         if (StringUtils.isBlank(modelType)) {
             return R.data(modelInfos);

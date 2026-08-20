@@ -1,5 +1,6 @@
 package com.maxkb4j.common.util;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -13,7 +14,8 @@ public class MD5Util {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-        byte[] hashInBytes = md.digest(text.getBytes());
+        // 显式指定 UTF-8，避免平台默认字符集（Windows GBK / Linux UTF-8）导致跨平台 MD5 不一致
+        byte[] hashInBytes = md.digest(text.getBytes(StandardCharsets.UTF_8));
         // 将字节数组转换成16进制表示的字符串
         StringBuilder sb = new StringBuilder();
         for (byte b : hashInBytes) {

@@ -115,7 +115,7 @@ public class ApplicationLongTermMemoryServiceImpl extends ServiceImpl<Applicatio
             List<ApplicationChatRecordEntity> chatRecords = chatRecordService.listByAppIdAndChatUserId(applicationId, chatUserId,pageSize,offset);
             List<String> lines = new ArrayList<>();
             for (ApplicationChatRecordEntity chatRecord : chatRecords) {
-                lines.add("User：" + chatRecord.getProblemText() + "/n" + "AI：" + chatRecord.getAnswerText());
+                lines.add("User：" + chatRecord.getProblemText() + "\n" + "AI：" + chatRecord.getAnswerText());
             }
             String newConversation = String.join("\n", lines);
             ApplicationLongTermMemoryEntity longTermMemory = getLongTermMemory(applicationId, chatUserId);

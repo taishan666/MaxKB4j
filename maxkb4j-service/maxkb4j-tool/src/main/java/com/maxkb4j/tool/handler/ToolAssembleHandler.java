@@ -2,7 +2,6 @@ package com.maxkb4j.tool.handler;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.common.util.PageUtil;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.vo.ToolVO;
 import com.maxkb4j.user.service.IUserService;
@@ -39,7 +38,7 @@ public class ToolAssembleHandler {
      */
     public IPage<ToolVO> assemblePage(IPage<ToolEntity> page) {
         Map<String, String> nicknameMap = userService.getNicknameMap();
-        return PageUtil.copy(page, entity -> {
+        return BeanUtil.copyPage(page, entity -> {
             ToolVO vo = BeanUtil.copy(entity, ToolVO.class);
             vo.setNickname(nicknameMap.get(entity.getUserId()));
             return vo;
