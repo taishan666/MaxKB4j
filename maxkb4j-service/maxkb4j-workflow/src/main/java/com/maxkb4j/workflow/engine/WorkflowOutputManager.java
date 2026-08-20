@@ -54,8 +54,7 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
     }
 
     @Override
-    public List<Answer> getAnswers() {
-        String chatRecordId = (String) context.getGlobalContext().get("chatRecordId");
+    public List<Answer> getAnswers(String chatRecordId) {
         if (chatRecordId == null) {
             return List.of();
         }
