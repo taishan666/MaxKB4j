@@ -52,7 +52,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
         ChatRecordDTO chatRecord = null;
         if (Objects.nonNull(chatInfo) && !CollectionUtils.isEmpty(chatInfo.getChatRecordList())) {
             chatRecord = chatInfo.getChatRecordList().stream()
-                    .filter(e -> e.getId().equals(chatRecordId))
+                    .filter(e -> Objects.equals(e.getId(), chatRecordId))
                     .reduce((first, second) -> second) // 保留最后一个匹配的元素
                     .orElse(null);
         }

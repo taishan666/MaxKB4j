@@ -17,6 +17,7 @@ import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import com.maxkb4j.workflow.service.WorkflowFactory;
+import com.maxkb4j.workflow.service.WorkflowSpec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -136,7 +137,7 @@ public class KnowledgeWorkflowService {
         params.setActionId(knowledgeAction.getId());
         params.setKnowledgeId(id);
         params.setDebug(debug);
-        IWorkflow workflow = workflowFactory.createKnowledge(nodes, logicFlow.getEdges(), params);
+        IWorkflow workflow = workflowFactory.create(WorkflowSpec.knowledge(nodes, logicFlow.getEdges(), params).build());
         // 异步任务的异常存放在被丢弃的 future 中，既不触发 UncaughtExceptionHandler 也无日志，
         // 必须通过 whenComplete 记录，否则文档处理失败后状态将永久停留在 STARTED 且无从排查
         CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow), workflowTaskExecutor)
