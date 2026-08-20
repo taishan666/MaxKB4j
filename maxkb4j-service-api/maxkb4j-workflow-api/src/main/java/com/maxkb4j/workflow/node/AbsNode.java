@@ -10,7 +10,6 @@ import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.util.NodeIdGenerator;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
@@ -108,13 +107,23 @@ public abstract class AbsNode {
         return NodeIdGenerator.generateRuntimeNodeId(id, upNodeIdList);
     }
 
+    public boolean isResult() {
+        JSONObject nodeData = getNodeData();
+        return nodeData.containsKey("isResult") && nodeData.getBoolean("isResult");
+    }
+
+    public boolean reasoningContentEnable() {
+        JSONObject nodeData = getNodeData();
+        return nodeData.containsKey("reasoningContentEnable") && nodeData.getBoolean("reasoningContentEnable");
+    }
+
     public List<Answer> getAnswerList(String chatRecordId) {
-        if (StringUtils.isNotBlank(answerText)) {
-            Object value = context.get("reasoningContent");
-            String reasoningContent = value != null ? String.valueOf(value) : "";
+        if (isResult()) {
+            Object answer = context.getOrDefault("answer","");
+            Object reasoningContent = reasoningContentEnable()?context.getOrDefault("reasoningContent",""):"";
             return List.of(Answer.builder()
-                    .content(answerText)
-                    .reasoningContent(reasoningContent)
+                    .content((String) answer)
+                    .reasoningContent((String) reasoningContent)
                     .chatRecordId(chatRecordId)
                     .runtimeNodeId(runtimeNodeId)
                     .realNodeId(runtimeNodeId)

@@ -22,9 +22,7 @@ public class AiChatNode extends AbsNode {
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        Object answer = detail.get("answer");
-        context.put("answer", answer);
-        super.setAnswerText((String) answer);
+        context.put("answer", detail.get("answer"));
         context.put("reasoningContent", detail.get("reasoningContent"));
     }
 
