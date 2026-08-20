@@ -2,6 +2,7 @@ package com.maxkb4j.workflow.engine;
 
 
 import com.maxkb4j.workflow.node.AbsNode;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,13 +27,7 @@ public class VariableResolver {
      * @return variable map in "scope.variable": value format
      */
     public Map<String, Object> getPromptVariables() {
-        int globalSize = context.getGlobalContext() != null ? context.getGlobalContext().size() : 0;
-        int chatSize = context.getChatContext() != null ? context.getChatContext().size() : 0;
-        int loopSize = context.getLoopContext() != null ? context.getLoopContext().size() : 0;
-        int nodeCount = context.getNodeContext() != null ? context.getNodeContext().size() : 0;
-        // Estimate: each node has ~3 variables on average
-        int estimatedSize = globalSize + chatSize + loopSize + (nodeCount * 3) + 16;
-        Map<String, Object> result = new HashMap<>(estimatedSize);
+        Map<String, Object> result = getStringObjectMap();
         // Global variables: global.xxx
         if (context.getGlobalContext() != null) {
             for (Map.Entry<String, Object> entry : context.getGlobalContext().entrySet()) {
@@ -61,6 +56,16 @@ public class VariableResolver {
         }
 
         return result;
+    }
+
+    private @NotNull Map<String, Object> getStringObjectMap() {
+        int globalSize = context.getGlobalContext() != null ? context.getGlobalContext().size() : 0;
+        int chatSize = context.getChatContext() != null ? context.getChatContext().size() : 0;
+        int loopSize = context.getLoopContext() != null ? context.getLoopContext().size() : 0;
+        int nodeCount = context.getNodeContext() != null ? context.getNodeContext().size() : 0;
+        // Estimate: each node has ~3 variables on average
+        int estimatedSize = globalSize + chatSize + loopSize + (nodeCount * 3) + 16;
+        return new HashMap<>(estimatedSize);
     }
 
     /**
