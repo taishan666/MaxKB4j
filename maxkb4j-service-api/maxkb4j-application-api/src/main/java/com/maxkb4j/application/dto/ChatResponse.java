@@ -55,6 +55,11 @@ public class ChatResponse {
         return sumTokenField("answerTokens");
     }
 
+    public String getAnswer() {
+        return String.join("\n\n", answers.stream().map(Answer::getContent).toList());
+    }
+
+
     /**
      * 通用Token求和方法，消除重复的Stream处理逻辑
      */
@@ -64,9 +69,5 @@ public class ChatResponse {
                 .filter(row -> row.containsKey(fieldName) && row.get(fieldName) != null)
                 .mapToInt(row -> row.getIntValue(fieldName))
                 .sum();
-    }
-
-    public String getAnswer() {
-        return String.join("\n\n", answers.stream().map(Answer::getContent).toList());
     }
 }

@@ -2,12 +2,14 @@ package com.maxkb4j.workflow.engine;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.model.IWorkflowOutputManager;
 import com.maxkb4j.workflow.node.AbsNode;
 import reactor.core.publisher.Sinks;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,6 +51,23 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
                 sink.tryEmitNext(message);
             }
         }
+    }
+
+    @Override
+    public List<Answer> getAnswers() {
+        String chatRecordId = (String) context.getGlobalContext().get("chatRecordId");
+        if (chatRecordId == null) {
+            return List.of();
+        }
+        List<AbsNode> executedNodes=getExecutedNodes();
+        if (executedNodes.isEmpty()) {
+            return List.of();
+        }
+        List<Answer> answerList = new ArrayList<>(executedNodes.size());
+        for (AbsNode node : executedNodes) {
+            answerList.addAll(node.getAnswerList(chatRecordId));
+        }
+        return answerList;
     }
 
     /**

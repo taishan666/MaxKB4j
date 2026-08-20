@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.node.AbsNode;
 
@@ -23,6 +24,8 @@ public interface IWorkflowOutputManager {
      * 发送消息到响应式 Sink（知识库工作流不输出）。
      */
     void emit(ChatMessageVO message);
+
+    List<Answer> getAnswers();
 
     /**
      * 获取节点运行时详情 JSON。
