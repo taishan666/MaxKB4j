@@ -143,7 +143,9 @@ public class GlobalExceptionHandler {
         log.warn(e.getMessage());
         // 判断是否已登录
         if (StpKit.ADMIN.isLogin()) {
-            return "redirect:/admin/home";
+            //todo
+            // 已登录，重定向到 404 页面
+            return "redirect:/404";
         } else {
             return "redirect:/admin/login";
         }
