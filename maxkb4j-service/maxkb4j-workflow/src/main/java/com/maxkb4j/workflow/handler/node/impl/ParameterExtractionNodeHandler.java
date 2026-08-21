@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.PARAMETER_EXTRACTION)
 @RequiredArgsConstructor
@@ -48,7 +49,7 @@ public class ParameterExtractionNodeHandler extends AbsNodeHandler {
 
         Map<String, Object> nodeVariable = new HashMap<>();
         Map<String, Object> arguments = result.content();
-        nodeVariable.put("result", new JSONObject(arguments));
+        nodeVariable.put(NodeField.RESULT, new JSONObject(arguments));
         nodeVariable.putAll(arguments);
         return new NodeResult(nodeVariable);
     }

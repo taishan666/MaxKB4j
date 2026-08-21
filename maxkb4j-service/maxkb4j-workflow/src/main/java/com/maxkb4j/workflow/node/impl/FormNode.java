@@ -11,6 +11,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.FORM)
 public class FormNode extends AbsNode {
@@ -23,31 +24,31 @@ public class FormNode extends AbsNode {
     @Override
     @SuppressWarnings("unchecked")
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        Map<String, Object> formData = (Map<String, Object>) detail.get("form_data");
+        Map<String, Object> formData = (Map<String, Object>) detail.get(FormField.FORM_DATA);
         if (formData != null) {
             context.putAll(formData);
         }
-        context.put("form_data", formData);
-        context.put("is_submit", detail.get("is_submit"));
-        context.put("form_field_list", detail.get("form_field_list"));
-        context.put("form_content_format", detail.get("form_content_format"));
+        context.put(FormField.FORM_DATA, formData);
+        context.put(FormField.IS_SUBMIT, detail.get(FormField.IS_SUBMIT));
+        context.put(FormField.FORM_FIELD_LIST, detail.get(FormField.FORM_FIELD_LIST));
+        context.put(FormField.FORM_CONTENT_FORMAT, detail.get(FormField.FORM_CONTENT_FORMAT));
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<Answer> getAnswerList(String chatRecordId)  {
-        Map<String, Object> formData = (Map<String, Object>) context.getOrDefault("form_data",Map.of());
-        boolean isSubmit = (boolean) context.getOrDefault("is_submit",false);
+        Map<String, Object> formData = (Map<String, Object>) context.getOrDefault(FormField.FORM_DATA,Map.of());
+        boolean isSubmit = (boolean) context.getOrDefault(FormField.IS_SUBMIT,false);
         String runtimeNodeId=this.getRuntimeNodeId();
         JSONArray formFieldList =new JSONArray();
         if (!formData.isEmpty()){
-            formFieldList =(JSONArray)context.getOrDefault("form_field_list", new JSONArray());
+            formFieldList =(JSONArray)context.getOrDefault(FormField.FORM_FIELD_LIST, new JSONArray());
         }
         JSONObject formSetting = new JSONObject();
-        formSetting.put("form_field_list", formFieldList);
-        formSetting.put("is_submit", isSubmit);
-        formSetting.put("form_data", formData);
-        formSetting.put("runtimeNodeId", runtimeNodeId);
+        formSetting.put(FormField.FORM_FIELD_LIST, formFieldList);
+        formSetting.put(FormField.IS_SUBMIT, isSubmit);
+        formSetting.put(FormField.FORM_DATA, formData);
+        formSetting.put(RuntimeDetailField.RUNTIME_NODE_ID, runtimeNodeId);
         formSetting.put("chatRecordId", chatRecordId);
         String formRender = "<form_render>" + formSetting + "</form_render>";
         return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());

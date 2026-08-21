@@ -13,6 +13,7 @@ import dev.langchain4j.exception.InvalidRequestException;
 import dev.langchain4j.exception.ModelNotFoundException;
 import dev.langchain4j.exception.RateLimitException;
 import dev.langchain4j.model.ModelDisabledException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -134,11 +135,23 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public String handleException(NoResourceFoundException e, HttpServletResponse response) {
+    public String handleException(NoResourceFoundException e, HttpServletRequest request, HttpServletResponse response) {
         // 如果响应已提交（如 SSE 流已开始发送），则无法 redirect，直接返回 null
         if (response.isCommitted()) {
             log.debug("Response already committed, cannot redirect: {}", e.getMessage());
             return null;
+        }
+        String uri = request.getRequestURI();
+        // SPA 前端路由回退：/chat/**、/admin/** 下不含 "." 的路径是前端路由（如 /chat/{token}），
+        // 静态资源处理器找不到对应文件，需转发到对应入口页；带尾部斜杠的先重定向去掉斜杠，
+        // 否则 index.html 中的相对路径资源（./assets/...）会以 /chat/{token}/ 为基准解析导致 404
+        boolean spaRoute = !uri.contains(".")
+                && !uri.startsWith("/chat/api/")
+                && (uri.startsWith("/chat/") || uri.startsWith("/admin/"));
+        if (spaRoute) {
+            log.debug("SPA route fallback: {}", uri);
+            String entry = uri.startsWith("/chat/") ? "/chat/index.html" : "/admin/index.html";
+            return uri.endsWith("/") ? "redirect:" + uri.substring(0, uri.length() - 1) : "forward:" + entry;
         }
         log.warn(e.getMessage());
         // 判断是否已登录

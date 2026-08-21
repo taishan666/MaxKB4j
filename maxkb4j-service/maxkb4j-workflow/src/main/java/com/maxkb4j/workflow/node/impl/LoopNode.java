@@ -11,6 +11,7 @@ import lombok.Data;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.LOOP)
 public class LoopNode extends AbsNode {
@@ -20,7 +21,7 @@ public class LoopNode extends AbsNode {
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        context.put("current_index", detail.get("current_index"));
+        context.put(LoopField.CURRENT_INDEX, detail.get(LoopField.CURRENT_INDEX));
     }
 
     @Override

@@ -10,6 +10,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.LOOP_CONTINUE)
 public class LoopContinueNode extends AbsNode {
@@ -19,7 +20,7 @@ public class LoopContinueNode extends AbsNode {
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        context.put("is_continue", detail.get("is_continue"));
+        context.put(LoopField.IS_CONTINUE, detail.get(LoopField.IS_CONTINUE));
     }
 
     @Data

@@ -9,6 +9,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.DOCUMENT_EXTRACT)
 public class DocumentExtractNode extends AbsNode {
@@ -21,16 +22,16 @@ public class DocumentExtractNode extends AbsNode {
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        String[] content = (String[]) detail.get("content");
-        context.put("content", String.join(SPLITTER, content));
-        context.put("documentList", detail.get("documentList"));
+        String[] content = (String[]) detail.get(NodeField.CONTENT);
+        context.put(NodeField.CONTENT, String.join(SPLITTER, content));
+        context.put(NodeField.DOCUMENT_LIST, detail.get(NodeField.DOCUMENT_LIST));
     }
 
     @Override
     public Map<String, Object> getDetail() {
-        String content = (String) context.getOrDefault("content", "");
-        detail.put("content", content.split(SPLITTER));
-        detail.put("documentList", context.get("documentList"));
+        String content = (String) context.getOrDefault(NodeField.CONTENT, "");
+        detail.put(NodeField.CONTENT, content.split(SPLITTER));
+        detail.put(NodeField.DOCUMENT_LIST, context.get(NodeField.DOCUMENT_LIST));
         return detail;
     }
 

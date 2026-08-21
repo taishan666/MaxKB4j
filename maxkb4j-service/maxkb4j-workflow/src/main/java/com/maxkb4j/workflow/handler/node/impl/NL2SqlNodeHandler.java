@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import javax.sql.DataSource;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
 @NodeHandlerType(NodeType.NL2SQL)
@@ -47,7 +48,7 @@ public class NL2SqlNodeHandler extends AbsNodeHandler {
             String sqlDialect = DatabaseUtil.getSqlDialect(dataSource);
             String databaseStructure = DatabaseUtil.generateDDL(dataSource);
             List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), params.getDialogueType(), node.getRuntimeNodeId());
-            String chatId = (String) workflow.getGlobalContext().get("chatId");
+            String chatId = (String) workflow.getGlobalContext().get(ChatField.CHAT_ID);
             NL2SqlAssistant assistant = AiServiceFactory.builder(NL2SqlAssistant.class)
                     .chatModel(chatModel)
                     .chatMemory(AiChatMemory.withMessages(chatId, historyMessages))
@@ -58,9 +59,9 @@ public class NL2SqlNodeHandler extends AbsNodeHandler {
             // 执行清洗后的 SQL（去除 markdown 代码块围栏），而非 LLM 原始输出
             String sqlResult = DatabaseUtil.executeSqlQuery(sql, dataSource);
 
-            putDetail(node, "question", question);
+            putDetail(node, NodeField.QUESTION, question);
             recordTokenUsage(node, result.tokenUsage());
-            return new NodeResult(Map.of("sql", sql, "result", sqlResult));
+            return new NodeResult(Map.of(NodeField.SQL, sql, NodeField.RESULT, sqlResult));
         } finally {
             // getDataSource 每次调用都会新建 HikariDataSource（含连接池与后台线程），必须关闭，否则持续泄漏连接与线程
             if (dataSource instanceof AutoCloseable closeable) {

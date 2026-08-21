@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 
 @Slf4j
@@ -55,14 +56,14 @@ public class RerankerNodeHandler extends AbsNodeHandler {
                 Double score = scores.get(i);
                 TextSegment textSegment = textSegments.get(i);
                 Map<String, Object> metadata = textSegment.metadata().toMap();
-                metadata.put("relevanceScore", score);
+                metadata.put(NodeField.RELEVANCE_SCORE, score);
                 RerankerNode.RerankResult textSegmentResult = new RerankerNode.RerankResult(textSegment.text(), metadata);
                 documentList.add(textSegmentResult);
             }
 
             resultList = documentList.stream().filter(rerankResult -> {
-                if (rerankResult.getMetadata().containsKey("relevanceScore")) {
-                    Double score = (Double) rerankResult.getMetadata().get("relevanceScore");
+                if (rerankResult.getMetadata().containsKey(NodeField.RELEVANCE_SCORE)) {
+                    Double score = (Double) rerankResult.getMetadata().get(NodeField.RELEVANCE_SCORE);
                     return score > similarity;
                 }
                 return false;
@@ -80,13 +81,13 @@ public class RerankerNodeHandler extends AbsNodeHandler {
 
         // 使用辅助方法写入详情
         putDetails(node, Map.of(
-                "question", question,
-                "documentList", documentList
+                NodeField.QUESTION, question,
+                NodeField.DOCUMENT_LIST, documentList
         ));
 
         return new NodeResult(Map.of(
-                "resultList", resultList,
-                "result", result
+                NodeField.RESULT_LIST, resultList,
+                NodeField.RESULT, result
         ));
     }
 

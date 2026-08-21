@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
 @Component
@@ -45,6 +46,6 @@ public class DataSourceWebHandler extends AbsNodeHandler {
                 "inputParams", inputParams,
                 "outputParams", documentList
         ));
-        return new NodeResult(Map.of("documentList", documentList));
+        return new NodeResult(Map.of(NodeField.DOCUMENT_LIST, documentList));
     }
 }

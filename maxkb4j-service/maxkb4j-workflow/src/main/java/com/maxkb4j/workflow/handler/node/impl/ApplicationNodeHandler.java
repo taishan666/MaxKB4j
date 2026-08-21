@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.maxkb4j.workflow.enums.NodeType.FORM;
 import static com.maxkb4j.workflow.enums.NodeType.USER_SELECT;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 
 @Slf4j
@@ -106,13 +107,13 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
             putDetails(node, Map.of(
                     "messageTokens", chatResponse.getMessageTokens(),
                     "answerTokens", chatResponse.getAnswerTokens(),
-                    "question", question,
-                    "answer", chatResponse.getAnswer(),
-                    "is_interrupt_exec", isInterruptExec.get()
+                    NodeField.QUESTION, question,
+                    NodeField.ANSWER, chatResponse.getAnswer(),
+                    NodeField.IS_INTERRUPT_EXEC, isInterruptExec.get()
             ));
-            return new NodeResult(Map.of("result", chatResponse.getAnswer()), true, this::shouldInterrupt);
+            return new NodeResult(Map.of(NodeField.RESULT, chatResponse.getAnswer()), true, this::shouldInterrupt);
         }
-        return new NodeResult(Map.of("result", ""));
+        return new NodeResult(Map.of(NodeField.RESULT, ""));
     }
 
 

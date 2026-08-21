@@ -17,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType({NodeType.TOOL, NodeType.TOOL_LIB})
 @Component
@@ -52,7 +53,7 @@ public class ToolNodeHandler extends AbsNodeHandler {
         if (result instanceof Map<?,?> resultMap){
             nodeVariable.putAll((Map<? extends String, ?>) resultMap);
         }
-        nodeVariable.put("result",result);
+        nodeVariable.put(NodeField.RESULT,result);
         return new NodeResult(nodeVariable);
     }
 }

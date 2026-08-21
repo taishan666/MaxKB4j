@@ -34,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.springframework.web.util.UriUtils.extractFileExtension;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
  * 流式聊天节点处理器的抽象基类。
@@ -94,7 +95,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
             builder.systemMessage(systemPrompt);
         }
         if (CollectionUtils.isNotEmpty(historyMessages)) {
-            String chatId = (String) workflow.getGlobalContext().get("chatId");
+            String chatId = (String) workflow.getGlobalContext().get(ChatField.CHAT_ID);
             builder.chatMemory(AiChatMemory.withMessages(chatId, historyMessages));
         }
         if (CollectionUtils.isNotEmpty(toolProviders)) {
@@ -163,8 +164,8 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
         String reasoning = Optional.ofNullable(response.aiMessage().thinking()).orElse("");
         recordTokenUsage(node, response.tokenUsage());
         return new NodeResult(Map.of(
-                "answer", answer,
-                "reasoningContent", reasoning,
+                NodeField.ANSWER, answer,
+                NodeField.REASONING_CONTENT, reasoning,
                 "exceptionMessage", errorMessage
         ), true);
     }

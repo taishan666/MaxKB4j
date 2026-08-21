@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
  * 工作流上下文管理器
@@ -110,7 +111,7 @@ public class WorkflowContext implements IWorkflowContext {
 
     @Override
     public Object getFieldValue(Object value, String source) {
-        if ("reference".equals(source)) {
+        if (VariableField.REFERENCE.equals(source)) {
             return NodeReference.parse(value)
                     .map(this::getReferenceField)
                     .orElse(value);

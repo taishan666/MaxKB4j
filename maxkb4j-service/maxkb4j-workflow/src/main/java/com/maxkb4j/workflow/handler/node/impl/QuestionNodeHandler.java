@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
 @NodeHandlerType(NodeType.QUESTION)
@@ -39,11 +40,11 @@ public class QuestionNodeHandler extends AbsNodeHandler {
         ChatModel chatModel = modelFactory.buildChatModel(modelConfig.getModelId(), modelConfig.getModelParamsSetting());
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
 
-        putDetail(node, "historyMessage", MessageConverter.formatHistoryMessages(historyMessages));
+        putDetail(node, ChatField.HISTORY_MESSAGE, MessageConverter.formatHistoryMessages(historyMessages));
 
         String question = workflow.renderPrompt(params.getPrompt());
         String systemPrompt = workflow.renderPrompt(params.getSystem());
-        String chatId = (String) workflow.getGlobalContext().get("chatId");
+        String chatId = (String) workflow.getGlobalContext().get(ChatField.CHAT_ID);
         Assistant assistant = AiServiceFactory.builder(Assistant.class)
                 .systemMessage(systemPrompt)
                 .chatMemory(AiChatMemory.withMessages(chatId,historyMessages))
@@ -54,8 +55,8 @@ public class QuestionNodeHandler extends AbsNodeHandler {
 
         // 使用辅助方法批量写入详情
         putDetails(node, Map.of(
-                "system", systemPrompt,
-                "question", question
+                ChatField.SYSTEM, systemPrompt,
+                NodeField.QUESTION, question
         ));
 
         recordTokenUsage(node, result.tokenUsage());
@@ -64,6 +65,6 @@ public class QuestionNodeHandler extends AbsNodeHandler {
             setAnswerText(node, result.content());
         }
 
-        return new NodeResult(Map.of("answer", result.content()));
+        return new NodeResult(Map.of(NodeField.ANSWER, result.content()));
     }
 }

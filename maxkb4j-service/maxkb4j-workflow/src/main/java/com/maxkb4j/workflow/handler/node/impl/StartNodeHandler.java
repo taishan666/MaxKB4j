@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.START)
 @Component
@@ -36,33 +37,33 @@ public class StartNodeHandler extends AbsNodeHandler {
             workflow.getChatContext().putAll(chatVariable);
             JSONObject config = node.getProperties().getJSONObject("config");
             if (config != null){
-                JSONArray globalFields = config.getJSONArray("globalFields");
+                JSONArray globalFields = config.getJSONArray(ChatField.GLOBAL_FIELDS);
                 for (int i = 0; i < globalFields.size(); i++) {
                     JSONObject globalField = globalFields.getJSONObject(i);
-                    String key = globalField.getString("value");
-                    globalField.put("key", key);
-                    globalField.put("value", workflow.getGlobalContext().getOrDefault(key,"None"));
+                    String key = globalField.getString(VariableField.VALUE);
+                    globalField.put(VariableField.KEY, key);
+                    globalField.put(VariableField.VALUE, workflow.getGlobalContext().getOrDefault(key,Defaults.NONE));
                 }
-                putDetail(node, "globalFields", globalFields);
+                putDetail(node, ChatField.GLOBAL_FIELDS, globalFields);
 
-                JSONArray chatFields = config.getJSONArray("chatFields");
+                JSONArray chatFields = config.getJSONArray(ChatField.CHAT_FIELDS);
                 if (chatFields != null) {
                     for (int i = 0; i < chatFields.size(); i++) {
                         JSONObject chatField = chatFields.getJSONObject(i);
-                        String key = chatField.getString("value");
-                        chatField.put("key", key);
-                        chatField.put("value", workflow.getChatContext().getOrDefault(key,"None"));
+                        String key = chatField.getString(VariableField.VALUE);
+                        chatField.put(VariableField.KEY, key);
+                        chatField.put(VariableField.VALUE, workflow.getChatContext().getOrDefault(key,Defaults.NONE));
                     }
                 }
-                putDetail(node, "chatFields", chatFields);
+                putDetail(node, ChatField.CHAT_FIELDS, chatFields);
             }
 
             // 构建节点变量
-            nodeVariable.put("question", chatParams.getMessage());
-            nodeVariable.put("image", chatParams.getImageList());
-            nodeVariable.put("document", chatParams.getDocumentList());
-            nodeVariable.put("audio", chatParams.getAudioList());
-            nodeVariable.put("other", chatParams.getOtherList());
+            nodeVariable.put(NodeField.QUESTION, chatParams.getMessage());
+            nodeVariable.put(NodeField.IMAGE, chatParams.getImageList());
+            nodeVariable.put(NodeField.DOCUMENT, chatParams.getDocumentList());
+            nodeVariable.put(NodeField.AUDIO, chatParams.getAudioList());
+            nodeVariable.put(NodeField.OTHER, chatParams.getOtherList());
         }
         return new NodeResult(nodeVariable);
     }
@@ -71,7 +72,7 @@ public class StartNodeHandler extends AbsNodeHandler {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("time", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         resultMap.put("historyContext", chatWorkflow.getHistoryChatRecords());
-        resultMap.put("chatId", chatParams.getChatId());
+        resultMap.put(ChatField.CHAT_ID, chatParams.getChatId());
         resultMap.put("chatUserId", chatWorkflow.getChatState().getChatUserId());
         resultMap.put("chatUserType", chatWorkflow.getChatState().getChatUserType());
         resultMap.put("chatUser", chatWorkflow.getChatState().getChatUser());
@@ -90,12 +91,12 @@ public class StartNodeHandler extends AbsNodeHandler {
         Map<String, Object> chatVariable = chatInfo.getChatVariables();
         JSONObject config = node.getProperties().getJSONObject("config");
         if (config != null) {
-            JSONArray chatFields = config.getJSONArray("chatFields");
+            JSONArray chatFields = config.getJSONArray(ChatField.CHAT_FIELDS);
             if (chatFields != null) {
                 for (int i = 0; i < chatFields.size(); i++) {
                     JSONObject chatField = chatFields.getJSONObject(i);
-                    String key = chatField.getString("value");
-                    resultMap.put(key, chatVariable.getOrDefault(key, "None"));
+                    String key = chatField.getString(VariableField.VALUE);
+                    resultMap.put(key, chatVariable.getOrDefault(key, Defaults.NONE));
                 }
             }
         }

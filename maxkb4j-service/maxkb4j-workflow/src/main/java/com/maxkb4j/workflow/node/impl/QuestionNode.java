@@ -10,6 +10,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.QUESTION)
 public class QuestionNode extends AbsNode {
@@ -20,7 +21,7 @@ public class QuestionNode extends AbsNode {
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        context.put("answer", detail.get("answer"));
+        context.put(NodeField.ANSWER, detail.get(NodeField.ANSWER));
     }
 
     @Data

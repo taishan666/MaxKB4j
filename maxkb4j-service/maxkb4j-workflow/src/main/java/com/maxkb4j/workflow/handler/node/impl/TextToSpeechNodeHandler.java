@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.TEXT_TO_SPEECH)
 @RequiredArgsConstructor
@@ -37,11 +38,11 @@ public class TextToSpeechNodeHandler extends AbsNodeHandler {
         Object content = workflow.getReferenceField(contentList);
         byte[] audioData = ttsModel.textToSpeech(content.toString());
         OssFile ossFile = ossService.uploadFile("generated_audio_" + UUID.randomUUID() + ".mp3", audioData);
-        putDetail(node, "content", content);
+        putDetail(node, NodeField.CONTENT, content);
         if (params.getIsResult()) {
             String answer = "<audio src=\"" + ossFile.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
             setAnswerText(node, answer);
         }
-        return new NodeResult(Map.of("result", List.of(ossFile)));
+        return new NodeResult(Map.of(NodeField.RESULT, List.of(ossFile)));
     }
 }

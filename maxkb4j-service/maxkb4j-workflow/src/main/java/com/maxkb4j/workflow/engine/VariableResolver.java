@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
  * Variable resolver service
@@ -31,21 +32,21 @@ public class VariableResolver {
         // Global variables: global.xxx
         if (context.getGlobalContext() != null) {
             for (Map.Entry<String, Object> entry : context.getGlobalContext().entrySet()) {
-                result.put("global." + entry.getKey(), entry.getValue());
+                result.put(Scope.GLOBAL_PREFIX + entry.getKey(), entry.getValue());
             }
         }
 
         // Chat variables: chat.xxx
         if (context.getChatContext() != null) {
             for (Map.Entry<String, Object> entry : context.getChatContext().entrySet()) {
-                result.put("chat." + entry.getKey(), entry.getValue());
+                result.put(Scope.CHAT_PREFIX + entry.getKey(), entry.getValue());
             }
         }
 
         // Loop variables: loop.xxx
         if (context.getLoopContext()  != null) {
             for (Map.Entry<String, Object> entry : context.getLoopContext().entrySet()) {
-                result.put("loop." + entry.getKey(), entry.getValue());
+                result.put(Scope.LOOP_PREFIX + entry.getKey(), entry.getValue());
             }
         }
         // Node variables
@@ -78,7 +79,7 @@ public class VariableResolver {
         if (node == null || node.getProperties() == null) {
             return new HashMap<>(0);
         }
-        String nodeName = node.getProperties().getString("nodeName");
+        String nodeName = node.getProperties().getString(RuntimeDetailField.NODE_NAME);
         Map<String, Object> nodeContext = node.getContext();
 
         if (nodeName == null || nodeContext == null) {
@@ -106,9 +107,9 @@ public class VariableResolver {
         int nodeCount = context.getNodeContext() != null ? context.getNodeContext().size() : 0;
         int estimatedSize = 3 + nodeCount + 4;
         Map<String, Map<String, Object>> result = new HashMap<>(estimatedSize);
-        result.put("global", context.getGlobalContext() != null ? context.getGlobalContext() : new HashMap<>());
-        result.put("chat", context.getChatContext() != null ? context.getChatContext() : new HashMap<>());
-        result.put("loop", context.getLoopContext() != null ? context.getLoopContext() : new HashMap<>());
+        result.put(Scope.GLOBAL, context.getGlobalContext() != null ? context.getGlobalContext() : new HashMap<>());
+        result.put(Scope.CHAT, context.getChatContext() != null ? context.getChatContext() : new HashMap<>());
+        result.put(Scope.LOOP, context.getLoopContext() != null ? context.getLoopContext() : new HashMap<>());
 
         if (context.getNodeContext() != null) {
             for (AbsNode node : context.getNodeContext()) {

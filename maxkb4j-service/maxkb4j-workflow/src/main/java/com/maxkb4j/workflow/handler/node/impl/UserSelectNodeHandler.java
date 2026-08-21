@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.USER_SELECT)
 @Component
@@ -28,15 +29,15 @@ public class UserSelectNodeHandler extends AbsNodeHandler {
         List<UserSelectNode.Branch> branches = params.getBranch();
         Map<String, Object> nodeVariable = new HashMap<>();
         if (formData != null) {
-            nodeVariable.put("is_submit", true);
-            nodeVariable.put("form_data", formData);
+            nodeVariable.put(FormField.IS_SUBMIT, true);
+            nodeVariable.put(FormField.FORM_DATA, formData);
             String branchId = formData.getString(SELECT_FILED);
-            nodeVariable.put("branchId", branchId);
+            nodeVariable.put(NodeField.BRANCH_ID, branchId);
             UserSelectNode.Branch selectBranch = branches.stream()
                     .filter(branch -> branch.getId().equals(branchId))
                     .findFirst()
                     .orElse(null);
-            nodeVariable.put("branchName", selectBranch == null ? "" : selectBranch.getOption());
+            nodeVariable.put(NodeField.BRANCH_NAME, selectBranch == null ? "" : selectBranch.getOption());
         } else {
             Map<String, Object> options = new LinkedHashMap<>();
             for (UserSelectNode.Branch branch : branches) {
@@ -46,11 +47,11 @@ public class UserSelectNodeHandler extends AbsNodeHandler {
             RadioCardField radioCardFiled = new RadioCardField(labelName, SELECT_FILED, options);
             List<RadioCardField> formFieldList = List.of(radioCardFiled);
             JSONObject formSetting = new JSONObject();
-            formSetting.put("form_field_list", formFieldList);
+            formSetting.put(FormField.FORM_FIELD_LIST, formFieldList);
             String formRender = "<card_selection_render>" + formSetting + "</card_selection_render>";
             setAnswerText(node, formRender);
-            nodeVariable.put("form_field_list", formFieldList);
-            nodeVariable.put("is_submit", false);
+            nodeVariable.put(FormField.FORM_FIELD_LIST, formFieldList);
+            nodeVariable.put(FormField.IS_SUBMIT, false);
         }
 
         return new NodeResult(nodeVariable, false, this::shouldInterrupt);
@@ -58,6 +59,6 @@ public class UserSelectNodeHandler extends AbsNodeHandler {
 
     @Override
     public boolean shouldInterrupt(AbsNode node) {
-        return !(boolean) node.getContext().getOrDefault("is_submit", false);
+        return !(boolean) node.getContext().getOrDefault(FormField.IS_SUBMIT, false);
     }
 }

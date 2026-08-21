@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
  * 节点抽象基类
@@ -81,7 +82,7 @@ public abstract class AbsNode {
     }
 
     public String getNodeName() {
-        return properties.getString("nodeName");
+        return properties.getString(RuntimeDetailField.NODE_NAME);
     }
 
     /**
@@ -119,8 +120,8 @@ public abstract class AbsNode {
 
     public List<Answer> getAnswerList(String chatRecordId) {
         if (isResult()) {
-            Object answer = context.getOrDefault("answer","");
-            Object reasoningContent = reasoningContentEnable()?context.getOrDefault("reasoningContent",""):"";
+            Object answer = context.getOrDefault(NodeField.ANSWER,"");
+            Object reasoningContent = reasoningContentEnable()?context.getOrDefault(NodeField.REASONING_CONTENT,""):"";
             return List.of(Answer.builder()
                     .content((String) answer)
                     .reasoningContent((String) reasoningContent)

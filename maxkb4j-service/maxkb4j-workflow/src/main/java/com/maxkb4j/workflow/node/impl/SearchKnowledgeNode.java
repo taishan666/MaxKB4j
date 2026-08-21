@@ -10,6 +10,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.SEARCH_KNOWLEDGE)
 public class SearchKnowledgeNode extends AbsNode {
@@ -20,10 +21,10 @@ public class SearchKnowledgeNode extends AbsNode {
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        context.put("paragraphList", detail.get("paragraphList"));
-        context.put("isHitHandlingMethodList", detail.get("isHitHandlingMethodList"));
-        context.put("data", detail.get("data"));
-        context.put("directlyReturn", detail.get("directlyReturn"));
+        context.put(NodeField.PARAGRAPH_LIST, detail.get(NodeField.PARAGRAPH_LIST));
+        context.put(NodeField.IS_HIT_HANDLING_METHOD_LIST, detail.get(NodeField.IS_HIT_HANDLING_METHOD_LIST));
+        context.put(NodeField.DATA, detail.get(NodeField.DATA));
+        context.put(NodeField.DIRECTLY_RETURN, detail.get(NodeField.DIRECTLY_RETURN));
     }
 
     @Data

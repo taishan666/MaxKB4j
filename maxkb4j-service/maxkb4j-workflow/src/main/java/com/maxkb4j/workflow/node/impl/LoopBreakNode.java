@@ -10,6 +10,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.LOOP_BREAK)
 public class LoopBreakNode extends AbsNode {
@@ -19,7 +20,7 @@ public class LoopBreakNode extends AbsNode {
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        context.put("is_break", detail.get("is_break"));
+        context.put(LoopField.IS_BREAK, detail.get(LoopField.IS_BREAK));
     }
 
     @Data

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
 @NodeHandlerType(NodeType.AI_CHAT)
@@ -111,11 +112,11 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
     private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,
                                    String textMassage, List<Content> contents) {
         List<JSONObject> question = MessageConverter.resetContents(contents);
-        question.add(new JSONObject(Map.of("type", "text", "text", textMassage)));
+        question.add(new JSONObject(Map.of(ChatField.TYPE, ChatField.TEXT, ChatField.TEXT, textMassage)));
         putDetails(node, Map.of(
-                "system", systemPrompt,
-                "historyMessage", MessageConverter.formatHistoryMessages(historyMessages),
-                "question", question
+                ChatField.SYSTEM, systemPrompt,
+                ChatField.HISTORY_MESSAGE, MessageConverter.formatHistoryMessages(historyMessages),
+                NodeField.QUESTION, question
         ));
     }
 }

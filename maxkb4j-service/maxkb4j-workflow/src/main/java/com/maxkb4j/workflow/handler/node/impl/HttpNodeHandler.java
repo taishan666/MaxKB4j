@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.HTTP_CLIENT)
 @Component
@@ -35,14 +36,14 @@ public class HttpNodeHandler extends AbsNodeHandler {
             String resBody = response.body();
             // 使用辅助方法写入详情
             putDetails(node, Map.of(
-                    "url", request.getUrl(),
+                    HttpField.URL, request.getUrl(),
                     "method", request.getMethod(),
                     "headers", request.getHeaders(),
                     "requestBody", request,
                     "params", request.getParams(),
                     "timeout", request.getTimeout()
             ));
-            return new NodeResult(Map.of("status", resStatus, "body", resBody));
+            return new NodeResult(Map.of(HttpField.STATUS, resStatus, HttpField.BODY, resBody));
         }
     }
 }

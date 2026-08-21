@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
  * Base class for node handlers.
@@ -115,7 +116,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
         long endTime = System.currentTimeMillis();
         float runTime = (endTime - startTime) / 1000F;
         node.getDetail().put("runTime", runTime);
-        String nodeName = node.getProperties() != null ? node.getProperties().getString("nodeName") : node.getType();
+        String nodeName = node.getProperties() != null ? node.getProperties().getString(RuntimeDetailField.NODE_NAME) : node.getType();
         log.info("node: {}, runTime: {} s", nodeName, runTime);
     }
 
@@ -139,7 +140,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * Reads the interrupt flag written by loop control nodes.
      */
     protected boolean getInterruptFlag(AbsNode node) {
-        Object flag = node.getDetail().get("is_interrupt_exec");
+        Object flag = node.getDetail().get(NodeField.IS_INTERRUPT_EXEC);
         return Boolean.TRUE.equals(flag);
     }
 
@@ -172,7 +173,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
 
     /**
      * Resolves the model configuration for a node. When
-     * {@link ModelAwareParams#getModelIdType()} is {@code "reference"} the configuration
+     * {@link ModelAwareParams#getModelIdType()} is {@code VariableField.REFERENCE} the configuration
      * is read from the referenced workflow field; otherwise the params' own
      * modelId/modelParamsSetting are used.
      *
@@ -186,7 +187,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
         }
         String modelId = params.getModelId();
         JSONObject modelParamsSetting = params.getModelParamsSetting();
-        if ("reference".equals(params.getModelIdType())) {
+        if (VariableField.REFERENCE.equals(params.getModelIdType())) {
             ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
             if (modelConfig != null) {
                 modelId = modelConfig.getModelId();

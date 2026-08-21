@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 
 @Slf4j
@@ -50,14 +51,14 @@ public class SpeechToTextNodeHandler extends AbsNodeHandler {
         String answer = String.join("\n", answerTextList);
 
         putDetails(node, Map.of(
-                "content", content,
-                "audioList", audioFiles
+                NodeField.CONTENT, content,
+                NodeField.AUDIO_LIST, audioFiles
         ));
 
         if (params.getIsResult()) {
             setAnswerText(node, answer);
         }
 
-        return new NodeResult(Map.of("result", answer));
+        return new NodeResult(Map.of(NodeField.RESULT, answer));
     }
 }

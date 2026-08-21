@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.VARIABLE_SPLITTING)
 @Slf4j
@@ -40,14 +41,14 @@ public class VariableSplittingNodeHandler extends AbsNodeHandler {
 
         for (VariableSplittingNode.Variable variable : variableList) {
             Object value = JSONPath.eval(inputValue, variable.getExpression());
-            value = value == null ? "None" : value;
+            value = value == null ? Defaults.NONE : value;
             result.put(variable.getField(), value);
         }
 
-        nodeVariable.put("result", result);
+        nodeVariable.put(NodeField.RESULT, result);
         nodeVariable.putAll(result);
 
-        putDetail(node, "result", result);
+        putDetail(node, NodeField.RESULT, result);
 
         return new NodeResult(nodeVariable);
     }

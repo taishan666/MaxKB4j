@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.springframework.web.util.UriUtils.extractFileExtension;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.IMAGE_GENERATE)
 @RequiredArgsConstructor
@@ -80,9 +81,9 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
             setAnswerText(node, String.join(" ", answerTexts));
         }
 
-        putDetail(node, "question", prompt);
+        putDetail(node, NodeField.QUESTION, prompt);
 
-        return new NodeResult(Map.of("answer", String.join(" ", answerTexts), "image", imageUrls));
+        return new NodeResult(Map.of(NodeField.ANSWER, String.join(" ", answerTexts), NodeField.IMAGE, imageUrls));
     }
 
     private List<Image> buildImages(IWorkflow workflow, AbsNode node, List<String> imageFieldList) {
@@ -95,7 +96,7 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
             Image image = Image.builder().base64Data(base64Data).mimeType(MimeTypeUtils.getMimeType(extension)).build();
             images.add(image);
         }
-        putDetail(node, "imageList", imageFiles);
+        putDetail(node, NodeField.IMAGE_LIST, imageFiles);
         return images;
     }
 }

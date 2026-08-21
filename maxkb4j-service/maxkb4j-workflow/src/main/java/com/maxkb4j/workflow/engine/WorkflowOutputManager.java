@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
  * 工作流输出管理器
@@ -85,16 +86,16 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
             AbsNode node = validNodes.get(index);
             JSONObject runtimeDetail = new JSONObject(true);
             runtimeDetail.putAll(node.getDetail());
-            runtimeDetail.put("index", index);
-            runtimeDetail.put("nodeId", node.getId());
-            runtimeDetail.put("name", node.getProperties() != null
-                    ? node.getProperties().getString("nodeName")
+            runtimeDetail.put(RuntimeDetailField.INDEX, index);
+            runtimeDetail.put(RuntimeDetailField.NODE_ID, node.getId());
+            runtimeDetail.put(RuntimeDetailField.NAME, node.getProperties() != null
+                    ? node.getProperties().getString(RuntimeDetailField.NODE_NAME)
                     : node.getType());
-            runtimeDetail.put("upNodeIdList", node.getUpNodeIdList());
-            runtimeDetail.put("runtimeNodeId", node.getRuntimeNodeId());
-            runtimeDetail.put("type", node.getType());
-            runtimeDetail.put("status", node.getStatus());
-            runtimeDetail.put("errMessage", node.getErrMessage());
+            runtimeDetail.put(RuntimeDetailField.UP_NODE_ID_LIST, node.getUpNodeIdList());
+            runtimeDetail.put(RuntimeDetailField.RUNTIME_NODE_ID, node.getRuntimeNodeId());
+            runtimeDetail.put(RuntimeDetailField.TYPE, node.getType());
+            runtimeDetail.put(RuntimeDetailField.STATUS, node.getStatus());
+            runtimeDetail.put(RuntimeDetailField.ERR_MESSAGE, node.getErrMessage());
             result.put(node.getRuntimeNodeId(), runtimeDetail);
         }
         return result;

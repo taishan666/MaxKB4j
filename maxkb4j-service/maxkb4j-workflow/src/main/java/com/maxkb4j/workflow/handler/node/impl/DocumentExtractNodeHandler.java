@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.util.*;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.DOCUMENT_EXTRACT)
 @RequiredArgsConstructor
@@ -46,8 +47,8 @@ public class DocumentExtractNodeHandler extends AbsNodeHandler {
         }
 
         return new NodeResult(Map.of(
-                "content", String.join(DocumentExtractNode.SPLITTER, contentList),
-                "documentList", documentList
+                NodeField.CONTENT, String.join(DocumentExtractNode.SPLITTER, contentList),
+                NodeField.DOCUMENT_LIST, documentList
         ));
     }
 }

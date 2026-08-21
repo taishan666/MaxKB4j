@@ -10,6 +10,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.TEXT_TO_SPEECH)
 public class TextToSpeechNode extends AbsNode {
@@ -20,7 +21,7 @@ public class TextToSpeechNode extends AbsNode {
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        context.put("result", detail.get("result"));
+        context.put(NodeField.RESULT, detail.get(NodeField.RESULT));
     }
 
     @Data

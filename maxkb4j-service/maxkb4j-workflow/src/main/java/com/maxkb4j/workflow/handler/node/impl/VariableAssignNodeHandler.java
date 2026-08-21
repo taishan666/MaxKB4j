@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.VARIABLE_ASSIGN)
 @Component
@@ -36,24 +37,24 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
                 continue;
             }
             String scope = fields.getFirst();
-            if ("global".equals(scope)) {
+            if (Scope.GLOBAL.equals(scope)) {
                 resultList.add(getGlobalHandleResult(workflow, variable, fields));
             }
-            if ("chat".equals(scope)) {
+            if (Scope.CHAT.equals(scope)) {
                 Map<String, Object> chatVariables = getChatHandleResult(workflow, variable, fields);
                 resultList.add(chatVariables);
-                String chatId = (String) workflow.getGlobalContext().get("chatId");
+                String chatId = (String) workflow.getGlobalContext().get(ChatField.CHAT_ID);
                 if (chatId != null){
                     ChatInfo chatInfo = ChatCache.get(chatId);
                     chatInfo.putChatVariables(chatVariables);
                     ChatCache.put(chatId, chatInfo);
                 }
             }
-            if ("loop".equals(scope)) {
+            if (Scope.LOOP.equals(scope)) {
                 resultList.add(getLoopHandleResult(workflow, variable, fields));
             }
         }
-        putDetail(node, "resultList", resultList);
+        putDetail(node, NodeField.RESULT_LIST, resultList);
         return new NodeResult(Map.of());
     }
 
@@ -63,9 +64,9 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         Object value = resolveValue(workflow, variable);
         workflow.getGlobalContext().put(varName, value);
         Map<String, Object> result = new HashMap<>();
-        result.put("name", variable.get("name"));
-        result.put("input_value", inputValue);
-        result.put("output_value", value);
+        result.put(VariableField.NAME, variable.get(VariableField.NAME));
+        result.put(VariableField.INPUT_VALUE, inputValue);
+        result.put(VariableField.OUTPUT_VALUE, value);
         return result;
     }
 
@@ -75,9 +76,9 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         String inputValue = getReferenceContent(workflow, fields);
         Object value = resolveValue(workflow, variable);
         workflow.getLoopContext().put(varName, value);
-        result.put("name", variable.get("name"));
-        result.put("input_value", inputValue);
-        result.put("output_value", value);
+        result.put(VariableField.NAME, variable.get(VariableField.NAME));
+        result.put(VariableField.INPUT_VALUE, inputValue);
+        result.put(VariableField.OUTPUT_VALUE, value);
         return result;
     }
 
@@ -87,11 +88,11 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         Object value = resolveValue(workflow, variable);
         workflow.getChatContext().put(varName, value);
         Map<String, Object> result = new HashMap<>();
-        result.put("name", variable.get("name"));
-        result.put("input_value", inputValue);
-        result.put("output_value", value);
+        result.put(VariableField.NAME, variable.get(VariableField.NAME));
+        result.put(VariableField.INPUT_VALUE, inputValue);
+        result.put(VariableField.OUTPUT_VALUE, value);
         // Update chat variables
-        String chatId = (String) workflow.getGlobalContext().get("chatId");
+        String chatId = (String) workflow.getGlobalContext().get(ChatField.CHAT_ID);
         if (chatId!= null) {
             ChatInfo chatInfo = ChatCache.get(chatId);
             if (chatInfo != null && chatInfo.getChatVariables() != null) {
@@ -105,12 +106,12 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
     private Object resolveValue(IWorkflow workflow, Map<String, Object> variable) {
         String source = (String) variable.get("source");
         if (ValueType.referencing.name().equals(source)) {
-            List<String> reference = (List<String>) variable.get("reference");
+            List<String> reference = (List<String>) variable.get(VariableField.REFERENCE);
             if (reference != null && reference.size() >= 2) {
                 return workflow.getReferenceField(reference);
             }
         }
-        Object value = variable.get("value");
+        Object value = variable.get(VariableField.VALUE);
         return workflow.renderPrompt(String.valueOf(value));
     }
 

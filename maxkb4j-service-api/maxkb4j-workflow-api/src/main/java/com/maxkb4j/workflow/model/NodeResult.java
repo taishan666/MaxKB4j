@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
 @Data
@@ -84,7 +85,7 @@ public class NodeResult {
     public void defaultWriteDetailFunc(Map<String, Object> nodeVariable, AbsNode node) {
         if (nodeVariable != null) {
             if (NodeType.VARIABLE_AGGREGATE.getKey().equals(node.getType())) {
-                node.getDetail().put("result", nodeVariable);
+                node.getDetail().put(NodeField.RESULT, nodeVariable);
             } else {
                 node.getDetail().putAll(nodeVariable);
             }
@@ -109,7 +110,7 @@ public class NodeResult {
     }
 
     public boolean isAssertionResult() {
-        return this.nodeVariable != null && this.nodeVariable.containsKey("branchId");
+        return this.nodeVariable != null && this.nodeVariable.containsKey(NodeField.BRANCH_ID);
     }
 
     // ==================== Builder Pattern ====================
@@ -158,7 +159,7 @@ public class NodeResult {
          * @return this builder
          */
         public Builder success(String answer) {
-            this.variables.put("answer", answer);
+            this.variables.put(NodeField.ANSWER, answer);
             this.streamOutput = false;
             return this;
         }

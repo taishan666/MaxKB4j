@@ -9,6 +9,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.VARIABLE_SPLITTING)
 public class VariableSplittingNode extends AbsNode {
@@ -19,11 +20,11 @@ public class VariableSplittingNode extends AbsNode {
     @Override
     @SuppressWarnings("unchecked")
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        Map<String, Object> result = (Map<String, Object>) detail.get("result");
+        Map<String, Object> result = (Map<String, Object>) detail.get(NodeField.RESULT);
         if (result != null){
             context.putAll(result);
         }
-        context.put("result", result);
+        context.put(NodeField.RESULT, result);
     }
 
     @Data
