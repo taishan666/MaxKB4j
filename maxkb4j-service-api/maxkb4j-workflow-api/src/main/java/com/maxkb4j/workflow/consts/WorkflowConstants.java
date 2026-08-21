@@ -68,6 +68,7 @@ public interface WorkflowConstants {
      * 循环节点字段键名
      */
     interface LoopField {
+        String LOOP_NODE_DATA = "loop_node_data";
         String CURRENT_INDEX = "current_index";
         String CURRENT_ITEM = "current_item";
         String ITEM = "item";

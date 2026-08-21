@@ -70,8 +70,17 @@ class AbsNodeTest {
 
     @Test
     void getAnswerList_buildsAnswerWithContentAndReasoning() {
-        AbsNode node = newNode("n1");
+        // isResult 为 getAnswerList 输出答案的前置条件（对应前端节点配置"输出结果"）
+        JSONObject props = new JSONObject();
+        JSONObject nodeData = new JSONObject();
+        nodeData.put("isResult", true);
+        nodeData.put("reasoningContentEnable", true);
+        props.put("nodeData", nodeData);
+        AbsNode node = new AbsNode("n1", props) {};
+
         node.setAnswerText("done");
+        // getAnswerList 从节点上下文读取 ANSWER / REASONING_CONTENT 键
+        node.getContext().put("answer", "done");
         node.getContext().put("reasoningContent", "because");
         node.setViewType("single_view");
 
