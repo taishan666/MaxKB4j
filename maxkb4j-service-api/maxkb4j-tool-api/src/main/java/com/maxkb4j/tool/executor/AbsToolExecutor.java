@@ -10,11 +10,20 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * 跨模块工具执行器基类：tool（HTTP / 脚本 / MCP）、knowledge（KnowledgeExecutor）、
+ * application（AgentExecutor）三个实现模块的执行器均继承本类。
+ *
+ * <p>作为跨模块扩展契约的一部分位于 tool-api，供各实现模块复用参数解析逻辑，
+ * 依赖方向始终为实现模块 -&gt; tool-api。
+ *
+ * @author tarzan
+ */
 public abstract class AbsToolExecutor implements ToolExecutor {
 
     private static final Pattern TRAILING_COMMA_PATTERN = Pattern.compile(",(\\s*[}\\]])");
     private static final Pattern LEADING_TRAILING_QUOTE_PATTERN = Pattern.compile("^\"|\"$");
-    private static final Pattern ESCAPED_QUOTE_PATTERN = Pattern.compile("\\\\\"");
+    private static final Pattern ESCAPED_QUOTE_PATTERN = Pattern.compile("\\\\\\\"");
     private static final Type MAP_TYPE = new ParameterizedType() {
         public Type[] getActualTypeArguments() {
             return new Type[]{String.class, Object.class};

@@ -1,7 +1,7 @@
 package com.maxkb4j.tool.typehandler;
 
 import com.alibaba.fastjson.JSON;
-import com.maxkb4j.tool.entity.ToolInputField;
+import com.maxkb4j.tool.dto.ToolInputField;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.postgresql.util.PGobject;
@@ -43,6 +43,7 @@ class ToolInputParamsTypeHandlerTest {
         when(rs.getString(2)).thenReturn("[{\"name\":\"b\"},{\"name\":\"c\"}]");
 
         List<ToolInputField> list = handler.getNullableResult(rs, 2);
+
         assertThat(list).hasSize(2);
         assertThat(list.get(1).getName()).isEqualTo("c");
     }

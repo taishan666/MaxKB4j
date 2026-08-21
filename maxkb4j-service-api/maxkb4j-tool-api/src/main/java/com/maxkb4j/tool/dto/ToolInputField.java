@@ -1,10 +1,9 @@
-package com.maxkb4j.tool.entity;
+package com.maxkb4j.tool.dto;
 
 import lombok.Data;
 
 @Data
 public class ToolInputField {
-
     private String name;
     private String type;
     private String source;

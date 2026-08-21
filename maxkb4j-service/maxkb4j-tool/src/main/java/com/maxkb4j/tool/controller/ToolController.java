@@ -11,11 +11,11 @@ import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolConnectionTestDTO;
-import com.maxkb4j.tool.dto.ToolDTO;
+import com.maxkb4j.tool.dto.ToolDebugDTO;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.dto.ToolSaveDTO;
 import com.maxkb4j.tool.entity.ToolEntity;
-import com.maxkb4j.tool.entity.ToolInputField;
+import com.maxkb4j.tool.dto.ToolInputField;
 import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.tool.service.IToolInternalService;
 import com.maxkb4j.tool.vo.ToolCardVO;
@@ -108,7 +108,7 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_DEBUG)
     @PostMapping("/tool/debug")
-    public R<Object> debug(@Valid @RequestBody ToolDTO dto) throws IOException {
+    public R<Object> debug(@Valid @RequestBody ToolDebugDTO dto) throws IOException {
         Map<String, Object> params = new HashMap<>(5);
         if (!CollectionUtils.isEmpty(dto.getDebugFieldList())) {
             for (ToolInputField inputField : dto.getDebugFieldList()) {
