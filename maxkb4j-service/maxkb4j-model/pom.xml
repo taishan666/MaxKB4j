@@ -29,6 +29,11 @@
             <artifactId>maxkb4j-system-api</artifactId>
             <version>${revision}</version>
         </dependency>
+        <!-- ModelEntity / ModelCredentialTypeHandler 持久化支持 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+        </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-core</artifactId>
