@@ -1,4 +1,4 @@
-package com.maxkb4j.application.entity;
+package com.maxkb4j.application.dto;
 
 import lombok.Data;
 

@@ -1,7 +1,7 @@
 package com.maxkb4j.application.typehandler;
 
 import com.alibaba.fastjson.JSON;
-import com.maxkb4j.application.entity.LlmModelSetting;
+import com.maxkb4j.application.dto.LlmModelSetting;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.postgresql.util.PGobject;
