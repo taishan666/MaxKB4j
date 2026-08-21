@@ -44,7 +44,7 @@ public abstract class AbsNode {
     public AbsNode(String id, JSONObject properties) {
         this.id = id;
         this.properties = properties;
-        this.viewType = "many_view";
+        this.viewType = ViewType.MANY_VIEW;
         this.context = new LinkedHashMap<>(5);
         this.detail = new LinkedHashMap<>(5);
         this.upNodeIdList = new ArrayList<>();

@@ -48,7 +48,7 @@ public class UserSelectNodeHandler extends AbsNodeHandler {
             List<RadioCardField> formFieldList = List.of(radioCardFiled);
             JSONObject formSetting = new JSONObject();
             formSetting.put(FormField.FORM_FIELD_LIST, formFieldList);
-            String formRender = "<card_selection_render>" + formSetting + "</card_selection_render>";
+            String formRender = "<" + FormField.CARD_SELECTION_RENDER_TAG + ">" + formSetting + "</" + FormField.CARD_SELECTION_RENDER_TAG + ">";
             setAnswerText(node, formRender);
             nodeVariable.put(FormField.FORM_FIELD_LIST, formFieldList);
             nodeVariable.put(FormField.IS_SUBMIT, false);

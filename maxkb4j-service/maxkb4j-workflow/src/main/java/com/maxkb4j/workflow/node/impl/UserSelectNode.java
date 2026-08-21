@@ -17,7 +17,7 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 public class UserSelectNode extends AbsNode {
     public UserSelectNode(String id,JSONObject properties) {
         super(id,properties);
-        super.setViewType("single_view");
+        super.setViewType(ViewType.SINGLE_VIEW);
     }
 
     @Override
@@ -40,8 +40,8 @@ public class UserSelectNode extends AbsNode {
         formSetting.put(FormField.IS_SUBMIT, isSubmit);
         formSetting.put(FormField.FORM_DATA, formData);
         formSetting.put(RuntimeDetailField.RUNTIME_NODE_ID, runtimeNodeId);
-        formSetting.put("chatRecordId", chatRecordId);
-        String formRender = "<card_selection_render>" + formSetting + "</card_selection_render>";
+        formSetting.put(ChatField.CHAT_RECORD_ID, chatRecordId);
+        String formRender = "<" + FormField.CARD_SELECTION_RENDER_TAG + ">" + formSetting + "</" + FormField.CARD_SELECTION_RENDER_TAG + ">";
         return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
     }
 

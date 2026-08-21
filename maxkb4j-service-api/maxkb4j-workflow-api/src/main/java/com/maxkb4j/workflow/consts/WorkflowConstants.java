@@ -58,10 +58,20 @@ public interface WorkflowConstants {
      * 表单/用户选择节点字段键名
      */
     interface FormField {
-        String FORM_DATA = "form_data";
-        String FORM_FIELD_LIST = "form_field_list";
-        String FORM_CONTENT_FORMAT = "form_content_format";
+        String FORM_DATA = "formData";
+        String FORM_FIELD_LIST = "formFieldList";
+        String FORM_CONTENT_FORMAT = "formContentFormat";
         String IS_SUBMIT = "is_submit";
+        String FORM_RENDER_TAG = "form_render";
+        String CARD_SELECTION_RENDER_TAG = "card_selection_render";
+    }
+
+    /**
+     * 答案展示类型（viewType）
+     */
+    interface ViewType {
+        String SINGLE_VIEW = "single_view";
+        String MANY_VIEW = "many_view";
     }
 
     /**
@@ -94,6 +104,7 @@ public interface WorkflowConstants {
      */
     interface ChatField {
         String CHAT_ID = "chatId";
+        String CHAT_RECORD_ID = "chatRecordId";
         String HISTORY_MESSAGE = "historyMessage";
         String CHAT_FIELDS = "chatFields";
         String GLOBAL_FIELDS = "globalFields";

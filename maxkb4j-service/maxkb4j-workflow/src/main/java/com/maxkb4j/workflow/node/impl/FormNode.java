@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public class FormNode extends AbsNode {
 
     public FormNode(String id, JSONObject properties) {
         super(id, properties);
-        super.setViewType("single_view");
+        super.setViewType(ViewType.SINGLE_VIEW);
     }
 
     @Override
@@ -49,9 +50,12 @@ public class FormNode extends AbsNode {
         formSetting.put(FormField.IS_SUBMIT, isSubmit);
         formSetting.put(FormField.FORM_DATA, formData);
         formSetting.put(RuntimeDetailField.RUNTIME_NODE_ID, runtimeNodeId);
-        formSetting.put("chatRecordId", chatRecordId);
-        String formRender = "<form_render>" + formSetting + "</form_render>";
-        return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
+        formSetting.put(ChatField.CHAT_RECORD_ID, chatRecordId);
+        String formRender = "<" + FormField.FORM_RENDER_TAG + ">" + formSetting + "</" + FormField.FORM_RENDER_TAG + ">";
+        String formContentFormat = this.getNodeData().getString(FormField.FORM_CONTENT_FORMAT);
+        PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
+        String answer = promptTemplate.apply(Map.of("form", formRender)).text();
+        return List.of(Answer.builder().content(answer).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
     }
 
     @Data

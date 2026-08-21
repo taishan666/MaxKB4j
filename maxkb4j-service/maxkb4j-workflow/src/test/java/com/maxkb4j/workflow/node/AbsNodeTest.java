@@ -5,6 +5,7 @@ import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import org.junit.jupiter.api.Test;
 
+import static com.maxkb4j.workflow.consts.WorkflowConstants.ViewType;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -82,7 +83,7 @@ class AbsNodeTest {
         // getAnswerList 从节点上下文读取 ANSWER / REASONING_CONTENT 键
         node.getContext().put("answer", "done");
         node.getContext().put("reasoningContent", "because");
-        node.setViewType("single_view");
+        node.setViewType(ViewType.SINGLE_VIEW);
 
         java.util.List<Answer> answers = node.getAnswerList("rec-1");
         assertThat(answers).hasSize(1);
@@ -90,6 +91,6 @@ class AbsNodeTest {
         assertThat(answer.getContent()).isEqualTo("done");
         assertThat(answer.getReasoningContent()).isEqualTo("because");
         assertThat(answer.getChatRecordId()).isEqualTo("rec-1");
-        assertThat(answer.getViewType()).isEqualTo("single_view");
+        assertThat(answer.getViewType()).isEqualTo(ViewType.SINGLE_VIEW);
     }
 }

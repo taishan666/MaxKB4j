@@ -7,7 +7,6 @@ import cn.dev33.satoken.jwt.exception.SaJwtException;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.exception.*;
 import com.maxkb4j.common.util.I18nUtil;
-import com.maxkb4j.common.util.StpKit;
 import dev.langchain4j.exception.AuthenticationException;
 import dev.langchain4j.exception.InvalidRequestException;
 import dev.langchain4j.exception.ModelNotFoundException;
@@ -134,6 +133,13 @@ public class GlobalExceptionHandler {
                 || msg.contains("远程主机强迫关闭了一个现有的连接");
     }
 
+    /**
+     * 处理静态资源 404（NoResourceFoundException），避免落入兜底 Exception 处理器打完整堆栈：
+     * 1) SPA 前端路由回退：/chat/**、/admin/** 下不含 "." 的路径是前端路由（如 /chat/{token}），
+     *    静态资源处理器找不到对应文件，需转发到对应入口页；带尾部斜杠的先重定向去掉斜杠，
+     *    否则 index.html 中的相对路径资源（./assets/...）会以 /chat/{token}/ 为基准解析导致 404
+     * 2) 其余情况（如浏览器自动请求的 /favicon.ico、真正缺失的资源）按 404 静默返回，仅记单行 warn
+     */
     @ExceptionHandler(NoResourceFoundException.class)
     public String handleException(NoResourceFoundException e, HttpServletRequest request, HttpServletResponse response) {
         // 如果响应已提交（如 SSE 流已开始发送），则无法 redirect，直接返回 null
@@ -142,26 +148,21 @@ public class GlobalExceptionHandler {
             return null;
         }
         String uri = request.getRequestURI();
-        // SPA 前端路由回退：/chat/**、/admin/** 下不含 "." 的路径是前端路由（如 /chat/{token}），
-        // 静态资源处理器找不到对应文件，需转发到对应入口页；带尾部斜杠的先重定向去掉斜杠，
-        // 否则 index.html 中的相对路径资源（./assets/...）会以 /chat/{token}/ 为基准解析导致 404
         boolean spaRoute = !uri.contains(".")
                 && !uri.startsWith("/chat/api/")
                 && (uri.startsWith("/chat/") || uri.startsWith("/admin/"));
         if (spaRoute) {
+            if (uri.endsWith("/")) {
+                return "redirect:" + uri.substring(0, uri.length() - 1);
+            }
             log.debug("SPA route fallback: {}", uri);
             String entry = uri.startsWith("/chat/") ? "/chat/index.html" : "/admin/index.html";
-            return uri.endsWith("/") ? "redirect:" + uri.substring(0, uri.length() - 1) : "forward:" + entry;
+            return "forward:" + entry;
         }
-        log.warn(e.getMessage());
-        // 判断是否已登录
-        if (StpKit.ADMIN.isLogin()) {
-            //todo
-            // 已登录，重定向到 404 页面
-            return "redirect:/404";
-        } else {
-            return "redirect:/admin/login";
-        }
+        // 非前端路由（含 "." 的静态资源、未知路径）：404 + 单行日志，不打堆栈
+        log.warn("静态资源未找到: {}", e.getMessage());
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        return null;
     }
 
     /**

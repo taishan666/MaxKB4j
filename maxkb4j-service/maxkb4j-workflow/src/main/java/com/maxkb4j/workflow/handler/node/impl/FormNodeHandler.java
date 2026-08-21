@@ -33,7 +33,7 @@ public class FormNodeHandler extends AbsNodeHandler {
             JSONArray formFieldList = params.getFormFieldList();
             JSONObject formSetting = new JSONObject();
             formSetting.put(FormField.FORM_FIELD_LIST, formFieldList);
-            String formRender = "<form_render>" + formSetting + "</form_render>";
+            String formRender = "<" + FormField.FORM_RENDER_TAG + ">" + formSetting + "</" + FormField.FORM_RENDER_TAG + ">";
             String formContentFormat = params.getFormContentFormat();
             String answerText = workflow.renderPrompt(formContentFormat, Map.of("form", formRender));
             setAnswerText(node, answerText);
