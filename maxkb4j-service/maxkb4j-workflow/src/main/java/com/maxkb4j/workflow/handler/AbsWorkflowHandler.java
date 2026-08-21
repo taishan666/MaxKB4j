@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.handler;
 
+import com.maxkb4j.workflow.engine.NodeResultWriter;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
@@ -130,8 +131,8 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         }
         NodeResult result = runNode(workflow, node);
         if (result != null) {
-            result.writeDetail(node);
-            result.writeContext(node, workflow);
+            NodeResultWriter.writeDetail(result, node);
+            NodeResultWriter.writeContext(result, node, workflow);
         }
         if (NodeStatus.ERROR.getStatus() == node.getStatus()) {
             return List.of();
@@ -166,8 +167,8 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                 return List.of();
             }
             if (result != null) {
-                result.writeDetail(node);
-                result.writeContext(node, workflow);
+                NodeResultWriter.writeDetail(result, node);
+                NodeResultWriter.writeContext(result, node, workflow);
             }
             return completeNode(workflow, node, result);
         });
@@ -179,7 +180,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      */
     private List<AbsNode> completeNode(IWorkflow workflow, AbsNode node, NodeResult result) {
         node.setStatus(NodeStatus.SUCCESS.getStatus());
-        if (result != null && result.isInterruptExec(node)) {
+        if (result != null && NodeResultWriter.isInterruptExec(result, node)) {
             node.setStatus(NodeStatus.INTERRUPT.getStatus());
         }
         onNodeSuccess(workflow, node, result);

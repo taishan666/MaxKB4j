@@ -79,7 +79,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
     @Override
     public List<AbsNode> nextNodes(AbsNode currentNode, NodeResult currentNodeResult) {
         // 检查是否需要中断执行
-        if (currentNodeResult == null || currentNodeResult.isInterruptExec(currentNode)) {
+        if (currentNodeResult == null || NodeResultWriter.isInterruptExec(currentNodeResult, currentNode)) {
             return List.of();
         }
         // 获取下游边
@@ -94,7 +94,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
                 .toList();
 
         // 处理断言结果分支
-        if (currentNodeResult.isAssertionResult()) {
+        if (NodeResultWriter.isAssertionResult(currentNodeResult)) {
             List<AbsNode> targetNodes = buildNodes(targetNodeIds, currentNode);
             targetNodes.forEach(node -> {
                 if (!isAssertionNode(node.getId(), currentNodeResult, sourceEdges)) {

@@ -1,16 +1,20 @@
 package com.maxkb4j.workflow.model;
 
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
-import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 
+/**
+ * 节点执行结果（契约层）。
+ * <p>
+ * 承载节点输出的变量、流式标记与可自定义的行为回调规格；
+ * 引擎侧的默认写入行为（写上下文/写详情/中断判断/断言判断）由实现模块的
+ * {@code NodeResultWriter} 承载，回调未指定时由其应用引擎默认实现。
+ */
 @Slf4j
 @Data
 public class NodeResult {
@@ -20,78 +24,22 @@ public class NodeResult {
     private WriteDetailFunction writeDetailFunc;
     private IsInterruptFunction isInterrupt;
 
-    // Legacy constructors for backward compatibility
     public NodeResult(Map<String, Object> nodeVariable) {
         this.nodeVariable = nodeVariable != null ? nodeVariable : new HashMap<>();
         this.streamOutput = false;
-        this.writeContextFunc = this::defaultWriteContextFunc;
-        this.writeDetailFunc = this::defaultWriteDetailFunc;
-        this.isInterrupt = this::defaultIsInterrupt;
     }
 
     public NodeResult(Map<String, Object> nodeVariable, boolean streamOutput) {
         this.nodeVariable = nodeVariable != null ? nodeVariable : new HashMap<>();
         this.streamOutput = streamOutput;
-        this.writeContextFunc = this::defaultWriteContextFunc;
-        this.writeDetailFunc = this::defaultWriteDetailFunc;
-        this.isInterrupt = this::defaultIsInterrupt;
     }
 
 
     public NodeResult(Map<String, Object> nodeVariable, boolean streamOutput, IsInterruptFunction isInterrupt) {
         this.nodeVariable = nodeVariable != null ? nodeVariable : new HashMap<>();
         this.streamOutput = streamOutput;
-        this.writeContextFunc = this::defaultWriteContextFunc;
-        this.writeDetailFunc = this::defaultWriteDetailFunc;
-        this.isInterrupt = isInterrupt != null ? isInterrupt : this::defaultIsInterrupt;
+        this.isInterrupt = isInterrupt;
     }
-
-
-    public void writeContext(AbsNode currentNode, IWorkflow workflow) {
-        this.writeContextFunc.apply(nodeVariable, currentNode, workflow);
-    }
-
-    public void writeDetail(AbsNode currentNode) {
-        this.writeDetailFunc.apply(nodeVariable, currentNode);
-    }
-
-    public boolean isInterruptExec(AbsNode currentNode) {
-        return this.isInterrupt.apply(currentNode);
-    }
-
-    public boolean defaultIsInterrupt(AbsNode node) {
-        return false;
-    }
-
-    public void defaultWriteContextFunc(Map<String, Object> nodeVariable, AbsNode node, IWorkflow workflow) {
-        if (nodeVariable != null) {
-            node.getContext().putAll(nodeVariable);
-        }
-       if (workflow instanceof IChatWorkflow chatWorkflow){
-           ChatParams chatParams = chatWorkflow.getChatParams();
-           ChatMessageVO nodeEndVo = node.toChatMessageVO(
-                   chatParams.getChatId(),
-                   chatParams.getChatRecordId(),
-                   streamOutput?"":node.getAnswerText(),
-                   "",
-                   null,
-                   true);
-           workflow.output().emit(nodeEndVo);
-       }
-        // Sync update to workflow context
-        workflow.context().appendNode(node);
-    }
-
-    public void defaultWriteDetailFunc(Map<String, Object> nodeVariable, AbsNode node) {
-        if (nodeVariable != null) {
-            if (NodeType.VARIABLE_AGGREGATE.getKey().equals(node.getType())) {
-                node.getDetail().put(NodeField.RESULT, nodeVariable);
-            } else {
-                node.getDetail().putAll(nodeVariable);
-            }
-        }
-    }
-
 
     @FunctionalInterface
     public interface WriteContextFunction {
@@ -107,10 +55,6 @@ public class NodeResult {
     @FunctionalInterface
     public interface IsInterruptFunction {
         boolean apply(AbsNode currentNode);
-    }
-
-    public boolean isAssertionResult() {
-        return this.nodeVariable != null && this.nodeVariable.containsKey(NodeField.BRANCH_ID);
     }
 
     // ==================== Builder Pattern ====================

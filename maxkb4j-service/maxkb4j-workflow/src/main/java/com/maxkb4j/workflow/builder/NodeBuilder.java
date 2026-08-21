@@ -5,9 +5,11 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.service.INodeCreator;
 
 /**
- * 节点构建器
- * 重构后为非静态类，通过依赖注入使用
- *
+ * 节点构建器（实现层）
+ * <p>
+ * 对 {@link INodeCreator} 契约的便捷包装，属于实现细节，仅供 workflow 实现模块内部使用；
+ * 外部模块请直接注入 {@link INodeCreator} 契约接口。
+ * <p>
  * 使用方式：
  * - 通过 Spring 注入 NodeBuilder Bean
  * - 调用 nodeBuilder.getNode(lfNode) 创建节点实例
