@@ -28,21 +28,23 @@ public class UserSelectNode extends AbsNode {
     @Override
     @SuppressWarnings("unchecked")
     public List<Answer> getAnswerList(String chatRecordId)  {
-        Map<String, Object> formData = (Map<String, Object>) context.getOrDefault(FormField.FORM_DATA,Map.of());
-        boolean isSubmit = (boolean) context.getOrDefault(FormField.IS_SUBMIT,false);
         String runtimeNodeId=this.getRuntimeNodeId();
-        JSONArray formFieldList =new JSONArray();
-        if (!formData.isEmpty()){
-             formFieldList =(JSONArray)context.getOrDefault(FormField.FORM_FIELD_LIST, new JSONArray());
-        }
+        String formRender =buildFormRender(chatRecordId,runtimeNodeId,new JSONObject(detail));
+        return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
+    }
+
+
+    /**
+     * 组装以渲染标签包裹的表单设置字符串。
+     */
+    private String buildFormRender(String chatRecordId,String runtimeNodeId ,JSONObject nodeDetail) {
         JSONObject formSetting = new JSONObject();
-        formSetting.put(FormField.FORM_FIELD_LIST, formFieldList);
-        formSetting.put(FormField.IS_SUBMIT, isSubmit);
-        formSetting.put(FormField.FORM_DATA, formData);
+        formSetting.put(FormField.FORM_FIELD_LIST, nodeDetail.getJSONArray(FormField.FORM_FIELD_LIST));
+        formSetting.put(FormField.IS_SUBMIT, nodeDetail.getBooleanValue(FormField.IS_SUBMIT));
+        formSetting.put(FormField.FORM_DATA, nodeDetail.getJSONObject(FormField.FORM_DATA));
         formSetting.put(RuntimeDetailField.RUNTIME_NODE_ID, runtimeNodeId);
         formSetting.put(ChatField.CHAT_RECORD_ID, chatRecordId);
-        String formRender = "<" + FormField.CARD_SELECTION_RENDER_TAG + ">" + formSetting + "</" + FormField.CARD_SELECTION_RENDER_TAG + ">";
-        return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
+        return "<" + FormField.CARD_SELECTION_RENDER_TAG + ">" + formSetting + "</" + FormField.CARD_SELECTION_RENDER_TAG + ">";
     }
 
     @Data

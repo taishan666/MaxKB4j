@@ -1,6 +1,5 @@
 package com.maxkb4j.workflow.node.impl;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
@@ -18,8 +17,11 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.LOOP)
 public class LoopNode extends AbsNode {
+    /** 循环体子节点 nodeData 中标记"输出结果"的键名 */
+    private static final String KEY_IS_RESULT = "isResult";
+
     public LoopNode(String id, JSONObject properties) {
-        super(id,properties);
+        super(id, properties);
     }
 
     @Override
@@ -56,85 +58,108 @@ public class LoopNode extends AbsNode {
      */
     private List<Answer> buildIterationAnswers(JSONObject iterationDetails, Set<String> resultNodeIds,
                                                String chatRecordId) {
+        List<Answer> answers = new ArrayList<>();
+        for (JSONObject nodeDetail : extractSortedNodeDetails(iterationDetails)) {
+            answers.addAll(buildNodeAnswers(nodeDetail, resultNodeIds, chatRecordId));
+        }
+        return answers;
+    }
+
+    /**
+     * 从迭代详情中提取子节点详情，并按执行索引恢复节点顺序。
+     * <p>JSON 反序列化不保证顺序，需依据 index 字段排序。</p>
+     */
+    private List<JSONObject> extractSortedNodeDetails(JSONObject iterationDetails) {
         List<JSONObject> nodeDetails = new ArrayList<>();
         for (Object value : iterationDetails.values()) {
             if (value instanceof JSONObject nodeDetail) {
                 nodeDetails.add(nodeDetail);
             }
         }
-        // JSON 反序列化不保证顺序，按执行索引恢复节点顺序
         nodeDetails.sort(Comparator.comparingInt(node -> {
             Integer index = node.getInteger(RuntimeDetailField.INDEX);
             return index != null ? index : Integer.MAX_VALUE;
         }));
-
-        List<Answer> answers = new ArrayList<>(nodeDetails.size());
-        for (JSONObject nodeDetail : nodeDetails) {
-            String nodeType=nodeDetail.getString("type");
-            if(NodeType.FORM.getKey().equals(nodeType)){
-                answers.addAll(getFormAnswerList(chatRecordId,nodeDetail));
-                continue;
-            }
-            if(NodeType.USER_SELECT.getKey().equals(nodeType)){
-                answers.addAll(getUserSelectAnswerList(chatRecordId,nodeDetail));
-                continue;
-            }
-            if (!isResultNode(nodeDetail, resultNodeIds)) {
-                continue;
-            }
-            Object content = nodeDetail.get(NodeField.ANSWER);
-            if (content == null) {
-                continue;
-            }
-            Object reasoningContent = nodeDetail.get(NodeField.REASONING_CONTENT);
-            answers.add(Answer.builder()
-                    .content(String.valueOf(content))
-                    .reasoningContent(reasoningContent != null ? String.valueOf(reasoningContent) : "")
-                    .chatRecordId(chatRecordId)
-                    .runtimeNodeId(nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID))
-                    .realNodeId(nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID))
-                    .viewType(ViewType.MANY_VIEW)
-                    .build());
-        }
-        return answers;
+        return nodeDetails;
     }
 
-    public List<Answer> getFormAnswerList(String chatRecordId,JSONObject nodeDetail) {
-        JSONObject formData =nodeDetail.getJSONObject(FormField.FORM_DATA);
-        boolean isSubmit = nodeDetail.getBooleanValue(FormField.IS_SUBMIT);
+    /**
+     * 按子节点类型分发答案构建：表单/用户选择节点渲染交互组件，
+     * 其余节点按输出节点规则提取文本答案。
+     */
+    private List<Answer> buildNodeAnswers(JSONObject nodeDetail, Set<String> resultNodeIds, String chatRecordId) {
+        String nodeType = nodeDetail.getString(RuntimeDetailField.TYPE);
+        if (NodeType.FORM.getKey().equals(nodeType)) {
+            return buildInteractiveAnswers(chatRecordId, nodeDetail, FormField.FORM_RENDER_TAG, true);
+        }
+        if (NodeType.USER_SELECT.getKey().equals(nodeType)) {
+            return buildInteractiveAnswers(chatRecordId, nodeDetail, FormField.CARD_SELECTION_RENDER_TAG, false);
+        }
+        if (!isResultNode(nodeDetail, resultNodeIds)) {
+            return Collections.emptyList();
+        }
+        return buildTextAnswer(nodeDetail, chatRecordId);
+    }
+
+    /**
+     * 构建输出节点的文本答案。
+     */
+    private List<Answer> buildTextAnswer(JSONObject nodeDetail, String chatRecordId) {
+        Object content = nodeDetail.get(NodeField.ANSWER);
+        if (content == null) {
+            return Collections.emptyList();
+        }
+        Object reasoningContent = nodeDetail.get(NodeField.REASONING_CONTENT);
         String runtimeNodeId = nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID);
-        JSONArray formFieldList = nodeDetail.getJSONArray(FormField.FORM_FIELD_LIST);
+        return List.of(Answer.builder()
+                .content(String.valueOf(content))
+                .reasoningContent(reasoningContent != null ? String.valueOf(reasoningContent) : "")
+                .chatRecordId(chatRecordId)
+                .runtimeNodeId(runtimeNodeId)
+                .realNodeId(runtimeNodeId)
+                .viewType(ViewType.MANY_VIEW)
+                .build());
+    }
+
+    /**
+     * 构建表单/用户选择节点的交互组件答案：以渲染标签包裹表单设置，可选套用内容模板。
+     *
+     * @param renderTag          渲染标签（form_render / card_selection_render）
+     * @param applyContentFormat 是否套用 form_content_format 模板
+     */
+    private List<Answer> buildInteractiveAnswers(String chatRecordId, JSONObject nodeDetail,
+                                                 String renderTag, boolean applyContentFormat) {
+        String runtimeNodeId = nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID);
+        String formRender = buildFormRender(chatRecordId, runtimeNodeId,nodeDetail, renderTag);
+        String content = formRender;
+        if (applyContentFormat) {
+            String formContentFormat = nodeDetail.getString(FormField.FORM_CONTENT_FORMAT);
+            if (formContentFormat != null) {
+                content = PromptTemplate.from(formContentFormat).apply(Map.of("form", formRender)).text();
+            }
+        }
+        return List.of(Answer.builder()
+                .content(content)
+                .reasoningContent("")
+                .chatRecordId(chatRecordId)
+                .runtimeNodeId(runtimeNodeId)
+                .realNodeId(runtimeNodeId)
+                .viewType(ViewType.SINGLE_VIEW)
+                .build());
+    }
+
+    /**
+     * 组装以渲染标签包裹的表单设置字符串。
+     */
+    private String buildFormRender(String chatRecordId,String runtimeNodeId, JSONObject nodeDetail, String renderTag) {
         JSONObject formSetting = new JSONObject();
-        formSetting.put(FormField.FORM_FIELD_LIST, formFieldList);
-        formSetting.put(FormField.IS_SUBMIT, isSubmit);
-        formSetting.put(FormField.FORM_DATA, formData);
+        formSetting.put(FormField.FORM_FIELD_LIST, nodeDetail.getJSONArray(FormField.FORM_FIELD_LIST));
+        formSetting.put(FormField.IS_SUBMIT, nodeDetail.getBooleanValue(FormField.IS_SUBMIT));
+        formSetting.put(FormField.FORM_DATA, nodeDetail.getJSONObject(FormField.FORM_DATA));
         formSetting.put(RuntimeDetailField.RUNTIME_NODE_ID, runtimeNodeId);
         formSetting.put(ChatField.CHAT_RECORD_ID, chatRecordId);
-        String formRender = "<" + FormField.FORM_RENDER_TAG + ">" + formSetting + "</" + FormField.FORM_RENDER_TAG + ">";
-        String formContentFormat = nodeDetail.getString(FormField.FORM_CONTENT_FORMAT);
-        if (formContentFormat != null) {
-            PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
-            String answer = promptTemplate.apply(Map.of("form", formRender)).text();
-            return List.of(Answer.builder().content(answer).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(ViewType.SINGLE_VIEW).build());
-        }
-        return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(ViewType.SINGLE_VIEW).build());
+        return "<" + renderTag + ">" + formSetting + "</" + renderTag + ">";
     }
-
-    public List<Answer> getUserSelectAnswerList(String chatRecordId,JSONObject nodeDetail) {
-        JSONObject formData =nodeDetail.getJSONObject(FormField.FORM_DATA);
-        boolean isSubmit = nodeDetail.getBooleanValue(FormField.IS_SUBMIT);
-        String runtimeNodeId = nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID);
-        JSONArray formFieldList = nodeDetail.getJSONArray(FormField.FORM_FIELD_LIST);
-        JSONObject formSetting = new JSONObject();
-        formSetting.put(FormField.FORM_FIELD_LIST, formFieldList);
-        formSetting.put(FormField.IS_SUBMIT, isSubmit);
-        formSetting.put(FormField.FORM_DATA, formData);
-        formSetting.put(RuntimeDetailField.RUNTIME_NODE_ID, runtimeNodeId);
-        formSetting.put(ChatField.CHAT_RECORD_ID, chatRecordId);
-        String formRender = "<" + FormField.CARD_SELECTION_RENDER_TAG + ">" + formSetting + "</" + FormField.CARD_SELECTION_RENDER_TAG + ">";
-        return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(ViewType.SINGLE_VIEW).build());
-    }
-
 
     /**
      * 判断子节点是否为输出节点；循环体不可解析时退化为"详情中带有答案即输出"。
@@ -165,7 +190,7 @@ public class LoopNode extends AbsNode {
         for (LfNode node : nodes) {
             JSONObject properties = node.getProperties();
             JSONObject nodeData = properties != null ? properties.getJSONObject(RuntimeDetailField.NODE_DATA) : null;
-            if (nodeData != null && Boolean.TRUE.equals(nodeData.getBoolean("isResult"))) {
+            if (nodeData != null && Boolean.TRUE.equals(nodeData.getBoolean(KEY_IS_RESULT))) {
                 resultNodeIds.add(node.getId());
             }
         }

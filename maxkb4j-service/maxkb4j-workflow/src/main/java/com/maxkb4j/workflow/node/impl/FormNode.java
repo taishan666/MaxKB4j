@@ -38,22 +38,9 @@ public class FormNode extends AbsNode {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<Answer> getAnswerList(String chatRecordId) {
-        Map<String, Object> formData = (Map<String, Object>) context.getOrDefault(FormField.FORM_DATA, Map.of());
-        boolean isSubmit = (boolean) context.getOrDefault(FormField.IS_SUBMIT, false);
-        String runtimeNodeId = this.getRuntimeNodeId();
-        JSONArray formFieldList = new JSONArray();
-        if (!formData.isEmpty()) {
-            formFieldList = (JSONArray) context.getOrDefault(FormField.FORM_FIELD_LIST, new JSONArray());
-        }
-        JSONObject formSetting = new JSONObject();
-        formSetting.put(FormField.FORM_FIELD_LIST, formFieldList);
-        formSetting.put(FormField.IS_SUBMIT, isSubmit);
-        formSetting.put(FormField.FORM_DATA, formData);
-        formSetting.put(RuntimeDetailField.RUNTIME_NODE_ID, runtimeNodeId);
-        formSetting.put(ChatField.CHAT_RECORD_ID, chatRecordId);
-        String formRender = "<" + FormField.FORM_RENDER_TAG + ">" + formSetting + "</" + FormField.FORM_RENDER_TAG + ">";
+        String runtimeNodeId = (String) detail.get(RuntimeDetailField.RUNTIME_NODE_ID);
+        String formRender = buildFormRender(chatRecordId,runtimeNodeId,new JSONObject(detail));
         JSONObject nodeData = this.getNodeData();
         if (nodeData != null) {
             String formContentFormat = nodeData.getString(FormField.FORM_CONTENT_FORMAT);
@@ -64,6 +51,19 @@ public class FormNode extends AbsNode {
             }
         }
         return List.of();
+    }
+
+    /**
+     * 组装以渲染标签包裹的表单设置字符串。
+     */
+    private String buildFormRender(String chatRecordId,String runtimeNodeId ,JSONObject nodeDetail) {
+        JSONObject formSetting = new JSONObject();
+        formSetting.put(FormField.FORM_FIELD_LIST, nodeDetail.getJSONArray(FormField.FORM_FIELD_LIST));
+        formSetting.put(FormField.IS_SUBMIT, nodeDetail.getBooleanValue(FormField.IS_SUBMIT));
+        formSetting.put(FormField.FORM_DATA, nodeDetail.getJSONObject(FormField.FORM_DATA));
+        formSetting.put(RuntimeDetailField.RUNTIME_NODE_ID, runtimeNodeId);
+        formSetting.put(ChatField.CHAT_RECORD_ID, chatRecordId);
+        return "<" + FormField.FORM_RENDER_TAG + ">" + formSetting + "</" + FormField.FORM_RENDER_TAG + ">";
     }
 
     @Data
