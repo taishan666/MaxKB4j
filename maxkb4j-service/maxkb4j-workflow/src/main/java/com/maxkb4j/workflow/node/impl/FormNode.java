@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.util.FormRenderUtil;
 import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
 
@@ -40,7 +41,7 @@ public class FormNode extends AbsNode {
     @Override
     public List<Answer> getAnswerList(String chatRecordId) {
         String runtimeNodeId = (String) detail.get(RuntimeDetailField.RUNTIME_NODE_ID);
-        String formRender = buildFormRender(chatRecordId,runtimeNodeId,new JSONObject(detail));
+        String formRender = FormRenderUtil.buildFormRender(chatRecordId, runtimeNodeId, new JSONObject(detail), FormField.FORM_RENDER_TAG);
         JSONObject nodeData = this.getNodeData();
         if (nodeData != null) {
             String formContentFormat = nodeData.getString(FormField.FORM_CONTENT_FORMAT);
@@ -51,19 +52,6 @@ public class FormNode extends AbsNode {
             }
         }
         return List.of();
-    }
-
-    /**
-     * 组装以渲染标签包裹的表单设置字符串。
-     */
-    private String buildFormRender(String chatRecordId,String runtimeNodeId ,JSONObject nodeDetail) {
-        JSONObject formSetting = new JSONObject();
-        formSetting.put(FormField.FORM_FIELD_LIST, nodeDetail.getJSONArray(FormField.FORM_FIELD_LIST));
-        formSetting.put(FormField.IS_SUBMIT, nodeDetail.getBooleanValue(FormField.IS_SUBMIT));
-        formSetting.put(FormField.FORM_DATA, nodeDetail.getJSONObject(FormField.FORM_DATA));
-        formSetting.put(RuntimeDetailField.RUNTIME_NODE_ID, runtimeNodeId);
-        formSetting.put(ChatField.CHAT_RECORD_ID, chatRecordId);
-        return "<" + FormField.FORM_RENDER_TAG + ">" + formSetting + "</" + FormField.FORM_RENDER_TAG + ">";
     }
 
     @Data
