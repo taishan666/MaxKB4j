@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.node.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
@@ -8,15 +9,11 @@ import com.maxkb4j.workflow.logic.LfNode;
 import com.maxkb4j.workflow.logic.LogicFlow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.LOOP)
@@ -73,6 +70,15 @@ public class LoopNode extends AbsNode {
 
         List<Answer> answers = new ArrayList<>(nodeDetails.size());
         for (JSONObject nodeDetail : nodeDetails) {
+            String nodeType=nodeDetail.getString("type");
+            if(NodeType.FORM.getKey().equals(nodeType)){
+                answers.addAll(getFormAnswerList(chatRecordId,nodeDetail));
+                continue;
+            }
+            if(NodeType.USER_SELECT.getKey().equals(nodeType)){
+                answers.addAll(getUserSelectAnswerList(chatRecordId,nodeDetail));
+                continue;
+            }
             if (!isResultNode(nodeDetail, resultNodeIds)) {
                 continue;
             }
@@ -85,13 +91,50 @@ public class LoopNode extends AbsNode {
                     .content(String.valueOf(content))
                     .reasoningContent(reasoningContent != null ? String.valueOf(reasoningContent) : "")
                     .chatRecordId(chatRecordId)
-                    .runtimeNodeId(getRuntimeNodeId())
+                    .runtimeNodeId(nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID))
                     .realNodeId(nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID))
-                    .viewType(getViewType())
+                    .viewType(ViewType.MANY_VIEW)
                     .build());
         }
         return answers;
     }
+
+    public List<Answer> getFormAnswerList(String chatRecordId,JSONObject nodeDetail) {
+        JSONObject formData =nodeDetail.getJSONObject(FormField.FORM_DATA);
+        boolean isSubmit = nodeDetail.getBooleanValue(FormField.IS_SUBMIT);
+        String runtimeNodeId = nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID);
+        JSONArray formFieldList = nodeDetail.getJSONArray(FormField.FORM_FIELD_LIST);
+        JSONObject formSetting = new JSONObject();
+        formSetting.put(FormField.FORM_FIELD_LIST, formFieldList);
+        formSetting.put(FormField.IS_SUBMIT, isSubmit);
+        formSetting.put(FormField.FORM_DATA, formData);
+        formSetting.put(RuntimeDetailField.RUNTIME_NODE_ID, runtimeNodeId);
+        formSetting.put(ChatField.CHAT_RECORD_ID, chatRecordId);
+        String formRender = "<" + FormField.FORM_RENDER_TAG + ">" + formSetting + "</" + FormField.FORM_RENDER_TAG + ">";
+        String formContentFormat = nodeDetail.getString(FormField.FORM_CONTENT_FORMAT);
+        if (formContentFormat != null) {
+            PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
+            String answer = promptTemplate.apply(Map.of("form", formRender)).text();
+            return List.of(Answer.builder().content(answer).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(ViewType.SINGLE_VIEW).build());
+        }
+        return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(ViewType.SINGLE_VIEW).build());
+    }
+
+    public List<Answer> getUserSelectAnswerList(String chatRecordId,JSONObject nodeDetail) {
+        JSONObject formData =nodeDetail.getJSONObject(FormField.FORM_DATA);
+        boolean isSubmit = nodeDetail.getBooleanValue(FormField.IS_SUBMIT);
+        String runtimeNodeId = nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID);
+        JSONArray formFieldList = nodeDetail.getJSONArray(FormField.FORM_FIELD_LIST);
+        JSONObject formSetting = new JSONObject();
+        formSetting.put(FormField.FORM_FIELD_LIST, formFieldList);
+        formSetting.put(FormField.IS_SUBMIT, isSubmit);
+        formSetting.put(FormField.FORM_DATA, formData);
+        formSetting.put(RuntimeDetailField.RUNTIME_NODE_ID, runtimeNodeId);
+        formSetting.put(ChatField.CHAT_RECORD_ID, chatRecordId);
+        String formRender = "<" + FormField.CARD_SELECTION_RENDER_TAG + ">" + formSetting + "</" + FormField.CARD_SELECTION_RENDER_TAG + ">";
+        return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(ViewType.SINGLE_VIEW).build());
+    }
+
 
     /**
      * 判断子节点是否为输出节点；循环体不可解析时退化为"详情中带有答案即输出"。

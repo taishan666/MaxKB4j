@@ -1,4 +1,5 @@
 package com.maxkb4j.workflow.node.impl;
+
 import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -12,6 +13,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.FORM)
@@ -37,13 +39,13 @@ public class FormNode extends AbsNode {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<Answer> getAnswerList(String chatRecordId)  {
-        Map<String, Object> formData = (Map<String, Object>) context.getOrDefault(FormField.FORM_DATA,Map.of());
-        boolean isSubmit = (boolean) context.getOrDefault(FormField.IS_SUBMIT,false);
-        String runtimeNodeId=this.getRuntimeNodeId();
-        JSONArray formFieldList =new JSONArray();
-        if (!formData.isEmpty()){
-            formFieldList =(JSONArray)context.getOrDefault(FormField.FORM_FIELD_LIST, new JSONArray());
+    public List<Answer> getAnswerList(String chatRecordId) {
+        Map<String, Object> formData = (Map<String, Object>) context.getOrDefault(FormField.FORM_DATA, Map.of());
+        boolean isSubmit = (boolean) context.getOrDefault(FormField.IS_SUBMIT, false);
+        String runtimeNodeId = this.getRuntimeNodeId();
+        JSONArray formFieldList = new JSONArray();
+        if (!formData.isEmpty()) {
+            formFieldList = (JSONArray) context.getOrDefault(FormField.FORM_FIELD_LIST, new JSONArray());
         }
         JSONObject formSetting = new JSONObject();
         formSetting.put(FormField.FORM_FIELD_LIST, formFieldList);
@@ -52,10 +54,16 @@ public class FormNode extends AbsNode {
         formSetting.put(RuntimeDetailField.RUNTIME_NODE_ID, runtimeNodeId);
         formSetting.put(ChatField.CHAT_RECORD_ID, chatRecordId);
         String formRender = "<" + FormField.FORM_RENDER_TAG + ">" + formSetting + "</" + FormField.FORM_RENDER_TAG + ">";
-        String formContentFormat = this.getNodeData().getString(FormField.FORM_CONTENT_FORMAT);
-        PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
-        String answer = promptTemplate.apply(Map.of("form", formRender)).text();
-        return List.of(Answer.builder().content(answer).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
+        JSONObject nodeData = this.getNodeData();
+        if (nodeData != null) {
+            String formContentFormat = nodeData.getString(FormField.FORM_CONTENT_FORMAT);
+            if (formContentFormat != null) {
+                PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
+                String answer = promptTemplate.apply(Map.of("form", formRender)).text();
+                return List.of(Answer.builder().content(answer).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
+            }
+        }
+        return List.of();
     }
 
     @Data
