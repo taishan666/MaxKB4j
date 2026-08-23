@@ -40,15 +40,16 @@ public class FormNode extends AbsNode {
 
     @Override
     public List<Answer> getAnswerList() {
-        String runtimeNodeId = (String) detail.get(RuntimeDetailField.RUNTIME_NODE_ID);
-        String formRender = FormRenderUtil.buildFormRender(runtimeNodeId, new JSONObject(detail), FormField.FORM_RENDER_TAG);
+        String chatRecordId= (String) detail.getOrDefault(ChatField.CHAT_RECORD_ID,"");
+        String runtimeNodeId=super.getRuntimeNodeId();
+        String formRender = FormRenderUtil.buildFormRender(new JSONObject(detail), FormField.FORM_RENDER_TAG);
         JSONObject nodeData = this.getNodeData();
         if (nodeData != null) {
             String formContentFormat = nodeData.getString(FormField.FORM_CONTENT_FORMAT);
             if (formContentFormat != null) {
                 PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
                 String answer = promptTemplate.apply(Map.of("form", formRender)).text();
-                return List.of(Answer.builder().content(answer).reasoningContent("").chatRecordId("").runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
+                return List.of(Answer.builder().content(answer).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).viewType(this.getViewType()).build());
             }
         }
         return List.of();

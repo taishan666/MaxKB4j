@@ -116,7 +116,6 @@ public class LoopNode extends AbsNode {
                 .reasoningContent(reasoningContent != null ? String.valueOf(reasoningContent) : "")
                 .chatRecordId("")
                 .runtimeNodeId(runtimeNodeId)
-                .realNodeId(runtimeNodeId)
                 .viewType(ViewType.MANY_VIEW)
                 .build());
     }
@@ -129,8 +128,9 @@ public class LoopNode extends AbsNode {
      */
     private List<Answer> buildInteractiveAnswers(JSONObject nodeDetail,
                                                  String renderTag, boolean applyContentFormat) {
+        String chatRecordId = nodeDetail.getString(ChatField.CHAT_RECORD_ID);
         String runtimeNodeId = nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID);
-        String formRender = FormRenderUtil.buildFormRender(runtimeNodeId, nodeDetail, renderTag);
+        String formRender = FormRenderUtil.buildFormRender(nodeDetail, renderTag);
         String content = formRender;
         if (applyContentFormat) {
             String formContentFormat = nodeDetail.getString(FormField.FORM_CONTENT_FORMAT);
@@ -141,9 +141,8 @@ public class LoopNode extends AbsNode {
         return List.of(Answer.builder()
                 .content(content)
                 .reasoningContent("")
-                .chatRecordId("")
+                .chatRecordId(chatRecordId)
                 .runtimeNodeId(runtimeNodeId)
-                .realNodeId(runtimeNodeId)
                 .viewType(ViewType.SINGLE_VIEW)
                 .build());
     }

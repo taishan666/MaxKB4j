@@ -127,7 +127,6 @@ public abstract class AbsNode {
                     .reasoningContent((String) reasoningContent)
                     .chatRecordId("")
                     .runtimeNodeId(runtimeNodeId)
-                    .realNodeId(runtimeNodeId)
                     .viewType(viewType)
                     .build());
         }

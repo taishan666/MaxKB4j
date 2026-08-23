@@ -2,9 +2,7 @@ package com.maxkb4j.workflow.util;
 
 import com.alibaba.fastjson.JSONObject;
 
-import static com.maxkb4j.workflow.consts.WorkflowConstants.ChatField;
 import static com.maxkb4j.workflow.consts.WorkflowConstants.FormField;
-import static com.maxkb4j.workflow.consts.WorkflowConstants.RuntimeDetailField;
 
 /**
  * 表单/用户选择节点渲染字符串组装工具。
@@ -20,19 +18,15 @@ public final class FormRenderUtil {
     /**
      * 组装以渲染标签包裹的表单设置字符串。
      *
-     * @param runtimeNodeId 运行时节点 ID
      * @param nodeDetail    节点运行时详情
      * @param renderTag     渲染标签（form_render / card_selection_render）
      * @return 形如 {@code <renderTag>{...}</renderTag>} 的字符串
      */
-    public static String buildFormRender(String runtimeNodeId,
-                                         JSONObject nodeDetail, String renderTag) {
+    public static String buildFormRender(JSONObject nodeDetail, String renderTag) {
         JSONObject formSetting = new JSONObject();
         formSetting.put(FormField.FORM_FIELD_LIST, nodeDetail.getJSONArray(FormField.FORM_FIELD_LIST));
         formSetting.put(FormField.IS_SUBMIT, nodeDetail.getBooleanValue(FormField.IS_SUBMIT));
         formSetting.put(FormField.FORM_DATA, nodeDetail.getJSONObject(FormField.FORM_DATA));
-        formSetting.put(RuntimeDetailField.RUNTIME_NODE_ID, runtimeNodeId);
-        formSetting.put(ChatField.CHAT_RECORD_ID, nodeDetail.getString(ChatField.CHAT_RECORD_ID));
         return "<" + renderTag + ">" + formSetting + "</" + renderTag + ">";
     }
 }
