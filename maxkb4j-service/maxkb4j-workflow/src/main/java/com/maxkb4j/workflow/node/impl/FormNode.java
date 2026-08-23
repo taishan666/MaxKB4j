@@ -33,22 +33,22 @@ public class FormNode extends AbsNode {
             context.putAll(formData);
         }
         context.put(FormField.FORM_DATA, formData);
-        context.put(FormField.IS_SUBMIT, detail.get(FormField.IS_SUBMIT));
+      /*  context.put(FormField.IS_SUBMIT, detail.get(FormField.IS_SUBMIT));
         context.put(FormField.FORM_FIELD_LIST, detail.get(FormField.FORM_FIELD_LIST));
-        context.put(FormField.FORM_CONTENT_FORMAT, detail.get(FormField.FORM_CONTENT_FORMAT));
+        context.put(FormField.FORM_CONTENT_FORMAT, detail.get(FormField.FORM_CONTENT_FORMAT));*/
     }
 
     @Override
-    public List<Answer> getAnswerList(String chatRecordId) {
+    public List<Answer> getAnswerList() {
         String runtimeNodeId = (String) detail.get(RuntimeDetailField.RUNTIME_NODE_ID);
-        String formRender = FormRenderUtil.buildFormRender(chatRecordId, runtimeNodeId, new JSONObject(detail), FormField.FORM_RENDER_TAG);
+        String formRender = FormRenderUtil.buildFormRender(runtimeNodeId, new JSONObject(detail), FormField.FORM_RENDER_TAG);
         JSONObject nodeData = this.getNodeData();
         if (nodeData != null) {
             String formContentFormat = nodeData.getString(FormField.FORM_CONTENT_FORMAT);
             if (formContentFormat != null) {
                 PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
                 String answer = promptTemplate.apply(Map.of("form", formRender)).text();
-                return List.of(Answer.builder().content(answer).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
+                return List.of(Answer.builder().content(answer).reasoningContent("").chatRecordId("").runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
             }
         }
         return List.of();

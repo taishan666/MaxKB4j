@@ -27,10 +27,10 @@ public class UserSelectNode extends AbsNode {
     }
 
     @Override
-    public List<Answer> getAnswerList(String chatRecordId)  {
+    public List<Answer> getAnswerList()  {
         String runtimeNodeId=this.getRuntimeNodeId();
-        String formRender = FormRenderUtil.buildFormRender(chatRecordId, runtimeNodeId, new JSONObject(detail), FormField.CARD_SELECTION_RENDER_TAG);
-        return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
+        String formRender = FormRenderUtil.buildFormRender(runtimeNodeId, new JSONObject(detail), FormField.CARD_SELECTION_RENDER_TAG);
+        return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId("").runtimeNodeId(runtimeNodeId).realNodeId(runtimeNodeId).viewType(this.getViewType()).build());
     }
 
 

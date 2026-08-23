@@ -39,7 +39,7 @@ public class LoopNode extends AbsNode {
      * 前端据此将持久化答案与循环内流式消息对齐。
      */
     @Override
-    public List<Answer> getAnswerList(String chatRecordId) {
+    public List<Answer> getAnswerList() {
         Object loopData = detail.get(LoopField.LOOP_NODE_DATA);
         if (!(loopData instanceof List<?> iterations) || iterations.isEmpty()) {
             return Collections.emptyList();
@@ -48,7 +48,7 @@ public class LoopNode extends AbsNode {
         List<Answer> answerList = new ArrayList<>();
         for (Object iteration : iterations) {
             if (iteration instanceof JSONObject iterationDetails) {
-                answerList.addAll(buildIterationAnswers(iterationDetails, resultNodeIds, chatRecordId));
+                answerList.addAll(buildIterationAnswers(iterationDetails, resultNodeIds));
             }
         }
         return answerList;
@@ -57,11 +57,10 @@ public class LoopNode extends AbsNode {
     /**
      * 将单次迭代的运行时详情转换为答案列表（按节点执行顺序）。
      */
-    private List<Answer> buildIterationAnswers(JSONObject iterationDetails, Set<String> resultNodeIds,
-                                               String chatRecordId) {
+    private List<Answer> buildIterationAnswers(JSONObject iterationDetails, Set<String> resultNodeIds) {
         List<Answer> answers = new ArrayList<>();
         for (JSONObject nodeDetail : extractSortedNodeDetails(iterationDetails)) {
-            answers.addAll(buildNodeAnswers(nodeDetail, resultNodeIds, chatRecordId));
+            answers.addAll(buildNodeAnswers(nodeDetail, resultNodeIds));
         }
         return answers;
     }
@@ -88,24 +87,24 @@ public class LoopNode extends AbsNode {
      * 按子节点类型分发答案构建：表单/用户选择节点渲染交互组件，
      * 其余节点按输出节点规则提取文本答案。
      */
-    private List<Answer> buildNodeAnswers(JSONObject nodeDetail, Set<String> resultNodeIds, String chatRecordId) {
+    private List<Answer> buildNodeAnswers(JSONObject nodeDetail, Set<String> resultNodeIds) {
         String nodeType = nodeDetail.getString(RuntimeDetailField.TYPE);
         if (NodeType.FORM.getKey().equals(nodeType)) {
-            return buildInteractiveAnswers(chatRecordId, nodeDetail, FormField.FORM_RENDER_TAG, true);
+            return buildInteractiveAnswers(nodeDetail, FormField.FORM_RENDER_TAG, true);
         }
         if (NodeType.USER_SELECT.getKey().equals(nodeType)) {
-            return buildInteractiveAnswers(chatRecordId, nodeDetail, FormField.CARD_SELECTION_RENDER_TAG, false);
+            return buildInteractiveAnswers(nodeDetail, FormField.CARD_SELECTION_RENDER_TAG, false);
         }
         if (!isResultNode(nodeDetail, resultNodeIds)) {
             return Collections.emptyList();
         }
-        return buildTextAnswer(nodeDetail, chatRecordId);
+        return buildTextAnswer(nodeDetail);
     }
 
     /**
      * 构建输出节点的文本答案。
      */
-    private List<Answer> buildTextAnswer(JSONObject nodeDetail, String chatRecordId) {
+    private List<Answer> buildTextAnswer(JSONObject nodeDetail) {
         Object content = nodeDetail.get(NodeField.ANSWER);
         if (content == null) {
             return Collections.emptyList();
@@ -115,7 +114,7 @@ public class LoopNode extends AbsNode {
         return List.of(Answer.builder()
                 .content(String.valueOf(content))
                 .reasoningContent(reasoningContent != null ? String.valueOf(reasoningContent) : "")
-                .chatRecordId(chatRecordId)
+                .chatRecordId("")
                 .runtimeNodeId(runtimeNodeId)
                 .realNodeId(runtimeNodeId)
                 .viewType(ViewType.MANY_VIEW)
@@ -128,10 +127,10 @@ public class LoopNode extends AbsNode {
      * @param renderTag          渲染标签（form_render / card_selection_render）
      * @param applyContentFormat 是否套用 form_content_format 模板
      */
-    private List<Answer> buildInteractiveAnswers(String chatRecordId, JSONObject nodeDetail,
+    private List<Answer> buildInteractiveAnswers(JSONObject nodeDetail,
                                                  String renderTag, boolean applyContentFormat) {
         String runtimeNodeId = nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID);
-        String formRender = FormRenderUtil.buildFormRender(chatRecordId, runtimeNodeId, nodeDetail, renderTag);
+        String formRender = FormRenderUtil.buildFormRender(runtimeNodeId, nodeDetail, renderTag);
         String content = formRender;
         if (applyContentFormat) {
             String formContentFormat = nodeDetail.getString(FormField.FORM_CONTENT_FORMAT);
@@ -142,7 +141,7 @@ public class LoopNode extends AbsNode {
         return List.of(Answer.builder()
                 .content(content)
                 .reasoningContent("")
-                .chatRecordId(chatRecordId)
+                .chatRecordId("")
                 .runtimeNodeId(runtimeNodeId)
                 .realNodeId(runtimeNodeId)
                 .viewType(ViewType.SINGLE_VIEW)

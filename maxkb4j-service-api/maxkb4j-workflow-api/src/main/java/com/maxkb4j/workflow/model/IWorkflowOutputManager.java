@@ -25,7 +25,7 @@ public interface IWorkflowOutputManager {
      */
     void emit(ChatMessageVO message);
 
-    List<Answer> getAnswers(String chatRecordId);
+    List<Answer> getAnswers();
 
     /**
      * 获取节点运行时详情 JSON。

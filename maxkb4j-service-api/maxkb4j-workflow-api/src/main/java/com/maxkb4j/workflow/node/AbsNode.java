@@ -118,14 +118,14 @@ public abstract class AbsNode {
         return nodeData.containsKey("reasoningContentEnable") && nodeData.getBoolean("reasoningContentEnable");
     }
 
-    public List<Answer> getAnswerList(String chatRecordId) {
+    public List<Answer> getAnswerList() {
         if (isResult()) {
-            Object answer = context.getOrDefault(NodeField.ANSWER,"");
-            Object reasoningContent = reasoningContentEnable()?context.getOrDefault(NodeField.REASONING_CONTENT,""):"";
+            Object answer = detail.getOrDefault(NodeField.ANSWER,"");
+            Object reasoningContent = reasoningContentEnable()?detail.getOrDefault(NodeField.REASONING_CONTENT,""):"";
             return List.of(Answer.builder()
                     .content((String) answer)
                     .reasoningContent((String) reasoningContent)
-                    .chatRecordId(chatRecordId)
+                    .chatRecordId("")
                     .runtimeNodeId(runtimeNodeId)
                     .realNodeId(runtimeNodeId)
                     .viewType(viewType)

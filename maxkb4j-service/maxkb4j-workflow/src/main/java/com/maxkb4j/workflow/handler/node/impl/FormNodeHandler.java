@@ -5,15 +5,18 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
-import com.maxkb4j.workflow.model.NodeResult;
+import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
+import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.FormNode;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
+
+import static com.maxkb4j.workflow.consts.WorkflowConstants.ChatField;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.FormField;
 
 @NodeHandlerType(NodeType.FORM)
 @Component
@@ -28,7 +31,6 @@ public class FormNodeHandler extends AbsNodeHandler {
             nodeVariable.put(FormField.IS_SUBMIT, true);
             nodeVariable.put(FormField.FORM_DATA, new JSONObject(formData));
             nodeVariable.putAll(formData);
-            putDetail(node, FormField.FORM_DATA, formData);
         } else {
             JSONArray formFieldList = params.getFormFieldList();
             JSONObject formSetting = new JSONObject();
@@ -40,6 +42,10 @@ public class FormNodeHandler extends AbsNodeHandler {
             nodeVariable.put(FormField.FORM_FIELD_LIST, formFieldList);
             nodeVariable.put(FormField.FORM_CONTENT_FORMAT, formContentFormat);
             nodeVariable.put(FormField.IS_SUBMIT, false);
+        }
+        if (workflow instanceof IChatWorkflow chatWorkflow){
+            String chatRecordId=chatWorkflow.getChatParams().getChatId();
+            putDetail(node, ChatField.CHAT_RECORD_ID, chatRecordId);
         }
         return new NodeResult(nodeVariable, false, this::shouldInterrupt);
     }

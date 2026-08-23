@@ -48,7 +48,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     private final IParagraphService paragraphService;
     private final ApplicationChatMapper chatMapper;
 
-    private ChatRecordDTO getChatRecordEntity(ChatInfo chatInfo, String chatRecordId) {
+    private ChatRecordDTO getChatRecordDTO(ChatInfo chatInfo, String chatRecordId) {
         ChatRecordDTO chatRecord = null;
         if (Objects.nonNull(chatInfo) && !CollectionUtils.isEmpty(chatInfo.getChatRecordList())) {
             chatRecord = chatInfo.getChatRecordList().stream()
@@ -74,7 +74,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
 
     public ApplicationChatRecordVO getChatRecordInfo(String chatId, String chatRecordId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
-        ChatRecordDTO chatRecord = getChatRecordEntity(chatInfo, chatRecordId);
+        ChatRecordDTO chatRecord = getChatRecordDTO(chatInfo, chatRecordId);
         return convert(chatRecord);
     }
 

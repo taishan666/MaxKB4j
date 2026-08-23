@@ -66,7 +66,7 @@ class AbsNodeTest {
     @Test
     void getAnswerList_emptyWhenNoAnswerText() {
         AbsNode node = newNode("n1");
-        assertThat(node.getAnswerList("rec1")).isEmpty();
+        assertThat(node.getAnswerList()).isEmpty();
     }
 
     @Test
@@ -85,7 +85,7 @@ class AbsNodeTest {
         node.getContext().put("reasoningContent", "because");
         node.setViewType(ViewType.SINGLE_VIEW);
 
-        java.util.List<Answer> answers = node.getAnswerList("rec-1");
+        java.util.List<Answer> answers = node.getAnswerList();
         assertThat(answers).hasSize(1);
         Answer answer = answers.get(0);
         assertThat(answer.getContent()).isEqualTo("done");
