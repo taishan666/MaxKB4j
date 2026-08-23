@@ -1,14 +1,12 @@
 package com.maxkb4j.workflow.engine;
 
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 
 /**
@@ -76,17 +74,6 @@ public final class NodeResultWriter {
         Map<String, Object> nodeVariable = result.getNodeVariable();
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
-        }
-        if (workflow instanceof IChatWorkflow chatWorkflow) {
-            ChatParams chatParams = chatWorkflow.getChatParams();
-            ChatMessageVO nodeEndVo = node.toChatMessageVO(
-                    chatParams.getChatId(),
-                    chatParams.getChatRecordId(),
-                    result.isStreamOutput() ? "" : node.getAnswerText(),
-                    "",
-                    null,
-                    true);
-            workflow.output().emit(nodeEndVo);
         }
         // Sync update to workflow context
         workflow.context().appendNode(node);

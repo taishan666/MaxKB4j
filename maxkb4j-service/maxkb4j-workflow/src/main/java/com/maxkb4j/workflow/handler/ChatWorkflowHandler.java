@@ -2,8 +2,8 @@ package com.maxkb4j.workflow.handler;
 
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
+import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 @Slf4j
@@ -28,6 +29,42 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
     public boolean canHandle(IWorkflow workflow) {
         // ChatWorkflowHandler 处理所有聊天系工作流（ChatWorkflow 与聊天循环工作流）
         return (workflow instanceof IChatWorkflow);
+    }
+
+    @Override
+    protected void onNodeStart(IWorkflow workflow, AbsNode node) {
+        if (workflow instanceof IChatWorkflow chatWorkflow) {
+            ChatParams chatParams = chatWorkflow.getChatParams();
+            Map<String,Object> nodeData=chatParams.getNodeData();
+            if (nodeData==null){
+                ChatMessageVO nodeStartVo =node.toChatMessageVO(
+                        chatParams.getChatId(),
+                        chatParams.getChatRecordId(),
+                        "",
+                        "",
+                        null,
+                        false);
+               workflow.output().emit(nodeStartVo);
+            }
+        }
+    }
+
+    @Override
+    protected void onNodeSuccess(IWorkflow workflow, AbsNode node, NodeResult result) {
+        if (workflow instanceof IChatWorkflow chatWorkflow) {
+            ChatParams chatParams = chatWorkflow.getChatParams();
+            Map<String,Object> nodeData=chatParams.getNodeData();
+            if (nodeData==null){
+                ChatMessageVO nodeEndVo = node.toChatMessageVO(
+                        chatParams.getChatId(),
+                        chatParams.getChatRecordId(),
+                        result.isStreamOutput() ? "" : node.getAnswerText(),
+                        "",
+                        null,
+                        true);
+                workflow.output().emit(nodeEndVo);
+            }
+        }
     }
 
     @Override
