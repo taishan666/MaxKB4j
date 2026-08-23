@@ -2,6 +2,7 @@ package com.maxkb4j.workflow.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.Answer;
+import com.maxkb4j.common.domain.dto.ChildNode;
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.logic.LfNode;
@@ -89,28 +90,28 @@ public class LoopNode extends AbsNode {
      */
     private List<Answer> buildNodeAnswers(JSONObject nodeDetail, Set<String> resultNodeIds) {
         String nodeType = nodeDetail.getString(RuntimeDetailField.TYPE);
+        String runtimeNodeId=super.getRuntimeNodeId();
         if (NodeType.FORM.getKey().equals(nodeType)) {
-            return buildInteractiveAnswers(nodeDetail, FormField.FORM_RENDER_TAG, true);
+            return buildInteractiveAnswers(runtimeNodeId,nodeDetail, FormField.FORM_RENDER_TAG, true);
         }
         if (NodeType.USER_SELECT.getKey().equals(nodeType)) {
-            return buildInteractiveAnswers(nodeDetail, FormField.CARD_SELECTION_RENDER_TAG, false);
+            return buildInteractiveAnswers(runtimeNodeId,nodeDetail, FormField.CARD_SELECTION_RENDER_TAG, false);
         }
         if (!isResultNode(nodeDetail, resultNodeIds)) {
             return Collections.emptyList();
         }
-        return buildTextAnswer(nodeDetail);
+        return buildTextAnswer(runtimeNodeId,nodeDetail);
     }
 
     /**
      * 构建输出节点的文本答案。
      */
-    private List<Answer> buildTextAnswer(JSONObject nodeDetail) {
+    private List<Answer> buildTextAnswer(String runtimeNodeId,JSONObject nodeDetail) {
         Object content = nodeDetail.get(NodeField.ANSWER);
         if (content == null) {
             return Collections.emptyList();
         }
         Object reasoningContent = nodeDetail.get(NodeField.REASONING_CONTENT);
-        String runtimeNodeId = nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID);
         return List.of(Answer.builder()
                 .content(String.valueOf(content))
                 .reasoningContent(reasoningContent != null ? String.valueOf(reasoningContent) : "")
@@ -126,10 +127,10 @@ public class LoopNode extends AbsNode {
      * @param renderTag          渲染标签（form_render / card_selection_render）
      * @param applyContentFormat 是否套用 form_content_format 模板
      */
-    private List<Answer> buildInteractiveAnswers(JSONObject nodeDetail,
+    private List<Answer> buildInteractiveAnswers(String runtimeNodeId,JSONObject nodeDetail,
                                                  String renderTag, boolean applyContentFormat) {
         String chatRecordId = nodeDetail.getString(ChatField.CHAT_RECORD_ID);
-        String runtimeNodeId = nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID);
+        String childRuntimeNodeId = nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID);
         String formRender = FormRenderUtil.buildFormRender(nodeDetail, renderTag);
         String content = formRender;
         if (applyContentFormat) {
@@ -143,6 +144,7 @@ public class LoopNode extends AbsNode {
                 .reasoningContent("")
                 .chatRecordId(chatRecordId)
                 .runtimeNodeId(runtimeNodeId)
+                .childNode(new ChildNode(chatRecordId,childRuntimeNodeId))
                 .viewType(ViewType.SINGLE_VIEW)
                 .build());
     }
