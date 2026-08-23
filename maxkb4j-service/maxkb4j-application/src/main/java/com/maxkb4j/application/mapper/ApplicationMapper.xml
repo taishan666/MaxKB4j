@@ -49,10 +49,10 @@
                 <when test="query.isAdmin != null and query.isAdmin">
                     <choose>
                         <when test="query.folderId != null and query.folderId != ''">
-                            AND a.folder_id = #{query.folderId}
+                            AND COALESCE(a.folder_id, 'default') = #{query.folderId}
                         </when>
                         <otherwise>
-                            AND a.folder_id = 'default'
+                            AND COALESCE(a.folder_id, 'default') = 'default'
                         </otherwise>
                     </choose>
                 </when>
@@ -88,7 +88,7 @@
         FROM application a
         LEFT JOIN "user" u ON a.user_id = u.id
         WHERE a.is_publish = true
-        AND a.folder_id = #{query.folderId}
+        AND COALESCE(a.folder_id, 'default') = #{query.folderId}
         <if test="query.isAdmin == null or !query.isAdmin">
             <choose>
                 <when test="query.targetIds != null and !query.targetIds.isEmpty()">

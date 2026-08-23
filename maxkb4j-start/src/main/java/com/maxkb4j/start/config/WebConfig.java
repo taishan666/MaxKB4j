@@ -67,7 +67,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/webjars/**")
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");*/
     }
-
+/*
     @Override
     public void addViewControllers(@NotNull ViewControllerRegistry registry) {
         registry.addViewController("/admin/{path:[^.]*}").setViewName("forward:/admin/index.html");
@@ -78,7 +78,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addViewController("/chat/{path:[^.]*}").setViewName("forward:/chat/index.html");
         registry.addViewController("/chat/share/{path:[^.]*}").setViewName("forward:/chat/index.html");
         registry.addViewController("/chat-api-doc").setViewName("forward:/doc.html");
-    }
+    }*/
 
     /**
      * 注意：前端路由转发由 SpaForwardFilter 处理，不使用 ViewControllerRegistry

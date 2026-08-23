@@ -28,6 +28,7 @@ import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.core.support.permission.DataPermissionSupport;
 import com.maxkb4j.system.constant.AuthTargetType;
+import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
 import com.maxkb4j.user.service.IUserService;
@@ -159,6 +160,9 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     @Transactional(rollbackFor = Exception.class)
     public boolean saveOrUpdateApp(ApplicationEntity application) {
         if (application.getId() == null) {
+            if (StringUtils.isBlank(application.getFolderId())) {
+                application.setFolderId(ToolConstants.Defaults.DEFAULT_FOLDER_ID);
+            }
             this.save(application);
             ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
             accessToken.setApplicationId(application.getId());
