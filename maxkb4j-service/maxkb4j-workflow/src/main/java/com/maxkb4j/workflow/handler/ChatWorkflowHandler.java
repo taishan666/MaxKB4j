@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
 import java.util.concurrent.Executor;
 
 @Slf4j
@@ -35,17 +34,14 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
     protected void onNodeStart(IWorkflow workflow, AbsNode node) {
         if (workflow instanceof IChatWorkflow chatWorkflow) {
             ChatParams chatParams = chatWorkflow.getChatParams();
-            Map<String,Object> nodeData=chatParams.getNodeData();
-            if (nodeData==null){
-                ChatMessageVO nodeStartVo =node.toChatMessageVO(
-                        chatParams.getChatId(),
-                        chatParams.getChatRecordId(),
-                        "",
-                        "",
-                        null,
-                        false);
-               workflow.output().emit(nodeStartVo);
-            }
+            ChatMessageVO nodeStartVo =node.toChatMessageVO(
+                    chatParams.getChatId(),
+                    chatParams.getChatRecordId(),
+                    "",
+                    "",
+                    null,
+                    false);
+            workflow.output().emit(nodeStartVo);
         }
     }
 
@@ -53,17 +49,14 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
     protected void onNodeSuccess(IWorkflow workflow, AbsNode node, NodeResult result) {
         if (workflow instanceof IChatWorkflow chatWorkflow) {
             ChatParams chatParams = chatWorkflow.getChatParams();
-            Map<String,Object> nodeData=chatParams.getNodeData();
-            if (nodeData==null){
-                ChatMessageVO nodeEndVo = node.toChatMessageVO(
-                        chatParams.getChatId(),
-                        chatParams.getChatRecordId(),
-                        result.isStreamOutput() ? "" : node.getAnswerText(),
-                        "",
-                        null,
-                        true);
-                workflow.output().emit(nodeEndVo);
-            }
+            ChatMessageVO nodeEndVo = node.toChatMessageVO(
+                    chatParams.getChatId(),
+                    chatParams.getChatRecordId(),
+                    result.isStreamOutput() ? "" : node.getAnswerText(),
+                    "",
+                    null,
+                    true);
+            workflow.output().emit(nodeEndVo);
         }
     }
 
