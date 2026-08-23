@@ -5,6 +5,7 @@ import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import org.junit.jupiter.api.Test;
 
+import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 import static com.maxkb4j.workflow.consts.WorkflowConstants.ViewType;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -71,18 +72,13 @@ class AbsNodeTest {
 
     @Test
     void getAnswerList_buildsAnswerWithContentAndReasoning() {
-        // isResult 为 getAnswerList 输出答案的前置条件（对应前端节点配置"输出结果"）
-        JSONObject props = new JSONObject();
-        JSONObject nodeData = new JSONObject();
-        nodeData.put("isResult", true);
-        nodeData.put("reasoningContentEnable", true);
-        props.put("nodeData", nodeData);
-        AbsNode node = new AbsNode("n1", props) {};
-
-        node.setAnswerText("done");
-        // getAnswerList 从节点上下文读取 ANSWER / REASONING_CONTENT 键
-        node.getContext().put("answer", "done");
-        node.getContext().put("reasoningContent", "because");
+        // isResult 是 getAnswerList 输出答案的前置条件（运行时处理器写入节点 detail）
+        AbsNode node = newNode("n1");
+        node.getDetail().put(NodeField.IS_RESULT, true);
+        node.getDetail().put(NodeField.REASONING_CONTENT_ENABLE, true);
+        // getAnswerList 从节点 detail 读取 ANSWER / REASONING_CONTENT 键
+        node.getDetail().put(NodeField.ANSWER, "done");
+        node.getDetail().put(NodeField.REASONING_CONTENT, "because");
         node.setViewType(ViewType.SINGLE_VIEW);
 
         java.util.List<Answer> answers = node.getAnswerList();
@@ -90,7 +86,7 @@ class AbsNodeTest {
         Answer answer = answers.get(0);
         assertThat(answer.getContent()).isEqualTo("done");
         assertThat(answer.getReasoningContent()).isEqualTo("because");
-        assertThat(answer.getChatRecordId()).isEqualTo("rec-1");
+        assertThat(answer.getChatRecordId()).isEmpty();
         assertThat(answer.getViewType()).isEqualTo(ViewType.SINGLE_VIEW);
     }
 }
