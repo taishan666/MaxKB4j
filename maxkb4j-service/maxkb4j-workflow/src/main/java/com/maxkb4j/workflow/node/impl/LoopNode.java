@@ -103,6 +103,10 @@ public class LoopNode extends AbsNode {
         return buildTextAnswer(runtimeNodeId,nodeDetail);
     }
 
+    public boolean reasoningContentEnable() {
+        return detail.containsKey(NodeField.REASONING_CONTENT_ENABLE) && (Boolean) detail.get(NodeField.REASONING_CONTENT_ENABLE);
+    }
+
     /**
      * 构建输出节点的文本答案。
      */
@@ -111,7 +115,7 @@ public class LoopNode extends AbsNode {
         if (content == null) {
             return Collections.emptyList();
         }
-        Object reasoningContent = nodeDetail.get(NodeField.REASONING_CONTENT);
+        Object reasoningContent = reasoningContentEnable()?nodeDetail.get(NodeField.REASONING_CONTENT):"";
         return List.of(Answer.builder()
                 .content(String.valueOf(content))
                 .reasoningContent(reasoningContent != null ? String.valueOf(reasoningContent) : "")
