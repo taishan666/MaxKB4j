@@ -22,8 +22,8 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
     private static final Map<String, StrategyFunction> STRATEGY_MAP = new HashMap<>();
 
     static {
-        STRATEGY_MAP.put("first_non_null", VariableAggregationNodeHandler::getFirstNonNull);
-        STRATEGY_MAP.put("variable_to_json", VariableAggregationNodeHandler::getCollection);
+        STRATEGY_MAP.put(VariableStrategy.FIRST_NON_NULL, VariableAggregationNodeHandler::getFirstNonNull);
+        STRATEGY_MAP.put(VariableStrategy.VARIABLE_TO_JSON, VariableAggregationNodeHandler::getCollection);
     }
 
     @Override
@@ -48,8 +48,8 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
         }
 
         putDetails(node, Map.of(
-                "strategy", strategyName,
-                "groupList", groupList
+                NodeField.STRATEGY, strategyName,
+                NodeField.GROUP_LIST, groupList
         ));
 
         return new NodeResult(nodeVariable);

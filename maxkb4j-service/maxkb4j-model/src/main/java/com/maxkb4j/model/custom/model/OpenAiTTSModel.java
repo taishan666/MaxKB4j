@@ -10,6 +10,7 @@ import lombok.Data;
 
 import java.io.IOException;
 import java.io.InputStream;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
 public class OpenAiTTSModel implements ITTSModel {
@@ -26,8 +27,8 @@ public class OpenAiTTSModel implements ITTSModel {
     }
     @Override
     public byte[] textToSpeech(String text){
-        String voice= params.getString("voice");
-        Float speechRate=params.getFloat("speechRate");
+        String voice= params.getString(ParamKey.VOICE);
+        Float speechRate=params.getFloat(ParamKey.SPEECH_RATE);
         SpeechCreateParams speechCreateParams = SpeechCreateParams.builder()
                 .model(modelName)
                 .input(text)

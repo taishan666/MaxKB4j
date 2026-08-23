@@ -29,10 +29,10 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         VariableAssignNode.NodeParams params = parseParams(node, VariableAssignNode.NodeParams.class);
         List<Map<String, Object>> resultList = new ArrayList<>();
         for (Map<String, Object> variable : params.getVariableList()) {
-            if (variable == null || !variable.containsKey("fields")) {
+            if (variable == null || !variable.containsKey(NodeField.FIELDS)) {
                 continue;
             }
-            List<String> fields = (List<String>) variable.get("fields");
+            List<String> fields = (List<String>) variable.get(NodeField.FIELDS);
             if (fields == null || fields.size() < 2) {
                 continue;
             }
@@ -104,7 +104,7 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
 
     @SuppressWarnings("unchecked")
     private Object resolveValue(IWorkflow workflow, Map<String, Object> variable) {
-        String source = (String) variable.get("source");
+        String source = (String) variable.get(NodeField.SOURCE);
         if (ValueType.referencing.name().equals(source)) {
             List<String> reference = (List<String>) variable.get(VariableField.REFERENCE);
             if (reference != null && reference.size() >= 2) {

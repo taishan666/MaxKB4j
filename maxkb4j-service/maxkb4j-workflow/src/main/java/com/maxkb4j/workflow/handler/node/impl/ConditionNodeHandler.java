@@ -24,7 +24,7 @@ public class ConditionNodeHandler extends AbsNodeHandler {
         ConditionNodeParams params= parseParams(node, ConditionNodeParams.class);
         ConditionNodeParams.Branch branch = executeBranch(workflow, params.getBranch());
         if (branch == null) {
-            throw new ApiException("workflow.condition.no.match");
+            throw new ApiException(MessageCode.CONDITION_NO_MATCH);
         }
         return new NodeResult(Map.of(NodeField.BRANCH_ID, branch.getId(), NodeField.BRANCH_NAME, branch.getType()));
     }

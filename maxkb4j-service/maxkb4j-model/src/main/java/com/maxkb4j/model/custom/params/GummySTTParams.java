@@ -6,6 +6,7 @@ import com.maxkb4j.model.service.IModelParams;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 public class GummySTTParams implements IModelParams {
     @Override
@@ -22,7 +23,7 @@ public class GummySTTParams implements IModelParams {
                 "俄语","ru",
                 "意大利语","it"
         );
-        BaseField voiceSelectFiled=new SingleSelectField("目标语言","targetLanguage","翻译语言",options,"none");
+        BaseField voiceSelectFiled=new SingleSelectField("目标语言",ParamKey.TARGET_LANGUAGE,"翻译语言",options,"none");
         return List.of(voiceSelectFiled);
     }
 }

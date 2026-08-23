@@ -74,7 +74,7 @@ public class ImageUnderStandNodeHandler extends AbstractChatStreamNodeHandler {
                 ChatField.SYSTEM, systemPrompt,
                 ChatField.HISTORY_MESSAGE, MessageConverter.formatHistoryMessages(historyMessages),
                 NodeField.QUESTION, userPrompt,
-                "hasImages", !contents.isEmpty()
+                NodeField.HAS_IMAGES, !contents.isEmpty()
         ));
     }
 }

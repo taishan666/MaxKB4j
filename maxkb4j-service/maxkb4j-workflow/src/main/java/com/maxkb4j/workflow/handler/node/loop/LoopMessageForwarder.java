@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.maxkb4j.workflow.enums.NodeType.FORM;
 import static com.maxkb4j.workflow.enums.NodeType.LOOP_BREAK;
 import static com.maxkb4j.workflow.enums.NodeType.USER_SELECT;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.LoopField;
 
 /**
  * 循环消息转发器
@@ -101,7 +102,7 @@ public class LoopMessageForwarder {
      * 判断是否为中断信号
      */
     private boolean isBreakSignal(ChatMessageVO message) {
-        return LOOP_BREAK.getKey().equals(message.getNodeType()) && "BREAK".equals(message.getContent());
+        return LOOP_BREAK.getKey().equals(message.getNodeType()) && LoopField.BREAK.equals(message.getContent());
     }
 
     /**

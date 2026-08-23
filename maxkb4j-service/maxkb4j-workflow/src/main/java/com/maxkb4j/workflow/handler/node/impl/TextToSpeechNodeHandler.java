@@ -37,7 +37,7 @@ public class TextToSpeechNodeHandler extends AbsNodeHandler {
         List<String> contentList = params.getContentList();
         Object content = workflow.getReferenceField(contentList);
         byte[] audioData = ttsModel.textToSpeech(content.toString());
-        OssFile ossFile = ossService.uploadFile("generated_audio_" + UUID.randomUUID() + ".mp3", audioData);
+        OssFile ossFile = ossService.uploadFile(AudioField.GENERATED_AUDIO_PREFIX + UUID.randomUUID() + AudioField.MP3_SUFFIX, audioData);
         putDetail(node, NodeField.CONTENT, content);
         if (params.getIsResult()) {
             String answer = "<audio src=\"" + ossFile.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";

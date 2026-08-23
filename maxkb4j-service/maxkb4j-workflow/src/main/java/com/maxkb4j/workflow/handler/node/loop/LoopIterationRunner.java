@@ -39,12 +39,12 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 public class LoopIterationRunner {
 
     // 循环类型常量
-    private static final String LOOP_TYPE_ARRAY = "ARRAY";
-    private static final String LOOP_TYPE_INFINITE = "LOOP";
+    private static final String LOOP_TYPE_ARRAY = LoopField.LOOP_TYPE_ARRAY;
+    private static final String LOOP_TYPE_INFINITE = LoopField.LOOP_TYPE_INFINITE;
     private static final int MAX_INFINITE_LOOP_COUNT = 1000;
 
     // Detail 键常量
-    private static final String DETAIL_LOOP_DATA = "loop_node_data";
+    private static final String DETAIL_LOOP_DATA = LoopField.LOOP_NODE_DATA;
     private static final String DETAIL_CURRENT_INDEX = LoopField.CURRENT_INDEX;
     private static final String DETAIL_INTERRUPT_EXEC = NodeField.IS_INTERRUPT_EXEC;
 

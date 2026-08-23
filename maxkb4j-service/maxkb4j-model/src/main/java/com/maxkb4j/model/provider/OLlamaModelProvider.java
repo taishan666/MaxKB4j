@@ -25,23 +25,24 @@ import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * Ollama Model Provider - Local deployment
  */
 @Component
-@ModelProviderType(provider = "OLlama", name = "OLlama", icon = "ollama_icon.svg")
+@ModelProviderType(provider = Provider.OLLAMA, name = "OLlama", icon = Provider.ICON_OLLAMA)
 public class OLlamaModelProvider extends AbsModelProvider {
 
-    private static final String BASE_URL = "http://host.docker.internal:11434";
+    private static final String BASE_URL = BaseUrl.OLLAMA;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("qwen:7b", "", ModelType.LLM),
-            new ModelInfo("llama3:8b", "", ModelType.LLM),
-            new ModelInfo("deepseek-r1:8b", "", ModelType.LLM),
-            new ModelInfo("nomic-embed-text", "", ModelType.EMBEDDING),
-            new ModelInfo("llava:7b", "", ModelType.VISION),
-            new ModelInfo("llava:13b", "", ModelType.VISION),
-            new ModelInfo("x/z-image-turbo", "", ModelType.TTI)
+            new ModelInfo(ModelName.QWEN_7B, "", ModelType.LLM),
+            new ModelInfo(ModelName.LLAMA3_8B, "", ModelType.LLM),
+            new ModelInfo(ModelName.DEEPSEEK_R1_8B, "", ModelType.LLM),
+            new ModelInfo(ModelName.NOMIC_EMBED_TEXT, "", ModelType.EMBEDDING),
+            new ModelInfo(ModelName.LLAVA_7B, "", ModelType.VISION),
+            new ModelInfo(ModelName.LLAVA_13B, "", ModelType.VISION),
+            new ModelInfo(ModelName.X_Z_IMAGE_TURBO, "", ModelType.TTI)
     );
 
     /**
@@ -50,7 +51,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
     @Override
     protected HttpClientBuilder getHttpClientBuilder() {
         RestClient.Builder restClientBuilder = RestClient.builder()
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE + "; charset=UTF-8")
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE + Http.CHARSET_UTF_8)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
 
         return SpringRestClient.builder()
@@ -83,8 +84,8 @@ public class OLlamaModelProvider extends AbsModelProvider {
                 .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .think(getBooleanParam(params,"enable_thinking"))
+                .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
+                .think(getBooleanParam(params,ParamKey.ENABLE_THINKING))
                 .returnThinking(true)
                 .build();
     }
@@ -95,8 +96,8 @@ public class OLlamaModelProvider extends AbsModelProvider {
                 .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .think(getBooleanParam(params,"enable_thinking"))
+                .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
+                .think(getBooleanParam(params,ParamKey.ENABLE_THINKING))
                 .returnThinking(true)
                 .build();
     }
@@ -118,8 +119,8 @@ public class OLlamaModelProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .width(1024)
                 .height(768)
-                .steps(params.getInteger("steps"))
-                .seed(params.getInteger("seed"))
+                .steps(params.getInteger(ParamKey.STEPS))
+                .seed(params.getInteger(ParamKey.SEED))
                 .build();
     }
 }

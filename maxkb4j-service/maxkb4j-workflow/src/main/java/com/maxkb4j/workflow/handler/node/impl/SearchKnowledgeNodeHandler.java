@@ -58,7 +58,7 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
         // 使用辅助方法写入详情
         putDetails(node, Map.of(
                 NodeField.QUESTION, question,
-                "showKnowledge", params.getShowKnowledge()
+                KnowledgeField.SHOW_KNOWLEDGE, params.getShowKnowledge()
         ));
         int maxParagraphCharNumber = knowledgeSetting.getMaxParagraphCharNumber();
         return new NodeResult(Map.of(

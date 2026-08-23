@@ -48,7 +48,7 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
         JSONObject modelParamsSetting = modelConfig.getModelParamsSetting();
         String negativePrompt = params.getNegativePrompt();
         if (modelParamsSetting != null) {
-            modelParamsSetting.put("negative_prompt", negativePrompt);
+            modelParamsSetting.put(NodeField.NEGATIVE_PROMPT, negativePrompt);
         }
         ImageModel imageModel = modelFactory.buildImageModel(modelConfig.getModelId(), modelParamsSetting);
 
@@ -65,7 +65,7 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
                 outImages.add(res.content());
             }
         } else {
-            int n = modelParamsSetting == null ? 1 : modelParamsSetting.getIntValue("n");
+            int n = modelParamsSetting == null ? 1 : modelParamsSetting.getIntValue(NodeField.N);
             n = n == 0 ? 1 : n;
             Response<List<Image>> res = imageModel.generate(prompt, n);
             outImages = res.content();

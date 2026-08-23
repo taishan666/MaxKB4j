@@ -20,7 +20,7 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 @NodeCreatorType(NodeType.LOOP)
 public class LoopNode extends AbsNode {
     /** 循环体子节点 nodeData 中标记"输出结果"的键名 */
-    private static final String KEY_IS_RESULT = "isResult";
+    private static final String KEY_IS_RESULT = NodeField.IS_RESULT;
 
     public LoopNode(String id, JSONObject properties) {
         super(id, properties);
@@ -136,7 +136,7 @@ public class LoopNode extends AbsNode {
         if (applyContentFormat) {
             String formContentFormat = nodeDetail.getString(FormField.FORM_CONTENT_FORMAT);
             if (formContentFormat != null) {
-                content = PromptTemplate.from(formContentFormat).apply(Map.of("form", formRender)).text();
+                content = PromptTemplate.from(formContentFormat).apply(Map.of(FormField.FORM, formRender)).text();
             }
         }
         return List.of(Answer.builder()

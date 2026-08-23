@@ -10,6 +10,7 @@ import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.output.Response;
 
 import java.util.List;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 public class BaiLianImageModel implements ImageModel {
 
@@ -24,16 +25,16 @@ public class BaiLianImageModel implements ImageModel {
     }
 
     private ImageModel buildInstance(String modelName) {
-        if (modelName.startsWith("wanx-")||modelName.startsWith("wan2.")){
+        if (modelName.startsWith(ModelName.WANX_PREFIX)||modelName.startsWith(ModelName.WAN2_PREFIX)){
             return WanxImageModel.builder()
                     .modelName(modelName)
                     .apiKey(credential.getApiKey())
-                    .size(WanxImageSize.of(params.getString("size")))
-                    .style(WanxImageStyle.of(params.getString("style")))
-                    .negativePrompt(params.getString("negative_prompt"))
-                    .promptExtend(params.getBoolean("prompt_extend"))
-                    .watermark(params.getBoolean("watermark"))
-                    .seed(params.getInteger("seed"))
+                    .size(WanxImageSize.of(params.getString(ParamKey.SIZE)))
+                    .style(WanxImageStyle.of(params.getString(ParamKey.STYLE)))
+                    .negativePrompt(params.getString(ParamKey.NEGATIVE_PROMPT))
+                    .promptExtend(params.getBoolean(ParamKey.PROMPT_EXTEND))
+                    .watermark(params.getBoolean(ParamKey.WATERMARK))
+                    .seed(params.getInteger(ParamKey.SEED))
                     .build();
         }else {
             return new QwenImageModel(modelName, credential, params);

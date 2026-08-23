@@ -14,19 +14,20 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 
 import java.util.List;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * WenXin (Baidu Qianfan) Model Provider
  */
 @Component
-@ModelProviderType(provider = "WenXin", name = "文心一言", icon = "wenxin_icon.svg")
+@ModelProviderType(provider = Provider.WEN_XIN, name = "文心一言", icon = Provider.ICON_WEN_XIN)
 public class WenXinModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("ERNIE-Bot-4", "", ModelType.LLM),
-            new ModelInfo("ERNIE-Bot", "", ModelType.LLM),
-            new ModelInfo("ERNIE-Bot-turbo", "", ModelType.LLM),
-            new ModelInfo("Embedding-V1", "", ModelType.EMBEDDING)
+            new ModelInfo(ModelName.ERNIE_BOT_4, "", ModelType.LLM),
+            new ModelInfo(ModelName.ERNIE_BOT, "", ModelType.LLM),
+            new ModelInfo(ModelName.ERNIE_BOT_TURBO, "", ModelType.LLM),
+            new ModelInfo(ModelName.EMBEDDING_V1, "", ModelType.EMBEDDING)
     );
 
     @Override
@@ -39,8 +40,8 @@ public class WenXinModelProvider extends AbsModelProvider {
         return QianfanChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .maxOutputTokens(params.getInteger("max_tokens"))
-                .temperature(params.getDouble("temperature"))
+                .maxOutputTokens(params.getInteger(ParamKey.MAX_TOKENS))
+                .temperature(params.getDouble(ParamKey.TEMPERATURE))
                 .build();
     }
 
@@ -49,8 +50,8 @@ public class WenXinModelProvider extends AbsModelProvider {
         return QianfanStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .maxOutputTokens(params.getInteger("max_tokens"))
-                .temperature(params.getDouble("temperature"))
+                .maxOutputTokens(params.getInteger(ParamKey.MAX_TOKENS))
+                .temperature(params.getDouble(ParamKey.TEMPERATURE))
                 .build();
     }
 

@@ -48,7 +48,7 @@ public class FormNode extends AbsNode {
             String formContentFormat = nodeData.getString(FormField.FORM_CONTENT_FORMAT);
             if (formContentFormat != null) {
                 PromptTemplate promptTemplate = PromptTemplate.from(formContentFormat);
-                String answer = promptTemplate.apply(Map.of("form", formRender)).text();
+                String answer = promptTemplate.apply(Map.of(FormField.FORM, formRender)).text();
                 return List.of(Answer.builder().content(answer).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).viewType(this.getViewType()).build());
             }
         }

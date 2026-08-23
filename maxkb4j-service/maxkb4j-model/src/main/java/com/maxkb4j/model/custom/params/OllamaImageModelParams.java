@@ -6,13 +6,14 @@ import com.maxkb4j.model.service.IModelParams;
 import lombok.Data;
 
 import java.util.List;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
 public class OllamaImageModelParams implements IModelParams {
     @Override
     public List<BaseField> toForm() {
-        BaseField steps=new SliderField(1,100,1,0,"迭代步数","steps","生成图片的数量。取值范围为1~4张",20);
-        BaseField seed=new SliderField(1,10000,1,0,"随机种子","seed","生成图片的数量。取值范围为1~4张",42);
+        BaseField steps=new SliderField(1,100,1,0,"迭代步数",ParamKey.STEPS,"生成图片的数量。取值范围为1~4张",20);
+        BaseField seed=new SliderField(1,10000,1,0,"随机种子",ParamKey.SEED,"生成图片的数量。取值范围为1~4张",42);
         return List.of(steps,seed);
     }
 

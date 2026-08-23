@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.BeanName;
 
 @Slf4j
 @Component
@@ -21,7 +22,7 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
     private final Optional<KnowledgeWorkflowStateListener> stateListener;
 
     public KnowledgeWorkflowHandler(NodeCenter nodeCenter,
-                                    @Qualifier("workflowTaskExecutor") Executor workflowTaskExecutor,
+                                    @Qualifier(BeanName.WORKFLOW_TASK_EXECUTOR) Executor workflowTaskExecutor,
                                     ExceptionResolverChain exceptionResolverChain,
                                     Optional<KnowledgeWorkflowStateListener> stateListener) {
         super(nodeCenter, workflowTaskExecutor, exceptionResolverChain);

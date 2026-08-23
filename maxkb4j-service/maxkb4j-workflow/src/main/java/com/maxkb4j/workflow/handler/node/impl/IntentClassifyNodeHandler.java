@@ -75,8 +75,8 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
 
         Map<String, Object> nodeVariable = new HashMap<>();
         nodeVariable.put(NodeField.BRANCH_ID, branchId);
-        nodeVariable.put("category", category);
-        nodeVariable.put("reason", "");
+        nodeVariable.put(NodeField.CATEGORY, category);
+        nodeVariable.put(NodeField.REASON, "");
         return new NodeResult(nodeVariable);
     }
 

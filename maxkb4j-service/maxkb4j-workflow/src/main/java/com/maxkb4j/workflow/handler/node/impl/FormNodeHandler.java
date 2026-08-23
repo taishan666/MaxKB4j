@@ -37,7 +37,7 @@ public class FormNodeHandler extends AbsNodeHandler {
             formSetting.put(FormField.FORM_FIELD_LIST, formFieldList);
             String formRender = "<" + FormField.FORM_RENDER_TAG + ">" + formSetting + "</" + FormField.FORM_RENDER_TAG + ">";
             String formContentFormat = params.getFormContentFormat();
-            String answerText = workflow.renderPrompt(formContentFormat, Map.of("form", formRender));
+            String answerText = workflow.renderPrompt(formContentFormat, Map.of(FormField.FORM, formRender));
             setAnswerText(node, answerText);
             nodeVariable.put(FormField.FORM_FIELD_LIST, formFieldList);
             nodeVariable.put(FormField.FORM_CONTENT_FORMAT, formContentFormat);

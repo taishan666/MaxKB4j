@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 import static com.maxkb4j.workflow.enums.NodeType.LOOP;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.LoopField;
 
 /**
  * 循环节点处理器
@@ -30,9 +31,9 @@ import static com.maxkb4j.workflow.enums.NodeType.LOOP;
 public class LoopNodeHandler extends AbsNodeHandler {
 
     // Detail 键常量
-    private static final String DETAIL_LOOP_DATA = "loop_node_data";
-    private static final String DETAIL_LOOP_TYPE = "loop_type";
-    private static final String DETAIL_NUMBER = "number";
+    private static final String DETAIL_LOOP_DATA = LoopField.LOOP_NODE_DATA;
+    private static final String DETAIL_LOOP_TYPE = LoopField.LOOP_TYPE;
+    private static final String DETAIL_NUMBER = LoopField.NUMBER;
 
     private final LoopIterationRunner iterationRunner;
     private final LoopMessageForwarder messageForwarder;

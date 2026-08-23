@@ -23,7 +23,7 @@ public class StartNode extends AbsNode {
         context.put(NodeField.IMAGE, detail.get(NodeField.IMAGE_LIST));
         context.put(NodeField.DOCUMENT, detail.get(NodeField.DOCUMENT_LIST));
         context.put(NodeField.AUDIO, detail.get(NodeField.AUDIO_LIST));
-        context.put(NodeField.OTHER, detail.get("otherList"));
+        context.put(NodeField.OTHER, detail.get(NodeField.OTHER_LIST));
         JSONArray globalFields= (JSONArray) detail.get(ChatField.GLOBAL_FIELDS);
         for (int i = 0; i < globalFields.size(); i++) {
             JSONObject globalField=globalFields.getJSONObject(i);
@@ -45,7 +45,7 @@ public class StartNode extends AbsNode {
         detail.put(NodeField.IMAGE_LIST, context.get(NodeField.IMAGE));
         detail.put(NodeField.DOCUMENT_LIST, context.get(NodeField.DOCUMENT));
         detail.put(NodeField.AUDIO_LIST, context.get(NodeField.AUDIO));
-        detail.put("otherList", context.get(NodeField.OTHER));
+        detail.put(NodeField.OTHER_LIST, context.get(NodeField.OTHER));
         detail.remove(NodeField.IMAGE);
         detail.remove(NodeField.DOCUMENT);
         detail.remove(NodeField.AUDIO);

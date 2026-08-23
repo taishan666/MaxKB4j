@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -15,7 +16,7 @@ public  class OpenAiImageModelParams extends ImageModelParams {
     @Override
     public List<BaseField> toForm() {
         List<BaseField> fields=super.toForm();
-        BaseField quality=new SingleSelectField("质量","quality","生成图像质量",getQualityOptions(),"hd");
+        BaseField quality=new SingleSelectField("质量",ParamKey.QUALITY,"生成图像质量",getQualityOptions(),"hd");
         fields.add(quality);
         return fields;
     }

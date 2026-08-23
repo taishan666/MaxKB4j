@@ -34,7 +34,7 @@ public class VariableSplittingNodeHandler extends AbsNodeHandler {
                 log.error("inputValue is not a json string, inputValue: {}", inputValue);
             }
         }
-        putDetail(node, "request", JSON.toJSONString(inputValue));
+        putDetail(node, NodeField.REQUEST, JSON.toJSONString(inputValue));
         Map<String, Object> nodeVariable = new HashMap<>();
         List<VariableSplittingNode.Variable> variableList = params.getVariableList();
         Map<String, Object> result = new HashMap<>();

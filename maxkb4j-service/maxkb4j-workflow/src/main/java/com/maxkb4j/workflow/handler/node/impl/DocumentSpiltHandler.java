@@ -36,7 +36,7 @@ public class DocumentSpiltHandler extends AbsNodeHandler {
         List<DocumentSimple> documentList = res == null ? new ArrayList<>() : (List<DocumentSimple>) res;
 
         for (DocumentSimple document : documentList) {
-            if ("qa".equals(params.getSplitStrategy())) {
+            if (DocumentStrategy.QA.equals(params.getSplitStrategy())) {
                 qaSplit(document, params.getChunkSize());
             } else {
                 defaultSplit(document, params.getPatterns(), params.getChunkSize(), params.getWithFilter());
@@ -63,8 +63,8 @@ public class DocumentSpiltHandler extends AbsNodeHandler {
         }
 
         putDetails(node, Map.of(
-                "splitStrategy", params.getSplitStrategy(),
-                "chunkSize", params.getChunkSize(),
+                KnowledgeField.SPLIT_STRATEGY, params.getSplitStrategy(),
+                KnowledgeField.CHUNK_SIZE, params.getChunkSize(),
                 NodeField.DOCUMENT_LIST, documentList
         ));
 

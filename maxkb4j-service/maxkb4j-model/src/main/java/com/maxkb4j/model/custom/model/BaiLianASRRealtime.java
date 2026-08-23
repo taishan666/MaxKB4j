@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
@@ -26,7 +27,7 @@ public class BaiLianASRRealtime extends AbsSTTModel {
     private String modelName;
     private ModelCredential credential;
 
-    private static final List<String> SUPPORT_MODELS = List.of("fun-asr-realtime", "paraformer-realtime-v2", "gummy-realtime-v1");
+    private static final List<String> SUPPORT_MODELS = List.of(ModelName.FUN_ASR_REALTIME, ModelName.PARAFORMER_REALTIME_V2, ModelName.GUMMY_REALTIME_V1);
 
     public BaiLianASRRealtime(String modelName, ModelCredential credential, JSONObject params) {
         this.modelName = modelName;
@@ -36,20 +37,20 @@ public class BaiLianASRRealtime extends AbsSTTModel {
 
     private RecognitionParam buildParam() {
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("language_hints", new String[]{"zh", "en"});
-        if ("fun-asr-realtime".equals(modelName)) {
-            parameters.put("disfluency_removal_enabled", false);
-            parameters.put("show_punctuation", true);
-            parameters.put("inverse_text_normalization", true);
-        } else if ("paraformer-realtime-v2".equals(modelName)) {
-            parameters.put("disfluency_removal_enabled", false);
+        parameters.put(ParamKey.LANGUAGE_HINTS, new String[]{Value.ZH, Value.EN});
+        if (ModelName.FUN_ASR_REALTIME.equals(modelName)) {
+            parameters.put(ParamKey.DISFLUENCY_REMOVAL_ENABLED, false);
+            parameters.put(ParamKey.SHOW_PUNCTUATION, true);
+            parameters.put(ParamKey.INVERSE_TEXT_NORMALIZATION, true);
+        } else if (ModelName.PARAFORMER_REALTIME_V2.equals(modelName)) {
+            parameters.put(ParamKey.DISFLUENCY_REMOVAL_ENABLED, false);
         }
         return RecognitionParam.builder()
                 .apiKey(credential.getApiKey())
                 .model(modelName)
                 .parameters(parameters)
                 .sampleRate(16000)
-                .format("mp3")
+                .format(Value.MP3)
                 .build();
     }
 
@@ -59,9 +60,9 @@ public class BaiLianASRRealtime extends AbsSTTModel {
         log.info("使用模型: {}", modelName);
         log.info("音频数据大小: {} bytes", audioBytes.length);
         log.info("文件后缀: {}", suffix);
-        int sampleRate=getSampleRate(audioBytes, "."+suffix);
+        int sampleRate=getSampleRate(audioBytes, FileToken.DOT+suffix);
         this.param.setSampleRate(sampleRate);
-        String format = suffix != null ? suffix.toLowerCase() : "mp3";
+        String format = suffix != null ? suffix.toLowerCase() : Value.MP3;
         this.param.setFormat(format);
         log.info("使用格式: {}, 采样率: {}", format, sampleRate);
         AtomicReference<String> resultText = new AtomicReference<>("");

@@ -23,7 +23,7 @@ public class LoopContinueNodeHandler extends AbsNodeHandler {
         boolean isContinue = ConditionUtil.assertion(workflow, params.getCondition(), params.getConditionList());
 
         if (isContinue) {
-            return new NodeResult(Map.of(LoopField.IS_CONTINUE, true, NodeField.BRANCH_ID, "continue"));
+            return new NodeResult(Map.of(LoopField.IS_CONTINUE, true, NodeField.BRANCH_ID, LoopField.CONTINUE));
         }
         return new NodeResult(Map.of(LoopField.IS_CONTINUE, false));
     }

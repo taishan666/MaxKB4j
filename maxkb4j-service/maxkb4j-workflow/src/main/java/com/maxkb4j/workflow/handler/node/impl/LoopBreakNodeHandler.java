@@ -23,7 +23,7 @@ public class LoopBreakNodeHandler extends AbsNodeHandler {
         boolean isBreak = ConditionUtil.assertion(workflow, params.getCondition(), params.getConditionList());
         putDetail(node, LoopField.IS_BREAK, isBreak);
         if (isBreak) {
-            setAnswerText(node, "BREAK");
+            setAnswerText(node, LoopField.BREAK);
         }
         return new NodeResult(Map.of());
     }

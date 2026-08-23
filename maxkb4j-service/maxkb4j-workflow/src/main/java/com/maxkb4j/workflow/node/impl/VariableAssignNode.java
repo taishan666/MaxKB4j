@@ -19,7 +19,7 @@ public class VariableAssignNode extends AbsNode {
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        context.put("variableList", detail.get("variableList"));
+        context.put(NodeField.VARIABLE_LIST, detail.get(NodeField.VARIABLE_LIST));
         context.put(NodeField.RESULT_LIST, detail.get(NodeField.RESULT_LIST));
     }
 

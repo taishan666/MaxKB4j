@@ -45,7 +45,7 @@ public class ToolNodeHandler extends AbsNodeHandler {
             result = toolExecuteService.customExecute(params.getCode(), params.getInitParams(),execParams);
         }
         // 使用辅助方法写入详情
-        putDetail(node, "params", execParams);
+        putDetail(node, NodeField.PARAMS, execParams);
         if (Boolean.TRUE.equals(params.getIsResult())) {
             setAnswerText(node, result.toString());
         }

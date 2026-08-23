@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * @author tarzan
@@ -79,7 +80,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     public boolean createModel(ModelEntity model) {
         String userId = userContext.getUserId();
         if (checkModelExists(null,model.getName(),userId)) {
-            throw new ApiException("model.name.exists");
+            throw new ApiException(MessageCode.MODEL_NAME_EXISTS);
         }
         if (model.getModelParamsForm() == null){
             model.setModelParamsForm(new JSONArray());
@@ -102,8 +103,8 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
         }
         for (int i = 0; i < modelParamsForm.size(); i++) {
             JSONObject paramConfig = modelParamsForm.getJSONObject(i);
-            String field = paramConfig.getString("field");
-            Object defaultValue = paramConfig.get("default_value");
+            String field = paramConfig.getString(ParamKey.FIELD);
+            Object defaultValue = paramConfig.get(ParamKey.DEFAULT_VALUE);
             if (field != null && defaultValue != null) {
                 defaultModelParams.put(field, defaultValue);
             }
@@ -114,12 +115,12 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     public ModelEntity updateModel(String id, ModelEntity model) {
         String userId = userContext.getUserId();
         if (checkModelExists(id,model.getName(),userId)) {
-            throw new ApiException("model.name.exists");
+            throw new ApiException(MessageCode.MODEL_NAME_EXISTS);
         }
         model.setId(id);
         ModelEntity entity = this.getById(id);
         if (entity == null) {
-            throw new ApiException("model.name.not.found");
+            throw new ApiException(MessageCode.MODEL_NAME_NOT_FOUND);
         }
         ModelCredential credential = entity.getCredential();
         String maskApiKey = DataMaskUtil.maskApiKey(credential.getApiKey());
@@ -200,7 +201,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     public void updateModelParamsForm(String id, JSONArray paramsForm) {
         ModelEntity entity = this.getById(id);
         if (entity == null) {
-            throw new ApiException("model.name.not.found");
+            throw new ApiException(MessageCode.MODEL_NAME_NOT_FOUND);
         }
         AbsModelProvider  modelProvider= providerRegistry.get(entity.getProvider());
         JSONObject params = extractDefaultModelParams(paramsForm);

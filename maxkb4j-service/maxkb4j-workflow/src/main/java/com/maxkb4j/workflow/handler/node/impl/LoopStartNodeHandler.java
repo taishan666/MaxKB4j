@@ -33,7 +33,7 @@ public class LoopStartNodeHandler extends AbsNodeHandler {
                 if (loopInputFieldList != null) {
                     for (int i = 0; i < loopInputFieldList.size(); i++) {
                         JSONObject loopInputField = loopInputFieldList.getJSONObject(i);
-                        String key = loopInputField.getString("field");
+                        String key = loopInputField.getString(NodeField.FIELD);
                         loopInputField.put(VariableField.VALUE, workflow.getLoopContext().getOrDefault(key,Defaults.NONE));
                     }
                     putDetail(node, LoopField.LOOP_INPUT_FIELD_LIST, loopInputFieldList);

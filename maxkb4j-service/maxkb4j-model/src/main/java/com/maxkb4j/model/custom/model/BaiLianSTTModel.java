@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.model.service.ISTTModel;
 import lombok.Data;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
 public class BaiLianSTTModel implements ISTTModel {
@@ -22,7 +23,7 @@ public class BaiLianSTTModel implements ISTTModel {
     }
 
     private ISTTModel buildInstance(String modelName) {
-        if (modelName.startsWith("gummy-")){
+        if (modelName.startsWith(ModelName.GUMMY_PREFIX)){
             return new GummySTT(modelName, credential, params);
         }
         return new BaiLianASRRealtime(modelName, credential, params);

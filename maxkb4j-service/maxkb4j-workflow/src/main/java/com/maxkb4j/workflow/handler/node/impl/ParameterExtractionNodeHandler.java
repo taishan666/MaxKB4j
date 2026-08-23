@@ -44,7 +44,7 @@ public class ParameterExtractionNodeHandler extends AbsNodeHandler {
         String extractInfo = format(params.getVariableList());
         Result<Map<String, Object>> result = assistant.extract(extractInfo, String.valueOf(request));
 
-        putDetail(node, "request", request);
+        putDetail(node, NodeField.REQUEST, request);
         recordTokenUsage(node, result.tokenUsage());
 
         Map<String, Object> nodeVariable = new HashMap<>();

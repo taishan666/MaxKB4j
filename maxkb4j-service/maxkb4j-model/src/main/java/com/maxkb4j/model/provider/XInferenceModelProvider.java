@@ -19,23 +19,24 @@ import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
 
 import java.util.List;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * XInference Model Provider - Local deployment with OpenAI compatible API
  */
 @Component
-@ModelProviderType(provider = "XInference", name = "Xorbits Inference", icon = "xinference_icon.svg")
+@ModelProviderType(provider = Provider.X_INFERENCE, name = "Xorbits Inference", icon = Provider.ICON_X_INFERENCE)
 public class XInferenceModelProvider extends AbsModelProvider {
 
-    private static final String BASE_URL = "http://host.docker.internal:9997";
+    private static final String BASE_URL = BaseUrl.X_INFERENCE;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("qwen3:8b", "", ModelType.LLM),
-            new ModelInfo("bge-m3", "", ModelType.EMBEDDING),
-            new ModelInfo("llava:7b", "", ModelType.VISION),
-            new ModelInfo("sdxl-turbo", "", ModelType.TTI),
-            new ModelInfo("bge-reranker-base", "", ModelType.RERANKER),
-            new ModelInfo("ChatTTS", "", ModelType.TTS),
-            new ModelInfo("whisper-large-v3", "", ModelType.STT)
+            new ModelInfo(ModelName.QWEN3_8B, "", ModelType.LLM),
+            new ModelInfo(ModelName.BGE_M3, "", ModelType.EMBEDDING),
+            new ModelInfo(ModelName.LLAVA_7B, "", ModelType.VISION),
+            new ModelInfo(ModelName.SDXL_TURBO, "", ModelType.TTI),
+            new ModelInfo(ModelName.BGE_RERANKER_BASE, "", ModelType.RERANKER),
+            new ModelInfo(ModelName.CHAT_TTS, "", ModelType.TTS),
+            new ModelInfo(ModelName.WHISPER_LARGE_V3, "", ModelType.STT)
     );
 
 
@@ -55,8 +56,8 @@ public class XInferenceModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "max_tokens"))
+                .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
+                .maxTokens(getIntParam(params, ParamKey.MAX_TOKENS))
                 .build();
     }
 
@@ -66,8 +67,8 @@ public class XInferenceModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "max_tokens"))
+                .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
+                .maxTokens(getIntParam(params, ParamKey.MAX_TOKENS))
                 .build();
     }
 

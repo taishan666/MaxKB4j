@@ -6,6 +6,7 @@ import com.maxkb4j.model.form.TextInputField;
 
 import java.util.ArrayList;
 import java.util.List;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 public  class ModelCredentialForm {
 
@@ -27,10 +28,10 @@ public  class ModelCredentialForm {
     public List<BaseField> toForm() {
         List<BaseField> list=new ArrayList<>(2);
         if(showBaseUrl){
-            list.add(new TextInputField("API 域名","baseUrl",true,defaultBaseUrl));
+            list.add(new TextInputField("API 域名",CredentialField.BASE_URL,true,defaultBaseUrl));
         }
         if(showApiKey){
-            list.add(new TextInputField("API KEY" ,"apiKey",true,""));
+            list.add(new TextInputField("API KEY" ,CredentialField.API_KEY,true,""));
         }
         return list;
     }

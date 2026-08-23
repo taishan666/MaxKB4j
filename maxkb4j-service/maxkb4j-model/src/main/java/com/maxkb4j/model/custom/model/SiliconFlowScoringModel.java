@@ -14,6 +14,7 @@ import dev.langchain4j.model.scoring.ScoringModel;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 public class SiliconFlowScoringModel implements ScoringModel {
 
@@ -21,9 +22,9 @@ public class SiliconFlowScoringModel implements ScoringModel {
     private final String modelName;
 
     public SiliconFlowScoringModel(String modelName, ModelCredential credential, JSONObject params) {
-        HttpRequest request= HttpUtil.createRequest(Method.POST, credential.getBaseUrl()+"/rerank");
+        HttpRequest request= HttpUtil.createRequest(Method.POST, credential.getBaseUrl()+Http.ENDPOINT_RERANK);
         request.bearerAuth(credential.getApiKey());
-        request.header("Content-Type", "application/json");
+        request.header(Http.CONTENT_TYPE, Http.APPLICATION_JSON);
         this.request= request;
         this.modelName = modelName;
     }
@@ -32,20 +33,20 @@ public class SiliconFlowScoringModel implements ScoringModel {
     public Response<List<Double>> scoreAll(List<TextSegment> segments, String query) {
         List<String> documents=segments.stream().map(TextSegment::text).toList();
         JSONObject params = new JSONObject();
-        params.put("model",modelName);
-        params.put("query",query);
-        params.put("documents",documents);
-        params.put("top_n",segments.size());
+        params.put(RequestField.MODEL,modelName);
+        params.put(RequestField.QUERY,query);
+        params.put(RequestField.DOCUMENTS,documents);
+        params.put(RequestField.TOP_N,segments.size());
         HttpResponse response = request.body(params.toJSONString()).execute();
         if (response.isOk()){
             JSONObject responseBody = JSONObject.parseObject(response.body());
-            JSONArray results = responseBody.getJSONArray("results");
+            JSONArray results = responseBody.getJSONArray(RequestField.RESULTS);
             List<Double> relevanceScores = Optional.ofNullable(results)
                     .orElse(new JSONArray())
                     .stream()
                     .filter(item -> item instanceof JSONObject) // 防御性类型过滤
-                    .sorted(Comparator.comparingInt(item -> ((JSONObject) item).getInteger("index")))
-                    .map(item -> ((JSONObject) item).getDouble("relevance_score"))
+                    .sorted(Comparator.comparingInt(item -> ((JSONObject) item).getInteger(RequestField.INDEX)))
+                    .map(item -> ((JSONObject) item).getDouble(RequestField.RELEVANCE_SCORE))
                     .toList();
             return Response.from(relevanceScores);
         }

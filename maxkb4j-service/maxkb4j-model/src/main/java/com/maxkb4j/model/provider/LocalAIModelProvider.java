@@ -12,13 +12,14 @@ import dev.langchain4j.model.localai.LocalAiEmbeddingModel;
 import dev.langchain4j.model.localai.LocalAiStreamingChatModel;
 
 import java.util.List;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * LocalAI Model Provider - Local deployment
  */
 public class LocalAIModelProvider extends AbsModelProvider {
 
-    private static final String BASE_URL = "http://host.docker.internal:8080";
+    private static final String BASE_URL = BaseUrl.LOCAL_AI;
 
 
     @Override
@@ -36,8 +37,8 @@ public class LocalAIModelProvider extends AbsModelProvider {
         return LocalAiChatModel.builder()
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "max_tokens"))
+                .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
+                .maxTokens(getIntParam(params, ParamKey.MAX_TOKENS))
                 .build();
     }
 
@@ -46,8 +47,8 @@ public class LocalAIModelProvider extends AbsModelProvider {
         return LocalAiStreamingChatModel.builder()
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "max_tokens"))
+                .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
+                .maxTokens(getIntParam(params, ParamKey.MAX_TOKENS))
                 .build();
     }
 
@@ -56,7 +57,7 @@ public class LocalAIModelProvider extends AbsModelProvider {
         return LocalAiEmbeddingModel.builder()
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
-                .maxRetries(getIntParam(params, "maxRetries"))
+                .maxRetries(getIntParam(params, ParamKey.MAX_RETRIES))
                 .build();
     }
 }

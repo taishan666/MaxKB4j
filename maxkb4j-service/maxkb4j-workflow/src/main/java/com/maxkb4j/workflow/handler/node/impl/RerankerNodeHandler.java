@@ -101,12 +101,12 @@ public class RerankerNodeHandler extends AbsNodeHandler {
                     .filter(paragraph -> paragraph != null && paragraph.getContent() != null && !paragraph.getContent().isBlank())
                     .map(paragraph -> {
                         Map<String, Object> metadata = new HashMap<>();
-                        metadata.put("title", paragraph.getTitle() != null ? paragraph.getTitle() : "");
-                        metadata.put("similarity", paragraph.getSimilarity());
-                        metadata.put("knowledgeType", paragraph.getKnowledgeType() != null ? paragraph.getKnowledgeType() : "");
-                        metadata.put("knowledgeName", paragraph.getKnowledgeName() != null ? paragraph.getKnowledgeName() : "");
-                        metadata.put("documentName", paragraph.getDocumentName() != null ? paragraph.getDocumentName() : "");
-                        metadata.put("isActive", String.valueOf(paragraph.getIsActive() != null ? paragraph.getIsActive() : false));
+                        metadata.put(MetadataField.TITLE, paragraph.getTitle() != null ? paragraph.getTitle() : "");
+                        metadata.put(MetadataField.SIMILARITY, paragraph.getSimilarity());
+                        metadata.put(MetadataField.KNOWLEDGE_TYPE, paragraph.getKnowledgeType() != null ? paragraph.getKnowledgeType() : "");
+                        metadata.put(MetadataField.KNOWLEDGE_NAME, paragraph.getKnowledgeName() != null ? paragraph.getKnowledgeName() : "");
+                        metadata.put(MetadataField.DOCUMENT_NAME, paragraph.getDocumentName() != null ? paragraph.getDocumentName() : "");
+                        metadata.put(MetadataField.IS_ACTIVE, String.valueOf(paragraph.getIsActive() != null ? paragraph.getIsActive() : false));
                         return TextSegment.from(paragraph.getContent(), Metadata.from(metadata));
                     })
                     .toList());

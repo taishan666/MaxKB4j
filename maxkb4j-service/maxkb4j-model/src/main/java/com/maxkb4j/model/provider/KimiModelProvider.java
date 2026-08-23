@@ -7,25 +7,26 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 
 import java.util.List;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * Kimi Model Provider - OpenAI compatible API
  */
 @Component
-@ModelProviderType(provider = "Kimi", name = "Kimi", icon = "kimi_icon.svg")
+@ModelProviderType(provider = Provider.KIMI, name = "Kimi", icon = Provider.ICON_KIMI)
 public class KimiModelProvider extends OpenAiModelProvider {
 
-    private static final String BASE_URL = "https://api.moonshot.cn/v1";
+    private static final String BASE_URL = BaseUrl.KIMI;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("kimi-k2.6", "", ModelType.LLM),
-            new ModelInfo("kimi-k2.5", "", ModelType.LLM),
-            new ModelInfo("kimi-k2-thinking", "", ModelType.LLM),
-            new ModelInfo("kimi-k2-thinking-turbo", "", ModelType.LLM),
-            new ModelInfo("moonshot-v1-8k", "", ModelType.LLM),
-            new ModelInfo("moonshot-v1-32k", "", ModelType.LLM),
-            new ModelInfo("moonshot-v1-128k", "", ModelType.LLM),
-            new ModelInfo("kimi-k2.6", "",ModelType.VISION),
-            new ModelInfo("kimi-k2.5", "", ModelType.VISION)
+            new ModelInfo(ModelName.KIMI_K2_6, "", ModelType.LLM),
+            new ModelInfo(ModelName.KIMI_K2_5, "", ModelType.LLM),
+            new ModelInfo(ModelName.KIMI_K2_THINKING, "", ModelType.LLM),
+            new ModelInfo(ModelName.KIMI_K2_THINKING_TURBO, "", ModelType.LLM),
+            new ModelInfo(ModelName.MOONSHOT_V1_8K, "", ModelType.LLM),
+            new ModelInfo(ModelName.MOONSHOT_V1_32K, "", ModelType.LLM),
+            new ModelInfo(ModelName.MOONSHOT_V1_128K, "", ModelType.LLM),
+            new ModelInfo(ModelName.KIMI_K2_6, "",ModelType.VISION),
+            new ModelInfo(ModelName.KIMI_K2_5, "", ModelType.VISION)
     );
 
     @Override

@@ -20,41 +20,42 @@ import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
 
 import java.util.List;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * AliYun BaiLian (DashScope) Model Provider
  */
 @Component
-@ModelProviderType(provider = "AliYunBaiLian", name = "阿里百练", icon = "qwen_icon.svg")
+@ModelProviderType(provider = Provider.ALI_YUN_BAI_LIAN, name = "阿里百练", icon = Provider.ICON_ALI_YUN_BAI_LIAN)
 public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
 
-    private static final String BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+    private static final String BASE_URL = BaseUrl.ALI_YUN_BAI_LIAN;
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("qwen3.7-plus", "", ModelType.LLM),
-            new ModelInfo("qwen3.6-plus", "", ModelType.LLM),
-            new ModelInfo("qwen3.5-plus", "", ModelType.LLM),
+            new ModelInfo(ModelName.QWEN_3_7_PLUS, "", ModelType.LLM),
+            new ModelInfo(ModelName.QWEN_3_6_PLUS, "", ModelType.LLM),
+            new ModelInfo(ModelName.QWEN_3_5_PLUS, "", ModelType.LLM),
             new ModelInfo(QwenModelName.QWEN_PLUS, "", ModelType.LLM),
             new ModelInfo(QwenModelName.QWEN_MAX, "", ModelType.LLM),
-            new ModelInfo("text-embedding-v3", "", ModelType.EMBEDDING),
-            new ModelInfo("text-embedding-v4", "", ModelType.EMBEDDING),
-            new ModelInfo("paraformer-realtime-v2", "", ModelType.STT),
-            new ModelInfo("fun-asr-realtime", "", ModelType.STT),
-            new ModelInfo("gummy-realtime-v1", "", ModelType.STT, new GummySTTParams()),
-            new ModelInfo("cosyvoice-v1", "", ModelType.TTS, new CosyVoiceV1TTSParams()),
-            new ModelInfo("cosyvoice-v2", "", ModelType.TTS, new CosyVoiceV2TTSParams()),
-            new ModelInfo("sambert-v1", "", ModelType.TTS, new SamBertTTSParams()),
-            new ModelInfo("qwen3-tts-flash", "", ModelType.TTS, new QWenTTSParams()),
-            new ModelInfo("qwen-tts", "", ModelType.TTS, new QWenTTSParams()),
-            new ModelInfo("qwen3.6-plus", "", ModelType.VISION),
-            new ModelInfo("qwen3.5-plus", "", ModelType.VISION),
+            new ModelInfo(ModelName.TEXT_EMBEDDING_V3, "", ModelType.EMBEDDING),
+            new ModelInfo(ModelName.TEXT_EMBEDDING_V4, "", ModelType.EMBEDDING),
+            new ModelInfo(ModelName.PARAFORMER_REALTIME_V2, "", ModelType.STT),
+            new ModelInfo(ModelName.FUN_ASR_REALTIME, "", ModelType.STT),
+            new ModelInfo(ModelName.GUMMY_REALTIME_V1, "", ModelType.STT, new GummySTTParams()),
+            new ModelInfo(ModelName.COSYVOICE_V1, "", ModelType.TTS, new CosyVoiceV1TTSParams()),
+            new ModelInfo(ModelName.COSYVOICE_V2, "", ModelType.TTS, new CosyVoiceV2TTSParams()),
+            new ModelInfo(ModelName.SAMBERT_V1, "", ModelType.TTS, new SamBertTTSParams()),
+            new ModelInfo(ModelName.QWEN3_TTS_FLASH, "", ModelType.TTS, new QWenTTSParams()),
+            new ModelInfo(ModelName.QWEN_TTS, "", ModelType.TTS, new QWenTTSParams()),
+            new ModelInfo(ModelName.QWEN_3_6_PLUS, "", ModelType.VISION),
+            new ModelInfo(ModelName.QWEN_3_5_PLUS, "", ModelType.VISION),
             new ModelInfo(QwenModelName.QWEN_VL_PLUS, "", ModelType.VISION),
             new ModelInfo(QwenModelName.QWEN_VL_MAX, "", ModelType.VISION),
             new ModelInfo(WanxModelName.WANX2_1_T2I_TURBO, "", ModelType.TTI, new WanXImageModelParams()),
             new ModelInfo(WanxModelName.WANX2_1_T2I_PLUS, "", ModelType.TTI, new WanXImageModelParams()),
-            new ModelInfo("qwen-image-plus", "", ModelType.TTI, new QwenImageModelParams()),
-            new ModelInfo("gte-rerank", "", ModelType.RERANKER),
-            new ModelInfo("qwen3-rerank", "", ModelType.RERANKER)
+            new ModelInfo(ModelName.QWEN_IMAGE_PLUS, "", ModelType.TTI, new QwenImageModelParams()),
+            new ModelInfo(ModelName.GTE_RERANK, "", ModelType.RERANKER),
+            new ModelInfo(ModelName.QWEN3_RERANK, "", ModelType.RERANKER)
     );
 
     @Override

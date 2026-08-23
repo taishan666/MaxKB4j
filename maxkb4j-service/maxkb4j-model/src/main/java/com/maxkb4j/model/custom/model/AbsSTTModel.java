@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Slf4j
 @Data
@@ -24,7 +25,7 @@ public abstract class AbsSTTModel implements ISTTModel {
         int sampleRate;
         Path tempFile=null;
         try {
-            tempFile = Files.createTempFile("audio_temp_", extension);
+            tempFile = Files.createTempFile(FileToken.AUDIO_TEMP_PREFIX, extension);
             // 2. 将 byte[] 写入临时文件
             // 使用 WRITE 和 TRUNCATE_EXISTING 确保覆盖写入
             Files.write(tempFile, audioBytes, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);

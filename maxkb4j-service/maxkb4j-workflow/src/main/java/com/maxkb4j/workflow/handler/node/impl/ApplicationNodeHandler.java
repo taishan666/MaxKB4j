@@ -105,8 +105,8 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
             ChatResponse chatResponse = chatService.chatMessage(nodeChatParams, nodeContext, appNodeSink);
             // 写入详情
             putDetails(node, Map.of(
-                    "messageTokens", chatResponse.getMessageTokens(),
-                    "answerTokens", chatResponse.getAnswerTokens(),
+                    NodeField.MESSAGE_TOKENS, chatResponse.getMessageTokens(),
+                    NodeField.ANSWER_TOKENS, chatResponse.getAnswerTokens(),
                     NodeField.QUESTION, question,
                     NodeField.ANSWER, chatResponse.getAnswer(),
                     NodeField.IS_INTERRUPT_EXEC, isInterruptExec.get()

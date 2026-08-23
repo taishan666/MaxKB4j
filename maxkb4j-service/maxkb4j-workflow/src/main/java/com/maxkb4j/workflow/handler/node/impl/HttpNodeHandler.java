@@ -37,11 +37,11 @@ public class HttpNodeHandler extends AbsNodeHandler {
             // 使用辅助方法写入详情
             putDetails(node, Map.of(
                     HttpField.URL, request.getUrl(),
-                    "method", request.getMethod(),
-                    "headers", request.getHeaders(),
-                    "requestBody", request,
-                    "params", request.getParams(),
-                    "timeout", request.getTimeout()
+                    HttpField.METHOD, request.getMethod(),
+                    HttpField.HEADERS, request.getHeaders(),
+                    HttpField.REQUEST_BODY, request,
+                    HttpField.PARAMS, request.getParams(),
+                    HttpField.TIMEOUT, request.getTimeout()
             ));
             return new NodeResult(Map.of(HttpField.STATUS, resStatus, HttpField.BODY, resBody));
         }

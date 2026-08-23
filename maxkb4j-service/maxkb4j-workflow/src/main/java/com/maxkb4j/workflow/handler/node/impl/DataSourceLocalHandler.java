@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 
 @Slf4j
 @Component
@@ -35,6 +36,6 @@ public class DataSourceLocalHandler extends AbsNodeHandler {
                 fileList = dataSource.getFileList();
             }
         }
-        return new NodeResult(Map.of("fileList", fileList));
+        return new NodeResult(Map.of(NodeField.FILE_LIST, fileList));
     }
 }

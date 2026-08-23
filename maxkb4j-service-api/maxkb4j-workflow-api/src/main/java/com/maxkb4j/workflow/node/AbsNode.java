@@ -70,8 +70,8 @@ public abstract class AbsNode {
     }
 
     public JSONObject getNodeData() {
-        if (Objects.nonNull(properties) && properties.containsKey("nodeData")) {
-            return properties.getJSONObject("nodeData");
+        if (Objects.nonNull(properties) && properties.containsKey(RuntimeDetailField.NODE_DATA)) {
+            return properties.getJSONObject(RuntimeDetailField.NODE_DATA);
         }
         return new JSONObject();
     }
@@ -109,11 +109,11 @@ public abstract class AbsNode {
     }
 
     public boolean isResult() {
-        return detail.containsKey("isResult") && (Boolean) detail.get("isResult");
+        return detail.containsKey(NodeField.IS_RESULT) && (Boolean) detail.get(NodeField.IS_RESULT);
     }
 
     public boolean reasoningContentEnable() {
-        return detail.containsKey("reasoningContentEnable") && (Boolean) detail.get("reasoningContentEnable");
+        return detail.containsKey(NodeField.REASONING_CONTENT_ENABLE) && (Boolean) detail.get(NodeField.REASONING_CONTENT_ENABLE);
     }
 
     public List<Answer> getAnswerList() {

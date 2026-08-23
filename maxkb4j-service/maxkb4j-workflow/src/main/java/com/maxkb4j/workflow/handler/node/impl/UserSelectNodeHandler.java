@@ -22,7 +22,7 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 @Component
 public class UserSelectNodeHandler extends AbsNodeHandler {
 
-    private static final String SELECT_FILED = "select-card";
+    private static final String SELECT_FILED = UserSelectField.SELECT_CARD;
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         UserSelectNode.NodeParams params = parseParams(node, UserSelectNode.NodeParams.class);

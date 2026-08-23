@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
 public class EmbeddingModelParams implements IModelParams {
@@ -19,7 +20,7 @@ public class EmbeddingModelParams implements IModelParams {
                 "768",768,
                 "512",512
         );
-        BaseField dimension=new SingleSelectField("Dimensions","dimensions","向量维度",options,1024);
+        BaseField dimension=new SingleSelectField("Dimensions",ParamKey.DIMENSIONS,"向量维度",options,1024);
         return List.of(dimension);
     }
 }

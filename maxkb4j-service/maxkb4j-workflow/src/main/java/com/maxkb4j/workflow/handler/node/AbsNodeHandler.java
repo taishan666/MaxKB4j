@@ -97,7 +97,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
     protected void recordExecutionTime(AbsNode node, long startTime) {
         long endTime = System.currentTimeMillis();
         float runTime = (endTime - startTime) / 1000F;
-        node.getDetail().put("runTime", runTime);
+        node.getDetail().put(RuntimeDetailField.RUN_TIME, runTime);
         String nodeName = node.getProperties() != null ? node.getProperties().getString(RuntimeDetailField.NODE_NAME) : node.getType();
         log.info("node: {}, runTime: {} s", nodeName, runTime);
     }
@@ -192,8 +192,8 @@ public abstract class AbsNodeHandler implements INodeHandler {
             return;
         }
         putDetails(node, Map.of(
-                "messageTokens", tokenUsage.inputTokenCount(),
-                "answerTokens", tokenUsage.outputTokenCount()
+                NodeField.MESSAGE_TOKENS, tokenUsage.inputTokenCount(),
+                NodeField.ANSWER_TOKENS, tokenUsage.outputTokenCount()
         ));
     }
 }

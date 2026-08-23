@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * Model Provider Controller
@@ -31,7 +32,7 @@ public class ProviderController {
 
     private final ModelProviderRegistry providerRegistry;
 
-    @GetMapping("/provider")
+    @GetMapping(ApiPath.PROVIDER)
     public R<List<ModelProviderInfo>> provider(String modelType) {
         if (StringUtils.isBlank(modelType)) {
             return R.data(providerRegistry.getProviderInfos());
@@ -44,7 +45,7 @@ public class ProviderController {
     }
 
 
-    @GetMapping("/provider/model_type_list")
+    @GetMapping(ApiPath.PROVIDER_MODEL_TYPE_LIST)
     public R<List<KeyAndValue>> modelTypeList(String provider) {
         AbsModelProvider modelProvider = providerRegistry.get(provider);
         if (modelProvider == null) {
@@ -57,7 +58,7 @@ public class ProviderController {
         return R.data(list);
     }
 
-    @GetMapping("/provider/model_form")
+    @GetMapping(ApiPath.PROVIDER_MODEL_FORM)
     public R<List<BaseField>> modelForm(String provider, String modelType, String modelName) {
         AbsModelProvider modelProvider = providerRegistry.get(provider);
         if (modelProvider == null) {
@@ -67,7 +68,7 @@ public class ProviderController {
     }
 
 
-    @GetMapping("/provider/model_params_form")
+    @GetMapping(ApiPath.PROVIDER_MODEL_PARAMS_FORM)
     public R<List<BaseField>> modelParamsForm(String provider, String modelType, String modelName) {
         AbsModelProvider modelProvider = providerRegistry.get(provider);
         if (modelProvider == null){
@@ -81,7 +82,7 @@ public class ProviderController {
     }
 
 
-    @GetMapping("/provider/model_list")
+    @GetMapping(ApiPath.PROVIDER_MODEL_LIST)
     public R<List<ModelInfo>> modelList(String provider, String modelType) {
         AbsModelProvider modelProvider = providerRegistry.get(provider);
         if (modelProvider == null) {

@@ -13,13 +13,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Executor;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.BeanName;
 
 @Slf4j
 @Component
 public class ChatWorkflowHandler extends AbsWorkflowHandler {
 
     public ChatWorkflowHandler(NodeCenter nodeCenter,
-                               @Qualifier("workflowTaskExecutor") Executor workflowTaskExecutor,
+                               @Qualifier(BeanName.WORKFLOW_TASK_EXECUTOR) Executor workflowTaskExecutor,
                                ExceptionResolverChain exceptionResolverChain) {
         super(nodeCenter, workflowTaskExecutor, exceptionResolverChain);
     }

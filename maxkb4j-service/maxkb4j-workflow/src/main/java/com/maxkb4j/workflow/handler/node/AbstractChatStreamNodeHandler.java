@@ -166,7 +166,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
         return new NodeResult(Map.of(
                 NodeField.ANSWER, answer,
                 NodeField.REASONING_CONTENT, reasoning,
-                "exceptionMessage", errorMessage
+                RuntimeDetailField.EXCEPTION_MESSAGE, errorMessage
         ), true);
     }
 
@@ -205,7 +205,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      */
     protected boolean resolveReasoningContentEnable(JSONObject modelSetting) {
         return Optional.ofNullable(modelSetting)
-                .map(setting -> setting.getBooleanValue("reasoningContentEnable"))
+                .map(setting -> setting.getBooleanValue(NodeField.REASONING_CONTENT_ENABLE))
                 .orElse(false);
     }
 
@@ -253,8 +253,8 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
                     if (isResult) {
                         setAnswerText(node, answer);
                     }
-                    putDetail(node,"isResult",isResult);
-                    putDetail(node,"reasoningContentEnable",options.reasoningContentEnable());
+                    putDetail(node,NodeField.IS_RESULT,isResult);
+                    putDetail(node,NodeField.REASONING_CONTENT_ENABLE,options.reasoningContentEnable());
                     resultFuture.complete(handleChatResponse(response, answer, node, errorMessage.get()));
                 }).onError(error -> {
                     errorMessage.set(error.getMessage());

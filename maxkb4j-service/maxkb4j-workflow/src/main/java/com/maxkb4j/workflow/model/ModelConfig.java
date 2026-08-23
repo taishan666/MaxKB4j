@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.ModelField;
 
 @Data
 public class ModelConfig {
@@ -34,9 +35,9 @@ public class ModelConfig {
             return null;
         }
         ModelConfig config = new ModelConfig();
-        Object modelId = map.get("modelId");
+        Object modelId = map.get(ModelField.MODEL_ID);
         config.setModelId(modelId == null ? null : modelId.toString());
-        config.setModelParamsSetting(toJSONObject(map.get("modelParamsSetting")));
+        config.setModelParamsSetting(toJSONObject(map.get(ModelField.MODEL_PARAMS_SETTING)));
         return config;
     }
 
