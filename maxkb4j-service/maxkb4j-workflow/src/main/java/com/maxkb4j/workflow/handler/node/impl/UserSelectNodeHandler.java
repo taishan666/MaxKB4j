@@ -55,7 +55,7 @@ public class UserSelectNodeHandler extends AbsNodeHandler {
             nodeVariable.put(FormField.IS_SUBMIT, false);
         }
         if (workflow instanceof IChatWorkflow chatWorkflow){
-            String chatRecordId=chatWorkflow.getChatParams().getChatId();
+            String chatRecordId=chatWorkflow.getChatParams().getChatRecordId();
             putDetail(node, ChatField.CHAT_RECORD_ID, chatRecordId);
         }
         return new NodeResult(nodeVariable, false, this::shouldInterrupt);

@@ -31,16 +31,12 @@ public class WorkflowFactoryImpl implements WorkflowFactory {
     @Override
     public IWorkflow create(WorkflowSpec spec) {
         Objects.requireNonNull(spec, "spec cannot be null");
-        switch (spec.getKind()) {
-            case APPLICATION:
-                return createApplication(spec);
-            case KNOWLEDGE:
-                return createKnowledge(spec);
-            case LOOP:
-                return createLoop(spec);
-            default:
-                throw new IllegalArgumentException("Unsupported workflow kind: " + spec.getKind());
-        }
+        return switch (spec.getKind()) {
+            case APPLICATION -> createApplication(spec);
+            case KNOWLEDGE -> createKnowledge(spec);
+            case LOOP -> createLoop(spec);
+            default -> throw new IllegalArgumentException("Unsupported workflow kind: " + spec.getKind());
+        };
     }
 
     private IWorkflow createApplication(WorkflowSpec spec) {
