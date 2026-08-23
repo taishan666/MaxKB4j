@@ -109,13 +109,11 @@ public abstract class AbsNode {
     }
 
     public boolean isResult() {
-        JSONObject nodeData = getNodeData();
-        return nodeData.containsKey("isResult") && nodeData.getBoolean("isResult");
+        return detail.containsKey("isResult") && (Boolean) detail.get("isResult");
     }
 
     public boolean reasoningContentEnable() {
-        JSONObject nodeData = getNodeData();
-        return nodeData.containsKey("reasoningContentEnable") && nodeData.getBoolean("reasoningContentEnable");
+        return detail.containsKey("reasoningContentEnable") && (Boolean) detail.get("reasoningContentEnable");
     }
 
     public List<Answer> getAnswerList() {

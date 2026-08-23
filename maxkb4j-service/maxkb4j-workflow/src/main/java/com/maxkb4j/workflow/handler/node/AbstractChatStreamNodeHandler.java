@@ -253,6 +253,8 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
                     if (isResult) {
                         setAnswerText(node, answer);
                     }
+                    putDetail(node,"isResult",isResult);
+                    putDetail(node,"reasoningContentEnable",options.reasoningContentEnable());
                     resultFuture.complete(handleChatResponse(response, answer, node, errorMessage.get()));
                 }).onError(error -> {
                     errorMessage.set(error.getMessage());
