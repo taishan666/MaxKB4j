@@ -8,8 +8,8 @@ import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
-import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.service.ApplicationChatUserStatsService;
+import com.maxkb4j.application.service.IApplicationChatRecordInternalService;
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
@@ -37,7 +37,7 @@ public class ChatPostHandler implements PostResponseHandler {
 
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationChatMapper chatMapper;
-    private final ApplicationChatRecordMapper chatRecordMapper;
+    private final IApplicationChatRecordInternalService chatRecordService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -60,7 +60,7 @@ public class ChatPostHandler implements PostResponseHandler {
         if (!debug) {
             // chatRecord == null 表示新增对话记录，chatRecord != null 表示补充/覆盖已有记录
             saveChat(chatId, chatState, chatInfo, chatParams.getMessage(), chatRecord == null);
-            chatRecordMapper.insertOrUpdate(chatRecordEntity);
+            chatRecordService.saveOrUpdate(chatRecordEntity);
         }
     }
 
