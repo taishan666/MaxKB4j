@@ -88,7 +88,8 @@ public class LoopIterationRunner {
      * 执行指定次数循环
      */
     private List<JSONObject> executeCountLoop(IWorkflow workflow, AbsNode node, Integer count, JSONObject loopBody) {
-        int iterations = count != null ? count : 0;
+        // count < 0 时 new ArrayList<>(count) 会抛 IllegalArgumentException，下限钳制为 0（与无限模式钳制 1000 上限对称）
+        int iterations = count != null ? Math.max(count, 0) : 0;
         List<Object> items = createIndexList(iterations);
         return executeIterations(workflow, node, items, loopBody);
     }

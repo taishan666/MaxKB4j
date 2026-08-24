@@ -208,6 +208,40 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
     private record CompiledScript(GroovyClassLoader loader, Class<?> scriptClass) {
     }
 
+    /** 重建共享执行器时的同步锁，保证超时替换时只有一个新池被创建 */
+    private static final Object EXECUTOR_LOCK = new Object();
+
+    /**
+     * 共享的脚本执行线程池（单线程 daemon）。
+     * <p>
+     * 复用以避免每次执行都新建线程池；超时且脚本死循环不响应中断时，关闭旧池并重建，
+     * 保证后续执行不会被卡死的脚本阻塞（每次超时至多滞留一个 daemon 线程）。
+     * </p>
+     */
+    private static volatile ExecutorService SCRIPT_EXECUTOR = newScriptExecutor();
+
+    private static ExecutorService scriptExecutor() {
+        ExecutorService executor = SCRIPT_EXECUTOR;
+        if (executor.isShutdown()) {
+            synchronized (EXECUTOR_LOCK) {
+                executor = SCRIPT_EXECUTOR;
+                if (executor.isShutdown()) {
+                    executor = newScriptExecutor();
+                    SCRIPT_EXECUTOR = executor;
+                }
+            }
+        }
+        return executor;
+    }
+
+    private static ExecutorService newScriptExecutor() {
+        return Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r, "groovy-sandbox-worker");
+            t.setDaemon(true);
+            return t;
+        });
+    }
+
     private final String code;
     private final Map<String, Object> initParams;
 
@@ -271,40 +305,52 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
             return "";
         }
 
-        if (initParams != null) {
-            params.putAll(initParams);
-        }
-
         validateScriptContent(code);
 
-        Binding binding = new Binding(params);
+        // 不直接修改调用方传入的 map：合并到新 map，initParams 保持原有覆盖语义
+        Map<String, Object> mergedParams = new LinkedHashMap<>();
+        if (params != null) {
+            mergedParams.putAll(params);
+        }
+        if (initParams != null) {
+            mergedParams.putAll(initParams);
+        }
+
         // 编译结果复用：相同脚本只编译一次，每次执行新建 Script 实例保证隔离
+        Binding binding = new Binding(mergedParams);
         CompiledScript compiled = cachedScript(code);
 
-        ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
-            Thread t = new Thread(r, "groovy-sandbox-worker");
-            t.setDaemon(true);
-            return t;
-        });
-
         GroovySandboxInterceptor interceptor = new GroovySandboxInterceptor();
+        ExecutorService executor = scriptExecutor();
+        Future<Object> future;
+        while (true) {
+            try {
+                future = executor.submit(() -> {
+                    // 注册白名单拦截器（SandboxTransformer 已将调用注入到字节码中）
+                    interceptor.register();
+                    try {
+                        Script script = (Script) compiled.scriptClass().getDeclaredConstructor().newInstance();
+                        script.setBinding(binding);
+                        Object result = script.run();
+                        return result == null ? "" : result;
+                    } finally {
+                        interceptor.unregister();
+                    }
+                });
+                break;
+            } catch (RejectedExecutionException e) {
+                // 并发超时路径刚关闭了共享池，重建后重新提交
+                executor = scriptExecutor();
+            }
+        }
+
         try {
-            Future<Object> future = executor.submit(() -> {
-                // 注册白名单拦截器（SandboxTransformer 已将调用注入到字节码中）
-                interceptor.register();
-                try {
-                    Script script = (Script) compiled.scriptClass().getDeclaredConstructor().newInstance();
-                    script.setBinding(binding);
-                    Object result = script.run();
-                    return result == null ? "" : result;
-                } finally {
-                    interceptor.unregister();
-                }
-            });
-
             return future.get(EXECUTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-
         } catch (TimeoutException e) {
+            future.cancel(true);
+            // 关闭本次提交所在的共享池：脚本响应中断则线程立即回收；
+            // 死循环不响应中断时该 daemon 线程滞留，下一次执行会通过 scriptExecutor() 重建新池
+            executor.shutdownNow();
             throw new SecurityException(I18nUtil.get("tool.groovy.script.execution.timeout", EXECUTION_TIMEOUT_SECONDS));
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
@@ -316,8 +362,6 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException(I18nUtil.get("tool.groovy.script.execution.interrupted"), e);
-        } finally {
-            executor.shutdownNow();
         }
     }
 

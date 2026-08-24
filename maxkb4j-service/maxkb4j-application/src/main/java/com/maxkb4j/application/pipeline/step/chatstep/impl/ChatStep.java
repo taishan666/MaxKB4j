@@ -1,6 +1,7 @@
 package com.maxkb4j.application.pipeline.step.chatstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.application.dto.LlmModelSetting;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.chatstep.AbsChatStep;
 import com.maxkb4j.application.service.IApplicationLongTermMemoryService;
@@ -23,16 +24,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class ChatStep extends AbsChatStep {
+
+    private static final long STREAM_TIMEOUT_MINUTES = 10L;
 
     private final IModelProviderService modelFactory;
     private final IToolProviderService toolProvider;
@@ -42,7 +47,8 @@ public class ChatStep extends AbsChatStep {
 
     @Override
     protected String execute(String chatId, String chatRecordId, ApplicationVO application, List<ChatMessage> historyMessages, String userPrompt, PipelineManage manage) throws Exception {
-        List<String> answerTexts = new ArrayList<>();
+        List<String> answerTexts = new CopyOnWriteArrayList<>();
+        AtomicBoolean cancelled = new AtomicBoolean(false);
         String appId = application.getId();
         String modelId = application.getModelId();
         JSONObject params = application.getModelParamsSetting();
@@ -51,7 +57,8 @@ public class ChatStep extends AbsChatStep {
         List<String> applicationIds = Optional.ofNullable(application.getApplicationIds()).orElse(List.of());
         AiServices<Assistant> aiServicesBuilder = AiServiceFactory.builder(Assistant.class);
         String chatUserId = manage.chatState.getChatUserId();
-        String systemText = application.getModelSetting().getSystem();
+        LlmModelSetting modelSetting = application.getModelSetting();
+        String systemText = modelSetting == null ? null : modelSetting.getSystem();
         if (StringUtils.isNotBlank(systemText)){
             aiServicesBuilder.systemMessage(systemText);
         }
@@ -72,25 +79,31 @@ public class ChatStep extends AbsChatStep {
         }
         aiServicesBuilder.chatMemory(AiChatMemory.withMessages(chatId,historyMessages));
         Assistant assistant = aiServicesBuilder.streamingChatModel(chatModel).build();
-        Boolean reasoningEnable = application.getModelSetting().getReasoningContentEnable();
+        boolean reasoningEnable = modelSetting != null && Boolean.TRUE.equals(modelSetting.getReasoningContentEnable());
         TokenStream tokenStream = assistant.chatStream(userPrompt);
         CompletableFuture<ChatResponse> future = new CompletableFuture<>();
-        // 完成后释放线程
+        // 完成后释放线程；超时置 cancelled 后各回调不再向 sink 推送
         tokenStream.onPartialThinking(thinking -> {
-                    if (Boolean.TRUE.equals(reasoningEnable)) {
+                    if (reasoningEnable && !cancelled.get()) {
                         manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, "", thinking.text(), false));
                     }
                 })
                 .onPartialResponse(text -> {
+                    if (cancelled.get()) {
+                        return;
+                    }
                     manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, text, "", false));
                     answerTexts.add(text);
                 })
                 .beforeToolExecution(toolExecute -> {
-                    if (Boolean.TRUE.equals(application.getToolOutputEnable())) {
+                    if (Boolean.TRUE.equals(application.getToolOutputEnable()) && !cancelled.get()) {
                         manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, toolFormatterService.format(toolExecute), "", false));
                     }
                 })
                 .onToolExecuted(toolExecute -> {
+                    if (cancelled.get()) {
+                        return;
+                    }
                     if (Boolean.TRUE.equals(application.getToolOutputEnable())) {
                         String toolText = toolFormatterService.format(toolExecute);
                         manage.sink.tryEmitNext(super.toChatMessageVO(chatId, chatRecordId, toolText, "", false));
@@ -100,7 +113,15 @@ public class ChatStep extends AbsChatStep {
                 .onCompleteResponse(future::complete)
                 .onError(future::completeExceptionally)
                 .start();
-        ChatResponse response = future.get(10L, TimeUnit.MINUTES);
+        ChatResponse response;
+        try {
+            response = future.get(STREAM_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+        } catch (TimeoutException e) {
+            // 取消通知后回调不再向 sink 推送，避免超时收尾后又继续输出
+            cancelled.set(true);
+            log.warn("Chat stream timed out after {} minutes, chatId: {}, chatRecordId: {}", STREAM_TIMEOUT_MINUTES, chatId, chatRecordId);
+            throw e;
+        }
         context.put("reasoningContent", response.aiMessage().thinking());
         TokenUsage tokenUsage = response.tokenUsage();
         if (tokenUsage != null) {

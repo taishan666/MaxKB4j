@@ -3,7 +3,6 @@ package com.maxkb4j.workflow.model;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.workflow.node.AbsNode;
 
 import java.util.List;
 
@@ -14,21 +13,16 @@ import java.util.List;
  * 具体实现位于 workflow 实现模块。
  */
 public interface IWorkflowOutputManager {
-
-    /**
-     * 获取已经执行的节点。
-     */
-    List<AbsNode> getExecutedNodes();
-
     /**
      * 发送消息到响应式 Sink（知识库工作流不输出）。
      */
     void emit(ChatMessageVO message);
-
-    List<Answer> getAnswers();
-
     /**
-     * 获取节点运行时详情 JSON。
+     * 获取工作流运行后所有节点回答。
+     */
+    List<Answer> getAnswers();
+    /**
+     * 获取工作流运行后节点运行时详情 JSON。
      */
     JSONObject runtimeDetails();
 }

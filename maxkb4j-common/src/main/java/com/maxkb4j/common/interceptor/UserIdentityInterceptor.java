@@ -69,8 +69,9 @@ public class UserIdentityInterceptor implements HandlerInterceptor {
             // chat 路径:优先解析 USER,避免同浏览器双登录时误取 ADMIN 身份
             return  resolveUser();
         }
-        // 其他路径:优先解析 ADMIN
-        return resolveAdmin();
+        // 其他路径:优先解析 ADMIN,未命中再回退 USER
+        UserIdentity identity = resolveAdmin();
+        return identity != null ? identity : resolveUser();
     }
 
     private UserIdentity resolveAdmin() {

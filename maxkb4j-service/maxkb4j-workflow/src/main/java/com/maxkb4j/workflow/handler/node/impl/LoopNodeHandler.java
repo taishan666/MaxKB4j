@@ -36,17 +36,14 @@ public class LoopNodeHandler extends AbsNodeHandler {
     private static final String DETAIL_NUMBER = LoopField.NUMBER;
 
     private final LoopIterationRunner iterationRunner;
-    private final LoopMessageForwarder messageForwarder;
 
     @Override
     public NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         LoopNode.NodeParams nodeParams = parseParams(node, LoopNode.NodeParams.class);
-        messageForwarder.emitIteration(workflow, node, null, true);
         List<JSONObject> loopDetails = iterationRunner.run(workflow, node, nodeParams);
         node.getDetail().put(DETAIL_LOOP_DATA, loopDetails);
         node.getDetail().put(DETAIL_LOOP_TYPE, nodeParams.getLoopType());
         node.getDetail().put(DETAIL_NUMBER, nodeParams.getNumber());
-        messageForwarder.emitIteration(workflow, node, null, true);
         return new NodeResult(workflow.getLoopContext(), true, this::getInterruptFlag);
     }
 }

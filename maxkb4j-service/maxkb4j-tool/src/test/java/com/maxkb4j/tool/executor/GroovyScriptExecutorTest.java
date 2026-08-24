@@ -77,4 +77,29 @@ class GroovyScriptExecutorTest {
         GroovyScriptExecutor executor = new GroovyScriptExecutor("   ", null);
         assertEquals("", executor.execute(params()));
     }
+
+    @Test
+    void execute_withInitParams_doesNotMutateCallerParams() {
+        GroovyScriptExecutor executor = new GroovyScriptExecutor("a + b", params("a", 100));
+        Map<String, Object> callerParams = params("a", 1, "b", 2);
+
+        assertEquals(102, executor.execute(callerParams));
+
+        assertEquals(2, callerParams.size());
+        assertEquals(1, callerParams.get("a"));
+        assertEquals(2, callerParams.get("b"));
+    }
+
+    @Test
+    void execute_withInitParams_mergeWithImmutableCallerParams() {
+        // argumentsAsMap 对空参数返回不可变 Map.of()，合并不应对其产生写操作
+        GroovyScriptExecutor executor = new GroovyScriptExecutor("a + b", params("a", 100));
+        assertEquals(102, executor.execute(Map.of("a", 1, "b", 2)));
+    }
+
+    @Test
+    void execute_withInitParams_initParamsOverrideCallerParams() {
+        GroovyScriptExecutor executor = new GroovyScriptExecutor("a + b", params("a", 100, "b", 200));
+        assertEquals(300, executor.execute(params("a", 1, "b", 2)));
+    }
 }
