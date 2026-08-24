@@ -82,23 +82,6 @@ public class LoopMessageForwarder {
     }
 
     /**
-     * 发送迭代边界标记（迭代开始/结束）
-     */
-    public void emitIteration(IWorkflow workflow, AbsNode node, ChildNode childNode, boolean nodeIsEnd) {
-        if (workflow instanceof IChatWorkflow chatWorkflow) {
-            ChatParams chatParams = chatWorkflow.getChatParams();
-            ChatMessageVO vo = node.toChatMessageVO(
-                    chatParams.getChatId(),
-                    chatParams.getChatRecordId(),
-                    "",
-                    "",
-                    childNode,
-                    nodeIsEnd);
-            workflow.output().emit(vo);
-        }
-    }
-
-    /**
      * 判断是否为中断信号
      */
     private boolean isBreakSignal(ChatMessageVO message) {
@@ -123,6 +106,23 @@ public class LoopMessageForwarder {
 
         // 转发消息到主工作流
         emitLoopMessageVO(message, workflow, node, childNodeRef.get());
+    }
+
+    /**
+     * 发送迭代边界标记（迭代开始/结束）
+     */
+    public void emitIteration(IWorkflow workflow, AbsNode node, ChildNode childNode, boolean nodeIsEnd) {
+        if (workflow instanceof IChatWorkflow chatWorkflow) {
+            ChatParams chatParams = chatWorkflow.getChatParams();
+            ChatMessageVO vo = node.toChatMessageVO(
+                    chatParams.getChatId(),
+                    chatParams.getChatRecordId(),
+                    "",
+                    "",
+                    childNode,
+                    nodeIsEnd);
+            workflow.output().emit(vo);
+        }
     }
 
     /**

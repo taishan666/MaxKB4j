@@ -30,12 +30,12 @@ public final class NodeResultWriter {
      * <p>回调未指定时应用引擎默认实现。
      */
     public static void writeContext(NodeResult result, AbsNode node, IWorkflow workflow) {
-        NodeResult.WriteContextFunction fn = result.getWriteContextFunc();
-        if (fn != null) {
-            fn.apply(result.getNodeVariable(), node, workflow);
-        } else {
-            defaultWriteContext(result, node, workflow);
+        Map<String, Object> nodeVariable = result.getNodeVariable();
+        if (nodeVariable != null) {
+            node.getContext().putAll(nodeVariable);
         }
+        // Sync update to workflow context
+        workflow.context().appendNode(node);
     }
 
     /**
@@ -43,11 +43,13 @@ public final class NodeResultWriter {
      * <p>回调未指定时应用引擎默认实现。
      */
     public static void writeDetail(NodeResult result, AbsNode node) {
-        NodeResult.WriteDetailFunction fn = result.getWriteDetailFunc();
-        if (fn != null) {
-            fn.apply(result.getNodeVariable(), node);
-        } else {
-            defaultWriteDetail(result, node);
+        Map<String, Object> nodeVariable = result.getNodeVariable();
+        if (nodeVariable != null) {
+            if (NodeType.VARIABLE_AGGREGATE.getKey().equals(node.getType())) {
+                node.getDetail().put(NodeField.RESULT, nodeVariable);
+            } else {
+                node.getDetail().putAll(nodeVariable);
+            }
         }
     }
 
@@ -65,31 +67,5 @@ public final class NodeResultWriter {
     public static boolean isAssertionResult(NodeResult result) {
         Map<String, Object> nodeVariable = result.getNodeVariable();
         return nodeVariable != null && nodeVariable.containsKey(NodeField.BRANCH_ID);
-    }
-
-    /**
-     * 引擎默认写上下文行为。
-     */
-    private static void defaultWriteContext(NodeResult result, AbsNode node, IWorkflow workflow) {
-        Map<String, Object> nodeVariable = result.getNodeVariable();
-        if (nodeVariable != null) {
-            node.getContext().putAll(nodeVariable);
-        }
-        // Sync update to workflow context
-        workflow.context().appendNode(node);
-    }
-
-    /**
-     * 引擎默认写详情行为。
-     */
-    private static void defaultWriteDetail(NodeResult result, AbsNode node) {
-        Map<String, Object> nodeVariable = result.getNodeVariable();
-        if (nodeVariable != null) {
-            if (NodeType.VARIABLE_AGGREGATE.getKey().equals(node.getType())) {
-                node.getDetail().put(NodeField.RESULT, nodeVariable);
-            } else {
-                node.getDetail().putAll(nodeVariable);
-            }
-        }
     }
 }

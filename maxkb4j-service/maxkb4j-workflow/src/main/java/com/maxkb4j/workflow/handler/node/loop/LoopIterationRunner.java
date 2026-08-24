@@ -39,14 +39,7 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 public class LoopIterationRunner {
 
     // 循环类型常量
-    private static final String LOOP_TYPE_ARRAY = LoopField.LOOP_TYPE_ARRAY;
-    private static final String LOOP_TYPE_INFINITE = LoopField.LOOP_TYPE_INFINITE;
     private static final int MAX_INFINITE_LOOP_COUNT = 1000;
-
-    // Detail 键常量
-    private static final String DETAIL_LOOP_DATA = LoopField.LOOP_NODE_DATA;
-    private static final String DETAIL_CURRENT_INDEX = LoopField.CURRENT_INDEX;
-    private static final String DETAIL_INTERRUPT_EXEC = NodeField.IS_INTERRUPT_EXEC;
 
     private final IWorkFlowActuator workFlowActuator;
     private final NodeBuilder nodeBuilder;
@@ -63,9 +56,9 @@ public class LoopIterationRunner {
      */
     public List<JSONObject> run(IWorkflow workflow, AbsNode node, LoopNode.NodeParams params) {
         String loopType = params.getLoopType();
-        if (LOOP_TYPE_ARRAY.equals(loopType)) {
+        if (LoopField.LOOP_TYPE_ARRAY.equals(loopType)) {
             return executeArrayLoop(workflow, node, params.getArray(), params.getLoopBody());
-        } else if (LOOP_TYPE_INFINITE.equals(loopType)) {
+        } else if (LoopField.LOOP_TYPE_INFINITE.equals(loopType)) {
             return executeCountLoop(workflow, node, MAX_INFINITE_LOOP_COUNT, params.getLoopBody());
         } else {
             return executeCountLoop(workflow, node, params.getNumber(), params.getLoopBody());
@@ -147,9 +140,9 @@ public class LoopIterationRunner {
      */
     @SuppressWarnings("unchecked")
     private LoopExecutionContext prepareLoopContext(AbsNode node) {
-        List<JSONObject> existingDetails = (List<JSONObject>) node.getDetail().get(DETAIL_LOOP_DATA);
+        List<JSONObject> existingDetails = (List<JSONObject>) node.getDetail().get(LoopField.LOOP_NODE_DATA);
         List<JSONObject> loopDetails = existingDetails != null ? existingDetails : new ArrayList<>();
-        Object savedIndex = node.getDetail().get(DETAIL_CURRENT_INDEX);
+        Object savedIndex = node.getDetail().get(LoopField.CURRENT_INDEX);
         int startIndex = savedIndex != null ? (int) savedIndex : 0;
         return new LoopExecutionContext(startIndex, loopDetails);
     }
@@ -190,8 +183,8 @@ public class LoopIterationRunner {
      * 更新迭代状态
      */
     private void updateIterationState(AbsNode node, IWorkflow loopWorkflow, LoopExecutionContext ctx) {
-        node.getDetail().put(DETAIL_INTERRUPT_EXEC, ctx.isInterrupted.get());
-        node.getDetail().put(DETAIL_CURRENT_INDEX, ctx.currentIndex);
+        node.getDetail().put(NodeField.IS_INTERRUPT_EXEC, ctx.isInterrupted.get());
+        node.getDetail().put(LoopField.CURRENT_INDEX, ctx.currentIndex);
 
         // 收集运行时详情
         JSONObject runtimeDetails = loopWorkflow.output().runtimeDetails();
