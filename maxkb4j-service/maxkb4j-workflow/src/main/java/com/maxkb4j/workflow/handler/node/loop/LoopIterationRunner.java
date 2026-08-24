@@ -14,10 +14,8 @@ import com.maxkb4j.workflow.service.WorkflowSpec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
@@ -182,9 +180,10 @@ public class LoopIterationRunner {
      * 更新迭代状态
      */
     private void updateIterationState(AbsNode node, IWorkflow loopWorkflow, LoopExecutionContext ctx) {
-        node.getDetail().put(NodeField.IS_INTERRUPT_EXEC, ctx.isInterrupted.get());
-        node.getDetail().put(LoopField.CURRENT_INDEX, ctx.currentIndex);
-
+        node.getDetail().putAll(Map.of(
+                NodeField.IS_INTERRUPT_EXEC, ctx.isInterrupted.get(),
+                LoopField.CURRENT_INDEX, ctx.currentIndex
+        ));
         // 收集运行时详情
         JSONObject runtimeDetails = loopWorkflow.output().runtimeDetails();
         appendIterationIndex(runtimeDetails, ctx.currentIndex);
