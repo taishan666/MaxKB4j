@@ -9,6 +9,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 
 @NodeCreatorType(NodeType.VARIABLE_AGGREGATE)
 public class VariableAggregationNode extends AbsNode {
@@ -19,7 +20,7 @@ public class VariableAggregationNode extends AbsNode {
     @Override
     @SuppressWarnings("unchecked")
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        List<Group> groupList= (List<Group>) detail.get("groupList");
+        List<Group> groupList= (List<Group>) detail.get(NodeField.GROUP_LIST);
         for (Group group : groupList) {
             context.put(group.getField(), group.getValue());
         }

@@ -45,7 +45,16 @@
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-mcp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-experimental-skills-shell</artifactId>
+        </dependency>
+        <!-- ToolInputParamsTypeHandler 编译期需要 PGobject（覆盖父 pom 的 runtime scope） -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
         </dependency>
         <!--   search-engine -->
         <dependency>

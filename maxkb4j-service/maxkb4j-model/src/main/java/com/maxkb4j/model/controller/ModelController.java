@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * @author tarzan
@@ -35,7 +36,7 @@ public class ModelController{
 	private final DataPermissionSupport dataPermissionSupport;
 
 	@SaCheckPerm(PermissionEnum.MODEL_CREATE)
-	@PostMapping("/model")
+	@PostMapping(ApiPath.MODEL)
 	public R<Boolean> createModel(@Valid @RequestBody ModelCreateDTO dto){
 		ModelEntity model = BeanUtil.copy(dto, ModelEntity.class);
 		return R.data(modelService.createModel(model));
@@ -43,35 +44,35 @@ public class ModelController{
 
 
 	@SaCheckPerm(PermissionEnum.MODEL_READ)
-	@GetMapping("/model")
+	@GetMapping(ApiPath.MODEL)
 	public R<List<ModelVO>> models(ModelQuery  query){
 		dataPermissionSupport.fill(query, AuthTargetType.MODEL);
 		return R.data(modelService.models(query));
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_READ)
-	@GetMapping("/model_list")
+	@GetMapping(ApiPath.MODEL_LIST)
 	public R<Map<String, List<ModelListVO>>> modelList(ModelQuery query){
 		dataPermissionSupport.fill(query, AuthTargetType.MODEL);
 		List<ModelListVO> models=modelService.modelList(query);
-		return R.data(Map.of("model", models, "shared_model",List.of()));
+		return R.data(Map.of(Resource.MODEL, models, Resource.SHARED_MODEL,List.of()));
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_READ)
-	@GetMapping("/model/{id}")
+	@GetMapping(ApiPath.MODEL_ID)
 	public R<ModelVO> getInfo(@PathVariable String id){
 		ModelEntity entity = modelService.getInfo(id);
 		return R.data(entity == null ? null : BeanUtil.copy(entity, ModelVO.class));
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_DELETE)
-	@DeleteMapping("/model/{id}")
+	@DeleteMapping(ApiPath.MODEL_ID)
 	public R<Boolean> delete(@PathVariable String id){
 		return R.status(modelService.removeModelById(id));
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_EDIT)
-	@PutMapping("/model/{id}")
+	@PutMapping(ApiPath.MODEL_ID)
 	public R<ModelVO> update(@PathVariable String id,@RequestBody ModelUpdateDTO dto){
 		ModelEntity model = BeanUtil.copy(dto, ModelEntity.class);
 		ModelEntity entity = modelService.updateModel(id, model);
@@ -79,7 +80,7 @@ public class ModelController{
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_READ)
-	@GetMapping("/model/{id}/model_params_form")
+	@GetMapping(ApiPath.MODEL_PARAMS_FORM)
 	public R<JSONArray> modelParamsForm(@PathVariable String id){
 		ModelEntity modelEntity= modelService.getById(id);
 		if (modelEntity==null){
@@ -89,7 +90,7 @@ public class ModelController{
 	}
 
 	@SaCheckPerm(PermissionEnum.MODEL_EDIT)
-	@PutMapping("/model/{id}/model_params_form")
+	@PutMapping(ApiPath.MODEL_PARAMS_FORM)
 	public R<JSONArray> updateModelParamsForm(@PathVariable String id,@RequestBody JSONArray paramsForm){
 		modelService.updateModelParamsForm(id,paramsForm);
 		return R.data(paramsForm);

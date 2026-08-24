@@ -2,7 +2,6 @@ package com.maxkb4j.tool.dto;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.tool.entity.ToolInputField;
 import lombok.Data;
 
 import java.util.List;

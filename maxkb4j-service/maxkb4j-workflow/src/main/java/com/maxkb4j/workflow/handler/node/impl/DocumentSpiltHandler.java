@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
 @Component
@@ -35,7 +36,7 @@ public class DocumentSpiltHandler extends AbsNodeHandler {
         List<DocumentSimple> documentList = res == null ? new ArrayList<>() : (List<DocumentSimple>) res;
 
         for (DocumentSimple document : documentList) {
-            if ("qa".equals(params.getSplitStrategy())) {
+            if (DocumentStrategy.QA.equals(params.getSplitStrategy())) {
                 qaSplit(document, params.getChunkSize());
             } else {
                 defaultSplit(document, params.getPatterns(), params.getChunkSize(), params.getWithFilter());
@@ -62,12 +63,12 @@ public class DocumentSpiltHandler extends AbsNodeHandler {
         }
 
         putDetails(node, Map.of(
-                "splitStrategy", params.getSplitStrategy(),
-                "chunkSize", params.getChunkSize(),
-                "documentList", documentList
+                KnowledgeField.SPLIT_STRATEGY, params.getSplitStrategy(),
+                KnowledgeField.CHUNK_SIZE, params.getChunkSize(),
+                NodeField.DOCUMENT_LIST, documentList
         ));
 
-        return new NodeResult(Map.of("paragraphList", documentList));
+        return new NodeResult(Map.of(NodeField.PARAGRAPH_LIST, documentList));
     }
 
     private void defaultSplit(DocumentSimple document, String[] patterns, int chunkSize, boolean withFilter) {

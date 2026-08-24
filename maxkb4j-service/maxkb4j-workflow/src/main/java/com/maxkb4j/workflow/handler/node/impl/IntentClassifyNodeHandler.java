@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
 @NodeHandlerType(NodeType.INTENT_CLASSIFY)
@@ -48,7 +49,7 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
         }
 
         List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
-        putDetail(node, "historyMessage", MessageConverter.formatHistoryMessages(historyMessages));
+        putDetail(node, ChatField.HISTORY_MESSAGE, MessageConverter.formatHistoryMessages(historyMessages));
 
         Map<Integer, String> idToClassification = new HashMap<>();
         String options = optionsFormat(idToClassification, branches);
@@ -66,16 +67,16 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
         String category = branchMap.get(branchId);
 
         Map<String, Object> details = new HashMap<>();
-        details.put("system", IntentClassifyAssistant.SYSTEM_MESSAGE);
-        details.put("question", queryStr);
-        details.put("answer", category);
+        details.put(ChatField.SYSTEM, IntentClassifyAssistant.SYSTEM_MESSAGE);
+        details.put(NodeField.QUESTION, queryStr);
+        details.put(NodeField.ANSWER, category);
         putDetails(node, details);
         recordTokenUsage(node, result.tokenUsage());
 
         Map<String, Object> nodeVariable = new HashMap<>();
-        nodeVariable.put("branchId", branchId);
-        nodeVariable.put("category", category);
-        nodeVariable.put("reason", "");
+        nodeVariable.put(NodeField.BRANCH_ID, branchId);
+        nodeVariable.put(NodeField.CATEGORY, category);
+        nodeVariable.put(NodeField.REASON, "");
         return new NodeResult(nodeVariable);
     }
 

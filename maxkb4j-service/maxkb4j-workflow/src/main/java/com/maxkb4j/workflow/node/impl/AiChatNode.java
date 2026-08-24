@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
 @NodeCreatorType(NodeType.AI_CHAT)
@@ -22,8 +23,8 @@ public class AiChatNode extends AbsNode {
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        context.put("answer", detail.get("answer"));
-        context.put("reasoningContent", detail.get("reasoningContent"));
+        context.put(NodeField.ANSWER, detail.get(NodeField.ANSWER));
+        context.put(NodeField.REASONING_CONTENT, detail.get(NodeField.REASONING_CONTENT));
     }
 
     @Data

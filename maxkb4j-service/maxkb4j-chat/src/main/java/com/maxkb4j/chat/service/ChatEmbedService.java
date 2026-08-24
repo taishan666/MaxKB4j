@@ -35,11 +35,11 @@ public class ChatEmbedService {
     }
     public String embed(EmbedQuery query) {
         ApplicationAccessTokenDTO token = accessTokenService.getByAccessToken(query.getToken());
-        if (token == null || !token.getIsActive()) {
+        if (token == null || Boolean.FALSE.equals(token.getIsActive())) {
             throw new ApiException("application.token.invalid.or.disabled");
         }
         List<String> whiteList = token.getWhiteList();
-        if (token.getWhiteActive() && !whiteList.contains(WebUtil.getIP())) {
+        if (Boolean.TRUE.equals(token.getWhiteActive()) && (whiteList == null || !whiteList.contains(WebUtil.getIP()))) {
             throw new ApiException("application.access.white.list.required");
         }
         // 校验通过后再打开资源流，避免校验失败时流泄漏（readToString 内部会关闭流）
@@ -57,7 +57,7 @@ public class ChatEmbedService {
         map.put("host", query.getHost());
         map.put("token", query.getToken());
         map.put("white_list_str", whiteList == null ? "" : String.join(",", whiteList));
-        map.put("white_active", token.getWhiteActive().toString());
+        map.put("white_active", String.valueOf(Boolean.TRUE.equals(token.getWhiteActive())));
         map.put("is_draggable", "false");
         map.put("float_icon", floatIcon);
         map.put("prefix", "/chat");
@@ -69,7 +69,7 @@ public class ChatEmbedService {
         map.put("y_type", "bottom");
         map.put("y_value", "30");
         map.put("max_kb_id", IdWorker.get32UUID());
-        map.put("header_font_color", "rgb(100, 106, 115");
+        map.put("header_font_color", "rgb(100, 106, 115)");
         return map;
     }
 

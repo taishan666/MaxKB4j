@@ -10,13 +10,14 @@ import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.entity.*;
 import com.maxkb4j.knowledge.event.GenerateProblemEvent;
 import com.maxkb4j.user.service.IUserService;
-import com.maxkb4j.workflow.builder.NodeBuilder;
 import com.maxkb4j.workflow.logic.LogicFlow;
 import com.maxkb4j.workflow.model.KnowledgeParams;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.service.INodeCreator;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import com.maxkb4j.workflow.service.WorkflowFactory;
+import com.maxkb4j.workflow.service.WorkflowSpec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -45,7 +46,7 @@ public class KnowledgeWorkflowService {
     private final IKnowledgeVersionService knowledgeVersionService;
     private final IKnowledgeActionInternalService knowledgeActionService;
     private final IWorkFlowActuator workFlowActuator;
-    private final NodeBuilder nodeBuilder;
+    private final INodeCreator nodeCreator;
     private final WorkflowFactory workflowFactory;
     private final UserContext userContext;
     private final IUserService userService;
@@ -132,11 +133,11 @@ public class KnowledgeWorkflowService {
         knowledgeAction.setMeta(meta);
         knowledgeActionService.save(knowledgeAction);
         LogicFlow logicFlow = LogicFlow.newInstance(knowledgeWorkFlow);
-        List<AbsNode> nodes = logicFlow.getNodes().stream().map(nodeBuilder::getNode).filter(Objects::nonNull).toList();
+        List<AbsNode> nodes = logicFlow.getNodes().stream().map(nodeCreator::createNode).filter(Objects::nonNull).toList();
         params.setActionId(knowledgeAction.getId());
         params.setKnowledgeId(id);
         params.setDebug(debug);
-        IWorkflow workflow = workflowFactory.createKnowledge(nodes, logicFlow.getEdges(), params);
+        IWorkflow workflow = workflowFactory.create(WorkflowSpec.knowledge(nodes, logicFlow.getEdges(), params).build());
         // 异步任务的异常存放在被丢弃的 future 中，既不触发 UncaughtExceptionHandler 也无日志，
         // 必须通过 whenComplete 记录，否则文档处理失败后状态将永久停留在 STARTED 且无从排查
         CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow), workflowTaskExecutor)

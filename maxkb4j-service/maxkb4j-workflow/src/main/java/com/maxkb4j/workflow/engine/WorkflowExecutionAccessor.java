@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
  * 工作流执行控制器
@@ -78,7 +79,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
     @Override
     public List<AbsNode> nextNodes(AbsNode currentNode, NodeResult currentNodeResult) {
         // 检查是否需要中断执行
-        if (currentNodeResult == null || currentNodeResult.isInterruptExec(currentNode)) {
+        if (currentNodeResult == null || NodeResultWriter.isInterruptExec(currentNodeResult, currentNode)) {
             return List.of();
         }
         // 获取下游边
@@ -93,7 +94,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
                 .toList();
 
         // 处理断言结果分支
-        if (currentNodeResult.isAssertionResult()) {
+        if (NodeResultWriter.isAssertionResult(currentNodeResult)) {
             List<AbsNode> targetNodes = buildNodes(targetNodeIds, currentNode);
             targetNodes.forEach(node -> {
                 if (!isAssertionNode(node.getId(), currentNodeResult, sourceEdges)) {
@@ -184,23 +185,23 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
                 .filter(Objects::nonNull)
                 .map(row -> (Map<String, Object>) row)
                 .sorted(Comparator.comparing(
-                        e -> (Integer) e.get("index"),
+                        e -> (Integer) e.get(RuntimeDetailField.INDEX),
                         Comparator.nullsLast(Comparator.naturalOrder())
                 ))
                 .toList();
 
         for (Map<String, Object> nodeDetail : sortedDetails) {
-            String nodeId = (String) nodeDetail.get("nodeId");
-            List<String> upNodeIdList = (List<String>) nodeDetail.get("upNodeIdList");
-            String runtimeNodeId = (String) nodeDetail.get("runtimeNodeId");
-            Integer nodeStatus = (Integer) nodeDetail.get("status");
+            String nodeId = (String) nodeDetail.get(RuntimeDetailField.NODE_ID);
+            List<String> upNodeIdList = (List<String>) nodeDetail.get(RuntimeDetailField.UP_NODE_ID_LIST);
+            String runtimeNodeId = (String) nodeDetail.get(RuntimeDetailField.RUNTIME_NODE_ID);
+            Integer nodeStatus = (Integer) nodeDetail.get(RuntimeDetailField.STATUS);
             if (Objects.equals(runtimeNodeId, currentNodeId)) {
                 // 处理当前节点
                 this.currentNode = getNodeInstance(nodeId, upNodeIdList, n -> {
                     JSONObject nodeProperties = n.getProperties();
-                    if (nodeProperties.containsKey("nodeData")) {
-                        JSONObject nodeParams = nodeProperties.getJSONObject("nodeData");
-                        nodeParams.put("form_data", currentNodeData);
+                    if (nodeProperties.containsKey(RuntimeDetailField.NODE_DATA)) {
+                        JSONObject nodeParams = nodeProperties.getJSONObject(RuntimeDetailField.NODE_DATA);
+                        nodeParams.put(FormField.FORM_DATA, currentNodeData);
                     }
                     return nodeProperties;
                 });
@@ -270,7 +271,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
         List<String> assertionNodeIds = sourceEdges.stream()
                 .filter(edge -> {
                     Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
-                    String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault("branchId", "") : "";
+                    String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault(NodeField.BRANCH_ID, "") : "";
                     String expectedAnchorId = String.format("%s_%s_right", edge.getSourceNodeId(), branchId);
                     return expectedAnchorId.equals(edge.getSourceAnchorId());
                 })

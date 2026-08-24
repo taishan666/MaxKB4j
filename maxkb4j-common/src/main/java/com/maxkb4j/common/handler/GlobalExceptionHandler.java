@@ -7,7 +7,6 @@ import cn.dev33.satoken.jwt.exception.SaJwtException;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.exception.*;
 import com.maxkb4j.common.util.I18nUtil;
-import com.maxkb4j.common.util.StpKit;
 import dev.langchain4j.exception.AuthenticationException;
 import dev.langchain4j.exception.InvalidRequestException;
 import dev.langchain4j.exception.ModelNotFoundException;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import javax.crypto.BadPaddingException;
 import java.io.IOException;
@@ -133,21 +131,20 @@ public class GlobalExceptionHandler {
                 || msg.contains("远程主机强迫关闭了一个现有的连接");
     }
 
-    @ExceptionHandler(NoResourceFoundException.class)
-    public String handleException(NoResourceFoundException e, HttpServletResponse response) {
-        // 如果响应已提交（如 SSE 流已开始发送），则无法 redirect，直接返回 null
-        if (response.isCommitted()) {
-            log.debug("Response already committed, cannot redirect: {}", e.getMessage());
-            return null;
-        }
-        log.warn(e.getMessage());
-        // 判断是否已登录
-        if (StpKit.ADMIN.isLogin()) {
-            return "redirect:/admin/home";
-        } else {
-            return "redirect:/admin/login";
-        }
-    }
+    /**
+     * 处理静态资源 404（NoResourceFoundException），避免落入兜底 Exception 处理器打完整堆栈：
+     * 1) SPA 前端路由回退：/chat/**、/admin/** 下不含 "." 的路径是前端路由（如 /chat/{token}），
+     *    静态资源处理器找不到对应文件，需转发到对应入口页；带尾部斜杠的先重定向去掉斜杠，
+     *    否则 index.html 中的相对路径资源（./assets/...）会以 /chat/{token}/ 为基准解析导致 404
+     * 2) 其余情况（如浏览器自动请求的 /favicon.ico、真正缺失的资源）按 404 静默返回，仅记单行 warn
+     */
+/*    @ExceptionHandler(NoResourceFoundException.class)
+    public String handleException(NoResourceFoundException e, HttpServletRequest request, HttpServletResponse response) {
+        // 非前端路由（含 "." 的静态资源、未知路径）：404 + 单行日志，不打堆栈
+        log.warn("静态资源未找到: {}", e.getMessage());
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        return null;
+    }*/
 
     /**
      * 处理 @RequestBody 参数校验失败异常（@Valid 触发）

@@ -10,10 +10,10 @@ import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.util.NodeIdGenerator;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
  * 节点抽象基类
@@ -44,7 +44,7 @@ public abstract class AbsNode {
     public AbsNode(String id, JSONObject properties) {
         this.id = id;
         this.properties = properties;
-        this.viewType = "many_view";
+        this.viewType = ViewType.MANY_VIEW;
         this.context = new LinkedHashMap<>(5);
         this.detail = new LinkedHashMap<>(5);
         this.upNodeIdList = new ArrayList<>();
@@ -70,8 +70,8 @@ public abstract class AbsNode {
     }
 
     public JSONObject getNodeData() {
-        if (Objects.nonNull(properties) && properties.containsKey("nodeData")) {
-            return properties.getJSONObject("nodeData");
+        if (Objects.nonNull(properties) && properties.containsKey(RuntimeDetailField.NODE_DATA)) {
+            return properties.getJSONObject(RuntimeDetailField.NODE_DATA);
         }
         return new JSONObject();
     }
@@ -82,7 +82,7 @@ public abstract class AbsNode {
     }
 
     public String getNodeName() {
-        return properties.getString("nodeName");
+        return properties.getString(RuntimeDetailField.NODE_NAME);
     }
 
     /**
@@ -108,16 +108,23 @@ public abstract class AbsNode {
         return NodeIdGenerator.generateRuntimeNodeId(id, upNodeIdList);
     }
 
-    public List<Answer> getAnswerList(String chatRecordId) {
-        if (StringUtils.isNotBlank(answerText)) {
-            Object value = context.get("reasoningContent");
-            String reasoningContent = value != null ? String.valueOf(value) : "";
+    public boolean isResult() {
+        return detail.containsKey(NodeField.IS_RESULT) && (Boolean) detail.get(NodeField.IS_RESULT);
+    }
+
+    public boolean reasoningContentEnable() {
+        return detail.containsKey(NodeField.REASONING_CONTENT_ENABLE) && (Boolean) detail.get(NodeField.REASONING_CONTENT_ENABLE);
+    }
+
+    public List<Answer> getAnswerList() {
+        if (isResult()) {
+            Object answer = detail.getOrDefault(NodeField.ANSWER,"");
+            Object reasoningContent = reasoningContentEnable()?detail.getOrDefault(NodeField.REASONING_CONTENT,""):"";
             return List.of(Answer.builder()
-                    .content(answerText)
-                    .reasoningContent(reasoningContent)
-                    .chatRecordId(chatRecordId)
+                    .content((String) answer)
+                    .reasoningContent((String) reasoningContent)
+                    .chatRecordId("")
                     .runtimeNodeId(runtimeNodeId)
-                    .realNodeId(runtimeNodeId)
                     .viewType(viewType)
                     .build());
         }

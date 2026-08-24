@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Slf4j
 @Data
@@ -23,7 +24,7 @@ public class QWenTTS  implements ITTSModel {
     private MultiModalConversationParam param;
 
     public QWenTTS(String modelName, ModelCredential modelCredential, JSONObject params) {
-        String voice= params==null?"CHERRY":(String) params.getOrDefault("voice","CHERRY");
+        String voice= params==null?Value.CHERRY:(String) params.getOrDefault(ParamKey.VOICE,Value.CHERRY);
         this.param= MultiModalConversationParam.builder()
                 .model(modelName)
                 .apiKey(modelCredential.getApiKey())

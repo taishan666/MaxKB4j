@@ -7,6 +7,7 @@ import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.CONDITION)
 public class ConditionNode extends AbsNode {
@@ -17,7 +18,7 @@ public class ConditionNode extends AbsNode {
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        context.put("branchName", detail.get("branchName"));
+        context.put(NodeField.BRANCH_NAME, detail.get(NodeField.BRANCH_NAME));
     }
 
 }

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 
 @Slf4j
@@ -55,14 +56,14 @@ public class RerankerNodeHandler extends AbsNodeHandler {
                 Double score = scores.get(i);
                 TextSegment textSegment = textSegments.get(i);
                 Map<String, Object> metadata = textSegment.metadata().toMap();
-                metadata.put("relevanceScore", score);
+                metadata.put(NodeField.RELEVANCE_SCORE, score);
                 RerankerNode.RerankResult textSegmentResult = new RerankerNode.RerankResult(textSegment.text(), metadata);
                 documentList.add(textSegmentResult);
             }
 
             resultList = documentList.stream().filter(rerankResult -> {
-                if (rerankResult.getMetadata().containsKey("relevanceScore")) {
-                    Double score = (Double) rerankResult.getMetadata().get("relevanceScore");
+                if (rerankResult.getMetadata().containsKey(NodeField.RELEVANCE_SCORE)) {
+                    Double score = (Double) rerankResult.getMetadata().get(NodeField.RELEVANCE_SCORE);
                     return score > similarity;
                 }
                 return false;
@@ -80,13 +81,13 @@ public class RerankerNodeHandler extends AbsNodeHandler {
 
         // 使用辅助方法写入详情
         putDetails(node, Map.of(
-                "question", question,
-                "documentList", documentList
+                NodeField.QUESTION, question,
+                NodeField.DOCUMENT_LIST, documentList
         ));
 
         return new NodeResult(Map.of(
-                "resultList", resultList,
-                "result", result
+                NodeField.RESULT_LIST, resultList,
+                NodeField.RESULT, result
         ));
     }
 
@@ -100,12 +101,12 @@ public class RerankerNodeHandler extends AbsNodeHandler {
                     .filter(paragraph -> paragraph != null && paragraph.getContent() != null && !paragraph.getContent().isBlank())
                     .map(paragraph -> {
                         Map<String, Object> metadata = new HashMap<>();
-                        metadata.put("title", paragraph.getTitle() != null ? paragraph.getTitle() : "");
-                        metadata.put("similarity", paragraph.getSimilarity());
-                        metadata.put("knowledgeType", paragraph.getKnowledgeType() != null ? paragraph.getKnowledgeType() : "");
-                        metadata.put("knowledgeName", paragraph.getKnowledgeName() != null ? paragraph.getKnowledgeName() : "");
-                        metadata.put("documentName", paragraph.getDocumentName() != null ? paragraph.getDocumentName() : "");
-                        metadata.put("isActive", String.valueOf(paragraph.getIsActive() != null ? paragraph.getIsActive() : false));
+                        metadata.put(MetadataField.TITLE, paragraph.getTitle() != null ? paragraph.getTitle() : "");
+                        metadata.put(MetadataField.SIMILARITY, paragraph.getSimilarity());
+                        metadata.put(MetadataField.KNOWLEDGE_TYPE, paragraph.getKnowledgeType() != null ? paragraph.getKnowledgeType() : "");
+                        metadata.put(MetadataField.KNOWLEDGE_NAME, paragraph.getKnowledgeName() != null ? paragraph.getKnowledgeName() : "");
+                        metadata.put(MetadataField.DOCUMENT_NAME, paragraph.getDocumentName() != null ? paragraph.getDocumentName() : "");
+                        metadata.put(MetadataField.IS_ACTIVE, String.valueOf(paragraph.getIsActive() != null ? paragraph.getIsActive() : false));
                         return TextSegment.from(paragraph.getContent(), Metadata.from(metadata));
                     })
                     .toList());

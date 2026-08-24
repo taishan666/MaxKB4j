@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.VARIABLE_SPLITTING)
 @Slf4j
@@ -33,22 +34,23 @@ public class VariableSplittingNodeHandler extends AbsNodeHandler {
                 log.error("inputValue is not a json string, inputValue: {}", inputValue);
             }
         }
-        putDetail(node, "request", JSON.toJSONString(inputValue));
         Map<String, Object> nodeVariable = new HashMap<>();
         List<VariableSplittingNode.Variable> variableList = params.getVariableList();
         Map<String, Object> result = new HashMap<>();
 
         for (VariableSplittingNode.Variable variable : variableList) {
             Object value = JSONPath.eval(inputValue, variable.getExpression());
-            value = value == null ? "None" : value;
+            value = value == null ? Defaults.NONE : value;
             result.put(variable.getField(), value);
         }
 
-        nodeVariable.put("result", result);
+        nodeVariable.put(NodeField.RESULT, result);
         nodeVariable.putAll(result);
-
-        putDetail(node, "result", result);
-
+        // 写入详情
+        putDetails(node, Map.of(
+                NodeField.REQUEST, JSON.toJSONString(inputValue),
+                NodeField.RESULT, result
+        ));
         return new NodeResult(nodeVariable);
     }
 }

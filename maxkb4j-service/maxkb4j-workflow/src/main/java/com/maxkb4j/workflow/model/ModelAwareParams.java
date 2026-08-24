@@ -3,6 +3,7 @@ package com.maxkb4j.workflow.model;
 import com.alibaba.fastjson.JSONObject;
 
 import java.util.List;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
  * 节点参数中模型配置相关字段的统一访问接口。
@@ -23,7 +24,7 @@ public interface ModelAwareParams {
     String getModelId();
 
     /**
-     * 模型 ID 来源类型：{@code "reference"} 表示从引用字段获取，其他值表示直接使用 modelId
+     * 模型 ID 来源类型：{@code VariableField.REFERENCE} 表示从引用字段获取，其他值表示直接使用 modelId
      */
     String getModelIdType();
 
@@ -33,7 +34,7 @@ public interface ModelAwareParams {
     JSONObject getModelParamsSetting();
 
     /**
-     * 模型 ID 引用字段路径（当 {@link #getModelIdType()} 为 {@code "reference"} 时使用）
+     * 模型 ID 引用字段路径（当 {@link #getModelIdType()} 为 {@code VariableField.REFERENCE} 时使用）
      */
     List<String> getModelIdReference();
 }

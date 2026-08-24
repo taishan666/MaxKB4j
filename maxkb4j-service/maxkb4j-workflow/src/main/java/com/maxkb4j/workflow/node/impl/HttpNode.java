@@ -9,6 +9,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Data;
 
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.HTTP_CLIENT)
 public class HttpNode extends AbsNode {
@@ -19,8 +20,8 @@ public class HttpNode extends AbsNode {
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        context.put("status",detail.get("status"));
-        context.put("body",detail.get("body"));
+        context.put(HttpField.STATUS,detail.get(HttpField.STATUS));
+        context.put(HttpField.BODY,detail.get(HttpField.BODY));
     }
 
     @Data

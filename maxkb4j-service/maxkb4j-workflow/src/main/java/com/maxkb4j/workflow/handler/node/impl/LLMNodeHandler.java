@@ -2,7 +2,6 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.util.MessageConverter;
-import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
@@ -11,9 +10,9 @@ import com.maxkb4j.tool.service.IToolProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbstractChatStreamNodeHandler;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.AiChatNode;
 import dev.langchain4j.data.message.ChatMessage;
@@ -29,6 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+
+import static com.maxkb4j.workflow.consts.WorkflowConstants.ChatField;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 
 @Slf4j
 @NodeHandlerType(NodeType.AI_CHAT)
@@ -67,7 +69,7 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
         recordNodeDetails(node, systemPrompt, historyMessages, userPrompt, contents);
 
         ModelConfig modelConfig = resolveModelConfig(workflow, params);
-        List<ToolProvider> toolProviders = resolveToolProviders(workflow, toolIds, applicationIds);
+        List<ToolProvider> toolProviders = resolveToolProviders(toolIds, applicationIds);
         // 构建 AI 服务
         Assistant assistant = buildStreamingAssistant(workflow, modelConfig, systemPrompt, historyMessages, toolProviders);
 
@@ -99,23 +101,18 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
         return toolMessage;
     }
 
-    private List<ToolProvider> resolveToolProviders(IWorkflow workflow, List<String> toolIds, List<String> applicationIds) {
-        try {
-            return toolProviderService.getToolProviders(toolIds, applicationIds);
-        } catch (ApiException e) {
-            workflow.output().emit(null); // Error will be propagated differently
-            return List.of();
-        }
+    private List<ToolProvider> resolveToolProviders(List<String> toolIds, List<String> applicationIds) {
+        return toolProviderService.getToolProviders(toolIds, applicationIds);
     }
 
     private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,
                                    String textMassage, List<Content> contents) {
         List<JSONObject> question = MessageConverter.resetContents(contents);
-        question.add(new JSONObject(Map.of("type", "text", "text", textMassage)));
+        question.add(new JSONObject(Map.of(ChatField.TYPE, ChatField.TEXT, ChatField.TEXT, textMassage)));
         putDetails(node, Map.of(
-                "system", systemPrompt,
-                "historyMessage", MessageConverter.formatHistoryMessages(historyMessages),
-                "question", question
+                ChatField.SYSTEM, systemPrompt,
+                ChatField.HISTORY_MESSAGE, MessageConverter.formatHistoryMessages(historyMessages),
+                NodeField.QUESTION, question
         ));
     }
 }

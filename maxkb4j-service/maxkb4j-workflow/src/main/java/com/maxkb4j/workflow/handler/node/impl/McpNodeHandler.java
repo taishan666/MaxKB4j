@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
 @NodeHandlerType(NodeType.MCP)
@@ -40,10 +41,10 @@ public class McpNodeHandler extends AbsNodeHandler {
         }
         String resultText =toolExecuteService.mcpToolExecute(params.getMcpServers(),params.getMcpTool(), execParams);
         putDetails(node, Map.of(
-                "toolParams", execParams,
-                "mcpTool", params.getMcpTool()
+                ToolField.TOOL_PARAMS, execParams,
+                ToolField.MCP_TOOL, params.getMcpTool()
         ));
 
-        return new NodeResult(Map.of("result", List.of(resultText)));
+        return new NodeResult(Map.of(NodeField.RESULT, List.of(resultText)));
     }
 }

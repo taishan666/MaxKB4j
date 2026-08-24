@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Optional;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * SiliconFlow 图像模型（OpenAI 兼容 /images/generations 接口）
@@ -28,18 +29,6 @@ import java.util.Optional;
  */
 @Slf4j
 public class SiliconFlowImageModel implements ImageModel {
-
-    private static final String IMAGES_GENERATIONS_PATH = "/images/generations";
-
-    private static final String PARAM_MODEL = "model";
-    private static final String PARAM_PROMPT = "prompt";
-    private static final String PARAM_BATCH_SIZE = "batch_size";
-    private static final String PARAM_IMAGE_SIZE = "image_size";
-    private static final String PARAM_NEGATIVE_PROMPT = "negative_prompt";
-    private static final String PARAM_IMAGE = "image";
-
-    private static final String RESPONSE_IMAGES = "images";
-    private static final String RESPONSE_URL = "url";
 
     private final HttpRequest request;
     private final String modelName;
@@ -59,9 +48,9 @@ public class SiliconFlowImageModel implements ImageModel {
     }
 
     private static HttpRequest createRequest(ModelCredential credential) {
-        HttpRequest request = HttpUtil.createRequest(Method.POST, credential.getBaseUrl() + IMAGES_GENERATIONS_PATH);
+        HttpRequest request = HttpUtil.createRequest(Method.POST, credential.getBaseUrl() + Http.ENDPOINT_IMAGES_GENERATIONS);
         request.bearerAuth(credential.getApiKey());
-        request.header("Content-Type", "application/json");
+        request.header(Http.CONTENT_TYPE, Http.APPLICATION_JSON);
         return request;
     }
 
@@ -93,16 +82,16 @@ public class SiliconFlowImageModel implements ImageModel {
      */
     private JSONObject buildBaseParams(String prompt, int batchSize) {
         JSONObject params = new JSONObject();
-        params.put(PARAM_MODEL, modelName);
-        params.put(PARAM_PROMPT, prompt);
-        params.put(PARAM_BATCH_SIZE, batchSize);
-        String imageSize = modelParams.getString("size");
+        params.put(RequestField.MODEL, modelName);
+        params.put(RequestField.PROMPT, prompt);
+        params.put(RequestField.BATCH_SIZE, batchSize);
+        String imageSize = modelParams.getString(ParamKey.SIZE);
         if (imageSize != null) {
-            params.put(PARAM_IMAGE_SIZE, imageSize);
+            params.put(RequestField.IMAGE_SIZE, imageSize);
         }
-        String negativePrompt = modelParams.getString("negative_prompt");
+        String negativePrompt = modelParams.getString(ParamKey.NEGATIVE_PROMPT);
         if (negativePrompt != null) {
-            params.put(PARAM_NEGATIVE_PROMPT, negativePrompt);
+            params.put(ParamKey.NEGATIVE_PROMPT, negativePrompt);
         }
         return params;
     }
@@ -115,9 +104,9 @@ public class SiliconFlowImageModel implements ImageModel {
             return;
         }
         if (image.base64Data() != null) {
-            params.put(PARAM_IMAGE, image.base64Data());
+            params.put(RequestField.IMAGE, image.base64Data());
         } else if (image.url() != null) {
-            params.put(PARAM_IMAGE, image.url().toString());
+            params.put(RequestField.IMAGE, image.url().toString());
         }
     }
 
@@ -143,13 +132,13 @@ public class SiliconFlowImageModel implements ImageModel {
         if (body == null) {
             return List.of();
         }
-        JSONArray results = body.getJSONArray(RESPONSE_IMAGES);
+        JSONArray results = body.getJSONArray(RequestField.IMAGES);
         return Optional.ofNullable(results)
                 .orElse(new JSONArray())
                 .stream()
                 .filter(item -> item instanceof JSONObject) // 防御性类型过滤
                 .map(item -> Image.builder()
-                        .url(((JSONObject) item).getString(RESPONSE_URL))
+                        .url(((JSONObject) item).getString(RequestField.URL))
                         .build())
                 .toList();
     }

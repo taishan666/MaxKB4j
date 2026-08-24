@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.REPLY)
 @Component
@@ -29,7 +30,7 @@ public class DirectReplyNodeHandler extends AbsNodeHandler {
             List<String> fields = params.getFields();
             Object value = workflow.getReferenceField(fields);
             if (value == null) {
-                answerText.set("None");
+                answerText.set(Defaults.NONE);
             } else if (ObjectUtil.isSimpleType(value)) {
                 answerText.set(value.toString());
             } else {
@@ -41,6 +42,6 @@ public class DirectReplyNodeHandler extends AbsNodeHandler {
         if (params.getIsResult()) {
             setAnswerText(node, answerText.get());
         }
-        return new NodeResult(Map.of("answer", answerText.get()));
+        return new NodeResult(Map.of(NodeField.ANSWER, answerText.get()));
     }
 }

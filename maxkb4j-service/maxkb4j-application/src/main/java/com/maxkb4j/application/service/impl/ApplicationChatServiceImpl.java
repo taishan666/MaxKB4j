@@ -114,7 +114,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         List<ChatRecordDTO> historyChatRecordList = chatInfo.getChatRecordList();
         chatState.setHistoryChatRecords(historyChatRecordList);
         if (StringUtils.isNotBlank(chatParams.getChatRecordId())) {
-            ChatRecordDTO chatRecord = historyChatRecordList.stream().filter(e -> e.getId().equals(chatParams.getChatRecordId())).findFirst().orElse(null);
+            ChatRecordDTO chatRecord = historyChatRecordList.stream().filter(e -> Objects.equals(e.getId(), chatParams.getChatRecordId())).findFirst().orElse(null);
             chatState.setChatRecord(chatRecord);
         } else {
             chatParams.setChatRecordId(IdWorker.get32UUID());

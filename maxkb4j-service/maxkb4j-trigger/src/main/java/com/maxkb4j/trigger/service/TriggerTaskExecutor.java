@@ -128,7 +128,7 @@ public class TriggerTaskExecutor {
                         .build();
                 ChatResponse response = applicationChatService.chatMessage(chatParams, chatState, sink);
                 float runTime = (System.currentTimeMillis() - startTime) / 1000f;
-                TaskState state = (response != null && response.getAnswerTextList() != null) ? TaskState.SUCCESS : TaskState.FAILURE;
+                TaskState state = (response != null && response.getAnswers() != null) ? TaskState.SUCCESS : TaskState.FAILURE;
                 JSONObject meta = (response != null) ? response.getRunDetails() : new JSONObject();
                 saveRecord(task.getTriggerId(), task.getId(), ResourceType.APPLICATION, appId, state, runTime, meta);
                 log.info("Application task executed: appId={}, chatId={}, state={}, runTime={}s",

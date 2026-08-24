@@ -89,6 +89,11 @@ public enum NodeType {
     LOOP_BREAK("loop-break-node","循环跳出"),
     ;
 
+    /**
+     * 数据源节点类型 key 前缀
+     */
+    public static final String DATA_SOURCE_PREFIX = "data-source-";
+
     private final String key;
 
     private final String name;

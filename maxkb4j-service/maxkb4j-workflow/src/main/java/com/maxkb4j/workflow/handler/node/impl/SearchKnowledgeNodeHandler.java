@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 
 @Slf4j
@@ -56,15 +57,15 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
                 .toList();
         // 使用辅助方法写入详情
         putDetails(node, Map.of(
-                "question", question,
-                "showKnowledge", params.getShowKnowledge()
+                NodeField.QUESTION, question,
+                KnowledgeField.SHOW_KNOWLEDGE, params.getShowKnowledge()
         ));
         int maxParagraphCharNumber = knowledgeSetting.getMaxParagraphCharNumber();
         return new NodeResult(Map.of(
-                "paragraphList", paragraphList,
-                "isHitHandlingMethodList", isHitHandlingMethodList,
-                "data", contentInjector.format(paragraphList, maxParagraphCharNumber),
-                "directlyReturn", directlyReturns(isHitHandlingMethodList)
+                NodeField.PARAGRAPH_LIST, paragraphList,
+                NodeField.IS_HIT_HANDLING_METHOD_LIST, isHitHandlingMethodList,
+                NodeField.DATA, contentInjector.format(paragraphList, maxParagraphCharNumber),
+                NodeField.DIRECTLY_RETURN, directlyReturns(isHitHandlingMethodList)
         ));
     }
 
@@ -76,8 +77,8 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
                 JSONObject details = chatRecord.getDetails();
                 if (details != null && !details.isEmpty()) {
                     JSONObject detail = details.getJSONObject(runtimeNodeId);
-                    if (detail != null && Objects.equals(question, detail.getString("question"))) {
-                        List<ParagraphRagVO> paragraphList = (List<ParagraphRagVO>) detail.get("paragraphList");
+                    if (detail != null && Objects.equals(question, detail.getString(NodeField.QUESTION))) {
+                        List<ParagraphRagVO> paragraphList = (List<ParagraphRagVO>) detail.get(NodeField.PARAGRAPH_LIST);
                         if (!CollectionUtils.isEmpty(paragraphList)) {
                             excludeParagraphIds.addAll(paragraphList.stream().map(ParagraphRagVO::getId).toList());
                         }

@@ -5,6 +5,8 @@ import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import org.junit.jupiter.api.Test;
 
+import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.ViewType;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -65,22 +67,26 @@ class AbsNodeTest {
     @Test
     void getAnswerList_emptyWhenNoAnswerText() {
         AbsNode node = newNode("n1");
-        assertThat(node.getAnswerList("rec1")).isEmpty();
+        assertThat(node.getAnswerList()).isEmpty();
     }
 
     @Test
     void getAnswerList_buildsAnswerWithContentAndReasoning() {
+        // isResult 是 getAnswerList 输出答案的前置条件（运行时处理器写入节点 detail）
         AbsNode node = newNode("n1");
-        node.setAnswerText("done");
-        node.getContext().put("reasoningContent", "because");
-        node.setViewType("single_view");
+        node.getDetail().put(NodeField.IS_RESULT, true);
+        node.getDetail().put(NodeField.REASONING_CONTENT_ENABLE, true);
+        // getAnswerList 从节点 detail 读取 ANSWER / REASONING_CONTENT 键
+        node.getDetail().put(NodeField.ANSWER, "done");
+        node.getDetail().put(NodeField.REASONING_CONTENT, "because");
+        node.setViewType(ViewType.SINGLE_VIEW);
 
-        java.util.List<Answer> answers = node.getAnswerList("rec-1");
+        java.util.List<Answer> answers = node.getAnswerList();
         assertThat(answers).hasSize(1);
         Answer answer = answers.get(0);
         assertThat(answer.getContent()).isEqualTo("done");
         assertThat(answer.getReasoningContent()).isEqualTo("because");
-        assertThat(answer.getChatRecordId()).isEqualTo("rec-1");
-        assertThat(answer.getViewType()).isEqualTo("single_view");
+        assertThat(answer.getChatRecordId()).isEmpty();
+        assertThat(answer.getViewType()).isEqualTo(ViewType.SINGLE_VIEW);
     }
 }

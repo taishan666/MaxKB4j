@@ -5,6 +5,7 @@ import com.maxkb4j.workflow.model.Condition;
 import com.maxkb4j.workflow.model.IWorkflow;
 
 import java.util.List;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.LogicField;
 
 /**
  * Utility for evaluating workflow branch conditions.
@@ -12,7 +13,7 @@ import java.util.List;
  */
 public final class ConditionUtil {
 
-    private static final String AND = "and";
+    private static final String AND = LogicField.AND;
 
     private ConditionUtil() {
     }

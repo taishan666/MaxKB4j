@@ -1,10 +1,12 @@
 package com.maxkb4j.tool.util;
 
 /**
- * 工具调用名称约定：统一管理 "tool_<id>" / "agent_<id>" 的生成与解析，
- * 消除生成端（ToolSpecificationBuilder / SkillToolService / ApplicationToolServiceImpl）与解析端（ToolFormatterServiceImpl）之间的隐式约定耦合。
+ * 工具调用名称约定：统一管理 "tool_<id>" / "agent_<id>" / "knowledge_<id>" 的生成与解析，
+ * 消除生成端（ToolSpecificationBuilder / SkillToolService / ApplicationToolServiceImpl / KnowledgeToolServiceImpl）
+ * 与解析端（ToolFormatterServiceImpl）之间的隐式约定耦合。
  *
- * <p>位于 tool-api 以便 tool 实现与 application 实现共享同一约定，避免 tool 模块反向依赖 application。
+ * <p>该约定被 tool、application、knowledge 三个实现模块共享，作为跨模块契约的一部分
+ * 位于 tool-api，避免实现模块之间的直接依赖（依赖方向始终为实现模块 -&gt; tool-api）。
  *
  * @author tarzan
  */

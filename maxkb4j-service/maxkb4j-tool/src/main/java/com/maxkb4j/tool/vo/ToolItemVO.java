@@ -1,7 +1,7 @@
 package com.maxkb4j.tool.vo;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.tool.entity.ToolInputField;
+import com.maxkb4j.tool.dto.ToolInputField;
 import lombok.Data;
 
 import java.util.Date;

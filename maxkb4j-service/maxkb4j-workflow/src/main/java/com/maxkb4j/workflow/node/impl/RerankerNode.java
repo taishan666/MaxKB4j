@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.RERANKER)
 public class RerankerNode extends AbsNode {
@@ -22,8 +23,8 @@ public class RerankerNode extends AbsNode {
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        context.put("result", detail.get("result"));
-        context.put("resultList", detail.get("resultList"));
+        context.put(NodeField.RESULT, detail.get(NodeField.RESULT));
+        context.put(NodeField.RESULT_LIST, detail.get(NodeField.RESULT_LIST));
     }
 
     @Data

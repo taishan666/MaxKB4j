@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
  * 历史消息管理服务
@@ -64,18 +65,18 @@ public record HistoryManager(List<ChatRecordDTO> historyChatRecords) {
             // 获取节点详情
             JSONObject nodeDetails = record.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
             if (nodeDetails != null) {
-                Object question = nodeDetails.get("question");
+                Object question = nodeDetails.get(NodeField.QUESTION);
                 List<Content> contents = new ArrayList<>();
                 if (question instanceof List<?> list){
                     for (Object object : list) {
                         JSONObject content = (JSONObject) object;
-                        String type = content.getString("type");
-                        if ("text".equals(type)) {
-                            contents.add(TextContent.from(content.getString("text")));
-                        }else if ("image_url".equals(type)) {
-                            String url = content.getString("url");
+                        String type = content.getString(ChatField.TYPE);
+                        if (ChatField.TEXT.equals(type)) {
+                            contents.add(TextContent.from(content.getString(ChatField.TEXT)));
+                        }else if (ChatField.IMAGE_URL.equals(type)) {
+                            String url = content.getString(ChatField.URL);
                             if (url!=null) {
-                                contents.add(ImageContent.from(content.getString("url")));
+                                contents.add(ImageContent.from(content.getString(ChatField.URL)));
                             }
                         }
                     }
@@ -84,7 +85,7 @@ public record HistoryManager(List<ChatRecordDTO> historyChatRecords) {
                     contents.add(TextContent.from(String.valueOf(question)));
                     messages.add(new UserMessage(contents));
                 }
-                messages.add(new AiMessage(nodeDetails.getString("answer")));
+                messages.add(new AiMessage(nodeDetails.getString(NodeField.ANSWER)));
             }
         }
         return messages;

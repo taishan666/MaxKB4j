@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import cn.hutool.http.HttpResponse;
-import com.maxkb4j.tool.entity.ToolInputField;
+import com.maxkb4j.tool.dto.ToolInputField;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
@@ -17,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType({NodeType.TOOL, NodeType.TOOL_LIB})
 @Component
@@ -44,7 +45,7 @@ public class ToolNodeHandler extends AbsNodeHandler {
             result = toolExecuteService.customExecute(params.getCode(), params.getInitParams(),execParams);
         }
         // 使用辅助方法写入详情
-        putDetail(node, "params", execParams);
+        putDetail(node, NodeField.PARAMS, execParams);
         if (Boolean.TRUE.equals(params.getIsResult())) {
             setAnswerText(node, result.toString());
         }
@@ -52,7 +53,7 @@ public class ToolNodeHandler extends AbsNodeHandler {
         if (result instanceof Map<?,?> resultMap){
             nodeVariable.putAll((Map<? extends String, ?>) resultMap);
         }
-        nodeVariable.put("result",result);
+        nodeVariable.put(NodeField.RESULT,result);
         return new NodeResult(nodeVariable);
     }
 }

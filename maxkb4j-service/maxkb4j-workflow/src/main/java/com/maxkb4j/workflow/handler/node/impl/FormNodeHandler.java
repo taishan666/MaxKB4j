@@ -5,14 +5,18 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
-import com.maxkb4j.workflow.model.NodeResult;
+import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
+import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.FormNode;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.maxkb4j.workflow.consts.WorkflowConstants.ChatField;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.FormField;
 
 @NodeHandlerType(NodeType.FORM)
 @Component
@@ -24,27 +28,30 @@ public class FormNodeHandler extends AbsNodeHandler {
         Map<String, Object> formData = params.getFormData();
         Map<String, Object> nodeVariable = new HashMap<>();
         if (formData != null) {
-            nodeVariable.put("is_submit", true);
-            nodeVariable.put("form_data", new JSONObject(formData));
+            nodeVariable.put(FormField.IS_SUBMIT, true);
+            nodeVariable.put(FormField.FORM_DATA, new JSONObject(formData));
             nodeVariable.putAll(formData);
-            putDetail(node, "form_data", formData);
         } else {
             JSONArray formFieldList = params.getFormFieldList();
             JSONObject formSetting = new JSONObject();
-            formSetting.put("form_field_list", formFieldList);
-            String formRender = "<form_render>" + formSetting + "</form_render>";
+            formSetting.put(FormField.FORM_FIELD_LIST, formFieldList);
+            String formRender = "<" + FormField.FORM_RENDER_TAG + ">" + formSetting + "</" + FormField.FORM_RENDER_TAG + ">";
             String formContentFormat = params.getFormContentFormat();
-            String answerText = workflow.renderPrompt(formContentFormat, Map.of("form", formRender));
+            String answerText = workflow.renderPrompt(formContentFormat, Map.of(FormField.FORM, formRender));
             setAnswerText(node, answerText);
-            nodeVariable.put("form_field_list", formFieldList);
-            nodeVariable.put("form_content_format", formContentFormat);
-            nodeVariable.put("is_submit", false);
+            nodeVariable.put(FormField.FORM_FIELD_LIST, formFieldList);
+            nodeVariable.put(FormField.FORM_CONTENT_FORMAT, formContentFormat);
+            nodeVariable.put(FormField.IS_SUBMIT, false);
+        }
+        if (workflow instanceof IChatWorkflow chatWorkflow){
+            String chatRecordId=chatWorkflow.getChatParams().getChatRecordId();
+            putDetail(node, ChatField.CHAT_RECORD_ID, chatRecordId);
         }
         return new NodeResult(nodeVariable, false, this::shouldInterrupt);
     }
 
     @Override
     public boolean shouldInterrupt(AbsNode node) {
-        return !(boolean) node.getContext().getOrDefault("is_submit", false);
+        return !(boolean) node.getContext().getOrDefault(FormField.IS_SUBMIT, false);
     }
 }

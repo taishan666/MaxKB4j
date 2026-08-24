@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.maxkb4j.common.mp.base.BaseEntity;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
-import com.maxkb4j.application.entity.LlmModelSetting;
+import com.maxkb4j.application.dto.LlmModelSetting;
 import com.maxkb4j.application.typehandler.DatasetSettingTypeHandler;
 import com.maxkb4j.common.typehandler.JSONBTypeHandler;
 import com.maxkb4j.application.typehandler.LlmModelSettingTypeHandler;

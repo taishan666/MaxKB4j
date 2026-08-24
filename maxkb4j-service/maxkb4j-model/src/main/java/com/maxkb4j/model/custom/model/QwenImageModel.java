@@ -15,6 +15,7 @@ import dev.langchain4j.model.output.Response;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Slf4j
 public class QwenImageModel implements ImageModel {
@@ -33,11 +34,11 @@ public class QwenImageModel implements ImageModel {
 
     @Override
     public Response<Image> generate(String prompt) {
-        parameters.put("n", 1);
+        parameters.put(ParamKey.N, 1);
         param.setParameters(parameters);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
-                .content(List.of(Map.of("text", prompt)))
+                .content(List.of(Map.of(RequestField.TEXT, prompt)))
                 .build();
         param.setMessages(Collections.singletonList(userMessage));
         try {
@@ -58,11 +59,11 @@ public class QwenImageModel implements ImageModel {
 
     @Override
     public Response<List<Image>> generate(String prompt, int n) {
-        parameters.put("n", n);
+        parameters.put(ParamKey.N, n);
         param.setParameters(parameters);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
-                .content(List.of(Map.of("text", prompt)))
+                .content(List.of(Map.of(RequestField.TEXT, prompt)))
                 .build();
         param.setMessages(Collections.singletonList(userMessage));
         List<Image> images = new ArrayList<>();
@@ -75,8 +76,8 @@ public class QwenImageModel implements ImageModel {
                     if (choice != null && choice.getMessage() != null && choice.getMessage().getContent() != null) {
                         List<Map<String, Object>> contentList = choice.getMessage().getContent();
                         for (Map<String, Object> content : contentList) {
-                            if (content != null && content.containsKey("image")) {
-                                String imageUrl = (String) content.get("image");
+                            if (content != null && content.containsKey(RequestField.IMAGE)) {
+                                String imageUrl = (String) content.get(RequestField.IMAGE);
                                 if (imageUrl != null && !imageUrl.isEmpty()) {
                                     images.add(Image.builder().url(imageUrl).build());
                                 }
@@ -97,7 +98,7 @@ public class QwenImageModel implements ImageModel {
 
     @Override
     public Response<Image> edit(Image image, String prompt) {
-        parameters.put("n", 1);
+        parameters.put(ParamKey.N, 1);
         param.setParameters(parameters);
         // 确保 image 不为 null
         if (image == null || image.base64Data() == null) {
@@ -107,8 +108,8 @@ public class QwenImageModel implements ImageModel {
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
                 .content(List.of(
-                        Map.of("image", formatImageBase64(image)),
-                        Map.of("text", prompt)
+                        Map.of(RequestField.IMAGE, formatImageBase64(image)),
+                        Map.of(RequestField.TEXT, prompt)
                 ))
                 .build();
         param.setMessages(Collections.singletonList(userMessage));
@@ -130,7 +131,7 @@ public class QwenImageModel implements ImageModel {
 
     @Override
     public Response<Image> edit(Image image, Image mask, String prompt) {
-        parameters.put("n", 1);
+        parameters.put(ParamKey.N, 1);
         param.setParameters(parameters);
 
         if (image == null || image.base64Data() == null) {
@@ -147,9 +148,9 @@ public class QwenImageModel implements ImageModel {
         // 假设原代码逻辑是正确的，这里只修 NPE。
 
         List<Map<String, Object>> contentItems = new ArrayList<>();
-        contentItems.add(Map.of("image", image.base64Data()));
-        contentItems.add(Map.of("image", mask.base64Data()));
-        contentItems.add(Map.of("text", prompt));
+        contentItems.add(Map.of(RequestField.IMAGE, image.base64Data()));
+        contentItems.add(Map.of(RequestField.IMAGE, mask.base64Data()));
+        contentItems.add(Map.of(RequestField.TEXT, prompt));
 
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
@@ -215,8 +216,8 @@ public class QwenImageModel implements ImageModel {
 
         // 遍历查找第一个包含 image 的内容项
         for (Map<String, Object> content : contentList) {
-            if (content != null && content.containsKey("image")) {
-                Object imgUrlObj = content.get("image");
+            if (content != null && content.containsKey(RequestField.IMAGE)) {
+                Object imgUrlObj = content.get(RequestField.IMAGE);
                 if (imgUrlObj != null) {
                     String imageUrl = imgUrlObj.toString();
                     if (imageUrl != null && !imageUrl.trim().isEmpty()) {
@@ -234,6 +235,6 @@ public class QwenImageModel implements ImageModel {
         if (image == null || image.mimeType() == null || image.base64Data() == null) {
             return null;
         }
-        return "data:" + image.mimeType() + ";base64," + image.base64Data();
+        return FileToken.DATA_URI_PREFIX + image.mimeType() + FileToken.DATA_URI_BASE64_SEPARATOR + image.base64Data();
     }
 }

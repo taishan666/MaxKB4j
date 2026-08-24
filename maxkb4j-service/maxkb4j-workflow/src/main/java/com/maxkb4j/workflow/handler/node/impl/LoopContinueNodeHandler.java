@@ -11,6 +11,7 @@ import com.maxkb4j.workflow.util.ConditionUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.LOOP_CONTINUE)
 @Component
@@ -22,8 +23,8 @@ public class LoopContinueNodeHandler extends AbsNodeHandler {
         boolean isContinue = ConditionUtil.assertion(workflow, params.getCondition(), params.getConditionList());
 
         if (isContinue) {
-            return new NodeResult(Map.of("is_continue", true, "branchId", "continue"));
+            return new NodeResult(Map.of(LoopField.IS_CONTINUE, true, NodeField.BRANCH_ID, LoopField.CONTINUE));
         }
-        return new NodeResult(Map.of("is_continue", false));
+        return new NodeResult(Map.of(LoopField.IS_CONTINUE, false));
     }
 }

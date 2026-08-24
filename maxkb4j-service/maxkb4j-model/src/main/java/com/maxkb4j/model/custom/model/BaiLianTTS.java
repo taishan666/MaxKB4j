@@ -8,6 +8,7 @@ import com.maxkb4j.model.service.ITTSModel;
 import lombok.Data;
 
 import java.nio.ByteBuffer;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
 public class BaiLianTTS implements ITTSModel {
@@ -15,11 +16,11 @@ public class BaiLianTTS implements ITTSModel {
     private SpeechSynthesisParam param;
 
     public BaiLianTTS(String modelName, ModelCredential credential, JSONObject params) {
-        String voice = params.getString("voice");
-        Integer volume = params.getInteger("volume");
-        Float speechRate = params.getFloat("speechRate");
-        if ("sambert-v1".equals(modelName)) {
-            modelName = modelName.replace("sambert", ("sambert-" + voice));
+        String voice = params.getString(ParamKey.VOICE);
+        Integer volume = params.getInteger(ParamKey.VOLUME);
+        Float speechRate = params.getFloat(ParamKey.SPEECH_RATE);
+        if (ModelName.SAMBERT_V1.equals(modelName)) {
+            modelName = modelName.replace(ModelName.SAMBERT_PREFIX, (ModelName.SAMBERT_NAME_PREFIX + voice));
         }
         this.param = SpeechSynthesisParam.builder()
                 .model(modelName)

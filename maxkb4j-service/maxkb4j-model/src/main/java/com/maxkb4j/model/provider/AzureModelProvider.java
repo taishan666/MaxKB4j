@@ -16,25 +16,26 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.ImageModel;
 
 import java.util.List;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * Azure OpenAI Model Provider
  */
 @Component
-@ModelProviderType(provider = "Azure", name = "Azure OpenAI", icon = "azure_icon.svg")
+@ModelProviderType(provider = Provider.AZURE, name = "Azure OpenAI", icon = Provider.ICON_AZURE)
 public class AzureModelProvider extends AbsModelProvider {
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo("Azure OpenAI", "", ModelType.LLM),
-            new ModelInfo("gpt-4", "", ModelType.LLM),
-            new ModelInfo("gpt-4o", "", ModelType.LLM),
-            new ModelInfo("gpt-4o-mini", "", ModelType.LLM),
-            new ModelInfo("text-embedding-3-large", "", ModelType.EMBEDDING),
-            new ModelInfo("text-embedding-3-small", "", ModelType.EMBEDDING),
-            new ModelInfo("text-embedding-ada-002", "", ModelType.EMBEDDING),
-            new ModelInfo("gpt-4o", "", ModelType.VISION),
-            new ModelInfo("gpt-4o-mini", "", ModelType.VISION),
-            new ModelInfo("dall-e-3", "", ModelType.TTI)
+            new ModelInfo(ModelName.GPT_4, "", ModelType.LLM),
+            new ModelInfo(ModelName.GPT_4O, "", ModelType.LLM),
+            new ModelInfo(ModelName.GPT_4O_MINI, "", ModelType.LLM),
+            new ModelInfo(ModelName.TEXT_EMBEDDING_3_LARGE, "", ModelType.EMBEDDING),
+            new ModelInfo(ModelName.TEXT_EMBEDDING_3_SMALL, "", ModelType.EMBEDDING),
+            new ModelInfo(ModelName.TEXT_EMBEDDING_ADA_002, "", ModelType.EMBEDDING),
+            new ModelInfo(ModelName.GPT_4O, "", ModelType.VISION),
+            new ModelInfo(ModelName.GPT_4O_MINI, "", ModelType.VISION),
+            new ModelInfo(ModelName.DALLE_3, "", ModelType.TTI)
     );
 
 
@@ -48,8 +49,8 @@ public class AzureModelProvider extends AbsModelProvider {
         return AzureOpenAiChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .deploymentName(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "max_tokens"))
+                .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
+                .maxTokens(getIntParam(params, ParamKey.MAX_TOKENS))
                 .build();
     }
 
@@ -58,8 +59,8 @@ public class AzureModelProvider extends AbsModelProvider {
         return AzureOpenAiStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .deploymentName(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "max_tokens"))
+                .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
+                .maxTokens(getIntParam(params, ParamKey.MAX_TOKENS))
                 .build();
     }
 

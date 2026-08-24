@@ -1,32 +1,32 @@
 package com.maxkb4j.workflow.handler;
 
-import com.maxkb4j.knowledge.service.IKnowledgeActionService;
-import com.maxkb4j.workflow.engine.graph.KnowledgeWorkflow;
 import com.maxkb4j.workflow.enums.ActionStatus;
-import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.model.IKnowledgeWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
+import com.maxkb4j.workflow.service.KnowledgeWorkflowStateListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.concurrent.Executor;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.BeanName;
 
 @Slf4j
 @Component
 public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
 
-    private final IKnowledgeActionService knowledgeActionService;
+    private final Optional<KnowledgeWorkflowStateListener> stateListener;
 
     public KnowledgeWorkflowHandler(NodeCenter nodeCenter,
-                                    @Qualifier("workflowTaskExecutor") Executor workflowTaskExecutor,
+                                    @Qualifier(BeanName.WORKFLOW_TASK_EXECUTOR) Executor workflowTaskExecutor,
                                     ExceptionResolverChain exceptionResolverChain,
-                                    IKnowledgeActionService knowledgeActionService) {
+                                    Optional<KnowledgeWorkflowStateListener> stateListener) {
         super(nodeCenter, workflowTaskExecutor, exceptionResolverChain);
-        this.knowledgeActionService = knowledgeActionService;
+        this.stateListener = stateListener;
     }
 
     @Override
@@ -45,10 +45,15 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
         updateState(workflow, ActionStatus.SUCCESS);
     }
 
-    public void updateState(IWorkflow workflow, ActionStatus actionStatus) {
-        if (workflow instanceof KnowledgeWorkflow knowledgeWorkflow) {
+    /**
+     * 按接口 {@link IKnowledgeWorkflow} 判断（与 {@link #canHandle} 保持一致），
+     * 确保知识库循环工作流（仅实现接口、不继承具体类）的状态更新同样生效。
+     */
+    private void updateState(IWorkflow workflow, ActionStatus actionStatus) {
+        if (workflow instanceof IKnowledgeWorkflow knowledgeWorkflow) {
             String actionId = knowledgeWorkflow.getKnowledgeParams().getActionId();
-            knowledgeActionService.updateState(actionId, knowledgeWorkflow.output().runtimeDetails(), actionStatus.name());
+            stateListener.ifPresent(listener ->
+                    listener.onStateChange(actionId, knowledgeWorkflow.output().runtimeDetails(), actionStatus.name()));
         }
     }
 }

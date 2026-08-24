@@ -8,6 +8,7 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
 public class ImageModelParams implements IModelParams {
@@ -17,7 +18,7 @@ public class ImageModelParams implements IModelParams {
         Map<String,Object> options=getSizeOptions();
         if (!options.isEmpty()){
             Object defaultValue=options.values().stream().findFirst().get();
-            BaseField size=new SingleSelectField("图片尺寸","size","生成图片的尺寸",getSizeOptions(),defaultValue);
+            BaseField size=new SingleSelectField("图片尺寸",ParamKey.SIZE,"生成图片的尺寸",getSizeOptions(),defaultValue);
             fields.add(size);
         }
         return fields;

@@ -2,6 +2,7 @@ package com.maxkb4j.workflow.engine.graph;
 
 import com.maxkb4j.workflow.engine.*;
 import com.maxkb4j.workflow.enums.NodeStatus;
+import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.DataSource;
@@ -54,7 +55,7 @@ public class KnowledgeWorkflow extends AbstractWorkflow implements IKnowledgeWor
     @Override
     public List<AbsNode> startNodes() {
         List<AbsNode> dataSourceNodes = configuration.getNodes().stream()
-                .filter(node -> Objects.nonNull(node.getType())&&node.getType().startsWith("data-source-"))
+                .filter(node -> Objects.nonNull(node.getType())&&node.getType().startsWith(NodeType.DATA_SOURCE_PREFIX))
                 .toList();
         DataSource dataSource = knowledgeParams.getDataSource();
         String dataSourceNodeId = dataSource != null ? dataSource.getNodeId() : null;

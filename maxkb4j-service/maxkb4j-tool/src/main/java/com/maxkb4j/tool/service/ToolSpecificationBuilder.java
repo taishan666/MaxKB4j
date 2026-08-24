@@ -1,6 +1,6 @@
 package com.maxkb4j.tool.service;
 
-import com.maxkb4j.tool.entity.ToolInputField;
+import com.maxkb4j.tool.dto.ToolInputField;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.util.ToolNaming;
 import dev.langchain4j.agent.tool.ToolSpecification;

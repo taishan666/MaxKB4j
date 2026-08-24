@@ -25,28 +25,30 @@ import dev.langchain4j.model.openai.OpenAiImageModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 
 import java.util.List;
+import java.util.Map;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * OpenAI Model Provider Implementation
  * Provides integration with OpenAI's API services
  */
 @Component
-@ModelProviderType(provider = "OpenAI", name = "OpenAI", icon = "openai_icon.svg")
+@ModelProviderType(provider = Provider.OPENAI, name = "OpenAI", icon = Provider.ICON_OPENAI)
 public class OpenAiModelProvider extends AbsModelProvider {
-    private static final String BASE_URL = "https://api.openai.com/v1";
+    private static final String BASE_URL = BaseUrl.OPENAI;
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("gpt-3.5-turbo", "GPT-3.5 Turbo", ModelType.LLM),
-            new ModelInfo("gpt-4", "GPT-4", ModelType.LLM),
-            new ModelInfo("gpt-4o", "GPT-4 Omni", ModelType.LLM),
-            new ModelInfo("gpt-4o-mini", "GPT-4 Omni Mini", ModelType.LLM),
-            new ModelInfo("gpt-4-turbo", "GPT-4 Turbo", ModelType.LLM),
-            new ModelInfo("gpt-4-turbo-preview", "GPT-4 Turbo Preview", ModelType.LLM),
-            new ModelInfo("text-embedding-ada-002", "Text Embedding Ada v2", ModelType.EMBEDDING),
-            new ModelInfo("whisper-1", "Whisper Speech-to-Text", ModelType.STT),
-            new ModelInfo("tts-1", "Text-to-Speech", ModelType.TTS),
-            new ModelInfo("gpt-4o", "GPT-4 Vision", ModelType.VISION),
-            new ModelInfo("dall-e-2", "DALL·E 2", ModelType.TTI)
+            new ModelInfo(ModelName.GPT_3_5_TURBO, "GPT-3.5 Turbo", ModelType.LLM),
+            new ModelInfo(ModelName.GPT_4, "GPT-4", ModelType.LLM),
+            new ModelInfo(ModelName.GPT_4O, "GPT-4 Omni", ModelType.LLM),
+            new ModelInfo(ModelName.GPT_4O_MINI, "GPT-4 Omni Mini", ModelType.LLM),
+            new ModelInfo(ModelName.GPT_4_TURBO, "GPT-4 Turbo", ModelType.LLM),
+            new ModelInfo(ModelName.GPT_4_TURBO_PREVIEW, "GPT-4 Turbo Preview", ModelType.LLM),
+            new ModelInfo(ModelName.TEXT_EMBEDDING_ADA_002, "Text Embedding Ada v2", ModelType.EMBEDDING),
+            new ModelInfo(ModelName.WHISPER_1, "Whisper Speech-to-Text", ModelType.STT),
+            new ModelInfo(ModelName.TTS_1, "Text-to-Speech", ModelType.TTS),
+            new ModelInfo(ModelName.GPT_4O, "GPT-4 Vision", ModelType.VISION),
+            new ModelInfo(ModelName.DALLE_2, "DALL·E 2", ModelType.TTI)
     );
 
 
@@ -81,6 +83,9 @@ public class OpenAiModelProvider extends AbsModelProvider {
 
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
+        boolean enableThinking = getBooleanParam(params, ParamKey.ENABLE_THINKING);
+        String flag = enableThinking ? Value.ENABLED : Value.DISABLED;
+        params.put(ParamKey.THINKING, Map.of(ParamKey.TYPE, flag));
         return OpenAiChatModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
@@ -89,7 +94,6 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .customParameters(params)
                 .sendThinking(true)
                 .returnThinking(true)
-               // .strictJsonSchema(true)
                 .build();
     }
 
@@ -114,7 +118,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .dimensions(getIntParam(params, "dimensions"))
+                .dimensions(getIntParam(params, ParamKey.DIMENSIONS))
                 .build();
     }
 
@@ -125,8 +129,8 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .size(getStringParam(params, "size"))
-                .quality(getStringParam(params, "quality"))
+                .size(getStringParam(params, ParamKey.SIZE))
+                .quality(getStringParam(params, ParamKey.QUALITY))
                 .build();
     }
 

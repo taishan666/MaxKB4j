@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.VARIABLE_AGGREGATE)
 @Component
@@ -21,8 +22,8 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
     private static final Map<String, StrategyFunction> STRATEGY_MAP = new HashMap<>();
 
     static {
-        STRATEGY_MAP.put("first_non_null", VariableAggregationNodeHandler::getFirstNonNull);
-        STRATEGY_MAP.put("variable_to_json", VariableAggregationNodeHandler::getCollection);
+        STRATEGY_MAP.put(VariableStrategy.FIRST_NON_NULL, VariableAggregationNodeHandler::getFirstNonNull);
+        STRATEGY_MAP.put(VariableStrategy.VARIABLE_TO_JSON, VariableAggregationNodeHandler::getCollection);
     }
 
     @Override
@@ -47,8 +48,8 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
         }
 
         putDetails(node, Map.of(
-                "strategy", strategyName,
-                "groupList", groupList
+                NodeField.STRATEGY, strategyName,
+                NodeField.GROUP_LIST, groupList
         ));
 
         return new NodeResult(nodeVariable);
@@ -58,7 +59,7 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
         for (VariableAggregationNode.Variable e : variableList) {
             String nodeId = e.getVariable().getFirst();
             AbsNode lfNode = workflow.getNode(nodeId);
-            String nodeName =lfNode==null?"未知节点": lfNode.getProperties().getString("nodeName");
+            String nodeName =lfNode==null?"未知节点": lfNode.getProperties().getString(RuntimeDetailField.NODE_NAME);
             e.setNodeName(nodeName == null ? "未知节点" : nodeName);
             String field = e.getVariable().get(1);
             Object value = workflow.getReferenceField(e.getVariable());

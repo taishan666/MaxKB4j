@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 
 @Slf4j
 @Component
@@ -31,7 +32,7 @@ public class KnowledgeWriteHandler extends AbsNodeHandler {
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         KnowledgeWriteNode.NodeParams params = parseParams(node, KnowledgeWriteNode.NodeParams.class);
         Object value = workflow.getReferenceField(params.getDocumentList());
-        putDetail(node, "write_content", value);
+        putDetail(node, NodeField.WRITE_CONTENT, value);
 
         if (workflow instanceof IKnowledgeWorkflow knowledgeWorkflow) {
             boolean debug = knowledgeWorkflow.getKnowledgeParams().isDebug();

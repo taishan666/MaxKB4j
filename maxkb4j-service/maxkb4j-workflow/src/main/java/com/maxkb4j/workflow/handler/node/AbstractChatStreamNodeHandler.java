@@ -34,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.springframework.web.util.UriUtils.extractFileExtension;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
  * 流式聊天节点处理器的抽象基类。
@@ -94,7 +95,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
             builder.systemMessage(systemPrompt);
         }
         if (CollectionUtils.isNotEmpty(historyMessages)) {
-            String chatId = (String) workflow.getGlobalContext().get("chatId");
+            String chatId = (String) workflow.getGlobalContext().get(ChatField.CHAT_ID);
             builder.chatMemory(AiChatMemory.withMessages(chatId, historyMessages));
         }
         if (CollectionUtils.isNotEmpty(toolProviders)) {
@@ -163,9 +164,9 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
         String reasoning = Optional.ofNullable(response.aiMessage().thinking()).orElse("");
         recordTokenUsage(node, response.tokenUsage());
         return new NodeResult(Map.of(
-                "answer", answer,
-                "reasoningContent", reasoning,
-                "exceptionMessage", errorMessage
+                NodeField.ANSWER, answer,
+                NodeField.REASONING_CONTENT, reasoning,
+                RuntimeDetailField.EXCEPTION_MESSAGE, errorMessage
         ), true);
     }
 
@@ -204,7 +205,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      */
     protected boolean resolveReasoningContentEnable(JSONObject modelSetting) {
         return Optional.ofNullable(modelSetting)
-                .map(setting -> setting.getBooleanValue("reasoningContentEnable"))
+                .map(setting -> setting.getBooleanValue(NodeField.REASONING_CONTENT_ENABLE))
                 .orElse(false);
     }
 
@@ -252,6 +253,11 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
                     if (isResult) {
                         setAnswerText(node, answer);
                     }
+                    // 写入详情
+                    putDetails(node, Map.of(
+                            NodeField.IS_RESULT, isResult,
+                            NodeField.REASONING_CONTENT_ENABLE, options.reasoningContentEnable()
+                    ));
                     resultFuture.complete(handleChatResponse(response, answer, node, errorMessage.get()));
                 }).onError(error -> {
                     errorMessage.set(error.getMessage());

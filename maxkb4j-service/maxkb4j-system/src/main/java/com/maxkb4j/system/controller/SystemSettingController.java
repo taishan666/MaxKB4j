@@ -10,7 +10,6 @@ import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleConst;
 import com.maxkb4j.common.enums.SettingType;
 import com.maxkb4j.common.util.I18nUtil;
-import com.maxkb4j.system.entity.SystemSettingEntity;
 import com.maxkb4j.system.service.SystemSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -40,8 +39,8 @@ public class SystemSettingController{
 	@SaCheckRole(type= LoginType.ADMIN,value = RoleConst.ADMIN)
 	@GetMapping("/email_setting")
 	public R<JSONObject> getEmailSetting(){
-		SystemSettingEntity systemSetting=systemSettingService.lambdaQuery().eq(SystemSettingEntity::getType, SettingType.Email.getType()).one();
-		JSONObject json=systemSetting==null?new JSONObject():systemSetting.getMeta();
+		JSONObject meta=systemSettingService.getSettingMeta(SettingType.Email);
+		JSONObject json=meta==null?new JSONObject():meta;
 		return R.data(json);
 	}
 

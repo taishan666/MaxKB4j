@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicReference;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 
 @EqualsAndHashCode(callSuper = true)
@@ -24,20 +25,20 @@ public class GummySTT extends AbsSTTModel {
 
     public GummySTT(String modelName, ModelCredential modelCredential, JSONObject params) {
         if (params != null){
-            String  targetLanguage=params.getString("targetLanguage");
+            String  targetLanguage=params.getString(ParamKey.TARGET_LANGUAGE);
             if (targetLanguage != null){
                 this.translationLanguage = targetLanguage;
             }
         }else {
-            this.translationLanguage = "en";
+            this.translationLanguage = Value.EN;
         }
         this.param = TranslationRecognizerParam.builder()
                          .apiKey(modelCredential.getApiKey())
                         .model(modelName)
-                        .format("mp3") // 'pcm'、'wav'、'mp3'、'opus'、'speex'、'aac'、'amr', you
+                        .format(Value.MP3) // 'pcm'、'wav'、'mp3'、'opus'、'speex'、'aac'、'amr', you
                         .sampleRate(16000)
                         .transcriptionEnabled(true)
-                        .sourceLanguage("auto")
+                        .sourceLanguage(Value.AUTO)
                         .translationEnabled(false)
                         .translationLanguages(new String[]{this.translationLanguage})
                         .build();
@@ -64,9 +65,9 @@ public class GummySTT extends AbsSTTModel {
                 log.error("RecognitionCallback error: {}", e.getMessage());
             }
         };
-        int sampleRate=getSampleRate(audioBytes, "."+suffix);
+        int sampleRate=getSampleRate(audioBytes, FileToken.DOT+suffix);
         this.param.setSampleRate(sampleRate);
-        String format = suffix != null ? suffix.toLowerCase() : "mp3";
+        String format = suffix != null ? suffix.toLowerCase() : Value.MP3;
         this.param.setFormat(format);
         try {
             // 将录音音频数据发送给流式识别服务

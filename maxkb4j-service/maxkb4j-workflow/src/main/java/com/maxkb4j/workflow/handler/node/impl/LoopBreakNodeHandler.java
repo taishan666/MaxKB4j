@@ -11,6 +11,7 @@ import com.maxkb4j.workflow.util.ConditionUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.LOOP_BREAK)
 @Component
@@ -20,9 +21,9 @@ public class LoopBreakNodeHandler extends AbsNodeHandler {
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         LoopBreakNode.NodeParams params = parseParams(node, LoopBreakNode.NodeParams.class);
         boolean isBreak = ConditionUtil.assertion(workflow, params.getCondition(), params.getConditionList());
-        putDetail(node, "is_break", isBreak);
+        putDetail(node, LoopField.IS_BREAK, isBreak);
         if (isBreak) {
-            setAnswerText(node, "BREAK");
+            setAnswerText(node, LoopField.BREAK);
         }
         return new NodeResult(Map.of());
     }

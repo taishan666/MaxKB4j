@@ -6,29 +6,30 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 
 import java.util.List;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * ZhiPu (GLM) Model Provider
  */
 @Component
-@ModelProviderType(provider = "ZhiPu", name = "智谱清言", icon = "zhipu_ai_icon.svg")
+@ModelProviderType(provider = Provider.ZHI_PU, name = "智谱清言", icon = Provider.ICON_ZHI_PU)
 public class ZhiPuModelProvider extends OpenAiModelProvider {
 
-    private static final String BASE_URL = "https://open.bigmodel.cn/api/paas/v4";
+    private static final String BASE_URL = BaseUrl.ZHI_PU;
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("glm-5.1", "", ModelType.LLM),
-            new ModelInfo("glm-5", "", ModelType.LLM),
-            new ModelInfo("glm-4", "", ModelType.LLM),
-            new ModelInfo("glm-4v", "", ModelType.LLM),
-            new ModelInfo("glm-3-turbo", "", ModelType.LLM),
-            new ModelInfo("embedding-3", "", ModelType.EMBEDDING),
-            new ModelInfo("glm-4v-plus", "", ModelType.VISION),
-            new ModelInfo("glm-4v", "", ModelType.VISION),
-            new ModelInfo("glm-4v-flash", "", ModelType.VISION),
-            new ModelInfo("glm-image", "", ModelType.TTI),
-            new ModelInfo("cogview-4", "", ModelType.TTI),
-            new ModelInfo("cogview-3-flash", "", ModelType.TTI)
+            new ModelInfo(ModelName.GLM_5_1, "", ModelType.LLM),
+            new ModelInfo(ModelName.GLM_5, "", ModelType.LLM),
+            new ModelInfo(ModelName.GLM_4, "", ModelType.LLM),
+            new ModelInfo(ModelName.GLM_4V, "", ModelType.LLM),
+            new ModelInfo(ModelName.GLM_3_TURBO, "", ModelType.LLM),
+            new ModelInfo(ModelName.EMBEDDING_3, "", ModelType.EMBEDDING),
+            new ModelInfo(ModelName.GLM_4V_PLUS, "", ModelType.VISION),
+            new ModelInfo(ModelName.GLM_4V, "", ModelType.VISION),
+            new ModelInfo(ModelName.GLM_4V_FLASH, "", ModelType.VISION),
+            new ModelInfo(ModelName.GLM_IMAGE, "", ModelType.TTI),
+            new ModelInfo(ModelName.COGVIEW_4, "", ModelType.TTI),
+            new ModelInfo(ModelName.COGVIEW_3_FLASH, "", ModelType.TTI)
     );
     @Override
     public List<ModelInfo> getModelList() {

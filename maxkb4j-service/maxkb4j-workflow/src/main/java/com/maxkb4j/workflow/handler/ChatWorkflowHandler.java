@@ -2,8 +2,8 @@ package com.maxkb4j.workflow.handler;
 
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
+import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
@@ -13,13 +13,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Executor;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.BeanName;
 
 @Slf4j
 @Component
 public class ChatWorkflowHandler extends AbsWorkflowHandler {
 
     public ChatWorkflowHandler(NodeCenter nodeCenter,
-                               @Qualifier("workflowTaskExecutor") Executor workflowTaskExecutor,
+                               @Qualifier(BeanName.WORKFLOW_TASK_EXECUTOR) Executor workflowTaskExecutor,
                                ExceptionResolverChain exceptionResolverChain) {
         super(nodeCenter, workflowTaskExecutor, exceptionResolverChain);
     }
@@ -28,6 +29,36 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
     public boolean canHandle(IWorkflow workflow) {
         // ChatWorkflowHandler 处理所有聊天系工作流（ChatWorkflow 与聊天循环工作流）
         return (workflow instanceof IChatWorkflow);
+    }
+
+    @Override
+    protected void onNodeStart(IWorkflow workflow, AbsNode node) {
+        if (workflow instanceof IChatWorkflow chatWorkflow) {
+            ChatParams chatParams = chatWorkflow.getChatParams();
+            ChatMessageVO nodeStartVo =node.toChatMessageVO(
+                    chatParams.getChatId(),
+                    chatParams.getChatRecordId(),
+                    "",
+                    "",
+                    null,
+                    false);
+            workflow.output().emit(nodeStartVo);
+        }
+    }
+
+    @Override
+    protected void onNodeSuccess(IWorkflow workflow, AbsNode node, NodeResult result) {
+        if (workflow instanceof IChatWorkflow chatWorkflow) {
+            ChatParams chatParams = chatWorkflow.getChatParams();
+            ChatMessageVO nodeEndVo = node.toChatMessageVO(
+                    chatParams.getChatId(),
+                    chatParams.getChatRecordId(),
+                    result.isStreamOutput() ? "" : node.getAnswerText(),
+                    "",
+                    null,
+                    true);
+            workflow.output().emit(nodeEndVo);
+        }
     }
 
     @Override

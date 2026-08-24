@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
 @Component
@@ -35,16 +36,16 @@ public class DataSourceWebHandler extends AbsNodeHandler {
             DataSource dataSource = knowledgeParams.getDataSource();
             if (dataSource != null) {
                 String sourceUrl = dataSource.getSourceUrl();
-                String selector = dataSource.getSelector() == null ? "body" : dataSource.getSelector();
-                inputParams.put("sourceUrl", sourceUrl);
-                inputParams.put("selector", selector);
+                String selector = dataSource.getSelector() == null ? HttpField.BODY : dataSource.getSelector();
+                inputParams.put(DataSourceField.SOURCE_URL, sourceUrl);
+                inputParams.put(DataSourceField.SELECTOR, selector);
                 documentList = documentWebService.getDocumentList(sourceUrl, selector, true);
             }
         }
         putDetails(node, Map.of(
-                "inputParams", inputParams,
-                "outputParams", documentList
+                DataSourceField.INPUT_PARAMS, inputParams,
+                DataSourceField.OUTPUT_PARAMS, documentList
         ));
-        return new NodeResult(Map.of("documentList", documentList));
+        return new NodeResult(Map.of(NodeField.DOCUMENT_LIST, documentList));
     }
 }

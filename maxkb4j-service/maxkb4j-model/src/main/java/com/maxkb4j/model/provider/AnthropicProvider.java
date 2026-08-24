@@ -14,23 +14,24 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 
 import java.util.List;
 import java.util.Map;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * Anthropic Claude Model Provider
  */
 @Component
-@ModelProviderType(provider = "Anthropic", name = "Anthropic", icon = "anthropic_icon.svg")
+@ModelProviderType(provider = Provider.ANTHROPIC, name = "Anthropic", icon = Provider.ICON_ANTHROPIC)
 public class AnthropicProvider extends AbsModelProvider {
 
-    private static final String BASE_URL = "https://api.anthropic.com";
+    private static final String BASE_URL = BaseUrl.ANTHROPIC;
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("claude-3-opus-20240229", "", ModelType.LLM),
-            new ModelInfo("claude-3-sonnet-20240229", "", ModelType.LLM),
-            new ModelInfo("claude-3-haiku-20240307", "", ModelType.LLM),
-            new ModelInfo("claude-3-5-sonnet-20241022", "", ModelType.LLM),
-            new ModelInfo("claude-3-5-haiku-20241022", "", ModelType.LLM),
-            new ModelInfo("claude-3-5-sonnet-20241022", "", ModelType.VISION)
+            new ModelInfo(ModelName.CLAUDE_3_OPUS, "", ModelType.LLM),
+            new ModelInfo(ModelName.CLAUDE_3_SONNET, "", ModelType.LLM),
+            new ModelInfo(ModelName.CLAUDE_3_HAIKU, "", ModelType.LLM),
+            new ModelInfo(ModelName.CLAUDE_3_5_SONNET, "", ModelType.LLM),
+            new ModelInfo(ModelName.CLAUDE_3_5_HAIKU, "", ModelType.LLM),
+            new ModelInfo(ModelName.CLAUDE_3_5_SONNET, "", ModelType.VISION)
     );
 
 
@@ -51,8 +52,8 @@ public class AnthropicProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .temperature(getDoubleParam(params, "temperature"))
-                .maxTokens(getIntParam(params, "max_tokens"))
+                .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
+                .maxTokens(getIntParam(params, ParamKey.MAX_TOKENS))
                 .sendThinking(true)
                 .returnThinking(true)
                 .build();
@@ -60,10 +61,10 @@ public class AnthropicProvider extends AbsModelProvider {
 
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
-        boolean enableThinking = getBooleanParam(params, "enable_thinking");
-        String flag = enableThinking ? "enabled" : "disabled";
-        params.remove("enable_thinking");
-        params.put("thinking", Map.of("type", flag));
+        boolean enableThinking = getBooleanParam(params, ParamKey.ENABLE_THINKING);
+        String flag = enableThinking ? Value.ENABLED : Value.DISABLED;
+        params.remove(ParamKey.ENABLE_THINKING);
+        params.put(ParamKey.THINKING, Map.of(ParamKey.TYPE, flag));
         return AnthropicStreamingChatModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())

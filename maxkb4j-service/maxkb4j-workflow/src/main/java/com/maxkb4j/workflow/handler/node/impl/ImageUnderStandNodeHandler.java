@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
 @NodeHandlerType(NodeType.IMAGE_UNDERSTAND)
@@ -64,16 +65,16 @@ public class ImageUnderStandNodeHandler extends AbstractChatStreamNodeHandler {
      */
     @Override
     protected void onImageContentsBuilt(AbsNode node, List<OssFile> imageFiles) {
-        putDetail(node, "imageList", imageFiles);
+        putDetail(node, NodeField.IMAGE_LIST, imageFiles);
     }
 
     private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,
                                    String userPrompt, List<Content> contents) {
         putDetails(node, Map.of(
-                "system", systemPrompt,
-                "historyMessage", MessageConverter.formatHistoryMessages(historyMessages),
-                "question", userPrompt,
-                "hasImages", !contents.isEmpty()
+                ChatField.SYSTEM, systemPrompt,
+                ChatField.HISTORY_MESSAGE, MessageConverter.formatHistoryMessages(historyMessages),
+                NodeField.QUESTION, userPrompt,
+                NodeField.HAS_IMAGES, !contents.isEmpty()
         ));
     }
 }

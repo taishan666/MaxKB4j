@@ -3,10 +3,7 @@ package com.maxkb4j.workflow.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -22,48 +19,41 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public enum CompareOperator {
 
-    EQ("eq", "等于", (source, target) ->
-            source == null ? target == null : source.equals(target)),
+    EQ("eq", "等于", Objects::equals),
 
     NE("ne", "不等于", (source, target) ->
-            source == null ? target != null : !source.equals(target)),
+            !Objects.equals(source, target)),
 
-    GT("gt", "大于", (source, target) ->
-            compareNumeric(source, target) > 0),
-
-    GE("ge", "大于等于", (source, target) ->
-            compareNumeric(source, target) >= 0),
-
-    LT("lt", "小于", (source, target) ->
-            compareNumeric(source, target) < 0),
-
-    LE("le", "小于等于", (source, target) ->
-            compareNumeric(source, target) <= 0),
-
-    CONTAIN("contain", "包含", (source, target) -> {
-        if (source == null) {
-            return false;
-        }
-        if (source instanceof List<?> list) {
-            return list.contains(target);
-        }
-        if (source instanceof String str && target instanceof String targetStr) {
-            return str.contains(targetStr);
-        }
-        return false;
+    GT("gt", "大于", (source, target) -> {
+        Integer cmp = compareNumeric(source, target);
+        return cmp != null && cmp > 0;
     }),
 
-    NOT_CONTAIN("not_contain", "不包含", (source, target) -> {
-        if (source == null) {
-            return true;
-        }
-        if (source instanceof List<?> list) {
-            return !list.contains(target);
-        }
-        if (source instanceof String str && target instanceof String targetStr) {
-            return !str.contains(targetStr);
-        }
-        return true;
+    GE("ge", "大于等于", (source, target) -> {
+        Integer cmp = compareNumeric(source, target);
+        return cmp != null && cmp >= 0;
+    }),
+
+    LT("lt", "小于", (source, target) -> {
+        Integer cmp = compareNumeric(source, target);
+        return cmp != null && cmp < 0;
+    }),
+
+    LE("le", "小于等于", (source, target) -> {
+        Integer cmp = compareNumeric(source, target);
+        return cmp != null && cmp <= 0;
+    }),
+
+    CONTAIN("contain", "包含", (source, target) -> switch (source) {
+        case List<?> list -> list.contains(target);
+        case String str when target instanceof String targetStr -> str.contains(targetStr);
+        case null, default -> false;
+    }),
+
+    NOT_CONTAIN("not_contain", "不包含", (source, target) -> switch (source) {
+        case List<?> list -> !list.contains(target);
+        case String str when target instanceof String targetStr -> !str.contains(targetStr);
+        case null, default -> true;
     }),
 
     IS_NULL("is_null", "为空", (source, target) -> {
@@ -100,20 +90,30 @@ public enum CompareOperator {
         return true;
     }),
 
-    LENGTH_EQ("len_eq", "长度等于", (source, target) ->
-            compareLength(source, target) == 0),
+    LENGTH_EQ("len_eq", "长度等于", (source, target) -> {
+        Integer cmp = compareLength(source, target);
+        return cmp != null && cmp == 0;
+    }),
 
-    LENGTH_GT("len_gt", "长度大于", (source, target) ->
-            compareLength(source, target) > 0),
+    LENGTH_GT("len_gt", "长度大于", (source, target) -> {
+        Integer cmp = compareLength(source, target);
+        return cmp != null && cmp > 0;
+    }),
 
-    LENGTH_GE("len_ge", "长度大于等于", (source, target) ->
-            compareLength(source, target) >= 0),
+    LENGTH_GE("len_ge", "长度大于等于", (source, target) -> {
+        Integer cmp = compareLength(source, target);
+        return cmp != null && cmp >= 0;
+    }),
 
-    LENGTH_LT("len_lt", "长度小于", (source, target) ->
-            compareLength(source, target) < 0),
+    LENGTH_LT("len_lt", "长度小于", (source, target) -> {
+        Integer cmp = compareLength(source, target);
+        return cmp != null && cmp < 0;
+    }),
 
-    LENGTH_LE("len_le", "长度小于等于", (source, target) ->
-            compareLength(source, target) <= 0);
+    LENGTH_LE("len_le", "长度小于等于", (source, target) -> {
+        Integer cmp = compareLength(source, target);
+        return cmp != null && cmp <= 0;
+    });
 
     private final String code;
     private final String description;
@@ -154,18 +154,18 @@ public enum CompareOperator {
      * Compare two numeric values.
      * Supports Number, Collection (size), and String parsing.
      *
-     * @return comparison result (-1, 0, 1), or Integer.MIN_VALUE if not comparable
+     * @return comparison result (-1, 0, 1), or null if not comparable
      */
-    private static int compareNumeric(Object source, Object target) {
+    private static Integer compareNumeric(Object source, Object target) {
         if (source == null || target == null) {
-            return Integer.MIN_VALUE;
+            return null;
         }
         try {
             double sourceNum = toDouble(source);
             double targetNum = Double.parseDouble(target.toString());
             return Double.compare(sourceNum, targetNum);
         } catch (NumberFormatException e) {
-            return Integer.MIN_VALUE;
+            return null;
         }
     }
 
@@ -173,18 +173,18 @@ public enum CompareOperator {
      * Compare lengths of two values.
      * Supports List (size) and String (length).
      *
-     * @return comparison result (-1, 0, 1), or Integer.MIN_VALUE if not comparable
+     * @return comparison result (-1, 0, 1), or null if not comparable
      */
-    private static int compareLength(Object source, Object target) {
+    private static Integer compareLength(Object source, Object target) {
         if (source == null || target == null) {
-            return Integer.MIN_VALUE;
+            return null;
         }
         try {
             int sourceLen = getLength(source);
             int targetLen = Integer.parseInt(target.toString());
             return Integer.compare(sourceLen, targetLen);
         } catch (NumberFormatException e) {
-            return Integer.MIN_VALUE;
+            return null;
         }
     }
 

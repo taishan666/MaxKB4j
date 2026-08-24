@@ -1,18 +1,14 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.application.service.IApplicationChatService;
-import com.maxkb4j.common.domain.dto.Answer;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.ChatState;
-import com.maxkb4j.common.domain.dto.ChildNode;
-import com.maxkb4j.common.domain.dto.OssFile;
+import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
-import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
+import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.InputField;
 import com.maxkb4j.workflow.model.NodeResult;
@@ -28,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 import static com.maxkb4j.workflow.enums.NodeType.FORM;
 import static com.maxkb4j.workflow.enums.NodeType.USER_SELECT;
 
@@ -88,7 +85,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
                 // 订阅并累积 token，同时发送消息
                 appNodeSink.asFlux().subscribe(e -> {
                     if (FORM.getKey().equals(e.getNodeType()) || USER_SELECT.getKey().equals(e.getNodeType())) {
-                        isInterruptExec.set(true);
+                        isInterruptExec.set(StringUtils.isNotEmpty(e.getContent()));
                     }
                     ChildNode childNode = new ChildNode(e.getChatRecordId(), e.getRuntimeNodeId());
                     ChatMessageVO vo = node.toChatMessageVO(
@@ -104,15 +101,15 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
             ChatResponse chatResponse = chatService.chatMessage(nodeChatParams, nodeContext, appNodeSink);
             // 写入详情
             putDetails(node, Map.of(
-                    "messageTokens", chatResponse.getMessageTokens(),
-                    "answerTokens", chatResponse.getAnswerTokens(),
-                    "question", question,
-                    "answer", chatResponse.getAnswer(),
-                    "is_interrupt_exec", isInterruptExec.get()
+                    NodeField.MESSAGE_TOKENS, chatResponse.getMessageTokens(),
+                    NodeField.ANSWER_TOKENS, chatResponse.getAnswerTokens(),
+                    NodeField.QUESTION, question,
+                    NodeField.ANSWER, chatResponse.getAnswer(),
+                    NodeField.IS_INTERRUPT_EXEC, isInterruptExec.get()
             ));
-            return new NodeResult(Map.of("result", chatResponse.getAnswer()), true, this::shouldInterrupt);
+            return new NodeResult(Map.of(NodeField.RESULT, chatResponse.getAnswer()), true, this::shouldInterrupt);
         }
-        return new NodeResult(Map.of("result", ""));
+        return new NodeResult(Map.of(NodeField.RESULT, ""));
     }
 
 

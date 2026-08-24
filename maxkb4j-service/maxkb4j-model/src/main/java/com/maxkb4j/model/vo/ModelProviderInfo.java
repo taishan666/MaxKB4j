@@ -6,11 +6,12 @@ import lombok.Data;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
 public class ModelProviderInfo {
 
-    private static final String MODEL_ICONS_PATH = "model-icons/";
+    private static final String MODEL_ICONS_PATH = IconPath.MODEL_ICONS;
 
     private static final Map<String, String> SVG_CACHE = new ConcurrentHashMap<>();
 

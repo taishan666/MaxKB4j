@@ -11,5 +11,5 @@ public class Answer {
     private String reasoningContent;
     private String chatRecordId;
     private String runtimeNodeId;
-    private String realNodeId;
+    private ChildNode childNode;
 }

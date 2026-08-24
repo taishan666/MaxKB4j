@@ -2,10 +2,8 @@ package com.maxkb4j.workflow.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.workflow.enums.NodeStatus;
-import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.ModelAwareParams;
 import com.maxkb4j.workflow.model.ModelConfig;
@@ -17,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
+import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
  * Base class for node handlers.
@@ -57,7 +57,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
     public final CompletableFuture<NodeResult> execute(IWorkflow workflow, AbsNode node) throws Exception {
         long startTime = System.currentTimeMillis();
         try {
-            onNodeStart(workflow, node);
+            node.setStatus(NodeStatus.STARTED.getStatus());
             return doExecuteAsync(workflow, node)
                     .whenComplete((result, ex) -> {
                         if (ex == null) {
@@ -68,23 +68,6 @@ public abstract class AbsNodeHandler implements INodeHandler {
             CompletableFuture<NodeResult> failed = new CompletableFuture<>();
             failed.completeExceptionally(ex);
             return failed;
-        }
-    }
-
-    /**
-     * Emits an empty start message so the frontend can render the node before it finishes.
-     */
-    private void onNodeStart(IWorkflow workflow, AbsNode node) {
-        node.setStatus(NodeStatus.STARTED.getStatus());
-        if (workflow instanceof IChatWorkflow chatWorkflow) {
-            ChatParams chatParams = chatWorkflow.getChatParams();
-            workflow.output().emit(node.toChatMessageVO(
-                    chatParams.getChatId(),
-                    chatParams.getChatRecordId(),
-                    "",
-                    "",
-                    null,
-                    false));
         }
     }
 
@@ -114,8 +97,8 @@ public abstract class AbsNodeHandler implements INodeHandler {
     protected void recordExecutionTime(AbsNode node, long startTime) {
         long endTime = System.currentTimeMillis();
         float runTime = (endTime - startTime) / 1000F;
-        node.getDetail().put("runTime", runTime);
-        String nodeName = node.getProperties() != null ? node.getProperties().getString("nodeName") : node.getType();
+        node.getDetail().put(RuntimeDetailField.RUN_TIME, runTime);
+        String nodeName = node.getProperties() != null ? node.getProperties().getString(RuntimeDetailField.NODE_NAME) : node.getType();
         log.info("node: {}, runTime: {} s", nodeName, runTime);
     }
 
@@ -139,7 +122,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * Reads the interrupt flag written by loop control nodes.
      */
     protected boolean getInterruptFlag(AbsNode node) {
-        Object flag = node.getDetail().get("is_interrupt_exec");
+        Object flag = node.getDetail().get(NodeField.IS_INTERRUPT_EXEC);
         return Boolean.TRUE.equals(flag);
     }
 
@@ -172,7 +155,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
 
     /**
      * Resolves the model configuration for a node. When
-     * {@link ModelAwareParams#getModelIdType()} is {@code "reference"} the configuration
+     * {@link ModelAwareParams#getModelIdType()} is {@code VariableField.REFERENCE} the configuration
      * is read from the referenced workflow field; otherwise the params' own
      * modelId/modelParamsSetting are used.
      *
@@ -186,7 +169,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
         }
         String modelId = params.getModelId();
         JSONObject modelParamsSetting = params.getModelParamsSetting();
-        if ("reference".equals(params.getModelIdType())) {
+        if (VariableField.REFERENCE.equals(params.getModelIdType())) {
             ModelConfig modelConfig = ModelConfig.from(workflow.getReferenceField(params.getModelIdReference()));
             if (modelConfig != null) {
                 modelId = modelConfig.getModelId();
@@ -209,8 +192,8 @@ public abstract class AbsNodeHandler implements INodeHandler {
             return;
         }
         putDetails(node, Map.of(
-                "messageTokens", tokenUsage.inputTokenCount(),
-                "answerTokens", tokenUsage.outputTokenCount()
+                NodeField.MESSAGE_TOKENS, tokenUsage.inputTokenCount(),
+                NodeField.ANSWER_TOKENS, tokenUsage.outputTokenCount()
         ));
     }
 }

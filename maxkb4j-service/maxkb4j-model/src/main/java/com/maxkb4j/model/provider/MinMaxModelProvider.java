@@ -6,18 +6,19 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 
 import java.util.List;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Component
-@ModelProviderType(provider = "MinMax", name = "MinMax", icon = "minmax_icon.svg")
+@ModelProviderType(provider = Provider.MIN_MAX, name = "MinMax", icon = Provider.ICON_MIN_MAX)
 public class MinMaxModelProvider extends OpenAiModelProvider {
 
 
-    private static final String BASE_URL = "https://api.minimaxi.com/v1";
+    private static final String BASE_URL = BaseUrl.MIN_MAX;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo("MiniMax-M2.7", "", ModelType.LLM),
-            new ModelInfo("MiniMax-M2.7-highspeed", "", ModelType.LLM),
-            new ModelInfo("MiniMax-M2.5", "", ModelType.LLM),
-            new ModelInfo("MiniMax-M2.5-highspeed", "", ModelType.LLM)
+            new ModelInfo(ModelName.MINI_MAX_M2_7, "", ModelType.LLM),
+            new ModelInfo(ModelName.MINI_MAX_M2_7_HIGHSPEED, "", ModelType.LLM),
+            new ModelInfo(ModelName.MINI_MAX_M2_5, "", ModelType.LLM),
+            new ModelInfo(ModelName.MINI_MAX_M2_5_HIGHSPEED, "", ModelType.LLM)
     );
 
     @Override

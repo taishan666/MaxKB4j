@@ -5,6 +5,7 @@ import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.RuntimeDetailField;
 
 /**
  * 详情记录异常解析器
@@ -17,9 +18,9 @@ public class DetailRecordingResolver implements NodeExceptionResolver {
     @Override
     public boolean resolve(IWorkflow workflow, AbsNode node, Exception ex) {
         node.setErrMessage(ex.getMessage());
-        node.getDetail().put("error", ex.getMessage());
-        node.getDetail().put("errorTime", System.currentTimeMillis());
-        node.getDetail().put("errorClass", ex.getClass().getSimpleName());
+        node.getDetail().put(RuntimeDetailField.ERROR, ex.getMessage());
+        node.getDetail().put(RuntimeDetailField.ERROR_TIME, System.currentTimeMillis());
+        node.getDetail().put(RuntimeDetailField.ERROR_CLASS, ex.getClass().getSimpleName());
         return true; // 继续执行下一个解析器
     }
 

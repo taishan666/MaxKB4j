@@ -34,11 +34,12 @@ public class ApplicationExportService {
     /**
      * 从上传文件导入应用。
      *
-     * @param file 上传的 .mk 文件
+     * @param folderId 导入目标文件夹ID
+     * @param file     上传的 .mk 文件
      * @return 是否导入成功
      */
     @Transactional(rollbackFor = Exception.class)
-    public boolean appImport(MultipartFile file) {
+    public boolean appImport(String folderId, MultipartFile file) {
         String filename = file.getOriginalFilename();
         if (filename == null || !filename.endsWith(".mk")) {
             throw new ApiException(I18nUtil.get("application.file.format.error"));
@@ -47,6 +48,7 @@ public class ApplicationExportService {
             MaxKb4J maxKb4j = ResourceUtil.parseMk(file.getInputStream());
             ApplicationEntity app = maxKb4j.getApplication();
             app.setId(null);
+            app.setFolderId(folderId);
             return applicationService.upsertMk(app, maxKb4j.getToolList());
         } catch (IOException e) {
             throw new ApiException(e.getMessage());

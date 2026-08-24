@@ -71,7 +71,7 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_IMPORT)
     @PostMapping("/application/folder/{folderId}/import")
     public R<Boolean> appImport(@PathVariable String folderId, MultipartFile file) {
-        return R.status(exportService.appImport(file));
+        return R.status(exportService.appImport(folderId, file));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)

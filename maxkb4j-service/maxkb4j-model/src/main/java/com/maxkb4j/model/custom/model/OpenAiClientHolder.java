@@ -6,6 +6,7 @@ import com.openai.client.okhttp.OpenAIOkHttpClient;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
  * OpenAIClient 实例缓存。
@@ -22,7 +23,7 @@ final class OpenAiClientHolder {
     }
 
     static OpenAIClient getOrCreate(ModelCredential credential) {
-        String cacheKey = credential.getBaseUrl() + "|" + credential.getApiKey();
+        String cacheKey = credential.getBaseUrl() + FileToken.CACHE_KEY_SEPARATOR + credential.getApiKey();
         return CLIENT_CACHE.computeIfAbsent(cacheKey, key -> OpenAIOkHttpClient.builder()
                 .baseUrl(credential.getBaseUrl())
                 .apiKey(credential.getApiKey())
