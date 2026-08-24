@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -26,6 +27,7 @@ public class ApplicationChatRecordVO{
     private List<ParagraphRecordVO> paragraphList;
     private String paddingProblemText;
     private List<JSONObject> executionDetails;
+    private Date createTime;
 
     public void setExecutionDetails(List<JSONObject> executionDetails) {
         this.executionDetails = executionDetails;
