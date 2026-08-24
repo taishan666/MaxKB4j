@@ -48,18 +48,18 @@ public class ChatPostHandler implements PostResponseHandler {
 
         // 1. 构建对话记录并刷新缓存
         ChatInfo chatInfo = ChatCache.get(chatId);
-        ChatRecordDTO chatRecord = chatState.getChatRecord();
-        ApplicationChatRecordEntity chatRecordEntity = buildChatRecordEntity(chatParams, chatResponse, runTime, chatInfo, chatRecord);
-        ChatRecordDTO chatRecordDTO = BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
         if (chatInfo == null) {
             chatInfo = new ChatInfo(chatId, chatState.getAppId());
         }
+        ChatRecordDTO chatRecord = chatState.getChatRecord();
+        ApplicationChatRecordEntity chatRecordEntity = buildChatRecordEntity(chatParams, chatResponse, runTime, chatInfo, chatRecord);
+        ChatRecordDTO chatRecordDTO = BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
         chatInfo.addChatRecord(chatRecordDTO);
         ChatCache.put(chatId, chatInfo);
-
         // 2. 持久化
         if (!debug) {
-            saveChat(chatId, chatState, chatInfo, chatParams.getMessage());
+            // chatRecord == null 表示新增对话记录，chatRecord != null 表示补充/覆盖已有记录
+            saveChat(chatId, chatState, chatInfo, chatParams.getMessage(), chatRecord == null);
             chatRecordMapper.insertOrUpdate(chatRecordEntity);
         }
     }
@@ -101,9 +101,14 @@ public class ChatPostHandler implements PostResponseHandler {
     }
 
     /**
-     * 保存/更新会话：首次创建会话，已存在则原子自增记录数（不依赖缓存计数，避免缓存丢失后写错）
+     * 保存/更新会话：首次创建会话，已存在则原子自增记录数（不依赖缓存计数，避免缓存丢失后写错）；
+     * 仅新增对话记录时累加 chat_record_count，修改/覆盖已有记录时不重复计数
      */
-    private void saveChat(String chatId, ChatState chatState, ChatInfo chatInfo, String problemText) {
+    private void saveChat(String chatId, ChatState chatState, ChatInfo chatInfo, String problemText, boolean isNewRecord) {
+        // 补充/覆盖已存在的对话记录时，会话必然已创建，直接返回，避免重复累加 chat_record_count
+        if (!isNewRecord) {
+            return;
+        }
         // 原子自增，避免并发"读-改-写"丢失更新；统计行已由 visitCountOver 确保存在
         chatUserStatsService.incrementAccessNum(chatState.getChatUserId(), chatInfo.getAppId());
         boolean chatExists = chatMapper.exists(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getId, chatId));
