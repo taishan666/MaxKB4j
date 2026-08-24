@@ -46,8 +46,10 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
                 String chatId = (String) workflow.getGlobalContext().get(ChatField.CHAT_ID);
                 if (chatId != null){
                     ChatInfo chatInfo = ChatCache.get(chatId);
-                    chatInfo.putChatVariables(chatVariables);
-                    ChatCache.put(chatId, chatInfo);
+                    if (chatInfo!=null){
+                        chatInfo.putChatVariables(chatVariables);
+                        ChatCache.put(chatId, chatInfo);
+                    }
                 }
             }
             if (Scope.LOOP.equals(scope)) {

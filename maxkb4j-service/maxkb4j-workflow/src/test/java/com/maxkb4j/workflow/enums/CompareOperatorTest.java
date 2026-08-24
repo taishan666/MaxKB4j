@@ -75,6 +75,13 @@ class CompareOperatorTest {
         assertThat(CompareOperator.GT.compare(null, "5")).isFalse();
         assertThat(CompareOperator.GT.compare("abc", "5")).isFalse();
         assertThat(CompareOperator.GE.compare(List.of(1, 2, 3), "2")).isTrue();
+
+        assertThat(CompareOperator.LT.compare(null, "5")).isFalse();
+        assertThat(CompareOperator.LT.compare("abc", "5")).isFalse();
+        assertThat(CompareOperator.LE.compare(null, "5")).isFalse();
+        assertThat(CompareOperator.LE.compare("abc", "5")).isFalse();
+        assertThat(CompareOperator.LE.compare(5, null)).isFalse();
+        assertThat(CompareOperator.LE.compare(5, "abc")).isFalse();
     }
 
     @Test
@@ -88,6 +95,11 @@ class CompareOperatorTest {
 
         assertThat(CompareOperator.LENGTH_EQ.compare(null, "5")).isFalse();
         assertThat(CompareOperator.LENGTH_EQ.compare("hello", "abc")).isFalse();
+
+        assertThat(CompareOperator.LENGTH_LT.compare(null, "5")).isFalse();
+        assertThat(CompareOperator.LENGTH_LE.compare(null, "5")).isFalse();
+        assertThat(CompareOperator.LENGTH_LT.compare("hello", "abc")).isFalse();
+        assertThat(CompareOperator.LENGTH_LE.compare("hello", "abc")).isFalse();
     }
 
     @Test

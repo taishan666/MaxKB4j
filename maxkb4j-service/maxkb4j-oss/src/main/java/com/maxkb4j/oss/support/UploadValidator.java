@@ -24,7 +24,7 @@ public class UploadValidator {
             // 文档
             "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "md", "html", "csv",
             // 音频
-            "mp3", "wav", "m4a", "ogg","acc", "flac",
+            "mp3", "wav", "m4a", "ogg","aac", "flac",
             // 视频
             "mp4", "webm"
     );
