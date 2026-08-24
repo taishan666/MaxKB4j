@@ -38,14 +38,15 @@ public class StartNodeHandler extends AbsNodeHandler {
             JSONObject config = node.getProperties().getJSONObject(NodeField.CONFIG);
             if (config != null){
                 JSONArray globalFields = config.getJSONArray(ChatField.GLOBAL_FIELDS);
-                for (int i = 0; i < globalFields.size(); i++) {
-                    JSONObject globalField = globalFields.getJSONObject(i);
-                    String key = globalField.getString(VariableField.VALUE);
-                    globalField.put(VariableField.KEY, key);
-                    globalField.put(VariableField.VALUE, workflow.getGlobalContext().getOrDefault(key,Defaults.NONE));
+                if (globalFields != null) {
+                    for (int i = 0; i < globalFields.size(); i++) {
+                        JSONObject globalField = globalFields.getJSONObject(i);
+                        String key = globalField.getString(VariableField.VALUE);
+                        globalField.put(VariableField.KEY, key);
+                        globalField.put(VariableField.VALUE, workflow.getGlobalContext().getOrDefault(key, Defaults.NONE));
+                    }
+                    putDetail(node, ChatField.GLOBAL_FIELDS, globalFields);
                 }
-                putDetail(node, ChatField.GLOBAL_FIELDS, globalFields);
-
                 JSONArray chatFields = config.getJSONArray(ChatField.CHAT_FIELDS);
                 if (chatFields != null) {
                     for (int i = 0; i < chatFields.size(); i++) {
@@ -54,8 +55,9 @@ public class StartNodeHandler extends AbsNodeHandler {
                         chatField.put(VariableField.KEY, key);
                         chatField.put(VariableField.VALUE, workflow.getChatContext().getOrDefault(key,Defaults.NONE));
                     }
+                    putDetail(node, ChatField.CHAT_FIELDS, chatFields);
                 }
-                putDetail(node, ChatField.CHAT_FIELDS, chatFields);
+
             }
 
             // 构建节点变量

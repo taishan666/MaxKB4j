@@ -34,7 +34,6 @@ public class VariableSplittingNodeHandler extends AbsNodeHandler {
                 log.error("inputValue is not a json string, inputValue: {}", inputValue);
             }
         }
-        putDetail(node, NodeField.REQUEST, JSON.toJSONString(inputValue));
         Map<String, Object> nodeVariable = new HashMap<>();
         List<VariableSplittingNode.Variable> variableList = params.getVariableList();
         Map<String, Object> result = new HashMap<>();
@@ -47,9 +46,11 @@ public class VariableSplittingNodeHandler extends AbsNodeHandler {
 
         nodeVariable.put(NodeField.RESULT, result);
         nodeVariable.putAll(result);
-
-        putDetail(node, NodeField.RESULT, result);
-
+        // 写入详情
+        putDetails(node, Map.of(
+                NodeField.REQUEST, JSON.toJSONString(inputValue),
+                NodeField.RESULT, result
+        ));
         return new NodeResult(nodeVariable);
     }
 }
