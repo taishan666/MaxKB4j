@@ -186,7 +186,7 @@ public class HomeServiceImpl implements IHomeService {
     public void exportTokensRanking(HomeQuery query, HttpServletResponse response) throws IOException {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         List<AgentStatDTO> records = homeMapper.tokensRankingExport(query);
-
+        int tokensTotal = tokensCount(query);
         response.setContentType("application/vnd.ms-excel");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         String encodedFileName = URLEncoder.encode(TOKENS_FILE_NAME, StandardCharsets.UTF_8);
@@ -199,6 +199,7 @@ public class HomeServiceImpl implements IHomeService {
             row.setRank(rank++);
             row.setName(dto.getName());
             row.setTotalTokens(dto.getTotalTokens());
+            row.setTokenRatio(formatRatio(dto.getTotalTokens(), tokensTotal));
             row.setChatRecordCount(dto.getChatRecordCount());
             row.setAvgTokensPerChat(formatAvg(dto.getTotalTokens(), dto.getChatRecordCount()));
             row.setChatUserCount(dto.getChatUserCount());
@@ -236,8 +237,6 @@ public class HomeServiceImpl implements IHomeService {
             row.setRank(rank++);
             row.setName(dto.getName());
             row.setChatRecordCount(dto.getChatRecordCount());
-            row.setTotalTokens(dto.getTotalTokens());
-            row.setTokenRatio(formatRatio(dto.getTotalTokens(), tokensTotal));
             row.setChatRatio(formatRatio(dto.getChatRecordCount(), chatRecordTotal));
             row.setChatUserCount(dto.getChatUserCount());
             row.setAvgChatPerUser(formatAvg(dto.getChatRecordCount(), dto.getChatUserCount()));
