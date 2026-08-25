@@ -24,9 +24,17 @@ public class UserTokensRankingExcel {
     private String username;
 
     @ColumnWidth(25)
-    @ExcelProperty("Token 数")
+    @ExcelProperty("Tokens 消耗")
     private Integer totalTokens;
 
-    @ExcelProperty("问题数")
+    @ColumnWidth(25)
+    @ExcelProperty("Tokens 占比")
+    private String tokenRatio;
+
+    @ExcelProperty("对话次数")
     private Integer chatRecordCount;
+
+    @ColumnWidth(25)
+    @ExcelProperty("均 tokens/次")
+    private String avgTokensPerChat;
 }

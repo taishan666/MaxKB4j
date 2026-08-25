@@ -24,6 +24,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.Locale;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -199,6 +200,7 @@ public class HomeServiceImpl implements IHomeService {
             row.setName(dto.getName());
             row.setTotalTokens(dto.getTotalTokens());
             row.setChatRecordCount(dto.getChatRecordCount());
+            row.setAvgTokensPerChat(formatAvg(dto.getTotalTokens(), dto.getChatRecordCount()));
             row.setChatUserCount(dto.getChatUserCount());
             rows.add(row);
         }
@@ -219,6 +221,8 @@ public class HomeServiceImpl implements IHomeService {
     public void exportQuestionRanking(HomeQuery query, HttpServletResponse response) throws IOException {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         List<AgentStatDTO> records = homeMapper.questionRankingExport(query);
+        int tokensTotal = tokensCount(query);
+        int chatRecordTotal = chatRecordCount(query);
 
         response.setContentType("application/vnd.ms-excel");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
@@ -233,12 +237,33 @@ public class HomeServiceImpl implements IHomeService {
             row.setName(dto.getName());
             row.setChatRecordCount(dto.getChatRecordCount());
             row.setTotalTokens(dto.getTotalTokens());
+            row.setTokenRatio(formatRatio(dto.getTotalTokens(), tokensTotal));
+            row.setChatRatio(formatRatio(dto.getChatRecordCount(), chatRecordTotal));
             row.setChatUserCount(dto.getChatUserCount());
+            row.setAvgChatPerUser(formatAvg(dto.getChatRecordCount(), dto.getChatUserCount()));
             rows.add(row);
         }
         EasyExcel.write(response.getOutputStream(), QuestionRankingExcel.class)
                 .sheet(FILE_NAME)
                 .doWrite(rows);
+    }
+
+    /** 单个应用的指标值占该检索条件下对应总数的百分比，保留一位小数。 */
+    private String formatRatio(Integer value, int total) {
+        if (value == null || value == 0 || total <= 0) {
+            return "0.0%";
+        }
+        double ratio = value * 100.0 / total;
+        return String.format(Locale.ROOT, "%.1f%%", ratio);
+    }
+
+    /** 均值保留一位小数：numerator / denominator，denominator 为 0/空 或 numerator 为空时返回 0.0。 */
+    private String formatAvg(Integer numerator, Integer denominator) {
+        if (numerator == null || denominator == null || denominator == 0) {
+            return "0.0";
+        }
+        double avg = numerator * 1.0 / denominator;
+        return String.format(Locale.ROOT, "%.1f", avg);
     }
 
     /** 用户 Token 排行（按 total_tokens 降序）。 */
@@ -253,6 +278,7 @@ public class HomeServiceImpl implements IHomeService {
     public void exportUserTokensRanking(HomeQuery query, HttpServletResponse response) throws IOException {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         List<ChatUserStatDTO> records = homeMapper.userTokensRankingExport(query);
+        int tokensTotal = tokensCount(query);
 
         response.setContentType("application/vnd.ms-excel");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
@@ -268,7 +294,9 @@ public class HomeServiceImpl implements IHomeService {
             String username = asker == null ? null : asker.getString("username");
             row.setUsername(username == null || username.isEmpty() ? "-" : username);
             row.setTotalTokens(dto.getTotalTokens());
+            row.setTokenRatio(formatRatio(dto.getTotalTokens(), tokensTotal));
             row.setChatRecordCount(dto.getChatRecordCount());
+            row.setAvgTokensPerChat(formatAvg(dto.getTotalTokens(), dto.getChatRecordCount()));
             rows.add(row);
         }
         EasyExcel.write(response.getOutputStream(), UserTokensRankingExcel.class)

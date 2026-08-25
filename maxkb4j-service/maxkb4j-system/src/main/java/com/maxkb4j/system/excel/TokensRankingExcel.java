@@ -24,13 +24,17 @@ public class TokensRankingExcel {
     private String name;
 
     @ColumnWidth(25)
-    @ExcelProperty("Token 数")
+    @ExcelProperty("Tokens 消耗")
     private Integer totalTokens;
 
-    @ExcelProperty("问题数")
+    @ExcelProperty("对话次数")
     private Integer chatRecordCount;
 
     @ColumnWidth(25)
-    @ExcelProperty("用户数")
+    @ExcelProperty("均 tokens/次")
+    private String avgTokensPerChat;
+
+    @ColumnWidth(25)
+    @ExcelProperty("活跃用户")
     private Integer chatUserCount;
 }
