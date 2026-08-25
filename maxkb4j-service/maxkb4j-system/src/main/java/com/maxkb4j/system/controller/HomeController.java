@@ -11,12 +11,15 @@ import com.maxkb4j.system.dto.ChatUserStatDTO;
 import com.maxkb4j.system.dto.DailyStatDTO;
 import com.maxkb4j.system.dto.HomeQuery;
 import com.maxkb4j.system.service.IHomeService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -64,6 +67,21 @@ public class HomeController {
     }
 
     @SaCheckLogin(type = LoginType.ADMIN)
+    @GetMapping("/homepage/tokens_ranking/export")
+    public void tokensRankingExport(HomeQuery query,
+                                    @RequestParam(value = "start_time", required = false) String startTime,
+                                    @RequestParam(value = "end_time", required = false) String endTime,
+                                    HttpServletResponse response) throws IOException {
+        if (startTime != null && !startTime.isEmpty()) {
+            query.setStartTime(startTime);
+        }
+        if (endTime != null && !endTime.isEmpty()) {
+            query.setEndTime(endTime);
+        }
+        homeService.exportTokensRanking(query, response);
+    }
+
+    @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/application/question_ranking/{current}/{size}")
     public R<IPage<AgentStatDTO>> questionRanking(@PathVariable("current") int current,
                                                   @PathVariable("size") int size,
@@ -72,10 +90,40 @@ public class HomeController {
     }
 
     @SaCheckLogin(type = LoginType.ADMIN)
+    @GetMapping("/homepage/question_ranking/export")
+    public void questionRankingExport(HomeQuery query,
+                                     @RequestParam(value = "start_time", required = false) String startTime,
+                                     @RequestParam(value = "end_time", required = false) String endTime,
+                                     HttpServletResponse response) throws IOException {
+        if (startTime != null && !startTime.isEmpty()) {
+            query.setStartTime(startTime);
+        }
+        if (endTime != null && !endTime.isEmpty()) {
+            query.setEndTime(endTime);
+        }
+        homeService.exportQuestionRanking(query, response);
+    }
+
+    @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/application/user_tokens_ranking/{current}/{size}")
     public R<IPage<ChatUserStatDTO>> userTokensRanking(@PathVariable("current") int current,
                                                         @PathVariable("size") int size,
                                                         HomeQuery query) {
         return R.data(homeService.userTokensRanking(current, size, query));
+    }
+
+    @SaCheckLogin(type = LoginType.ADMIN)
+    @GetMapping("/homepage/user_tokens_ranking/export")
+    public void userTokensRankingExport(HomeQuery query,
+                                       @RequestParam(value = "start_time", required = false) String startTime,
+                                       @RequestParam(value = "end_time", required = false) String endTime,
+                                       HttpServletResponse response) throws IOException {
+        if (startTime != null && !startTime.isEmpty()) {
+            query.setStartTime(startTime);
+        }
+        if (endTime != null && !endTime.isEmpty()) {
+            query.setEndTime(endTime);
+        }
+        homeService.exportUserTokensRanking(query, response);
     }
 }

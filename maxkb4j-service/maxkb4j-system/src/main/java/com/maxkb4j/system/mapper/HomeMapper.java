@@ -68,12 +68,21 @@ public interface HomeMapper {
 
     /* ==================== 排行榜（分页） ==================== */
 
-    /** 应用 Token 排行（按 total_tokens 降序）。 */
+    /** 应用 Token 排行（按 total_tokens 降序，分页）。 */
     IPage<AgentStatDTO> tokensRanking(Page<AgentStatDTO> page, @Param("query") HomeQuery query);
 
-    /** 应用问题数排行（按 chat_record_count 降序）。 */
+    /** 应用 Token 排行全量数据（导出 Excel 用，免分页，按 total_tokens 降序）。 */
+    List<AgentStatDTO> tokensRankingExport(@Param("query") HomeQuery query);
+
+    /** 应用问题数排行（按 chat_record_count 降序，分页）。 */
     IPage<AgentStatDTO> questionRanking(Page<AgentStatDTO> page, @Param("query") HomeQuery query);
 
-    /** 用户 Token 排行（按 total_tokens 降序）。 */
+    /** 应用问题数排行全量数据（导出 Excel 用，免分页，按 chat_record_count 降序）。 */
+    List<AgentStatDTO> questionRankingExport(@Param("query") HomeQuery query);
+
+    /** 用户 Token 排行（按 total_tokens 降序，分页）。 */
     IPage<ChatUserStatDTO> userTokensRanking(Page<ChatUserStatDTO> page, @Param("query") HomeQuery query);
+
+    /** 用户 Token 排行全量数据（导出 Excel 用，免分页，按 total_tokens 降序）。 */
+    List<ChatUserStatDTO> userTokensRankingExport(@Param("query") HomeQuery query);
 }

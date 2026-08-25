@@ -328,7 +328,29 @@
         ORDER BY total_tokens DESC
     </select>
 
+    <select id="tokensRankingExport" resultType="com.maxkb4j.system.dto.AgentStatDTO">
+        SELECT a."id",
+               a.name,
+               COALESCE(SUM(r.total_tokens), 0)        AS total_tokens,
+               COALESCE(SUM(c.chat_record_count), 0)  AS chat_record_count,
+               COUNT(DISTINCT c.chat_user_id)         AS chat_user_count
+        <include refid="appRankingFrom"/>
+        GROUP BY a."id", a.name
+        ORDER BY total_tokens DESC
+    </select>
+
     <select id="questionRanking" resultType="com.maxkb4j.system.dto.AgentStatDTO">
+        SELECT a."id",
+               a.name,
+               COALESCE(SUM(r.total_tokens), 0)        AS total_tokens,
+               COALESCE(SUM(c.chat_record_count), 0)  AS chat_record_count,
+               COUNT(DISTINCT c.chat_user_id)         AS chat_user_count
+        <include refid="appRankingFrom"/>
+        GROUP BY a."id", a.name
+        ORDER BY chat_record_count DESC
+    </select>
+
+    <select id="questionRankingExport" resultType="com.maxkb4j.system.dto.AgentStatDTO">
         SELECT a."id",
                a.name,
                COALESCE(SUM(r.total_tokens), 0)        AS total_tokens,
@@ -346,6 +368,45 @@
     </resultMap>
 
     <select id="userTokensRanking" resultMap="chatUserStatResultMap">
+        SELECT c.chat_user_id,
+               c.chat_user_type,
+               c.asker,
+               COALESCE(SUM(r.message_tokens) + SUM(r.answer_tokens), 0) AS total_tokens,
+               COUNT(r."id")                                              AS chat_record_count
+        FROM application_chat c
+        LEFT JOIN application_chat_record r ON r.chat_id = c."id"
+        <where>
+            <if test="query.startTime != null and query.startTime != ''">
+                AND <![CDATA[TO_CHAR(c.create_time, 'YYYY-MM-DD') >= #{query.startTime}]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                AND <![CDATA[TO_CHAR(c.create_time, 'YYYY-MM-DD') <= #{query.endTime}]]>
+            </if>
+            <if test="query.applicationId != null and query.applicationId != ''">
+                AND c.application_id = #{query.applicationId}
+            </if>
+            <if test="query.name != null and query.name != ''">
+                AND c.asker ->> 'username' LIKE '%' || #{query.name} || '%'
+            </if>
+            <if test="query.isAdmin == null or !query.isAdmin">
+                <choose>
+                    <when test="query.targetIds != null and !query.targetIds.isEmpty()">
+                        AND c.application_id IN
+                        <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                            #{targetId}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        AND c.application_id = ''
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+        GROUP BY c.chat_user_id, c.chat_user_type, c.asker
+        ORDER BY total_tokens DESC
+    </select>
+
+<select id="userTokensRankingExport" resultMap="chatUserStatResultMap">
         SELECT c.chat_user_id,
                c.chat_user_type,
                c.asker,
