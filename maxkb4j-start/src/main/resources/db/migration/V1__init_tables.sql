@@ -85,7 +85,7 @@ CREATE TABLE "public"."application" (
                                         "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
                                         "name" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
                                         "desc" varchar(512) COLLATE "pg_catalog"."default" NOT NULL,
-                                        "prologue" varchar(4096) COLLATE "pg_catalog"."default" NOT NULL,
+                                        "prologue" varchar(40960) COLLATE "pg_catalog"."default" NOT NULL,
                                         "dialogue_number" int4 NOT NULL,
                                         "knowledge_setting" jsonb NOT NULL,
                                         "model_setting" jsonb NOT NULL,
