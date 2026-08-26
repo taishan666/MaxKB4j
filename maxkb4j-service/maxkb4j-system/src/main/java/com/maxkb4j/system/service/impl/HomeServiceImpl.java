@@ -1,5 +1,6 @@
 package com.maxkb4j.system.service.impl;
 
+import com.alibaba.excel.EasyExcel;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -11,12 +12,20 @@ import com.maxkb4j.system.dto.AgentStatDTO;
 import com.maxkb4j.system.dto.ChatUserStatDTO;
 import com.maxkb4j.system.dto.DailyStatDTO;
 import com.maxkb4j.system.dto.HomeQuery;
+import com.maxkb4j.system.excel.QuestionRankingExcel;
+import com.maxkb4j.system.excel.TokensRankingExcel;
+import com.maxkb4j.system.excel.UserTokensRankingExcel;
 import com.maxkb4j.system.mapper.HomeMapper;
 import com.maxkb4j.system.service.IHomeService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.Locale;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -42,6 +51,15 @@ public class HomeServiceImpl implements IHomeService {
     private final HomeMapper homeMapper;
     private final DataPermissionSupport dataPermissionSupport;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    /** 问题数排行 Excel 文件名（同时用作 sheet 名，长度不超过 31）。 */
+    private static final String FILE_NAME = "问题数排行";
+
+    /** Token 数排行 Excel 文件名（同时用作 sheet 名，长度不超过 31）。 */
+    private static final String TOKENS_FILE_NAME = "Token数排行";
+
+    /** 用户 Token 数排行 Excel 文件名（同时用作 sheet 名，长度不超过 31）。 */
+    private static final String USER_TOKENS_FILE_NAME = "用户Token数排行";
 
     /* ==================== 资源数量聚合 ==================== */
 
@@ -163,6 +181,35 @@ public class HomeServiceImpl implements IHomeService {
         return homeMapper.tokensRanking(new Page<>(current, size), query);
     }
 
+    /** 应用 Token 排行全量数据导出为 Excel（按 total_tokens 降序）。 */
+    @Override
+    public void exportTokensRanking(HomeQuery query, HttpServletResponse response) throws IOException {
+        dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
+        List<AgentStatDTO> records = homeMapper.tokensRankingExport(query);
+        int tokensTotal = tokensCount(query);
+        response.setContentType("application/vnd.ms-excel");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String encodedFileName = URLEncoder.encode(TOKENS_FILE_NAME, StandardCharsets.UTF_8);
+        response.setHeader("Content-disposition", "attachment;filename=" + encodedFileName + ".xlsx");
+
+        List<TokensRankingExcel> rows = new ArrayList<>(records.size());
+        int rank = 1;
+        for (AgentStatDTO dto : records) {
+            TokensRankingExcel row = new TokensRankingExcel();
+            row.setRank(rank++);
+            row.setName(dto.getName());
+            row.setTotalTokens(dto.getTotalTokens());
+            row.setTokenRatio(formatRatio(dto.getTotalTokens(), tokensTotal));
+            row.setChatRecordCount(dto.getChatRecordCount());
+            row.setAvgTokensPerChat(formatAvg(dto.getTotalTokens(), dto.getChatRecordCount()));
+            row.setChatUserCount(dto.getChatUserCount());
+            rows.add(row);
+        }
+        EasyExcel.write(response.getOutputStream(), TokensRankingExcel.class)
+                .sheet(TOKENS_FILE_NAME)
+                .doWrite(rows);
+    }
+
     /** 应用问题数排行（按 chat_record_count 降序）。 */
     @Override
     public IPage<AgentStatDTO> questionRanking(int current, int size, HomeQuery query) {
@@ -170,10 +217,89 @@ public class HomeServiceImpl implements IHomeService {
         return homeMapper.questionRanking(new Page<>(current, size), query);
     }
 
+    /** 应用问题数排行全量数据导出为 Excel（按 chat_record_count 降序）。 */
+    @Override
+    public void exportQuestionRanking(HomeQuery query, HttpServletResponse response) throws IOException {
+        dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
+        List<AgentStatDTO> records = homeMapper.questionRankingExport(query);
+        int tokensTotal = tokensCount(query);
+        int chatRecordTotal = chatRecordCount(query);
+
+        response.setContentType("application/vnd.ms-excel");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String encodedFileName = URLEncoder.encode(FILE_NAME, StandardCharsets.UTF_8);
+        response.setHeader("Content-disposition", "attachment;filename=" + encodedFileName + ".xlsx");
+
+        List<QuestionRankingExcel> rows = new ArrayList<>(records.size());
+        int rank = 1;
+        for (AgentStatDTO dto : records) {
+            QuestionRankingExcel row = new QuestionRankingExcel();
+            row.setRank(rank++);
+            row.setName(dto.getName());
+            row.setChatRecordCount(dto.getChatRecordCount());
+            row.setChatRatio(formatRatio(dto.getChatRecordCount(), chatRecordTotal));
+            row.setChatUserCount(dto.getChatUserCount());
+            row.setAvgChatPerUser(formatAvg(dto.getChatRecordCount(), dto.getChatUserCount()));
+            rows.add(row);
+        }
+        EasyExcel.write(response.getOutputStream(), QuestionRankingExcel.class)
+                .sheet(FILE_NAME)
+                .doWrite(rows);
+    }
+
+    /** 单个应用的指标值占该检索条件下对应总数的百分比，保留一位小数。 */
+    private String formatRatio(Integer value, int total) {
+        if (value == null || value == 0 || total <= 0) {
+            return "0.0%";
+        }
+        double ratio = value * 100.0 / total;
+        return String.format(Locale.ROOT, "%.1f%%", ratio);
+    }
+
+    /** 均值保留一位小数：numerator / denominator，denominator 为 0/空 或 numerator 为空时返回 0.0。 */
+    private String formatAvg(Integer numerator, Integer denominator) {
+        if (numerator == null || denominator == null || denominator == 0) {
+            return "0.0";
+        }
+        double avg = numerator * 1.0 / denominator;
+        return String.format(Locale.ROOT, "%.1f", avg);
+    }
+
     /** 用户 Token 排行（按 total_tokens 降序）。 */
     @Override
     public IPage<ChatUserStatDTO> userTokensRanking(int current, int size, HomeQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         return homeMapper.userTokensRanking(new Page<>(current, size), query);
+    }
+
+    /** 用户 Token 排行全量数据导出为 Excel（按 total_tokens 降序）。 */
+    @Override
+    public void exportUserTokensRanking(HomeQuery query, HttpServletResponse response) throws IOException {
+        dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
+        List<ChatUserStatDTO> records = homeMapper.userTokensRankingExport(query);
+        int tokensTotal = tokensCount(query);
+
+        response.setContentType("application/vnd.ms-excel");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String encodedFileName = URLEncoder.encode(USER_TOKENS_FILE_NAME, StandardCharsets.UTF_8);
+        response.setHeader("Content-disposition", "attachment;filename=" + encodedFileName + ".xlsx");
+
+        List<UserTokensRankingExcel> rows = new ArrayList<>(records.size());
+        int rank = 1;
+        for (ChatUserStatDTO dto : records) {
+            UserTokensRankingExcel row = new UserTokensRankingExcel();
+            row.setRank(rank++);
+            JSONObject asker = dto.getAsker();
+            String username = asker == null ? null : asker.getString("username");
+            row.setUsername(username == null || username.isEmpty() ? "-" : username);
+            row.setTotalTokens(dto.getTotalTokens());
+            row.setTokenRatio(formatRatio(dto.getTotalTokens(), tokensTotal));
+            row.setChatRecordCount(dto.getChatRecordCount());
+            row.setAvgTokensPerChat(formatAvg(dto.getTotalTokens(), dto.getChatRecordCount()));
+            rows.add(row);
+        }
+        EasyExcel.write(response.getOutputStream(), UserTokensRankingExcel.class)
+                .sheet(USER_TOKENS_FILE_NAME)
+                .doWrite(rows);
     }
 }
