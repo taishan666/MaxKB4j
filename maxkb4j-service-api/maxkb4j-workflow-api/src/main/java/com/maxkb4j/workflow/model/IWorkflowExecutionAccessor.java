@@ -27,11 +27,6 @@ public interface IWorkflowExecutionAccessor {
     boolean dependenciesNotExecuted(AbsNode node);
 
     /**
-     * 检查是否为可跳过节点（所有上游节点均为 SKIP）。
-     */
-    boolean isSkipNode(AbsNode node);
-
-    /**
      * 记录节点执行（runtimeNodeId 顺序与时间戳）。
      */
     void recordExecution(AbsNode node);

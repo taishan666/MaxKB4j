@@ -116,17 +116,6 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
     }
 
     /**
-     * 检查是否为可跳过节点（所有上游节点均为 SKIP）
-     *
-     * @param node 待检查节点
-     * @return 是否可跳过
-     */
-    @Override
-    public boolean isSkipNode(AbsNode node) {
-        return dependencyChecker.isSkipNode(node);
-    }
-
-    /**
      * 加载节点状态
      * 用于恢复中断的工作流执行
      *
@@ -171,12 +160,10 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
     private List<AbsNode> buildNextNodes(List<String> targetNodeIds, AbsNode currentNode) {
         List<String> upNodeIdList = new ArrayList<>(currentNode.getUpNodeIdList());
         upNodeIdList.add(currentNode.getId());
-        List<AbsNode> nextNodes= targetNodeIds.stream()
+        return targetNodeIds.stream()
                 .map(nodeId -> getNodeInstance(nodeId, upNodeIdList, null))
                 .filter(Objects::nonNull)
                 .toList();
-        nextNodes.forEach(n->n.setStatus(NodeStatus.READY.getStatus()));
-        return nextNodes;
     }
 
     /**

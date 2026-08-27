@@ -5,8 +5,6 @@ import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.node.AbsNode;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 节点依赖检查器
@@ -14,7 +12,6 @@ import java.util.stream.Collectors;
  * 负责基于上下游边与节点状态判断节点执行前置条件：
  * <ul>
  *   <li>依赖节点是否已全部执行完成（{@link #dependenciesNotExecuted}）</li>
- *   <li>节点是否可跳过（上游节点全部为 SKIP，{@link #isSkipNode}）</li>
  * </ul>
  * </p>
  */
@@ -51,50 +48,5 @@ public class NodeDependencyChecker {
                 .toList();
         return !upNodes.stream()
                 .allMatch(n -> (NodeStatus.SUCCESS.getStatus() == n.getStatus()||NodeStatus.SKIP.getStatus() == n.getStatus()));
-    }
-
-    /**
-     * 检查是否为可跳过节点
-     * 所有上游节点均为 SKIP 时视为可跳过
-     *
-     * @param node 待检查节点
-     * @return 是否可跳过
-     */
-    public boolean isSkipNode(AbsNode node) {
-        List<String> upNodeIdList = navigator.findUpstreamNodeIds(node.getId());
-        if (CollectionUtils.isEmpty(upNodeIdList)) {
-            return true;
-        }
-        // 多个上游节点时，检查是否所有上游节点都是 SKIP（排除这种情况）
-        List<AbsNode> upNodes = configuration.getNodes().stream()
-                .filter(n -> upNodeIdList.contains(n.getId()))
-                .toList();
-        return upNodes.stream().allMatch(n -> (NodeStatus.SKIP.getStatus() == n.getStatus()||NodeStatus.SUCCESS.getStatus() == n.getStatus()));
-    }
-
-    /**
-     * 检查是否为可跳过节点（排除指定上游节点后，剩余上游全部为 SKIP）
-     *
-     * @param node          待检查节点
-     * @param excludeNodeId 需要排除的上游节点 ID（通常是当前分支节点自身）
-     * @return 是否可跳过
-     */
-    public boolean isAssertionSkipNode(AbsNode node, String excludeNodeId) {
-        List<String> upNodeIdList = navigator.findUpstreamNodeIds(node.getId());
-        if (CollectionUtils.isEmpty(upNodeIdList)) {
-            return true;
-        }
-        // 排除当前节点后剩余的上游节点集合
-        Set<String> upNodeIdSet = upNodeIdList.stream()
-                .filter(id -> !id.equals(excludeNodeId))
-                .collect(Collectors.toSet());
-        // 排除后无其他上游依赖，视为可跳过
-        if (upNodeIdSet.isEmpty()) {
-            return true;
-        }
-        List<AbsNode> upNodes = configuration.getNodes().stream()
-                .filter(n -> upNodeIdSet.contains(n.getId()))
-                .toList();
-        return upNodes.isEmpty();
     }
 }

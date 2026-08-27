@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.engine;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +55,6 @@ public class NodeStateLoader {
             log.warn("loadNodeState called with null details or currentNodeId");
             return null;
         }
-        AbsNode restoredCurrentNode = null;
         List<Map<String, Object>> sortedDetails = details.values().stream()
                 .filter(Objects::nonNull)
                 .map(row -> (Map<String, Object>) row)
@@ -63,7 +63,7 @@ public class NodeStateLoader {
                         Comparator.nullsLast(Comparator.naturalOrder())
                 ))
                 .toList();
-
+        AbsNode restoredCurrentNode = null;
         for (Map<String, Object> nodeDetail : sortedDetails) {
             String nodeId = (String) nodeDetail.get(RuntimeDetailField.NODE_ID);
             List<String> upNodeIdList = (List<String>) nodeDetail.get(RuntimeDetailField.UP_NODE_ID_LIST);
@@ -74,8 +74,8 @@ public class NodeStateLoader {
                 restoredCurrentNode = getNodeInstance(nodeId, upNodeIdList, n -> {
                     JSONObject nodeProperties = n.getProperties();
                     if (nodeProperties.containsKey(RuntimeDetailField.NODE_DATA)) {
-                        JSONObject nodeParams = nodeProperties.getJSONObject(RuntimeDetailField.NODE_DATA);
-                        nodeParams.put(FormField.FORM_DATA, currentNodeData);
+                        JSONObject nodeData = nodeProperties.getJSONObject(RuntimeDetailField.NODE_DATA);
+                        nodeData.put(FormField.FORM_DATA, currentNodeData);
                     }
                     return nodeProperties;
                 });
@@ -112,6 +112,7 @@ public class NodeStateLoader {
         AbsNode node = configuration.getNode(nodeId);
         if (node != null) {
             node.setUpNodeIdList(upNodeIds);
+            node.setStatus(NodeStatus.READY.getStatus());
             if (getNodeProperties != null) {
                 getNodeProperties.apply(node);
             }
