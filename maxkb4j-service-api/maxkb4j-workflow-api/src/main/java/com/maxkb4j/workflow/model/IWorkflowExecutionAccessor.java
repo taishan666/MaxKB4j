@@ -32,11 +32,6 @@ public interface IWorkflowExecutionAccessor {
     boolean isSkipNode(AbsNode node);
 
     /**
-     * 检查是否为可跳过节点（排除指定上游节点后，剩余上游均为 SKIP）。
-     */
-    boolean isSkipNode(AbsNode node, String excludeNodeId);
-
-    /**
      * 记录节点执行（runtimeNodeId 顺序与时间戳）。
      */
     void recordExecution(AbsNode node);

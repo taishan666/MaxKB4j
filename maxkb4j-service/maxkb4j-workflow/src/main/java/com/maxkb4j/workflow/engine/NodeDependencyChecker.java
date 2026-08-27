@@ -71,7 +71,7 @@ public class NodeDependencyChecker {
         List<AbsNode> upNodes = configuration.getNodes().stream()
                 .filter(n -> upNodeIdList.contains(n.getId()))
                 .toList();
-        return upNodes.stream().allMatch(n -> NodeStatus.SKIP.getStatus() == n.getStatus());
+        return upNodes.stream().allMatch(n -> (NodeStatus.SKIP.getStatus() == n.getStatus()||NodeStatus.SUCCESS.getStatus() == n.getStatus()));
     }
 
     /**

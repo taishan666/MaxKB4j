@@ -83,11 +83,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                 scheduledNodes.add(node);
             } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
                 List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(Map.of()));
-                nextNodeList.forEach(nextNode -> {
-                    if (workflow.execution().isSkipNode(nextNode)) {
-                        nextNode.setStatus(NodeStatus.SKIP.getStatus());
-                    }
-                });
+                nextNodeList.forEach(nextNode -> nextNode.setStatus(NodeStatus.SKIP.getStatus()));
                 futureList.add(CompletableFuture.completedFuture(nextNodeList));
                 workerThreads.add(null);
                 scheduledNodes.add(node);
