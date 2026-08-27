@@ -51,8 +51,7 @@ public class NodeDependencyChecker {
                 .filter(n -> upNodeIdList.contains(n.getId()))
                 .toList();
         return !upNodes.stream()
-                .allMatch(n -> NodeStatus.SUCCESS.getStatus() == n.getStatus()
-                        || NodeStatus.SKIP.getStatus() == n.getStatus());
+                .allMatch(n -> NodeStatus.SUCCESS.getStatus() == n.getStatus());
     }
 
     /**
@@ -94,17 +93,9 @@ public class NodeDependencyChecker {
         if (upNodeIdSet.isEmpty()) {
             return true;
         }
-        // 检查剩余上游节点是否全部处于 SKIP 状态
         List<AbsNode> upNodes = configuration.getNodes().stream()
                 .filter(n -> upNodeIdSet.contains(n.getId()))
                 .toList();
-
-        List<AbsNode> upNotSkipNodes = upNodes.stream().filter(n->NodeStatus.SKIP.getStatus() != n.getStatus())
-                .toList();
-        if (upNotSkipNodes.isEmpty()) {
-            return true;
-        }
-        // todo
-        return upNodes.stream().allMatch(n -> (NodeStatus.SKIP.getStatus() == n.getStatus()||NodeStatus.SUCCESS.getStatus() == n.getStatus()));
+        return upNodes.isEmpty();
     }
 }
