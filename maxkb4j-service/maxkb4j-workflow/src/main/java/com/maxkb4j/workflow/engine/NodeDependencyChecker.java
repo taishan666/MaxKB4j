@@ -46,12 +46,11 @@ public class NodeDependencyChecker {
         if (CollectionUtils.isEmpty(upNodeIdList)) {
             return false;
         }
-        // 多个上游节点时，检查是否所有上游节点都是 SKIP（排除这种情况）
         List<AbsNode> upNodes = configuration.getNodes().stream()
                 .filter(n -> upNodeIdList.contains(n.getId()))
                 .toList();
         return !upNodes.stream()
-                .allMatch(n -> NodeStatus.SUCCESS.getStatus() == n.getStatus());
+                .allMatch(n -> (NodeStatus.SUCCESS.getStatus() == n.getStatus()||NodeStatus.SKIP.getStatus() == n.getStatus()));
     }
 
     /**
