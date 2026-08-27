@@ -24,7 +24,7 @@ public interface IWorkflowExecutionAccessor {
     /**
      * 检查依赖节点是否已执行（开始节点无上游依赖直接通过）。
      */
-    boolean dependenciesExecuted(AbsNode node);
+    boolean dependenciesNotExecuted(AbsNode node);
 
     /**
      * 检查是否为可跳过节点（所有上游节点均为 SKIP）。

@@ -79,7 +79,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
     @Override
     public List<AbsNode> nextNodes(AbsNode currentNode, NodeResult currentNodeResult) {
         // 检查是否需要中断执行
-        if (currentNodeResult == null || NodeResultWriter.isInterruptExec(currentNodeResult, currentNode)) {
+        if (NodeStatus.INTERRUPT.getStatus()==currentNode.getStatus()) {
             return List.of();
         }
         // 获取下游边
@@ -116,16 +116,16 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
      * @return 是否所有依赖节点都已执行
      */
     @Override
-    public boolean dependenciesExecuted(AbsNode node) {
+    public boolean dependenciesNotExecuted(AbsNode node) {
         List<String> upNodeIdList = navigator.findUpstreamNodeIds(node.getId());
         // 开始节点无上游依赖，直接通过
         if (CollectionUtils.isEmpty(upNodeIdList)) {
-            return true;
+            return false;
         }
-        Set<String> upNodeIdSet = new HashSet<>(upNodeIdList);
-        return configuration.getNodes().stream()
-                .filter(n -> upNodeIdSet.contains(n.getId()))
-                .allMatch(n -> NodeStatus.SUCCESS.getStatus() == n.getStatus() || NodeStatus.SKIP.getStatus() == n.getStatus());
+        // 多个上游节点时，检查是否所有上游节点都是 SKIP（排除这种情况）
+        List<AbsNode> upNodes=configuration.getNodes().stream()
+                .filter(n -> upNodeIdList.contains(n.getId())).toList();
+        return !upNodes.stream().allMatch(n -> NodeStatus.SUCCESS.getStatus() == n.getStatus() || NodeStatus.SKIP.getStatus() == n.getStatus());
     }
 
     /**
@@ -142,7 +142,9 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
             return true;
         }
         // 多个上游节点时，检查是否所有上游节点都是 SKIP（排除这种情况）
-        return configuration.getNodes().stream().filter(n -> upNodeIdList.contains(n.getId())).allMatch(n -> NodeStatus.SKIP.getStatus() == n.getStatus());
+        List<AbsNode> upNodes=configuration.getNodes().stream()
+                .filter(n -> upNodeIdList.contains(n.getId())).toList();
+        return upNodes.stream().allMatch(n -> NodeStatus.SKIP.getStatus() == n.getStatus());
     }
 
     @Override
@@ -160,9 +162,10 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
             return true;
         }
         // 检查剩余上游节点是否全部处于 SKIP 状态
-        return configuration.getNodes().stream()
-                .filter(n -> upNodeIdSet.contains(n.getId()))
-                .allMatch(n -> NodeStatus.SKIP.getStatus() == n.getStatus());
+        List<AbsNode> upNodes=configuration.getNodes().stream()
+                .filter(n -> upNodeIdSet.contains(n.getId())).toList();
+        //todo 上一个节点是分支节点的话会，判断会有问题
+        return upNodes.stream().allMatch(n -> NodeStatus.SKIP.getStatus() == n.getStatus());
     }
 
 

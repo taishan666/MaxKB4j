@@ -23,8 +23,9 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
  *
  * <p>Subclasses implement {@link #doExecute} (synchronous) or override
  * {@link #doExecuteAsync} (streaming/async). The final {@link #execute} template wraps
- * them with the behavior shared by every handler: emitting the node-start message,
- * recording the execution time and propagating failures through the returned future.</p>
+ * them with the behavior shared by every handler: marking the node as started and
+ * delegating to the subclass logic. Lifecycle concerns such as start messages and
+ * execution-time recording are handled by the workflow handler.</p>
  */
 @Slf4j
 public abstract class AbsNodeHandler implements INodeHandler {
@@ -49,26 +50,14 @@ public abstract class AbsNodeHandler implements INodeHandler {
     }
 
     /**
-     * Template method: emits the node-start message, runs the node, records the execution
-     * time on success and propagates failures through the returned future.
+     * Template method: marks the node as started and delegates to
+     * {@link #doExecuteAsync}, which defaults to {@link #doExecute}.
      * Final - subclasses customize behavior through {@link #doExecute}/{@link #doExecuteAsync}.
      */
     @Override
     public final CompletableFuture<NodeResult> execute(IWorkflow workflow, AbsNode node) throws Exception {
-        long startTime = System.currentTimeMillis();
-        try {
-            node.setStatus(NodeStatus.STARTED.getStatus());
-            return doExecuteAsync(workflow, node)
-                    .whenComplete((result, ex) -> {
-                        if (ex == null) {
-                            recordExecutionTime(node, startTime);
-                        }
-                    });
-        } catch (Exception ex) {
-            CompletableFuture<NodeResult> failed = new CompletableFuture<>();
-            failed.completeExceptionally(ex);
-            return failed;
-        }
+        node.setStatus(NodeStatus.STARTED.getStatus());
+        return doExecuteAsync(workflow, node);
     }
 
     /**
@@ -89,17 +78,6 @@ public abstract class AbsNodeHandler implements INodeHandler {
             return null;
         }
         return nodeData.toJavaObject(paramsClass);
-    }
-
-    /**
-     * Records the node execution time (seconds) into the node detail.
-     */
-    protected void recordExecutionTime(AbsNode node, long startTime) {
-        long endTime = System.currentTimeMillis();
-        float runTime = (endTime - startTime) / 1000F;
-        node.getDetail().put(RuntimeDetailField.RUN_TIME, runTime);
-        String nodeName = node.getProperties() != null ? node.getProperties().getString(RuntimeDetailField.NODE_NAME) : node.getType();
-        log.info("node: {}, runTime: {} s", nodeName, runTime);
     }
 
     // ==================== detail helpers ====================
