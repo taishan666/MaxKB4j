@@ -95,8 +95,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
         if (NodeResultWriter.isAssertionResult(currentNodeResult)) {
             List<AbsNode> targetNodes = buildNextNodes(targetNodeIds, currentNode);
             targetNodes.forEach(node -> {
-                if (!isAssertionNode(node.getId(), currentNodeResult, sourceEdges)
-                        && dependencyChecker.isAssertionSkipNode(node, currentNode.getId())) {
+                if (!isAssertionNode(node.getId(), currentNodeResult, sourceEdges)) {
                     node.setStatus(NodeStatus.SKIP.getStatus());
                 }
             });
