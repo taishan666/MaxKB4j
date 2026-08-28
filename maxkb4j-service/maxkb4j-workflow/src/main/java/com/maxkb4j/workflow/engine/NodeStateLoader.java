@@ -10,7 +10,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.FormField;
 import static com.maxkb4j.workflow.consts.WorkflowConstants.RuntimeDetailField;
@@ -72,7 +71,7 @@ public class NodeStateLoader {
             Integer nodeStatus = (Integer) nodeDetail.get(RuntimeDetailField.STATUS);
             if (Objects.equals(runtimeNodeId, currentNodeId)) {
                 // 处理当前节点
-                restoredCurrentNode = getNodeInstance(nodeId, upNodeIdList, n -> {
+                restoredCurrentNode = configuration.getNodeInstance(nodeId, upNodeIdList, n -> {
                     JSONObject nodeProperties = n.getProperties();
                     if (nodeProperties.containsKey(RuntimeDetailField.NODE_DATA)) {
                         JSONObject nodeData = nodeProperties.getJSONObject(RuntimeDetailField.NODE_DATA);
@@ -88,7 +87,7 @@ public class NodeStateLoader {
                 }
             } else {
                 // 处理其他节点
-                AbsNode node = getNodeInstance(nodeId, upNodeIdList, null);
+                AbsNode node = configuration.getNodeInstance(nodeId, upNodeIdList, null);
                 if (node != null) {
                     node.setStatus(nodeStatus);
                     node.saveContext(workflow, nodeDetail);
@@ -98,26 +97,5 @@ public class NodeStateLoader {
             }
         }
         return restoredCurrentNode;
-    }
-
-    /**
-     * 根据节点ID获取节点实例
-     * 从配置解析节点，注入上游节点列表与属性处理函数，并重新生成运行时ID
-     *
-     * @param nodeId            节点ID
-     * @param upNodeIds         上游节点ID列表
-     * @param getNodeProperties 节点属性处理函数
-     * @return 节点实例，节点不存在时返回 null
-     */
-    public AbsNode getNodeInstance(String nodeId, List<String> upNodeIds, Function<AbsNode, JSONObject> getNodeProperties) {
-        AbsNode node = configuration.getNode(nodeId);
-        if (node != null) {
-            node.setUpNodeIdList(upNodeIds);
-            node.setStatus(NodeStatus.READY.getStatus());
-            if (getNodeProperties != null) {
-                getNodeProperties.apply(node);
-            }
-        }
-        return node;
     }
 }

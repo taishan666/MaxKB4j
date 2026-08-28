@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 
@@ -32,6 +31,10 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
  */
 public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
 
+    /**
+     * 工作流配置（节点解析来源）
+     */
+    private final WorkflowConfiguration configuration;
     /**
      * 边导航器
      */
@@ -57,6 +60,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
                                      WorkflowContext context,
                                      EdgeNavigator navigator) {
         this.navigator = navigator;
+        this.configuration= configuration;
         this.dependencyChecker = new NodeDependencyChecker(configuration, navigator);
         this.stateLoader = new NodeStateLoader(configuration, context);
         this.executionTracker = new ExecutionTracker();
@@ -68,11 +72,11 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
     }
 
     /**
-     * 获取下一节点列表
+     * 获取下一个节点列表
      *
      * @param currentNode       当前节点
      * @param currentNodeResult 当前节点执行结果
-     * @return 下一节点列表
+     * @return 下一个节点列表
      */
     @Override
     public List<AbsNode> nextNodes(AbsNode currentNode, NodeResult currentNodeResult) {
@@ -129,18 +133,6 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
     }
 
     /**
-     * 根据节点ID获取节点实例
-     *
-     * @param nodeId            节点ID
-     * @param upNodeIds         上游节点ID列表
-     * @param getNodeProperties 节点属性处理函数
-     * @return 节点实例
-     */
-    public AbsNode getNodeInstance(String nodeId, List<String> upNodeIds, Function<AbsNode, JSONObject> getNodeProperties) {
-        return stateLoader.getNodeInstance(nodeId, upNodeIds, getNodeProperties);
-    }
-
-    /**
      * 记录节点执行
      *
      * @param node 正在执行的节点
@@ -161,7 +153,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
         List<String> upNodeIdList = new ArrayList<>(currentNode.getUpNodeIdList());
         upNodeIdList.add(currentNode.getId());
         return targetNodeIds.stream()
-                .map(nodeId -> getNodeInstance(nodeId, upNodeIdList, null))
+                .map(nodeId -> configuration.getNodeInstance(nodeId, upNodeIdList, null))
                 .filter(Objects::nonNull)
                 .toList();
     }

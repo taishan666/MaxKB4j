@@ -249,7 +249,7 @@ public abstract class AbstractWorkflow implements IWorkflow {
      * @return 节点实例
      */
     public AbsNode getNodeInstance(String nodeId, List<String> upNodeIds, Function<AbsNode, JSONObject> getNodeProperties) {
-        return executionAccessor.getNodeInstance(nodeId, upNodeIds, getNodeProperties);
+        return configuration.getNodeInstance(nodeId, upNodeIds, getNodeProperties);
     }
 
 }
