@@ -55,6 +55,7 @@ public class NodeStateLoader {
             log.warn("loadNodeState called with null details or currentNodeId");
             return null;
         }
+        configuration.getNodes().forEach(e->e.setStatus(NodeStatus.SKIP.getStatus()));
         List<Map<String, Object>> sortedDetails = details.values().stream()
                 .filter(Objects::nonNull)
                 .map(row -> (Map<String, Object>) row)

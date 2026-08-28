@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.RuntimeDetailField;
 
@@ -57,35 +56,23 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         long timeoutMinutes = workflow.getNodeExecutionTimeoutMinutes();
         List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
         List<AbsNode> scheduledNodes = new ArrayList<>();
-        List<AtomicReference<Thread>> workerThreads = new ArrayList<>();
         for (AbsNode node : nodeList) {
             if (NodeStatus.READY.getStatus() == node.getStatus() || NodeStatus.INTERRUPT.getStatus() == node.getStatus()) {
                 INodeHandler handler = nodeCenter.getHandler(node.getType());
                 if (handler.isAsync()) {
                     // Async node: runs on its own future without occupying a workflowTaskExecutor thread
                     futureList.add(runAsyncChainNode(workflow, node));
-                    workerThreads.add(null);
                 } else {
                     // Sync node: runs on the workflowTaskExecutor
-                    AtomicReference<Thread> workerThread = new AtomicReference<>();
                     futureList.add(CompletableFuture.supplyAsync(
-                            () -> {
-                                workerThread.set(Thread.currentThread());
-                                try {
-                                    return runChainNode(workflow, node);
-                                } finally {
-                                    workerThread.set(null);
-                                }
-                            },
+                            () -> runChainNode(workflow, node),
                             workflowTaskExecutor));
-                    workerThreads.add(workerThread);
                 }
                 scheduledNodes.add(node);
             } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
                 List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(Map.of()));
                 nextNodeList.forEach(nextNode -> nextNode.setStatus(NodeStatus.SKIP.getStatus()));
                 futureList.add(CompletableFuture.completedFuture(nextNodeList));
-                workerThreads.add(null);
                 scheduledNodes.add(node);
             }
         }
@@ -98,15 +85,6 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             } catch (TimeoutException e) {
                 log.error("Node execution timeout after {} minutes", timeoutMinutes);
                 future.cancel(true);
-                // CompletableFuture.cancel 不会中断底层任务，这里显式中断执行线程，
-                // 避免超时节点继续占用线程池资源并在结束后覆写节点状态
-                AtomicReference<Thread> workerThread = workerThreads.get(i);
-                if (workerThread != null) {
-                    Thread worker = workerThread.get();
-                    if (worker != null) {
-                        worker.interrupt();
-                    }
-                }
                 exceptionResolverChain.resolve(workflow, node, new RuntimeException("Node execution timeout after " + timeoutMinutes + " minutes"));
                 node.setStatus(NodeStatus.ERROR.getStatus());
             } catch (Exception e) {
@@ -251,7 +229,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         String nodeName = node.getProperties() != null
                 ? node.getProperties().getString(RuntimeDetailField.NODE_NAME)
                 : node.getType();
-        log.info("node ({}): {}, runTime: {} s", node.getStatus(), nodeName, runTime);
+        log.info("node: {}, runTime: {} s", nodeName, runTime);
     }
 
 }

@@ -5,6 +5,7 @@ import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.node.AbsNode;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * 节点依赖检查器
@@ -46,7 +47,9 @@ public class NodeDependencyChecker {
         List<AbsNode> upNodes = configuration.getNodes().stream()
                 .filter(n -> upNodeIdList.contains(n.getId()))
                 .toList();
+        Predicate<AbsNode> isExecuted = n -> (NodeStatus.SUCCESS.getStatus() == n.getStatus()
+                ||NodeStatus.SKIP.getStatus() == n.getStatus());
         return !upNodes.stream()
-                .allMatch(n -> (NodeStatus.SUCCESS.getStatus() == n.getStatus()||NodeStatus.SKIP.getStatus() == n.getStatus()));
+                .allMatch(isExecuted);
     }
 }
