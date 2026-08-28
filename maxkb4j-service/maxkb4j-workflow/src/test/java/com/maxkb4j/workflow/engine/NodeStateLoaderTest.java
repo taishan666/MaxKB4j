@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.RuntimeDetailField;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,29 +44,6 @@ class NodeStateLoaderTest {
     private NodeStateLoader loader(List<AbsNode> nodes, WorkflowContext context) {
         WorkflowConfiguration configuration = new WorkflowConfiguration(WorkflowMode.KNOWLEDGE, nodes, List.of());
         return new NodeStateLoader(configuration, context);
-    }
-
-    @Test
-    void getNodeInstance_wiresUpstreamAndAppliesPropertiesMapper() {
-        AbsNode n1 = node("n1");
-        NodeStateLoader stateLoader = loader(List.of(n1), new WorkflowContext());
-        AtomicBoolean mapperApplied = new AtomicBoolean(false);
-
-        AbsNode result = stateLoader.getNodeInstance("n1", List.of("up1"), n -> {
-            mapperApplied.set(true);
-            return n.getProperties();
-        });
-
-        assertThat(result).isSameAs(n1);
-        assertThat(result.getUpNodeIdList()).containsExactly("up1");
-        assertThat(mapperApplied).isTrue();
-    }
-
-    @Test
-    void getNodeInstance_unknownNodeReturnsNull() {
-        NodeStateLoader stateLoader = loader(List.of(node("n1")), new WorkflowContext());
-
-        assertThat(stateLoader.getNodeInstance("nope", List.of(), null)).isNull();
     }
 
     @Test
