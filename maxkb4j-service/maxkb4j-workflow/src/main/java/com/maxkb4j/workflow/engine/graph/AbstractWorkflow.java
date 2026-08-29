@@ -237,15 +237,4 @@ public abstract class AbstractWorkflow implements IWorkflow {
         return executionAccessor;
     }
 
-    /**
-     * 根据节点ID获取节点实例
-     * 统一委托给执行访问器，避免节点实例化逻辑散落多处
-     *
-     * @param nodeId            节点ID
-     * @return 节点实例
-     */
-    public AbsNode getNodeInstance(String nodeId) {
-        return configuration.getNodeInstance(nodeId, List.of(), null);
-    }
-
 }
