@@ -80,7 +80,7 @@ public class NodeStateLoader {
                     return nodeProperties;
                 });
                 if (restoredCurrentNode != null) {
-                    restoredCurrentNode.setStatus(nodeStatus);
+                    restoredCurrentNode.setStatus(NodeStatus.READY.getStatus());
                     restoredCurrentNode.saveContext(workflow, nodeDetail);
                     restoredCurrentNode.setDetail(nodeDetail);
                     context.appendNode(restoredCurrentNode);
