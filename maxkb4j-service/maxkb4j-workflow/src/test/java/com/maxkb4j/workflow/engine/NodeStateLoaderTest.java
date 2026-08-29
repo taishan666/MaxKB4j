@@ -62,7 +62,7 @@ class NodeStateLoaderTest {
         AbsNode restored = stateLoader.loadNodeState(null, details, "rt-2", currentNodeData);
 
         assertThat(restored).isSameAs(n2);
-        assertThat(restored.getStatus()).isEqualTo(NodeStatus.SUCCESS.getStatus());
+        assertThat(restored.getStatus()).isEqualTo(NodeStatus.READY.getStatus());
         assertThat(restored.getProperties().getJSONObject(RuntimeDetailField.NODE_DATA))
                 .containsEntry("form_data", currentNodeData);
         // 按 index 顺序恢复全部节点到上下文
