@@ -11,7 +11,6 @@ public enum NodeStatus {
     SUCCESS(200),
     STARTED(202),
     SKIP(205),
-    INTERRUPT(206),
     ERROR(500),
     ;
 

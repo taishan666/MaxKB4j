@@ -81,7 +81,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
     @Override
     public List<AbsNode> nextNodes(AbsNode currentNode, NodeResult currentNodeResult) {
         // 检查是否需要中断执行
-        if (NodeStatus.INTERRUPT.getStatus() == currentNode.getStatus()) {
+        if (currentNodeResult != null && NodeResultWriter.isInterruptExec(currentNodeResult, currentNode)) {
             return List.of();
         }
         // 获取下游边
@@ -89,6 +89,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
         if (sourceEdges.isEmpty()) {
             return List.of();
         }
+
         // 获取目标节点ID
         List<String> targetNodeIds = sourceEdges.stream()
                 .map(LfEdge::getTargetNodeId)
@@ -96,7 +97,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
                 .toList();
 
         // 处理断言结果分支
-        if (NodeResultWriter.isAssertionResult(currentNodeResult)) {
+        if (currentNodeResult != null && NodeResultWriter.isAssertionResult(currentNodeResult)) {
             List<AbsNode> targetNodes = buildNextNodes(targetNodeIds, currentNode);
             targetNodes.forEach(node -> {
                 if (!isAssertionNode(node.getId(), currentNodeResult, sourceEdges)) {

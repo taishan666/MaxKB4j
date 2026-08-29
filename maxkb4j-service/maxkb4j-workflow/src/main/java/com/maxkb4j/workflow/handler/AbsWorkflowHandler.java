@@ -57,7 +57,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
         List<AbsNode> scheduledNodes = new ArrayList<>();
         for (AbsNode node : nodeList) {
-            if (NodeStatus.READY.getStatus() == node.getStatus() || NodeStatus.INTERRUPT.getStatus() == node.getStatus()) {
+            if (NodeStatus.READY.getStatus() == node.getStatus()) {
                 INodeHandler handler = nodeCenter.getHandler(node.getType());
                 if (handler.isAsync()) {
                     // Async node: runs on its own future without occupying a workflowTaskExecutor thread
@@ -154,9 +154,6 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      */
     private List<AbsNode> completeNode(IWorkflow workflow, AbsNode node, NodeResult result) {
         node.setStatus(NodeStatus.SUCCESS.getStatus());
-        if (result != null && NodeResultWriter.isInterruptExec(result, node)) {
-            node.setStatus(NodeStatus.INTERRUPT.getStatus());
-        }
         onNodeSuccess(workflow, node, result);
         return workflow.execution().nextNodes(node, result);
     }
