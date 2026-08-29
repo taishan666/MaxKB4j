@@ -42,7 +42,7 @@ import java.util.concurrent.*;
  * 安全的 Groovy 脚本执行器
  * <p>
  * 采用三层防护：
- * 1. 编译期 AST 限制（SecureASTCustomizer）：禁止 .class 字面量、限制常量类型
+ * 1. 编译期 AST 限制（SecureASTCustomizer）：类引用仅限白名单、限制常量类型
  * 2. 运行期沙箱（SandboxTransformer + 白名单拦截器）：只允许白名单中的类和方法调用
  * 3. 超时控制：通过线程池限制脚本执行时间，防止无限循环/资源耗尽
  * </p>
@@ -83,7 +83,6 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         SecureASTCustomizer ast = new SecureASTCustomizer();
         ast.setClosuresAllowed(true);
         ast.setDisallowedExpressions(List.of(
-                ClassExpression.class,
                 MethodPointerExpression.class,
                 AttributeExpression.class
         ));
@@ -172,6 +171,9 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         allowedConstants.add(java.time.LocalDateTime.class);
         allowedConstants.add(java.time.LocalTime.class);
         allowedConstants.add(java.time.Instant.class);
+        allowedConstants.add(java.time.ZonedDateTime.class);
+        allowedConstants.add(java.time.ZoneId.class);
+        allowedConstants.add(java.time.format.DateTimeFormatter.class);
         ast.setAllowedConstantTypesClasses(allowedConstants);
 
         // ========== 3. Groovy Sandbox 运行期沙箱 ==========
@@ -385,6 +387,11 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
     }
 
     private static boolean isSafeExpression(Expression expression) {
+        if (expression instanceof ClassExpression classExpression) {
+            // 类引用（静态调用接收者、instanceof、.class 等）仅允许运行期白名单中的类，
+            // 未在白名单中的类在编译期即被拒绝，避免放开 ClassExpression 后引入任意类引用
+            return GroovySandboxInterceptor.isAllowedClassName(classExpression.getType().getName());
+        }
         if (expression instanceof MethodCallExpression methodCallExpression) {
             String methodName = methodCallExpression.getMethodAsString();
             return methodName == null || !DANGEROUS_METHODS.contains(methodName);

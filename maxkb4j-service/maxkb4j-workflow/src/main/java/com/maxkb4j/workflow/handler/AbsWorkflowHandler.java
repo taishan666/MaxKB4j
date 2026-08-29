@@ -4,8 +4,8 @@ import com.maxkb4j.workflow.engine.NodeResultWriter;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.handler.node.INodeHandler;
-import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.IWorkflow;
+import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import com.maxkb4j.workflow.service.IWorkflowHandler;
@@ -16,17 +16,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
+
+import static com.maxkb4j.workflow.consts.WorkflowConstants.RuntimeDetailField;
 
 /**
  * Abstract base class for workflow handlers.
  *
- * <p>Schedules READY/INTERRUPT nodes either on the workflowTaskExecutor (synchronous
- * handlers) or directly on the future returned by the handler (asynchronous streaming
- * handlers). Success completion is unified in {@link #completeNode} for both paths.</p>
+ * <p>Schedules READY nodes either on the workflowTaskExecutor (synchronous handlers) or
+ * directly on the future returned by the handler (asynchronous streaming handlers).
+ * Success completion is unified in {@link #completeNode} for both paths.</p>
  */
 @Slf4j
 public abstract class AbsWorkflowHandler implements IWorkflowHandler {
@@ -59,39 +61,23 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         long timeoutMinutes = workflow.getNodeExecutionTimeoutMinutes();
         List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
         List<AbsNode> scheduledNodes = new ArrayList<>();
-        List<AtomicReference<Thread>> workerThreads = new ArrayList<>();
         for (AbsNode node : nodeList) {
-            if (NodeStatus.READY.getStatus() == node.getStatus() || NodeStatus.INTERRUPT.getStatus() == node.getStatus()) {
+            if (NodeStatus.READY.getStatus() == node.getStatus()) {
                 INodeHandler handler = nodeCenter.getHandler(node.getType());
                 if (handler.isAsync()) {
                     // Async node: runs on its own future without occupying a workflowTaskExecutor thread
                     futureList.add(runAsyncChainNode(workflow, node));
-                    workerThreads.add(null);
                 } else {
                     // Sync node: runs on the workflowTaskExecutor
-                    AtomicReference<Thread> workerThread = new AtomicReference<>();
                     futureList.add(CompletableFuture.supplyAsync(
-                            () -> {
-                                workerThread.set(Thread.currentThread());
-                                try {
-                                    return runChainNode(workflow, node);
-                                } finally {
-                                    workerThread.set(null);
-                                }
-                            },
+                            () -> runChainNode(workflow, node),
                             workflowTaskExecutor));
-                    workerThreads.add(workerThread);
                 }
                 scheduledNodes.add(node);
             } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
                 List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(Map.of()));
-                nextNodeList.forEach(nextNode -> {
-                    if (workflow.execution().isSkipNode(nextNode)) {
-                        nextNode.setStatus(NodeStatus.SKIP.getStatus());
-                    }
-                });
+                nextNodeList.forEach(nextNode -> nextNode.setStatus(NodeStatus.SKIP.getStatus()));
                 futureList.add(CompletableFuture.completedFuture(nextNodeList));
-                workerThreads.add(null);
                 scheduledNodes.add(node);
             }
         }
@@ -104,20 +90,17 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             } catch (TimeoutException e) {
                 log.error("Node execution timeout after {} minutes", timeoutMinutes);
                 future.cancel(true);
-                // CompletableFuture.cancel 不会中断底层任务，这里显式中断执行线程，
-                // 避免超时节点继续占用线程池资源并在结束后覆写节点状态
-                AtomicReference<Thread> workerThread = workerThreads.get(i);
-                if (workerThread != null) {
-                    Thread worker = workerThread.get();
-                    if (worker != null) {
-                        worker.interrupt();
-                    }
-                }
-                exceptionResolverChain.resolve(workflow, node, new RuntimeException("Node execution timeout after " + timeoutMinutes + " minutes"));
-                node.setStatus(NodeStatus.ERROR.getStatus());
-            } catch (Exception e) {
-                exceptionResolverChain.resolve(workflow, node, e);
-                node.setStatus(NodeStatus.ERROR.getStatus());
+                handleNodeError(workflow, node,
+                        new RuntimeException("Node execution timeout after " + timeoutMinutes + " minutes"));
+            } catch (ExecutionException e) {
+                handleNodeError(workflow, node, unwrapException(e.getCause()));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("Interrupted while waiting for node {} execution", node.getType());
+                break;
+            } catch (RuntimeException e) {
+                log.error("Unexpected failure while scheduling node {}: {}", node.getType(), e.getMessage());
+                handleNodeError(workflow, node, e);
             }
         }
     }
@@ -126,13 +109,12 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * Executes one synchronous node and returns the next nodes to schedule.
      */
     protected List<AbsNode> runChainNode(IWorkflow workflow, AbsNode node) {
-        if (!workflow.execution().dependenciesExecuted(node) || !node.tryClaimRunning()) {
+        if (workflow.execution().dependenciesNotExecuted(node)) {
             return List.of();
         }
         NodeResult result = runNode(workflow, node);
         if (result != null) {
-            NodeResultWriter.writeDetail(result, node);
-            NodeResultWriter.writeContext(result, node, workflow);
+            writeResult(result, node, workflow);
         }
         if (NodeStatus.ERROR.getStatus() == node.getStatus()) {
             return List.of();
@@ -145,12 +127,13 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * does not occupy a workflowTaskExecutor thread.
      */
     protected CompletableFuture<List<AbsNode>> runAsyncChainNode(IWorkflow workflow, AbsNode node) {
-        if (!node.tryClaimRunning()) {
+        if (workflow.execution().dependenciesNotExecuted(node)) {
             return CompletableFuture.completedFuture(List.of());
         }
         onNodeStart(workflow, node);
         workflow.execution().recordExecution(node);
         INodeHandler nodeHandler = nodeCenter.getHandler(node.getType());
+        long startTime = System.currentTimeMillis();
         CompletableFuture<NodeResult> resultFuture;
         try {
             resultFuture = nodeHandler.execute(workflow, node);
@@ -159,30 +142,39 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             handleNodeError(workflow, node, ex);
             return CompletableFuture.completedFuture(List.of());
         }
-        return resultFuture.handle((result, ex) -> {
-            if (ex != null) {
-                Throwable cause = ex instanceof CompletionException ? ex.getCause() : ex;
-                Exception realEx = cause instanceof Exception ? (Exception) cause : new RuntimeException(cause);
-                handleNodeError(workflow, node, realEx);
-                return List.of();
-            }
-            if (result != null) {
-                NodeResultWriter.writeDetail(result, node);
-                NodeResultWriter.writeContext(result, node, workflow);
-            }
-            return completeNode(workflow, node, result);
-        });
+        return resultFuture.handle((result, ex) -> completeAsyncNode(workflow, node, startTime, result, ex));
     }
 
     /**
-     * Completes a successfully executed node: applies the success status (or INTERRUPT when
-     * the node asks to pause), fires the success hook and resolves the next nodes.
+     * Completes an asynchronously executed node: converts failures into an empty node list
+     * and delegates successful results to {@link #completeNode}.
+     */
+    private List<AbsNode> completeAsyncNode(IWorkflow workflow, AbsNode node, long startTime, NodeResult result, Throwable ex) {
+        if (ex != null) {
+            handleNodeError(workflow, node, unwrapException(ex));
+            return List.of();
+        }
+        recordExecutionTime(node, startTime);
+        if (result != null) {
+            writeResult(result, node, workflow);
+        }
+        return completeNode(workflow, node, result);
+    }
+
+    /**
+     * Writes the node result into the node detail and the workflow context.
+     */
+    private void writeResult(NodeResult result, AbsNode node, IWorkflow workflow) {
+        NodeResultWriter.writeDetail(result, node);
+        NodeResultWriter.writeContext(result, node, workflow);
+    }
+
+    /**
+     * Completes a successfully executed node: applies the SUCCESS status, fires the success
+     * hook and resolves the next nodes.
      */
     private List<AbsNode> completeNode(IWorkflow workflow, AbsNode node, NodeResult result) {
         node.setStatus(NodeStatus.SUCCESS.getStatus());
-        if (result != null && NodeResultWriter.isInterruptExec(result, node)) {
-            node.setStatus(NodeStatus.INTERRUPT.getStatus());
-        }
         onNodeSuccess(workflow, node, result);
         return workflow.execution().nextNodes(node, result);
     }
@@ -197,15 +189,13 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
             onNodeStart(workflow, node);
             workflow.execution().recordExecution(node);
             INodeHandler nodeHandler = nodeCenter.getHandler(node.getType());
+            long startTime = System.currentTimeMillis();
             NodeResult result = nodeHandler.execute(workflow, node).join();
             node.setStatus(NodeStatus.SUCCESS.getStatus());
+            recordExecutionTime(node, startTime);
             return result;
-        } catch (CompletionException ex) {
-            Throwable cause = ex.getCause();
-            Exception realEx = cause instanceof Exception ? (Exception) cause : new RuntimeException(cause);
-            return handleNodeError(workflow, node, realEx);
         } catch (Exception ex) {
-            return handleNodeError(workflow, node, ex);
+            return handleNodeError(workflow, node, unwrapException(ex));
         }
     }
 
@@ -241,6 +231,30 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         exceptionResolverChain.resolve(workflow, node, ex);
         node.setStatus(NodeStatus.ERROR.getStatus());
         return new NodeResult(Map.of());
+    }
+
+    /**
+     * Records the node execution time (seconds) into the node detail.
+     */
+    protected void recordExecutionTime(AbsNode node, long startTime) {
+        long endTime = System.currentTimeMillis();
+        float runTime = (endTime - startTime) / 1000F;
+        node.getDetail().put(RuntimeDetailField.RUN_TIME, runTime);
+        String nodeName = node.getProperties() != null
+                ? node.getProperties().getString(RuntimeDetailField.NODE_NAME)
+                : node.getType();
+        log.info("node: {}, runTime: {} s", nodeName, runTime);
+    }
+
+    /**
+     * Unwraps the real exception cause from a {@link CompletionException} chain, converting
+     * non-{@link Exception} throwables into a {@link RuntimeException}.
+     */
+    private static Exception unwrapException(Throwable cause) {
+        while (cause instanceof CompletionException && cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        return cause instanceof Exception ? (Exception) cause : new RuntimeException(cause);
     }
 
 }

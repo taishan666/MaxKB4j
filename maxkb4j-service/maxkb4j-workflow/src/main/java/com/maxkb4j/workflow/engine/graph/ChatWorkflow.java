@@ -63,7 +63,7 @@ public class ChatWorkflow extends AbstractWorkflow implements IChatWorkflow {
      */
     @Override
     public List<AbsNode> startNodes() {
-        return List.of(getNodeInstance(NodeType.START.getKey(), List.of(), null));
+        return List.of(getNode(NodeType.START.getKey()));
     }
 
 }

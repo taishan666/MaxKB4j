@@ -1,11 +1,14 @@
 package com.maxkb4j.workflow.engine;
 
+import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -72,6 +75,28 @@ public class WorkflowConfiguration {
         return nodes.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toUnmodifiableMap(AbsNode::getId, n -> n, (a, b) -> a));
+    }
+
+
+    /**
+     * 根据节点ID获取节点实例
+     * 从配置解析节点，注入上游节点列表与属性处理函数，并重新生成运行时ID
+     *
+     * @param nodeId            节点ID
+     * @param upNodeIds         上游节点ID列表
+     * @param getNodeProperties 节点属性处理函数
+     * @return 节点实例，节点不存在时返回 null
+     */
+    public AbsNode getNodeInstance(String nodeId, List<String> upNodeIds, Function<AbsNode, JSONObject> getNodeProperties) {
+        AbsNode node = this.getNode(nodeId);
+        if (node != null) {
+            node.setUpNodeIdList(upNodeIds);
+            node.setStatus(NodeStatus.READY.getStatus());
+            if (getNodeProperties != null) {
+                getNodeProperties.apply(node);
+            }
+        }
+        return node;
     }
 
     /**

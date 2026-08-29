@@ -2,7 +2,6 @@ package com.maxkb4j.workflow.node;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.dto.Answer;
-import com.maxkb4j.workflow.enums.NodeStatus;
 import org.junit.jupiter.api.Test;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
@@ -16,35 +15,6 @@ class AbsNodeTest {
 
     private AbsNode newNode(String id) {
         return new AbsNode(id, new JSONObject()) {};
-    }
-
-    @Test
-    void freshNodeIsReadyAndClaimsOnce() {
-        AbsNode node = newNode("n1");
-        assertThat(node.getStatus()).isEqualTo(NodeStatus.READY.getStatus());
-        assertThat(node.tryClaimRunning()).isTrue();
-        assertThat(node.getStatus()).isEqualTo(NodeStatus.STARTED.getStatus());
-        // 已被抢占，再次抢占失败
-        assertThat(node.tryClaimRunning()).isFalse();
-    }
-
-    @Test
-    void tryClaimRunning_returnsFalseForTerminalStates() {
-        AbsNode success = newNode("n1");
-        success.setStatus(NodeStatus.SUCCESS.getStatus());
-        assertThat(success.tryClaimRunning()).isFalse();
-
-        AbsNode error = newNode("n2");
-        error.setStatus(NodeStatus.ERROR.getStatus());
-        assertThat(error.tryClaimRunning()).isFalse();
-    }
-
-    @Test
-    void interruptStateCanBeClaimed() {
-        AbsNode node = newNode("n1");
-        node.setStatus(NodeStatus.INTERRUPT.getStatus());
-        assertThat(node.tryClaimRunning()).isTrue();
-        assertThat(node.getStatus()).isEqualTo(NodeStatus.STARTED.getStatus());
     }
 
     @Test

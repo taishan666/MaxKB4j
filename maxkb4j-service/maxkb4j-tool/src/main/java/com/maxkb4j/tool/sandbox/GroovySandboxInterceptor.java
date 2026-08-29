@@ -49,6 +49,7 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             "java.time.Duration",
             "java.time.Period",
             "java.time.ZoneId",
+            "java.time.format.DateTimeFormatter",
             "java.time.temporal.TemporalAccessor",
             "java.util.Date",
             "java.util.Calendar",
@@ -121,6 +122,15 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             "iterator", "listIterator", "spliterator", "stream", "parallelStream",
             "keySet", "values", "entrySet",
             "subList", "subMap", "subSet",
+            // ===== 时间 =====
+            "atZone", "toInstant", "toEpochMilli",
+            "withZone", "withLocale",
+            "plusDays", "minusDays", "plusWeeks", "minusWeeks",
+            "plusMonths", "minusMonths", "plusYears", "minusYears",
+            "plusHours", "minusHours", "plusMinutes", "minusMinutes",
+            "plusSeconds", "minusSeconds", "plusNanos", "minusNanos",
+            "withYear", "withMonth", "withDayOfMonth",
+            "withHour", "withMinute", "withSecond", "withNano",
             // ===== 字符串 =====
             "toString", "length", "charAt", "substring", "trim", "strip",
             "indexOf", "lastIndexOf",
@@ -128,8 +138,10 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             "replace", "replaceAll", "replaceFirst",
             "split",
             "format",
+            "parse",
             "concat",
             "matches",
+            "group", "groupCount",
             "repeat",
             "chars", "codePoints",
             "lines",
@@ -209,7 +221,8 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             "java.lang.StringBuffer",
             "java.text.SimpleDateFormat",
             "java.text.DecimalFormat",
-            "groovy.json.JsonSlurper"
+            "groovy.json.JsonSlurper",
+            "java.lang.IllegalArgumentException"
     );
 
     private static final Map<String, Set<String>> ALLOWED_STATIC_METHODS = Map.ofEntries(
@@ -240,9 +253,12 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             Map.entry("java.time.Instant", Set.of("now", "ofEpochMilli", "ofEpochSecond", "parse")),
             Map.entry("java.time.Duration", Set.of("ofDays", "ofHours", "ofMinutes", "ofSeconds", "ofMillis", "between", "parse")),
             Map.entry("java.time.Period", Set.of("of", "ofDays", "ofMonths", "ofYears", "between", "parse")),
+            Map.entry("java.time.ZoneId", Set.of("of", "systemDefault", "ofOffset")),
+            Map.entry("java.time.format.DateTimeFormatter", Set.of("ofPattern", "ofLocalizedDate", "ofLocalizedTime", "ofLocalizedDateTime")),
             Map.entry("groovy.json.JsonOutput", Set.of("toJson", "prettyPrint")),
             Map.entry("org.codehaus.groovy.runtime.DefaultGroovyMethods", ALLOWED_METHODS),
-            Map.entry("org.codehaus.groovy.runtime.StringGroovyMethods", ALLOWED_METHODS)
+            Map.entry("org.codehaus.groovy.runtime.StringGroovyMethods", ALLOWED_METHODS),
+            Map.entry("org.codehaus.groovy.runtime.ScriptBytecodeAdapter", Set.of("findRegex", "matchRegex"))
     );
 
     @Override
@@ -506,6 +522,22 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
         }
     }
 
+    /**
+     * 编译期 ClassExpression 白名单校验：脚本中允许引用（类名）的类。
+     * 与运行期白名单及可实例化类保持一致的单一事实来源，
+     * 未在白名单中的类在编译期即被拒绝。
+     */
+    public static boolean isAllowedClassName(String className) {
+        return "java.lang.Object".equals(className)
+                || PRIMITIVE_TYPE_NAMES.contains(className)
+                || ALLOWED_CLASSES.contains(className)
+                || ALLOWED_STATIC_METHODS.containsKey(className)
+                || ALLOWED_CONSTRUCTOR_CLASSES.contains(className);
+    }
+
+    private static final Set<String> PRIMITIVE_TYPE_NAMES = Set.of(
+            "int", "long", "double", "float", "boolean", "char", "byte", "short", "void"
+    );
     private static String normalizeClassName(Class<?> type) {
         String className = type.getName();
         if (className.contains("$$")) {

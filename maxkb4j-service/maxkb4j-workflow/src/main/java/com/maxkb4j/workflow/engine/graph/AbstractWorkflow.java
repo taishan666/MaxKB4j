@@ -1,6 +1,5 @@
 package com.maxkb4j.workflow.engine.graph;
 
-import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.engine.*;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.model.*;
@@ -10,7 +9,6 @@ import dev.langchain4j.data.message.ChatMessage;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * 工作流门面抽象基类
@@ -237,25 +235,6 @@ public abstract class AbstractWorkflow implements IWorkflow {
     @Override
     public IWorkflowExecutionAccessor execution() {
         return executionAccessor;
-    }
-
-    /**
-     * 根据节点ID获取节点实例
-     *
-     * @param nodeId          节点ID
-     * @param upNodeIds       上游节点ID列表
-     * @param getNodeProperties 节点属性处理函数
-     * @return 节点实例
-     */
-    public AbsNode getNodeInstance(String nodeId, List<String> upNodeIds, Function<AbsNode, JSONObject> getNodeProperties) {
-        AbsNode node = configuration.getNode(nodeId);
-        if (node != null) {
-            node.setUpNodeIdList(upNodeIds);
-            if (getNodeProperties != null) {
-                getNodeProperties.apply(node);
-            }
-        }
-        return node;
     }
 
 }

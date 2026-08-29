@@ -8,60 +8,62 @@ import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.IWorkflowExecutionAccessor;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 
 /**
- * 工作流执行控制器
- * 负责管理工作流的执行控制：节点状态恢复、下一节点计算、依赖检查等
- * 从 Workflow 类提取，遵循单一职责原则
+ * 工作流执行控制器（组合门面）
+ * <p>
+ * 负责编排执行控制各子组件，对外屏蔽内部协作细节：
+ * <ul>
+ *   <li>{@link EdgeNavigator} — 上下游边查找</li>
+ *   <li>{@link NodeDependencyChecker} — 依赖就绪与 SKIP 判定</li>
+ *   <li>{@link NodeStateLoader} — 节点实例化与执行状态恢复</li>
+ *   <li>{@link ExecutionTracker} — 执行路径与时间戳记录</li>
+ * </ul>
+ * 本类自身仅保留下一节点计算（含断言分支处理）。
+ * </p>
  */
-@Slf4j
-@Getter
 public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
 
     /**
-     * 工作流配置
+     * 工作流配置（节点解析来源）
      */
     private final WorkflowConfiguration configuration;
-    /**
-     * 工作流上下文
-     */
-    private final WorkflowContext context;
     /**
      * 边导航器
      */
     private final EdgeNavigator navigator;
     /**
+     * 节点依赖检查器
+     */
+    private final NodeDependencyChecker dependencyChecker;
+    /**
+     * 节点状态加载器
+     */
+    private final NodeStateLoader stateLoader;
+    /**
+     * 执行追踪器
+     */
+    private final ExecutionTracker executionTracker;
+    /**
      * 当前执行节点
      */
     private AbsNode currentNode;
 
-    /**
-     * 执行路径记录
-     * 记录已执行节点的 runtimeNodeId 顺序
-     */
-    private final List<String> executionPath;
-
-    /**
-     * 执行时间戳记录
-     * Key: runtimeNodeId, Value: 执行开始时间戳（毫秒）
-     */
-    private final Map<String, Long> executionTimestamps;
-
     public WorkflowExecutionAccessor(WorkflowConfiguration configuration,
                                      WorkflowContext context,
                                      EdgeNavigator navigator) {
-        this.configuration = configuration;
-        this.context = context;
         this.navigator = navigator;
-        this.executionPath = new ArrayList<>();
-        this.executionTimestamps = new LinkedHashMap<>();
+        this.configuration= configuration;
+        this.dependencyChecker = new NodeDependencyChecker(configuration, navigator);
+        this.stateLoader = new NodeStateLoader(configuration, context);
+        this.executionTracker = new ExecutionTracker();
     }
 
     @Override
@@ -70,16 +72,16 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
     }
 
     /**
-     * 获取下一节点列表
+     * 获取下一个节点列表
      *
-     * @param currentNode    当前节点
+     * @param currentNode       当前节点
      * @param currentNodeResult 当前节点执行结果
-     * @return 下一节点列表
+     * @return 下一个节点列表
      */
     @Override
     public List<AbsNode> nextNodes(AbsNode currentNode, NodeResult currentNodeResult) {
         // 检查是否需要中断执行
-        if (currentNodeResult == null || NodeResultWriter.isInterruptExec(currentNodeResult, currentNode)) {
+        if (currentNodeResult != null && NodeResultWriter.isInterruptExec(currentNodeResult, currentNode)) {
             return List.of();
         }
         // 获取下游边
@@ -87,6 +89,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
         if (sourceEdges.isEmpty()) {
             return List.of();
         }
+
         // 获取目标节点ID
         List<String> targetNodeIds = sourceEdges.stream()
                 .map(LfEdge::getTargetNodeId)
@@ -94,19 +97,16 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
                 .toList();
 
         // 处理断言结果分支
-        if (NodeResultWriter.isAssertionResult(currentNodeResult)) {
-            List<AbsNode> targetNodes = buildNodes(targetNodeIds, currentNode);
+        if (currentNodeResult != null && NodeResultWriter.isAssertionResult(currentNodeResult)) {
+            List<AbsNode> targetNodes = buildNextNodes(targetNodeIds, currentNode);
             targetNodes.forEach(node -> {
                 if (!isAssertionNode(node.getId(), currentNodeResult, sourceEdges)) {
-                    if(isSkipNode(node,currentNode.getId())){
-                        node.setStatus(NodeStatus.SKIP.getStatus());
-                    }
+                    node.setStatus(NodeStatus.SKIP.getStatus());
                 }
             });
             return targetNodes;
-        } else {
-            return buildNodes(targetNodeIds, currentNode);
         }
+        return buildNextNodes(targetNodeIds, currentNode);
     }
 
     /**
@@ -116,131 +116,31 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
      * @return 是否所有依赖节点都已执行
      */
     @Override
-    public boolean dependenciesExecuted(AbsNode node) {
-        List<String> upNodeIdList = navigator.findUpstreamNodeIds(node.getId());
-        // 开始节点无上游依赖，直接通过
-        if (CollectionUtils.isEmpty(upNodeIdList)) {
-            return true;
-        }
-        Set<String> upNodeIdSet = new HashSet<>(upNodeIdList);
-        return configuration.getNodes().stream()
-                .filter(n -> upNodeIdSet.contains(n.getId()))
-                .allMatch(n -> NodeStatus.SUCCESS.getStatus() == n.getStatus() || NodeStatus.SKIP.getStatus() == n.getStatus());
+    public boolean dependenciesNotExecuted(AbsNode node) {
+        return dependencyChecker.dependenciesNotExecuted(node);
     }
-
-    /**
-     * 检查是否为就绪的 Join 节点
-     * Join节点需要等待所有上游节点执行完成
-     *
-     * @param node 待检查节点
-     * @return 是否为就绪的 Join 节点
-     */
-    @Override
-    public boolean isSkipNode(AbsNode node) {
-        List<String> upNodeIdList = navigator.findUpstreamNodeIds(node.getId());
-        if (CollectionUtils.isEmpty(upNodeIdList)) {
-            return true;
-        }
-        // 多个上游节点时，检查是否所有上游节点都是 SKIP（排除这种情况）
-        return configuration.getNodes().stream().filter(n -> upNodeIdList.contains(n.getId())).allMatch(n -> NodeStatus.SKIP.getStatus() == n.getStatus());
-    }
-
-    @Override
-    public boolean isSkipNode(AbsNode node,String excludeNodeId) {
-        List<String> upNodeIdList = navigator.findUpstreamNodeIds(node.getId());
-        if (CollectionUtils.isEmpty(upNodeIdList)) {
-            return true;
-        }
-        // 排除当前节点后剩余的上游节点集合
-        Set<String> upNodeIdSet = upNodeIdList.stream()
-                .filter(id -> !id.equals(excludeNodeId))
-                .collect(Collectors.toSet());
-        // 排除后无其他上游依赖，视为可跳过
-        if (upNodeIdSet.isEmpty()) {
-            return true;
-        }
-        // 检查剩余上游节点是否全部处于 SKIP 状态
-        return configuration.getNodes().stream()
-                .filter(n -> upNodeIdSet.contains(n.getId()))
-                .allMatch(n -> NodeStatus.SKIP.getStatus() == n.getStatus());
-    }
-
 
     /**
      * 加载节点状态
      * 用于恢复中断的工作流执行
      *
-     * @param workflow       工作流实例（用于 saveContext）
-     * @param details        节点详情
-     * @param currentNodeId  当前节点运行时ID
+     * @param workflow        工作流实例（用于 saveContext）
+     * @param details         节点详情
+     * @param currentNodeId   当前节点运行时ID
      * @param currentNodeData 当前节点数据
      */
-    @SuppressWarnings("unchecked")
     public void loadNodeState(IWorkflow workflow, JSONObject details, String currentNodeId, Map<String, Object> currentNodeData) {
-        if (details == null || currentNodeId == null) {
-            log.warn("loadNodeState called with null details or currentNodeId");
-            return;
-        }
-        List<Map<String, Object>> sortedDetails = details.values().stream()
-                .filter(Objects::nonNull)
-                .map(row -> (Map<String, Object>) row)
-                .sorted(Comparator.comparing(
-                        e -> (Integer) e.get(RuntimeDetailField.INDEX),
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                ))
-                .toList();
-
-        for (Map<String, Object> nodeDetail : sortedDetails) {
-            String nodeId = (String) nodeDetail.get(RuntimeDetailField.NODE_ID);
-            List<String> upNodeIdList = (List<String>) nodeDetail.get(RuntimeDetailField.UP_NODE_ID_LIST);
-            String runtimeNodeId = (String) nodeDetail.get(RuntimeDetailField.RUNTIME_NODE_ID);
-            Integer nodeStatus = (Integer) nodeDetail.get(RuntimeDetailField.STATUS);
-            if (Objects.equals(runtimeNodeId, currentNodeId)) {
-                // 处理当前节点
-                this.currentNode = getNodeInstance(nodeId, upNodeIdList, n -> {
-                    JSONObject nodeProperties = n.getProperties();
-                    if (nodeProperties.containsKey(RuntimeDetailField.NODE_DATA)) {
-                        JSONObject nodeParams = nodeProperties.getJSONObject(RuntimeDetailField.NODE_DATA);
-                        nodeParams.put(FormField.FORM_DATA, currentNodeData);
-                    }
-                    return nodeProperties;
-                });
-                if (currentNode != null) {
-                    currentNode.setStatus(nodeStatus);
-                    currentNode.saveContext(workflow, nodeDetail);
-                    currentNode.setDetail(nodeDetail);
-                    context.appendNode(currentNode);
-                }
-            } else {
-                // 处理其他节点
-                AbsNode node = getNodeInstance(nodeId, upNodeIdList, null);
-                if (node != null) {
-                    node.setStatus(nodeStatus);
-                    node.saveContext(workflow, nodeDetail);
-                    node.setDetail(nodeDetail);
-                    context.appendNode(node);
-                }
-            }
-        }
+        this.currentNode = stateLoader.loadNodeState(workflow, details, currentNodeId, currentNodeData);
     }
 
     /**
-     * 根据节点ID获取节点实例
+     * 记录节点执行
      *
-     * @param nodeId          节点ID
-     * @param upNodeIds       上游节点ID列表
-     * @param getNodeProperties 节点属性处理函数
-     * @return 节点实例
+     * @param node 正在执行的节点
      */
-    public AbsNode getNodeInstance(String nodeId, List<String> upNodeIds, Function<AbsNode, JSONObject> getNodeProperties) {
-        AbsNode node = configuration.getNode(nodeId);
-        if (node != null) {
-            node.setUpNodeIdList(upNodeIds);
-            if (getNodeProperties != null) {
-                getNodeProperties.apply(node);
-            }
-        }
-        return node;
+    @Override
+    public void recordExecution(AbsNode node) {
+        executionTracker.recordExecution(node);
     }
 
     /**
@@ -250,11 +150,11 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
      * @param currentNode   当前节点
      * @return 节点列表
      */
-    private List<AbsNode> buildNodes(List<String> targetNodeIds, AbsNode currentNode) {
+    private List<AbsNode> buildNextNodes(List<String> targetNodeIds, AbsNode currentNode) {
         List<String> upNodeIdList = new ArrayList<>(currentNode.getUpNodeIdList());
         upNodeIdList.add(currentNode.getId());
         return targetNodeIds.stream()
-                .map(nodeId -> getNodeInstance(nodeId, upNodeIdList, null))
+                .map(nodeId -> configuration.getNodeInstance(nodeId, upNodeIdList, null))
                 .filter(Objects::nonNull)
                 .toList();
     }
@@ -262,9 +162,9 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
     /**
      * 判断是否为断言节点
      *
-     * @param nodeId           节点ID
+     * @param nodeId            节点ID
      * @param currentNodeResult 当前节点执行结果
-     * @param sourceEdges      下游边列表
+     * @param sourceEdges       下游边列表
      * @return 是否为断言节点
      */
     private boolean isAssertionNode(String nodeId, NodeResult currentNodeResult, List<LfEdge> sourceEdges) {
@@ -278,24 +178,6 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
                 .map(LfEdge::getTargetNodeId)
                 .toList();
         return CollectionUtils.isNotEmpty(assertionNodeIds) && assertionNodeIds.contains(nodeId);
-    }
-
-    // ==================== 执行追踪功能 ====================
-
-    /**
-     * 记录节点执行
-     *
-     * @param node 正在执行的节点
-     */
-    @Override
-    public void recordExecution(AbsNode node) {
-        if (node == null || node.getRuntimeNodeId() == null) {
-            return;
-        }
-        String runtimeNodeId = node.getRuntimeNodeId();
-        executionPath.add(runtimeNodeId);
-        executionTimestamps.put(runtimeNodeId, System.currentTimeMillis());
-        log.debug("Recorded execution: {} at {}", runtimeNodeId, System.currentTimeMillis());
     }
 
 }

@@ -54,20 +54,6 @@ public abstract class AbsNode {
         this.errMessage = "";
     }
 
-    /**
-     * Atomically claim the right to execute this node by transitioning its status from
-     * READY (or INTERRUPT) to STARTED via a CAS. Returns true if this thread won the
-     * claim and should proceed to execute; returns false if another thread already
-     * claimed or executed it (e.g. diamond-join siblings concurrently reaching the same
-     * node), in which case the caller must skip execution to avoid a duplicate run.
-     */
-    public boolean tryClaimRunning() {
-        Integer current = this.status;
-        if (NodeStatus.READY.getStatus() == current || NodeStatus.INTERRUPT.getStatus() == current) {
-            return STATUS_UPDATER.compareAndSet(this, current, NodeStatus.STARTED.getStatus());
-        }
-        return false;
-    }
 
     public JSONObject getNodeData() {
         if (Objects.nonNull(properties) && properties.containsKey(RuntimeDetailField.NODE_DATA)) {

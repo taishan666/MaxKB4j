@@ -53,8 +53,102 @@ class GroovyScriptExecutorTest {
     }
 
     @Test
+    void execute_dateTimeFormatterScript_returnsFormattedDateTime() {
+        // 内置工具「获取当前时间」的脚本：DateTimeFormatter 类引用应能通过编译期与运行期白名单
+        String code = """
+                import java.time.LocalDateTime
+                import java.time.format.DateTimeFormatter
+
+                def now = LocalDateTime.now()
+                def formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                return now.format(formatter)
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        Object result = executor.execute(params());
+        assertTrue(result.toString().matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}"),
+                "应返回格式化后的日期时间字符串，实际: " + result);
+    }
+
+    @Test
+    void execute_localDateTimePlusDays_allowed() {
+        // 时间运算方法（plusDays 等）应通过运行期沙箱白名单
+        String code = """
+                import java.time.LocalDateTime
+                def base = LocalDateTime.of(2026, 8, 26, 10, 30, 0)
+                return base.plusDays(1).plusHours(2).withMinute(15).toString()
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertEquals("2026-08-27T12:15", executor.execute(params()));
+    }
+
+    @Test
+    void execute_regexFindOperator_allowed() {
+        // =~ 编译为 ScriptBytecodeAdapter.findRegex，应通过运行期白名单
+        String code = """
+                def m = "联系人: 张三 2026-08-26" =~ /(\\d{4})-(\\d{2})-(\\d{2})/
+                if (m.find()) {
+                    return m.group(0) + "|" + m.group(1)
+                }
+                return "no match"
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertEquals("2026-08-26|2026", executor.execute(params()));
+    }
+
+    @Test
+    void execute_regexMatchOperator_allowed() {
+        // ==~ 编译为 ScriptBytecodeAdapter.matchRegex，应通过运行期白名单
+        String code = """
+                return "abc123" ==~ /[a-z]+\\d+/
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertEquals(true, executor.execute(params()));
+    }
+
+    @Test
+    void execute_timestampConversionScript_timestampToDate() {
+        // 内置工具「日期时间戳转换」：毫秒时间戳转 UTC+8 日期字符串
+        String code = """
+                import java.time.*
+                import java.time.format.*
+
+                final ZoneId UTC8 = ZoneId.of("Asia/Shanghai")
+                final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
+                if (inputData instanceof Long) {
+                    Instant instant = Instant.ofEpochMilli(inputData)
+                    ZonedDateTime utc8Time = instant.atZone(UTC8)
+                    return utc8Time.format(DATE_TIME_FORMATTER)
+                }
+                throw new IllegalArgumentException("不支持的输入")
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertEquals("2023-07-22 12:26:40", executor.execute(params("inputData", 1690000000000L)));
+    }
+
+    @Test
+    void execute_timestampConversionScript_dateToTimestamp() {
+        // 内置工具「日期时间戳转换」：UTC+8 日期字符串转毫秒时间戳
+        String code = """
+                import java.time.*
+                import java.time.format.*
+
+                final ZoneId UTC8 = ZoneId.of("Asia/Shanghai")
+                final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
+                String str = inputData.trim()
+                LocalDateTime localDateTime = LocalDateTime.parse(str, DATE_TIME_FORMATTER)
+                ZonedDateTime utc8Zoned = localDateTime.atZone(UTC8)
+                long timestampMillis = utc8Zoned.toInstant().toEpochMilli()
+                return timestampMillis
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertEquals(1690000000000L, executor.execute(params("inputData", "2023-07-22 12:26:40")));
+    }
+
+    @Test
     void execute_classNotInWhitelist_rejectedAtCompileTime() {
-        // ClassExpression 被 SecureAST 编译期禁止，执行器会把编译失败还原为 SecurityException
+        // Thread 不在类引用白名单中，编译期即被拒绝，执行器把编译失败还原为 SecurityException
         GroovyScriptExecutor executor = new GroovyScriptExecutor("Thread.sleep(10)", null);
         assertThrows(SecurityException.class, () -> executor.execute(params()));
     }

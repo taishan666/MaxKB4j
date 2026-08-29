@@ -61,6 +61,6 @@ public abstract class AbstractLoopWorkflow extends AbstractWorkflow {
 
     @Override
     public List<AbsNode> startNodes() {
-        return List.of(getNodeInstance(NodeType.LOOP_START.getKey(), List.of(), null));
+        return List.of(getNode(NodeType.LOOP_START.getKey()));
     }
 }
