@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
@@ -43,14 +44,30 @@ public class ChatOpenAiController {
 
     private final IApplicationChatService chatService;
 
+    private final String DEFAULT_MODEL_NAME="gpt-5.4";
+
     @Operation(summary = "聊天对话", description = "兼容 OpenAI Chat Completions API 格式")
-    @PostMapping("/{appId}/chat/completions")
-    @SuppressWarnings("ReactiveStreamsUnusedPublisher")
-    public Object chatCompletion(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
+    @PostMapping(value = "/{appId}/chat/completions", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<String>> chatCompletionStream(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
+        PreparedChat prepared = prepareChat(appId, request);
+        return handleStreamResponse(request, prepared.params(), prepared.chatState(), prepared.sink());
+    }
+
+    @Operation(summary = "聊天对话", description = "兼容 OpenAI Chat Completions API 格式")
+    @PostMapping(value = "/{appId}/chat/completions", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<OpenAIChatCompletionResponse> chatCompletionSync(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
+        PreparedChat prepared = prepareChat(appId, request);
+        return handleSyncResponse(request, prepared.params(), prepared.chatState(), prepared.sink());
+    }
+
+    /**
+     * Prepare the shared request context: open a chat session, seed conversation history,
+     * and build ChatParams / ChatState / the sink used by the business execution.
+     */
+    private PreparedChat prepareChat(String appId, OpenAIChatCompletionRequest request) {
         String chatId = chatService.chatOpen(appId, false);
         seedConversationHistory(chatId, request);
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
-        // 构建 ChatParams（请求入参）与 ChatContext（服务端上下文）
         ChatParams params = convertToChatParams(request, chatId);
         ChatState chatState = ChatState.builder()
                 .appId(appId)
@@ -60,11 +77,7 @@ public class ChatOpenAiController {
                 .ipAddress(WebUtil.getIP())
                 .debug(false)
                 .build();
-        if (Boolean.TRUE.equals(request.getStream())) {
-            return handleStreamResponse(request, params, chatState, sink);
-        } else {
-            return handleSyncResponse(request, params, chatState, sink);
-        }
+        return new PreparedChat(params, chatState, sink);
     }
 
     /**
@@ -84,7 +97,7 @@ public class ChatOpenAiController {
      */
     private Flux<ServerSentEvent<String>> handleStreamResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
         String completionId = generateCompletionId();
-        String model = request.getModel() != null ? request.getModel() : "maxkb4j";
+        String model = StringUtils.isNotBlank(request.getModel()) ? request.getModel() : DEFAULT_MODEL_NAME;
         // 异步执行业务逻辑
         chatService.chatMessageAsync(params, chatState, sink);
 
@@ -129,7 +142,7 @@ public class ChatOpenAiController {
     private ResponseEntity<OpenAIChatCompletionResponse> handleSyncResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
         ChatResponse chatResponse = chatService.chatMessage(params, chatState, sink);
         String completionId = generateCompletionId();
-        String model = request.getModel() != null ? request.getModel() : "maxkb4j";
+        String model = StringUtils.isNotBlank(request.getModel()) ? request.getModel() : DEFAULT_MODEL_NAME;
 
         OpenAIChatCompletionResponse response = OpenAIChatCompletionResponse.createCompletion(
                 completionId,
@@ -144,9 +157,7 @@ public class ChatOpenAiController {
                 .body(response);
     }
 
-    /**
-     * 生成 OpenAI 格式的 completion ID
-     */
+
     /**
      * 将 OpenAI 请求携带的历史消息（当前问题之前的 user/assistant 轮次）预置到会话缓存，
      * 使对话流水线基于完整上下文生成回答，避免多轮上下文丢失。
@@ -222,5 +233,11 @@ public class ChatOpenAiController {
      */
     private String toJson(Object obj) {
         return JSON.toJSONString(obj);
+    }
+
+    /**
+     * Shared context for one chat completion request.
+     */
+    private record PreparedChat(ChatParams params, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
     }
 }
