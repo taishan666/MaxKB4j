@@ -144,9 +144,7 @@ public class ChatOpenAiController {
                 .body(response);
     }
 
-    /**
-     * 生成 OpenAI 格式的 completion ID
-     */
+
     /**
      * 将 OpenAI 请求携带的历史消息（当前问题之前的 user/assistant 轮次）预置到会话缓存，
      * 使对话流水线基于完整上下文生成回答，避免多轮上下文丢失。
