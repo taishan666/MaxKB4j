@@ -1,6 +1,8 @@
 package com.maxkb4j.chat.controller;
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.application.dto.ApplicationApiKeyDTO;
 import com.maxkb4j.application.dto.ChatResponse;
+import com.maxkb4j.application.service.IApplicationApiKeyService;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.chat.filter.ChatCompletionsStreamRoutingFilter;
 import com.maxkb4j.common.domain.dto.Answer;
@@ -41,12 +43,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ChatOpenAiControllerTest {
     private MockMvc mvc;
     private IApplicationChatService chatService;
+    private IApplicationApiKeyService apiKeyService;
     @BeforeEach
     void setUp() {
         chatService = mock(IApplicationChatService.class);
+        apiKeyService = mock(IApplicationApiKeyService.class);
+        when(apiKeyService.getBySecretKey(any())).thenReturn(validApiKey());
         when(chatService.chatOpen(anyString(), anyBoolean())).thenReturn("chat-1");
         mvc = MockMvcBuilders
-                .standaloneSetup(new ChatOpenAiController(chatService))
+                .standaloneSetup(new ChatOpenAiController(chatService, apiKeyService))
                 .addFilters(new ChatCompletionsStreamRoutingFilter())
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
@@ -142,6 +147,27 @@ class ChatOpenAiControllerTest {
         assertTrue(result.getResponse().getStatus() == 200, "status=" + result.getResponse().getStatus());
         assertTrue(body.contains("rate limit hit"), body);
         assertFalse(body.contains("Unrecognized Type"), body);
+    }
+
+    @Test
+    void invalidApiKey_rejectsRequest() throws Exception {
+        when(apiKeyService.getBySecretKey(any())).thenReturn(null);
+
+        MvcResult result = mvc.perform(post("/chat/api/app-1/chat/completions")
+                        .accept(MediaType.ALL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body(false)))
+                .andReturn();
+        String responseBody = result.getResponse().getContentAsString();
+        assertTrue(responseBody.contains("chat.token.invalid.or.disabled"), responseBody);
+        assertFalse(responseBody.contains("chat.completion"), responseBody);
+    }
+
+    private static ApplicationApiKeyDTO validApiKey() {
+        ApplicationApiKeyDTO apiKey = new ApplicationApiKeyDTO();
+        apiKey.setIsActive(true);
+        apiKey.setApplicationId("app-1");
+        return apiKey;
     }
 
     private static ChatResponse sampleChatResponse() {
