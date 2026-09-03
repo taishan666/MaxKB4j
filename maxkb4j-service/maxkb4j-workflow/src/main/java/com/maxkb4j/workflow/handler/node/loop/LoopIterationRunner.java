@@ -171,7 +171,7 @@ public class LoopIterationRunner {
         workFlowActuator.execute(loopWorkflow);
 
         // 发送单次结束标记
-        subscription.ifPresent(s -> messageForwarder.emitIteration(workflow, node, s.getChildNodeRef().get(), false));
+        subscription.ifPresent(s -> messageForwarder.emitIteration(workflow, node, false));
         // 更新状态
         updateIterationState(node, loopWorkflow, ctx);
     }

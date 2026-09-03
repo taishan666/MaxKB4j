@@ -7,6 +7,7 @@ import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.node.AbsNode;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Sinks;
@@ -36,6 +37,7 @@ public class LoopMessageForwarder {
     /**
      * 一次迭代的输出订阅句柄：持有子工作流 Sink 与最新子节点引用
      */
+    @Getter
     public static final class LoopSubscription {
 
         private final Sinks.Many<ChatMessageVO> sink;
@@ -46,13 +48,6 @@ public class LoopMessageForwarder {
             this.childNodeRef = childNodeRef;
         }
 
-        public Sinks.Many<ChatMessageVO> getSink() {
-            return sink;
-        }
-
-        public AtomicReference<ChildNode> getChildNodeRef() {
-            return childNodeRef;
-        }
     }
 
     /**
@@ -111,7 +106,7 @@ public class LoopMessageForwarder {
     /**
      * 发送迭代边界标记（迭代开始/结束）
      */
-    public void emitIteration(IWorkflow workflow, AbsNode node, ChildNode childNode, boolean nodeIsEnd) {
+    public void emitIteration(IWorkflow workflow, AbsNode node, boolean nodeIsEnd) {
         if (workflow instanceof IChatWorkflow chatWorkflow) {
             ChatParams chatParams = chatWorkflow.getChatParams();
             ChatMessageVO vo = node.toChatMessageVO(
@@ -119,7 +114,7 @@ public class LoopMessageForwarder {
                     chatParams.getChatRecordId(),
                     "",
                     "",
-                    childNode,
+                    null,
                     nodeIsEnd);
             workflow.output().emit(vo);
         }

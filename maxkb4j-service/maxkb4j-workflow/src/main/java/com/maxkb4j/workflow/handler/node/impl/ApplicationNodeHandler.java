@@ -91,10 +91,11 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
                     ChatMessageVO vo = node.toChatMessageVO(
                             chatParams.getChatId(),
                             chatParams.getChatRecordId(),
+                            e.getNodeName(),
                             e.getContent(),
                             e.getReasoningContent(),
                             childNode,
-                            false);
+                            e.getNodeIsEnd());
                     workflow.output().emit(vo);
                 });
             }
