@@ -59,8 +59,8 @@ public class LoopMessageForwarder {
      * @param node      循环节点（消息组装用）
      * @return 订阅句柄
      */
-    public Optional<LoopSubscription> subscribe(IWorkflow workflow, LoopParams loopParams,
-                                                LoopExecutionContext ctx, AbsNode node) {
+    Optional<LoopSubscription> subscribe(IWorkflow workflow, LoopParams loopParams,
+                                         LoopExecutionContext ctx, AbsNode node) {
         if (!(workflow instanceof IChatWorkflow)) {
             return Optional.empty();
         }
