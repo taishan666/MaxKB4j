@@ -113,7 +113,10 @@ public final class GroovySandboxPolicy {
             "io.github.mymonstercat.Model",
             "com.benjaminwan.ocrlibrary.OcrResult",
             "com.maxkb4j.oss.service.IOssService",
-            "com.maxkb4j.common.util.SpringUtil"
+            "com.maxkb4j.common.util.SpringUtil",
+            // ===== 数学表达式求值引擎（内置工具「数学公式执行」） =====
+            "net.objecthunter.exp4j.Expression",
+            "net.objecthunter.exp4j.ExpressionBuilder"
     );
 
     /**
@@ -202,10 +205,14 @@ public final class GroovySandboxPolicy {
             "resolve", "resolveSibling", "relativize",
             "getFileName", "getParent", "getRoot", "getName", "getNameCount", "subpath",
             "normalize", "toAbsolutePath",
-            // ===== 异常 =====
-            "getMessage", "printStackTrace",
+            // ===== 异常（只读访问器；接收者仍受异常类白名单约束） =====
+            "getMessage", "getLocalizedMessage", "getCause", "printStackTrace",
+            // DateTimeParseException 特有访问器（日期解析失败的 catch 场景）
+            "getParsedString", "getErrorIndex",
             // ===== OCR =====
             "runOcr",
+            // ===== exp4j 表达式求值（内置工具「数学公式执行」） =====
+            "build", "evaluate", "setVariable", "setVariables", "variables",
             // ===== 闭包 =====
             "call", "doCall", "isCase"
     );
@@ -227,7 +234,8 @@ public final class GroovySandboxPolicy {
             "java.text.SimpleDateFormat",
             "java.text.DecimalFormat",
             "groovy.json.JsonSlurper",
-            "java.lang.IllegalArgumentException"
+            "java.lang.IllegalArgumentException",
+            "net.objecthunter.exp4j.ExpressionBuilder"
     );
 
     /** 允许静态调用的类及其方法白名单。 */
@@ -299,7 +307,11 @@ public final class GroovySandboxPolicy {
             "java.lang.Throwable",
             "java.lang.Exception",
             "java.lang.RuntimeException",
-            "java.lang.IllegalArgumentException"
+            "java.lang.IllegalArgumentException",
+            "java.lang.NumberFormatException",
+            // java.time 日期解析/构造失败抛出的异常族（如 LocalDate.parse 的 catch 场景）
+            "java.time.DateTimeException",
+            "java.time.format.DateTimeParseException"
     );
 
     /**
@@ -324,6 +336,15 @@ public final class GroovySandboxPolicy {
             "getConstructor", "getDeclaredConstructor", "getConstructors", "getDeclaredConstructors",
             "setAccessible", "getClass", "getClassLoader", "getMetaClass", "setMetaClass",
             "parseClass", "evaluate"
+    );
+
+    /**
+     * 危险方法名的受信例外：方法名命中危险名单，但接收者属于白名单安全类时放行。
+     * 例如 exp4j Expression#evaluate 是纯数学表达式求值，
+     * 与 GroovyShell#evaluate 这类任意脚本执行有本质区别。
+     */
+    private static final Map<String, Set<String>> DANGEROUS_METHOD_EXCEPTIONS = Map.of(
+            "evaluate", Set.of("net.objecthunter.exp4j.Expression")
     );
 
     /**
@@ -388,6 +409,23 @@ public final class GroovySandboxPolicy {
         return methods != null && methods.contains(method);
     }
 
+    /**
+     * 运行期静态调用空操作判定：命中时静默跳过，不执行真实方法。
+     * <p>
+     * 典型来源：脚本中的 {@code @Grab} 注解。编译期已按注册全限定名禁用
+     * {@code groovy.grape.GrabAnnotationTransformation}，正常编译不会注入任何
+     * Grape 调用；但若存在禁用未生效的环境或历史编译产物，{@code @Grab} 会被
+     * 转换为运行期 {@code Grape.grab(...)} 静态调用。沙箱禁止联网下载依赖，
+     * 此类调用按空操作忽略（绝不放行真实下载），脚本继续使用应用 classpath
+     * 中已存在的依赖执行。
+     * </p>
+     */
+    public static boolean isNoOpStaticCall(Class<?> sender, String method) {
+        return sender != null
+                && "groovy.grape.Grape".equals(sender.getName())
+                && "grab".equals(method);
+    }
+
     /** 类是否允许通过 new 实例化。 */
     public static boolean isConstructorAllowed(String className) {
         return ALLOWED_CONSTRUCTOR_CLASSES.contains(className);
@@ -395,6 +433,21 @@ public final class GroovySandboxPolicy {
 
     public static boolean isDangerousMethod(String method) {
         return DANGEROUS_METHODS.contains(method);
+    }
+
+    /**
+     * 带接收者类型的危险方法检查：命中危险方法名但属于受信例外组合（接收者类 + 方法名）时不视为危险。
+     * 接收者类型未知（null）时退化为纯方法名校验，保持保守拦截。
+     */
+    public static boolean isDangerousMethod(Class<?> receiverClass, String method) {
+        if (!isDangerousMethod(method)) {
+            return false;
+        }
+        if (receiverClass == null) {
+            return true;
+        }
+        Set<String> exceptions = DANGEROUS_METHOD_EXCEPTIONS.get(method);
+        return exceptions == null || !exceptions.contains(normalizeClassName(receiverClass));
     }
 
     public static boolean isDangerousProperty(String property) {

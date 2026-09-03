@@ -1,5 +1,6 @@
 package com.maxkb4j.tool.sandbox;
 
+import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.expr.ClassExpression;
 import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
@@ -147,6 +148,15 @@ public final class GroovySandboxCompilerConfigurer {
         allowedConstants.add(StringBuilder.class);
         allowedConstants.add(StringBuffer.class);
         allowedConstants.add(Exception.class);
+        // catch 具体异常类型（如 catch (DateTimeParseException e)）：异常参数的静态类型
+        // 同样按精确类名校验，需逐个登记，否则编译期报
+        // "Usage of variables of type [...] is not allowed"
+        allowedConstants.add(Throwable.class);
+        allowedConstants.add(RuntimeException.class);
+        allowedConstants.add(IllegalArgumentException.class);
+        allowedConstants.add(NumberFormatException.class);
+        allowedConstants.add(java.time.DateTimeException.class);
+        allowedConstants.add(java.time.format.DateTimeParseException.class);
         allowedConstants.add(groovy.lang.GString.class);
         allowedConstants.add(java.util.Date.class);
         allowedConstants.add(java.time.LocalDate.class);
@@ -163,6 +173,10 @@ public final class GroovySandboxCompilerConfigurer {
         allowedConstants.add(com.maxkb4j.common.util.SpringUtil.class);
         allowedConstants.add(io.github.mymonstercat.Model.class);
         allowedConstants.add(com.benjaminwan.ocrlibrary.OcrResult.class);
+        // 数学表达式求值引擎（内置工具「数学公式执行」）：允许作为脚本变量类型
+        // （如 Expression engine = new ExpressionBuilder(...).build()）
+        allowedConstants.add(net.objecthunter.exp4j.Expression.class);
+        allowedConstants.add(net.objecthunter.exp4j.ExpressionBuilder.class);
         ast.setAllowedConstantTypesClasses(allowedConstants);
 
         // ========== 3. Groovy Sandbox 运行期沙箱 ==========
@@ -172,7 +186,12 @@ public final class GroovySandboxCompilerConfigurer {
         // ========== 4. 组合配置 ==========
         config.addCompilationCustomizers(importCustomizer, ast, sandboxTransformer);
         config.setScriptBaseClass("groovy.lang.Script");
-        config.setDisabledGlobalASTTransformations(Set.of("Grab", "GrabConfig", "GrabResolver"));
+        // 禁用 Grape 相关 AST 转换，避免运行期联网下载依赖。
+        // 注意：Groovy 按 META-INF/services/org.codehaus.groovy.transform.ASTTransformation
+        // 中注册的全限定类名精确匹配，写 "Grab" 等注解名不会生效；
+        // @Grab/@GrabConfig/@GrabResolver 均由 GrabAnnotationTransformation 处理，
+        // 未禁用时会被转换为运行期 Grape.grab(...) 静态调用。
+        config.setDisabledGlobalASTTransformations(Set.of("groovy.grape.GrabAnnotationTransformation"));
         SAFE_CONFIG = config;
     }
 
@@ -195,7 +214,18 @@ public final class GroovySandboxCompilerConfigurer {
         }
         if (expression instanceof MethodCallExpression methodCallExpression) {
             String methodName = methodCallExpression.getMethodAsString();
-            return methodName == null || !GroovySandboxPolicy.isDangerousMethod(methodName);
+            if (methodName == null) {
+                return true;
+            }
+            // 带接收者静态类型的危险方法校验：受信例外组合（如 exp4j Expression#evaluate）放行；
+            // 接收者静态类型未知（Object）时编译期无法判定，交由运行期按实际接收者类型拦截
+            Expression receiver = methodCallExpression.getObjectExpression();
+            ClassNode receiverNode = receiver == null ? null : receiver.getType();
+            Class<?> receiverType = receiverNode == null ? null : receiverNode.getTypeClass();
+            if (receiverType == null || receiverType == Object.class) {
+                return true;
+            }
+            return !GroovySandboxPolicy.isDangerousMethod(receiverType, methodName);
         }
         if (expression instanceof StaticMethodCallExpression staticMethodCallExpression) {
             return !GroovySandboxPolicy.isDangerousMethod(staticMethodCallExpression.getMethod());

@@ -16,7 +16,7 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
 
     @Override
     public Object onMethodCall(Invoker invoker, Object receiver, String method, Object... args) throws Throwable {
-        if (GroovySandboxPolicy.isDangerousMethod(method)) {
+        if (GroovySandboxPolicy.isDangerousMethod(receiver == null ? null : receiver.getClass(), method)) {
             throw new SecurityException("不允许调用危险方法: " + method);
         }
         GroovySandboxPolicy.validateArguments(args);
@@ -43,6 +43,11 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
 
     @Override
     public Object onStaticCall(Invoker invoker, Class sender, String method, Object... args) throws Throwable {
+        if (GroovySandboxPolicy.isNoOpStaticCall(sender, method)) {
+            // @Grab 转换注入的 Grape.grab(...)：沙箱禁止联网下载依赖，
+            // 静默忽略（不执行真实下载逻辑），脚本继续使用 classpath 已有依赖执行
+            return null;
+        }
         if (GroovySandboxPolicy.isDangerousMethod(method) || GroovySandboxPolicy.isDangerousClass(sender)) {
             throw new SecurityException("不允许调用静态方法: " + sender.getName() + "." + method);
         }

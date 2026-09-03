@@ -1,5 +1,6 @@
 package com.maxkb4j.tool.executor;
 
+import com.maxkb4j.tool.sandbox.GroovySandboxInterceptor;
 import com.maxkb4j.tool.sandbox.GroovySandboxPolicy;
 import org.junit.jupiter.api.Test;
 
@@ -8,6 +9,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -187,6 +189,27 @@ class GroovyScriptExecutorTest {
     }
 
     @Test
+    void execute_catchDateTimeParseException_allowed() {
+        // 日期解析的常见写法：catch 具体异常类型 DateTimeParseException。
+        // SecureASTCustomizer.visitVariableExpression 按精确类名校验变量静态类型，
+        // 该异常类必须在编译期常量/变量类型白名单中，否则报
+        // "Usage of variables of type [java.time.format.DateTimeParseException] is not allowed"
+        String code = """
+                import java.time.LocalDate
+                import java.time.format.DateTimeFormatter
+                import java.time.format.DateTimeParseException
+
+                try {
+                    return LocalDate.parse(inputData, DateTimeFormatter.ISO_LOCAL_DATE).toString()
+                } catch (DateTimeParseException e) {
+                    return "caught:" + e.getParsedString()
+                }
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertEquals("caught:not-a-date", executor.execute(params("inputData", "not-a-date")));
+    }
+
+    @Test
     void execute_classNotInWhitelist_rejectedAtCompileTime() {
         // Thread 不在类引用白名单中，编译期即被拒绝，执行器把编译失败还原为 SecurityException
         GroovyScriptExecutor executor = new GroovyScriptExecutor("Thread.sleep(10)", null);
@@ -302,6 +325,53 @@ class GroovyScriptExecutorTest {
         ossFile.setName("a.png");
         GroovyScriptExecutor executor = new GroovyScriptExecutor("file.name = 'x'", null);
         assertThrows(SecurityException.class, () -> executor.execute(params("file", ossFile)));
+    }
+
+    @Test
+    void execute_mathExpressionTool_allowed() {
+        // 内置工具「数学公式执行」：exp4j 表达式求值应通过编译期变量类型白名单、
+        // 表达式安全检查与运行期构造/接收者/方法白名单
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("net.objecthunter.exp4j.Expression"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("net.objecthunter.exp4j.ExpressionBuilder"));
+
+        String code = """
+                @Grab('net.objecthunter:exp4j:0.4.8')
+                import net.objecthunter.exp4j.Expression;
+                import net.objecthunter.exp4j.ExpressionBuilder;
+
+                Expression engine = new ExpressionBuilder(expression)
+                                .build();
+                double result = engine.evaluate();
+                return "result is " + result;
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertEquals("result is 8.0", executor.execute(params("expression", "(2+2)*2")));
+    }
+
+    @Test
+    void execute_exp4jExpressionWithVariables_allowed() {
+        // exp4j 变量声明与赋值（自定义数学工具的常见用法）同样应放行
+        String code = """
+                import net.objecthunter.exp4j.ExpressionBuilder
+
+                def engine = new ExpressionBuilder("x + y * 2")
+                        .variables("x", "y")
+                        .build()
+                        .setVariable("x", 1)
+                        .setVariable("y", 3)
+                return engine.evaluate()
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertEquals(7.0d, executor.execute(params()));
+    }
+
+    @Test
+    void interceptor_grapeGrabStaticCall_ignoredAsNoOp() throws Throwable {
+        // @Grab 兜底：即使编译产物中残留 Grape.grab(...) 静态调用（转换禁用未生效的历史产物），
+        // 运行期也按空操作忽略——不执行真实下载、不抛异常，脚本继续使用 classpath 依赖执行
+        GroovySandboxInterceptor interceptor = new GroovySandboxInterceptor();
+        assertNull(interceptor.onStaticCall(
+                null, groovy.grape.Grape.class, "grab", Map.of("group", "net.objecthunter")));
     }
 
     @Test
