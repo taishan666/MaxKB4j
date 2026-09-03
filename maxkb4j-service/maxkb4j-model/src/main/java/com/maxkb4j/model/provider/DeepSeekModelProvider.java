@@ -22,6 +22,8 @@ public class DeepSeekModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = BaseUrl.DEEP_SEEK;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo(ModelName.DEEPSEEK_V4_FLASH_VISION, "", ModelType.LLM),
+            new ModelInfo(ModelName.DEEPSEEK_V4_FLASH_VISION, "", ModelType.VISION),
             new ModelInfo(ModelName.DEEPSEEK_V4_FLASH, "", ModelType.LLM),
             new ModelInfo(ModelName.DEEPSEEK_V4_PRO, "", ModelType.LLM),
             new ModelInfo(ModelName.DEEPSEEK_CHAT, "", ModelType.LLM),
