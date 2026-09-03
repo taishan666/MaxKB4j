@@ -8,6 +8,7 @@ import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -37,7 +38,7 @@ public class ChatCompletionsStreamRoutingFilter extends OncePerRequestFilter {
     private static final String ACCEPT_HEADER = "Accept";
     private static final String CHAT_COMPLETIONS_SUFFIX = "/chat/completions";
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain)
             throws ServletException, IOException {
         if (!isChatCompletionsRequest(request)) {
             filterChain.doFilter(request, response);

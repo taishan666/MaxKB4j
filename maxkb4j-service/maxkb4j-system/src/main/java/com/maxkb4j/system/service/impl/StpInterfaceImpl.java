@@ -77,6 +77,9 @@ public class StpInterfaceImpl implements StpInterface {
         wrapper.eq(UserEntity::getId,loginId);
         wrapper.select(UserEntity::getRole);
         UserEntity user = userMapper.selectOne(wrapper);
+        if (user==null){
+            return List.of();
+        }
         return List.of(user.getRole());
     }
 
