@@ -165,7 +165,7 @@ MaxKB4j/
 1. Pick a tier and scan the Alipay / WeChat QR codes below to pay (please note your nickname).
 2. Add the author on WeChat (`vxhqqh`) and send the payment screenshot to activate your benefits instantly.
 
-> 💡 Please contact the author after payment so we can identify your sponsorship and grant benefits. Enterprise users needing invoices, contracts, or corporate payments: please confirm with the author.
+> 💡 Please contact the author after payment so we can identify your sponsorship and grant benefits.
 
 <table>
   <tr>
