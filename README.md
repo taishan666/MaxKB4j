@@ -1,327 +1,202 @@
-# 🧠 MaxKB4j — Enterprise-Grade Intelligent Q&A System: Out-of-the-Box RAG + LLM Workflow Engine
+# 🧠 MaxKB4j — Enterprise Intelligent Q&A System: Out-of-the-Box RAG + LLM Workflow Engine
 
 > **MaxKB4j = Max Knowledge Brain for Java**
-> A ready-to-use, secure, model-agnostic **RAG (Retrieval-Augmented Generation) + LLM workflow engine**, purpose-built for enterprise-grade intelligent Q&A systems.
-> Widely used in scenarios such as intelligent customer service, internal enterprise knowledge bases, data analysis, academic research, and education.
-
-
+> An out-of-the-box, model-agnostic **RAG (Retrieval-Augmented Generation) + LLM workflow engine** built on **Java 21 + Spring Boot 3 (Virtual Threads)**, designed for enterprise-grade intelligent Q&A systems.
+> Use cases: intelligent customer service, enterprise knowledge bases, data analysis, academic research, and education.
 
 <p align="center">
-  <a href="https://www.gnu.org/licenses/gpl-3.0.html#license-text"><img src="https://img.shields.io/badge/License-GPL%20v3-blue" alt="License: GPL v3"></a>
+  <a href="https://www.gnu.org/licenses/gpl-3.0.html"><img src="https://img.shields.io/badge/License-GPLv3-blue" alt="GPLv3"></a>
   <a href="https://github.com/taishan666/MaxKB4j/actions/workflows/ci.yml"><img src="https://github.com/taishan666/MaxKB4j/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href=""><img src="https://img.shields.io/badge/Java-21+-green" alt="Java 21+"></a>
-  <a href=""><img src="https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen" alt="Spring Boot 3.x"></a>
-  <a href=""><img src="https://img.shields.io/badge/Langchain4J-1.x-green" alt="LangChain4j"></a>
-  <a href="https://github.com/taishan666/MaxKB4j"><img src="https://img.shields.io/github/stars/taishan666/MaxKB4j?style=social" alt="GitHub Stars"></a>
-  <a href="https://github.com/taishan666/MaxKB4j"><img src="https://img.shields.io/github/last-commit/taishan666/MaxKB4j" alt="Last Commit"></a><br/>
- [<a href="/README_CN.md">中文(简体)</a>] | [<a href="/README.md">English</a>]
+  <a href="https://openjdk.org/projects/jdk/21/"><img src="https://img.shields.io/badge/Java-21%2B-green" alt="Java21plus"></a>
+  <a href="https://spring.io/projects/spring-boot"><img src="https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen" alt="SpringBoot3"></a>
+  <a href="https://github.com/langchain4j/langchain4j"><img src="https://img.shields.io/badge/LangChain4j-1.x-green" alt="LangChain4j"></a>
+  <a href="https://gitee.com/taisan/MaxKB4j"><img src="https://img.shields.io/gitee/stars/taisan/MaxKB4j?style=social&label=Gitee%20Stars" alt="GiteeStars"></a>
+  <a href="https://gitee.com/taisan/MaxKB4j/commits/master"><img src="https://img.shields.io/gitee/last-commit/taisan/MaxKB4j" alt="LastCommit"></a><br/>
+  [<a href="/README_CN.md">中文（简体）</a>] | [<a href="/README.md">English</a>]
 </p>
 
-> 🚀 **Quick Start**: `docker-compose up -d` -> open `http://localhost:8080`  ·  🌐 [Live Demo](http://43.143.235.194:8080/) (`demo` / `demo@123456`)
-
-> 💖 **Sponsor this project** — if MaxKB4j helps you, consider supporting us in the **💖 Support & Sponsorship** section at the bottom. Every ☕ keeps the project growing!
-
----
-
-## 📚 Documentation
-
-- 📄 [MaxKB4j Business Value Whitepaper](./docs/MaxKB4j-商业价值白皮书.md)
-- 🧪 [MaxKB4j Regression Test Report](./docs/MaxKB4j-回归测试报告.md)
-- 🗒️ [Changelog](./CHANGELOG.md)
+<p align="center">
+  🚀 <a href="#quick-start">Quick Start</a> · 🌐 <a href="http://43.143.235.194:8080/">Live Demo</a> (demo / demo@123456) · 📄 <a href="docs/MaxKB4j-商业价值白皮书.md">Whitepaper</a> · 🧪 <a href="docs/MaxKB4j-回归测试报告.md">Regression Report</a> · 🗒️ <a href="CHANGELOG.md">Changelog</a> · 💖 <a href="#support--sponsorship">Support Us</a>
+</p>
 
 ---
 
-## 💡 Why Choose MaxKB4j?
-In today's AI application boom, are you facing these challenges?
-- ❌ Complex Integration: Existing solutions rely on the Python ecosystem, making it costly for Java teams to get started?
-- ❌ Serious Hallucinations: Generic large models answer inaccurately and cannot integrate with internal enterprise data?
-- ❌ Concurrency Bottlenecks: Traditional architectures struggle to support high-concurrency scenarios with high response latency?
-- ❌ Limited Functionality: Only simple Q&A, unable to handle complex business workflows and multi-Agent collaboration?
+## Why Choose MaxKB4j?
 
-**MaxKB4j Provides You with a One-Stop Solution:**
+Enterprises face four common challenges when adopting LLM applications, and MaxKB4j answers each one:
 
-Built on **Java 21 + Spring Boot 3 + Virtual Threads**, perfectly integrating **RAG (Retrieval-Augmented Generation)** with **visual workflow**. Empower your applications with AI capabilities of "understanding, reasoning, and execution" without modifying your existing systems.
+| Pain Point | MaxKB4j Answer |
+| :--- | :--- |
+| **Complex integration** — mainstream platforms rely on Python / TS ecosystems, making adoption costly for Java teams | **Pure Java native** — built on the Spring Boot 3 stack; existing Java engineers can extend it directly with zero cross-language cost |
+| **Serious hallucinations** — generic LLMs know nothing about internal enterprise data | **Production-grade RAG** — document parsing → chunking → vectorization → hybrid retrieval → Reranker re-ranking, with traceable answers |
+| **Concurrency bottlenecks** — traditional architectures cannot sustain high-concurrency Q&A | **Virtual Threads + reactive architecture** — thousands of concurrent requests per node with lower resource usage |
+| **Single-function Q&A** — no way to orchestrate complex business processes | **Visual workflow + Multi-Agent** — 30+ node types covering complex business scenarios |
 
-### 📊 How MaxKB4j Compares (Capability Matrix)
+## ✨ Key Capabilities
+
+| Capability | Description |
+| :--- | :--- |
+| 🔍 Knowledge Base Q&A | Upload PDF / Word / TXT / Markdown files or crawl web pages; automatic chunking → vectorization → storage → RAG pipeline, significantly reducing hallucinations |
+| 🧠 Advanced RAG / AgenticRAG | Vector, full-text, and hybrid multi-route retrieval + Reranker re-ranking; agents dynamically decide retrieval paths with intent recognition and conditional branches, supporting multi-hop Q&A |
+| ⚙️ Visual Workflow | Low-code orchestration with 30+ node types: conditional branches, loops, variable aggregation, NL2SQL, forms, HTTP requests, MCP, etc.; multi-turn and long-term memory |
+| 🤝 Multi-Agent Collaboration | Multiple role-specific agents (data analyst, code reviewer, customer service agent…) work in parallel or sequence; tasks are decomposed, dispatched, and aggregated automatically via a shared memory bus |
+| ⏰ Triggers | Cron scheduled tasks + Webhook event callbacks for unattended automation (daily report generation, CRM-lead-triggered persona analysis, etc.) |
+| 🌐 Model-Agnostic | Private models via Ollama / Xorbits Inference / LocalAI; public models: Qwen, DeepSeek, Doubao, Hunyuan, GLM, Kimi, GPT, Claude, Gemini, and more |
+| 🧩 Seamless Integration | RESTful API, iframe / Web SDK embedding, OpenAI-compatible chat API, and stream_http MCP agent integration — connect within 5 minutes |
+| 🎙️ Multimodal | ASR speech recognition, TTS speech synthesis, OCR image recognition, Stable Diffusion image generation |
+| 🔒 Security & Permissions | Fine-grained permissions (application / knowledge base / tool / model) based on Sa-Token; audit logs; groovy-sandbox for safe script execution |
+| 🌱 Ecosystem Extensions | Dozens of pre-built agent templates (customer service assistant, data analyst, code mentor…); plugin marketplace: MySQL / PostgreSQL / MongoDB connectors, Feishu / DingTalk / WeCom integrations, web search tools |
+
+## 📊 How MaxKB4j Compares
 
 | Capability | **MaxKB4j** | Dify | MaxKB | FastGPT | RAGFlow |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| Backend Stack | **Java 21 + Spring Boot 3** | Python + TS | Python (Django) | TypeScript (Node.js) | Python (Flask) |
-| High-Concurrency Arch | ✅ Virtual Threads + Reactive | ⚠️ Async workers | ⚠️ WSGI workers | ⚠️ Node event loop | ⚠️ Python workers |
-| RAG Knowledge Base | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Visual Workflow | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Multi-Agent Collaboration | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
-| MCP Protocol | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Multimodal (ASR/TTS/OCR) | ✅ | ⚠️ | ✅ | ⚠️ | ✅ |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| Backend stack | **Java 21 + Spring Boot 3** | Python + TS | Python | TypeScript | Python |
+| Zero language-switch for Java teams | ✅ Native | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
+| Virtual-Thread high concurrency | ✅ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
+| Visual workflow + Multi-Agent | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
 | Triggers (Cron / Webhook) | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
-| Permission Management | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Embed into Existing Systems | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Java-Team Adoption** | ✅ **Native - zero Python/TS** | ⚠️ Needs Python/TS | ⚠️ Needs Python | ⚠️ Needs TS | ⚠️ Needs Python |
+| Multimodal (ASR / TTS / OCR) | ✅ | ⚠️ | ✅ | ⚠️ | ✅ |
+| MCP protocol / OpenAI-compatible API | ✅ | ✅ | ✅ | ✅ | ✅ |
 
----
-
-## ✨ Core Features
-| Feature Category | Detailed Description                                                                                                                                                                                                                                                                                       |
-| :--- |:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| ⏰ Triggers | • **Scheduled Task Trigger**: Supports configuring Cron expressions or visual timeline for unattended automation of agents and tools (e.g., daily automatic data report generation, scheduled competitor information crawling).<br>• **Event Callback Trigger**: Supports Webhook integration with external system events for real-time response (e.g., automatically trigger customer profiling Agent when new leads are added in CRM, trigger alert notifications when database data changes). |
-| 🔍 Out-of-the-Box Knowledge Base Q&A | • Supports uploading local documents (PDF/Word/TXT/Markdown, etc.)<br>• Supports automatic web content crawling<br>• Supports custom workflow knowledge base writing<br>• Automatically handles: text chunking → vectorization → storage in vector database → RAG pipeline construction<br>• Significantly reduces LLM "hallucinations", improving answer accuracy and reliability |
-| 🧠 AgenticRAG & Advanced RAG | • **Advanced RAG**: Supports vector search, full-text search, and hybrid retrieval (multi-route recall); built-in Reranker node re-ranks multi-route recall results, with tunable parameters such as Top-K and similarity threshold to significantly improve retrieval accuracy.<br>• **AgenticRAG**: Powered by visual workflow orchestration, combines intent classification, knowledge base search, re-ranking, and conditional branching nodes; the agent dynamically decides retrieval paths and reasoning flows, supporting multi-hop Q&A and automatic decomposition of complex tasks for advanced scenarios. |
-| ⚡ High Concurrency & High Performance | • Built on Java 21 + Spring Boot 3 + Virtual Threads (Project Loom), fully leveraging modern JVM's lightweight concurrency capabilities for significantly improved throughput and response speed.<br>• Adopts reactive programming model (Reactor) and asynchronous non-blocking I/O, effectively handling thousands of concurrent requests with lower resource usage and lower latency.<br>• Built-in multi-level caching mechanism to accelerate knowledge retrieval and model invocation chains. |
-| 🌐 Model-Agnostic & Flexible Integration | Supports various mainstream large language models, including:<br>• **Local Private Models**: DeepSeek-R1, Llama 3, Qwen 2, etc. (via Ollama / Xorbits Inference / LocalAI)<br>• **Chinese Public Models**: Tongyi Qianwen, Tencent HunYuan, ByteDance Doubao, Baidu Qianfan, Zhipu GLM, Kimi, DeepSeek, etc.<br>• **International Public Models**: OpenAI (GPT), Anthropic (Claude), Google (Gemini) |
-| ⚙️ Visual Workflow Orchestration | • Built-in low-code AI workflow engine, supports conditional branching, function calling, multi-turn conversation memory, and long-term memory<br>• Provides a rich built-in function library (HTTP requests, database queries, time processing, regex extraction, etc.)<br>• Suitable for complex business scenarios: customer support ticket generation, data report interpretation, internal policy Q&A, etc. |
-| 🤝 Multi-Agent Collaboration | • Built-in Multi-Agent collaboration framework, supports multiple specialized AI Agents working in parallel or sequentially<br>• Each Agent can be configured with independent roles (e.g., data analyst, code reviewer, customer service specialist), dedicated knowledge bases and toolsets<br>• Supports dynamic task distribution and context-aware Agent routing; complex tasks are automatically decomposed, assigned, and aggregated (e.g., user question → requirement understanding Agent → data query Agent → report generation Agent)<br>• Provides inter-Agent communication mechanism and shared memory bus, ensuring information consistency and collaboration coherence<br>• Suitable for advanced scenarios: cross-department process automation, end-to-end product design, joint fault diagnosis, etc. |
-| 🧩 Seamless Integration into Existing Systems | • Provides RESTful API and frontend embedding components (iframe / Web SDK)<br>• No need to modify existing systems, integrate intelligent Q&A capabilities in 5 minutes<br>• Provides OpenAI-compatible dialogue interface<br>• Provides agent integration via stream_http MCP-compatible interface |
-| 🤖 Skill Tools | • Supports the [MCP](https://modelcontextprotocol.io/) protocol, enabling AI to understand code context, project structure, and dependencies<br>• Supports local code function programming tool calls<br>• Supports HTTP interface tool calls<br>• Supports Claude SKILLS skill invocation |
-| 🎙️ Multimodal Extensions | • Speech Recognition (ASR), Speech Synthesis (TTS)<br>• Image Recognition (OCR), Image Generation (Stable Diffusion) |
-| 🔒 User Permission Management | • Fine-grained permission control (application / knowledge base / tool / model)<br>• Audit logs, authentication and authorization (based on Sa-Token) |
-| 🌱 Ecosystem Extensions (Extensibility & Out-of-the-Box) | • Rich Agent template library: Provides dozens of pre-built Agent templates (e.g., customer service assistant, data analyst, code mentor, meeting note taker), one-click enable, quick adaptation to business scenarios.<br>• Flexible plugin tool marketplace: Supports dynamic loading of functional modules through plugin mechanism, including:<br>✅ Data connectors (MySQL, PostgreSQL, MongoDB, etc.)<br>✅ Third-party service integrations (Feishu, DingTalk, WeCom)<br>✅ Web search tools (Google Search, SearchApi, SearXNg, etc.) |
-
-
----
+> Note: this table is a capability-orientation comparison for selection reference. Evaluate with your own scenarios via the live demo below.
 
 ## 🚀 Quick Start
 
-### 1. System Requirements
+### Requirements
 - Java 21+
 - PostgreSQL 12+ (with pgvector extension enabled)
-- MongoDB 6.0+ (optional, for full-text search)
+- MongoDB 6.0+ (full-text search and file storage)
 
-### 2. Deployment
-
-#### 2.1 Local Startup (JAR Mode)
+### Option 1: Docker Compose (recommended)
 ```bash
-# Start the application
-java -jar maxkb4j-start.jar
-```
-
-#### 2.2 Docker Deployment
-```bash
-docker run --name maxkb4j -d --restart always -p 8080:8080 -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j -e SPRING_DATASOURCE_USERNAME=postgres   -e SPRING_DATASOURCE_PASSWORD=123456  -e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin  registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j
-```
-- The first 8080 in `-p 8080:8080` is the host port, the second 8080 is the container port
-- `-e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j -e SPRING_DATASOURCE_USERNAME=postgres -e SPRING_DATASOURCE_PASSWORD=123456` are PostgreSQL database connection parameters, can be modified as needed
-- `-e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin` is the MongoDB connection parameter, can be modified as needed
-
-#### 2.3 Docker-Compose Deployment (Recommended)
-```yaml
-# See docker-compose.yml example in project root directory
 docker-compose up -d
 ```
+Then open `http://localhost:8080/admin/login` (default `admin` / `tarzan@123456`). The database is initialized automatically on first startup.
 
-#### 2.4 Deploy to Third-Party Platforms
-<details>
-<summary><strong>Deploy to Sealos</strong></summary>
-<div>
+### Option 2: Docker single container
+```bash
+docker run --name maxkb4j -d --restart always -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j \
+  -e SPRING_DATASOURCE_USERNAME=postgres \
+  -e SPRING_DATASOURCE_PASSWORD=123456 \
+  -e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin \
+  registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j
+```
 
-> Sealos servers are located overseas, no need to handle network issues separately, supports high concurrency & dynamic scaling.
-
-Click the button below for one-click deployment:
-
-[![](https://sealos.run/app_store/img/sealos.svg)](https://blog.csdn.net/weixin_40986713/article/details/156026021)
-</div>
-</details>
-
-#### 2.5 One-Click Install Script (All-in-One)
-
-The `deploy/` directory ships interactive installers that handle prerequisite checks, image pull/build, and docker-compose orchestration end-to-end:
-
-| Script | Platform | Available Modes |
-| :--- | :--- | :--- |
-| `deploy/install.sh` | Linux / macOS | (1) Docker-Compose (prebuilt image) - (2) Source build -> image -> compose - (3) Uninstall |
-| `deploy/install.bat` | Windows | (1) Docker-Compose (prebuilt image) - (2) Source build -> image -> compose - (3) Uninstall |
+### Option 3: One-click install script
+Interactive installers in `deploy/` handle environment checks, image pulling / building, and docker-compose orchestration (Linux / macOS / Windows):
 
 ```bash
 # Linux / macOS
 chmod +x deploy/install.sh
 ./deploy/install.sh
-
-# Windows (run from the project root)
+# Windows
 deploy\install.bat
 ```
 
-> Pick **mode 1** to pull the prebuilt image (fastest), or **mode 2** to build from source into a local image before composing. PostgreSQL (pgvector) and MongoDB are wired up automatically.
-
-#### 2.6 Build from Source
-
-To produce the executable JAR locally with Maven (requires JDK 21+ and Maven 3.6.3+):
-
+### Option 4: Build from source
 ```bash
 mvn clean package -DskipTests
-# Output: maxkb4j-start/target/maxkb4j-start.jar
 java -jar maxkb4j-start/target/maxkb4j-start.jar
 ```
+Profiles: `maxkb4j-start/src/main/resources/application-{dev,prod,test}.yml`, switch with `--spring.profiles.active=dev`.
 
-Spring profiles (`dev` / `prod` / `test`) are defined in `maxkb4j-start/src/main/resources/application-{profile}.yml`. Start with a specific profile:
+### Deploy to cloud platforms
+Supports one-click deployment to [Sealos](https://blog.csdn.net/weixin_40986713/article/details/156026021) (overseas servers, no proxy needed, auto-scaling).
 
-```bash
-java -jar maxkb4j-start/target/maxkb4j-start.jar --spring.profiles.active=dev
-```
+## 🌐 Live Demo & UI
 
-> Before the first run, ensure PostgreSQL (with the `pgvector` extension) and MongoDB are reachable, and that the datasource / MongoDB URIs in the active profile are configured.
+- Live demo: http://43.143.235.194:8080/ (account `demo` / password `demo@123456`, normal-user permissions)
+- Local default admin: `admin` / `tarzan@123456`
 
-### 3. Access Web Interface
-- URL: http://localhost:8080/admin/login
-- Default username: `admin`
-- Default password: `tarzan@123456`
+<img src="image/maxkb4j.gif" alt="MaxKB4jUI" />
 
-> On first launch, the database (PostgreSQL + MongoDB) will be automatically initialized. Please ensure the ports are not occupied.
+## 🛠 Tech Stack & Project Structure
 
-
----
-
-## 🛠 Tech Stack
-
-| Category        | Technology                                   |
-|-----------|--------------------------------------|
-| **Backend**    | Java 21, Spring Boot 3, Sa-Token (Authentication) |
-| **AI Framework** | LangChain4j                          |
-| **Vector Database** | PostgreSQL 15 + pgvector             |
-| **Full-Text Search**  | MongoDB 6.0+                         |
-| **Caching**    | Caffeine                             |
-| **Frontend**    | Vue 3, Node.js v20.16.0              |
-| **Script Sandbox**  | groovy-sandbox            |
-
-
----
-
-## 📂 Project Structure
-
-MaxKB4j adopts a layered multi-module Maven layout (parent POM driven by `${revision}`):
+| Category | Tech |
+| :--- | :--- |
+| Backend | Java 21, Spring Boot 3, Virtual Threads, Sa-Token |
+| AI framework | LangChain4j 1.x, Docling document parsing |
+| Storage | PostgreSQL 15 + pgvector, MongoDB 6.0+, Caffeine cache |
+| Frontend | Vue 3, Node.js v20.16.0 |
+| Script sandbox | groovy-sandbox |
 
 ```
 MaxKB4j/
-├── maxkb4j-common/
-├── maxkb4j-core/
-├── maxkb4j-service/
-│   ├── maxkb4j-application/
-│   ├── maxkb4j-chat/
-│   ├── maxkb4j-knowledge/
-│   ├── maxkb4j-model/
-│   ├── maxkb4j-oss/
-│   ├── maxkb4j-system/
-│   ├── maxkb4j-tool/
-│   ├── maxkb4j-trigger/
-│   └── maxkb4j-workflow/
-├── maxkb4j-service-api/
-│   ├── maxkb4j-application-api/
-│   ├── maxkb4j-knowledge-api/
-│   ├── maxkb4j-model-api/
-│   ├── maxkb4j-oss-api/
-│   ├── maxkb4j-system-api/
-│   ├── maxkb4j-tool-api/
-│   ├── maxkb4j-user-api/
-│   └── maxkb4j-workflow-api/
-├── maxkb4j-start/
-│   └── src/main/resources/
-│       ├── application.yml
-│       ├── application-dev.yml
-│       ├── application-prod.yml
-│       └── application-test.yml
-├── deploy/
-│   ├── install.sh
-│   └── install.bat
-├── docker-compose.yml
-└── docker-compose.dev.yml
+├── maxkb4j-common / maxkb4j-core     # Utilities, core abstractions, domain models
+├── maxkb4j-service/                  # Business implementation: application / chat / knowledge / model / oss / system / tool / trigger / workflow
+├── maxkb4j-service-api/              # Public contracts: -api modules (DTOs / VOs)
+├── maxkb4j-start/                    # Spring Boot entry point, config, packaging
+└── deploy/                           # One-click install scripts (install.sh / install.bat)
 ```
 
-| Module | Responsibility |
+> Dependency direction: `start` → `service` → `service-api` → `core` → `common`. Public contracts live in `-api` modules; implementations live in `service`.
+
+## 📄 Documentation & Resources
+
+- 📄 [Business Value Whitepaper](docs/MaxKB4j-商业价值白皮书.md) — value and selection analysis for enterprise decision makers
+- 🧪 [Regression Test Report](docs/MaxKB4j-回归测试报告.md) — regression verification results of core features
+- 📐 [Coding Conventions](docs/编码约定.md)
+- 🗒️ [Changelog](CHANGELOG.md) — latest release: v2.9.0 (2026-06-17)
+
+## 🤝 Community & Contributing
+
+| Item | Details |
 | :--- | :--- |
-| `maxkb4j-common` | Shared utilities, constants, and base classes |
-| `maxkb4j-core` | Core abstractions and domain models |
-| `maxkb4j-service` | Business service implementations (application, chat, knowledge, model, oss, system, tool, trigger, workflow) |
-| `maxkb4j-service-api` | Public service interfaces, DTOs, and VOs |
-| `maxkb4j-start` | Spring Boot entry point, configuration, and packaging |
-| `deploy` | One-click install scripts (`install.sh` / `install.bat`) |
-
-> Dependency direction flows top-down: `start` -> `service` -> `service-api` -> `core` -> `common`. Keep public contracts in `-api` modules and implementations in `service` modules.
-
----
-## Online Demo
-- URL: http://43.143.235.194:8080/
-- Demo account (regular user permissions): `demo`
-- Demo password: `demo@123456`
----
-## 📸 UI Preview
-<img src= "image/maxkb4j.gif" alt="MaxKB4j team"   />
-
----
-## 🤝 Contributing Guide
-
-We welcome community contributions! If you have suggestions, bug reports, or new feature requests, please submit them via [Issue](https://gitee.com/taisan/MaxKB4j/issues) or directly submit a Pull Request.
-
-| Category | Description                                                |
-| :--- |:---------------------------------------------------|
-| 🎯 How to Contribute | Fix bugs, develop new features, improve documentation, write tests, or optimize UI/UX. |
-| 📋 Process | Fork project → Create branch → Commit changes → Push to DEV branch → Open Pull Request. |
-| 🎨 Standards | Follow Alibaba Java Coding Guidelines, include unit tests, and update documentation. |
+| Feedback & requests | Report bugs, suggestions, or feature requests via [Gitee Issues](https://gitee.com/taisan/MaxKB4j/issues) |
+| Contribution flow | Fork → create a branch → push to the DEV branch → open a Pull Request |
+| Coding standards | Follow Alibaba Java coding conventions; include unit tests and update docs |
+| Community chat | Add the author on WeChat (`vxhqqh`) to join the core community group |
 
 ## 💖 Support & Sponsorship
 
-> **🌟 Open source is not easy, persistence is harder**
-> MaxKB4j is **maintained** by individual developers and community members, with no corporate backing. Your support goes directly to server costs, token testing, API testing, bug fixes, and new feature development - keeping the project moving forward!
-> 📌 **Early-bird note**: the Enterprise / Strategic tiers **continue to rise in price** - current pricing is the lowest it will ever be, so lock in benefits early.
+> MaxKB4j is maintained by an individual developer and community members, with no commercial company backing.
+> Every contribution goes directly to: **cloud server costs, model token testing, bug fixes, and new feature development**, with usage reported regularly in the community group.
 
-### Sponsorship Tiers
+| Tier | Amount | Benefits | Best for |
+| :---: | :---: | :--- | :--- |
+| ☕ Coffee | ¥10 | Author WeChat `vxhqqh`, core community group, priority update notifications | Individual developers who appreciate the project |
+| 📚 Learning Member | ¥99 | All Coffee benefits + free access to the [Knowledge Planet](https://wx.zsxq.com/group/28882525858841) + priority answers inside the planet | Developers who want to learn in depth |
+| 🏢 Enterprise Partner | ¥799 | All Learning Member benefits + frontend source code (one-time) + deployment / post-sales support | Enterprise users / production deployments |
+| 👑 Strategic Partner | ¥1399 | All Enterprise Partner benefits + 6-month frontend source upgrades + enterprise logo on the sponsor wall | Deep partners |
 
-| Tier | Amount | Core Benefits | Target Audience |
-|:---:|:---:|:---|:---|
-| ☕ Coffee Support | ¥10 | • Add the author on **WeChat:** `vxhqqh`<br>• Join the core discussion group (mention "sponsored")<br>• Priority notification of project updates | Individual developers who recognize project value |
-| 📚 Learning Member 🏆 | ¥99 | • All Coffee Support benefits<br>• Free access to [《👉 Knowledge Planet🔥》](https://wx.zsxq.com/group/28882525858841)<br>• Priority answers to questions in the Planet | Developers who want to learn in depth |
-| 🏢 Enterprise Partner ⭐ | ¥799 | • All Learning Member benefits<br>• One-time access to **frontend source code**<br>• After-sales technical support<br>• Suited for enterprise / production use (price continues to rise…) | Enterprise users / Advanced users |
-| 👑 Strategic Partner | ¥1399 | • All Enterprise Partner benefits<br>• Free frontend source code upgrades within 6 months<br>• Enterprise Logo displayed on official website sponsor wall (price continues to rise…) | Deep cooperation partners |
+**How to sponsor**
+1. Pick a tier and scan the Alipay / WeChat QR codes below to pay (please note your nickname).
+2. Add the author on WeChat (`vxhqqh`) and send the payment screenshot to activate your benefits instantly.
 
-> 🏆 Most popular　·　⭐ Best value
+> 💡 Please contact the author after payment so we can identify your sponsorship and grant benefits. Enterprise users needing invoices, contracts, or corporate payments: please confirm with the author.
 
-<table style="border-collapse: collapse; border: 1px solid black;">
+<table>
   <tr>
-    <th style="padding: 10px;"> <div align="center">Alipay QR Code</div></th>
-    <th style="padding: 10px;"> <div align="center">WeChat QR Code</div></th>
+    <th align="center">Alipay QR</th>
+    <th align="center">WeChat QR</th>
   </tr>
   <tr>
-    <td style="padding: 5px;background-color:#fff;"><img src="image/zfb_skm.png" alt="Alipay QR Code" /></td>
-    <td style="padding: 5px;background-color:#fff;"><img src="image/wx_zsm.png" alt="WeChat QR Code" /></td>
+    <td align="center"><img src="image/zfb_skm.png" alt="AlipayQR" /></td>
+    <td align="center"><img src="image/wx_zsm.png" alt="WeChatQR" /></td>
   </tr>
 </table>
 
-### 🪜 How to Sponsor
-1. **Choose a tier** - pick the sponsorship tier that fits you from the table above
-2. **Scan & pay** - pay via Alipay / WeChat QR code (tip: note your GitHub handle)
-3. **Contact the author** - add WeChat `vxhqqh`, send the payment screenshot, and your perks will be activated right away
+**🏅 Sponsor Wall** (sorted by sponsorship time; enterprise logos / nicknames are displayed long-term)
+> 🎯 Join us — your enterprise logo / nickname will be showcased here with ongoing community exposure.
 
-> 💡 Please contact the author after paying - otherwise we can't identify you or deliver your benefits.
+## 🏢 Enterprise Services
 
-### 🏅 Sponsor Wall
-Thanks to everyone supporting MaxKB4j (ordered by sponsorship time):
-> 🎯 We'd love to have you on board - your enterprise Logo / nickname will be displayed here, gaining continuous community exposure.
+Need **private deployment, custom development, team training, or SLA-backed support**? Custom plans and quotes are available:
+- Private / intranet deployment
+- Scenario-specific development and system integration
+- Team training and knowledge transfer
+- Technical support and SLA services
 
-### 🤝 Enterprise Custom Cooperation
-Need **private deployment, secondary development, team training, SLA guarantees**, or a deeper partnership? Contact the author on WeChat `vxhqqh` for a tailored plan and quote.
-
-> Sponsorship amounts are used only for continuous project development and maintenance. 💡 Open source is not easy - thank you for every contribution. You are what keeps MaxKB4j moving forward!
-
----
+Contact the author on WeChat (`vxhqqh`) for a tailored proposal and quote.
 
 ## 📜 License
 
-Copyright © 2025–2035 Luoyang Taishan TARZAN. All rights reserved.
+Copyright © 2025–2035 洛阳泰山 TARZAN. All rights reserved.
 
-Licensed under the GNU General Public License Version 3 (GPLv3) ("License"); you may not use this project file except in compliance with the License. You may obtain a copy of the License at
-
-[🔗https://www.gnu.org/licenses/gpl-3.0.html](https://www.gnu.org/licenses/gpl-3.0.html)
-
-Unless required by applicable law or agreed to in writing, software distributed under the License is provided on an "AS IS" basis, without warranties or conditions of any kind, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+This project is licensed under the [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) (“License”). You may not use the files of this project except in compliance with the License. Software distributed under the License is distributed on an AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
 ---
 
-## 🔗 Related Resources
-
-- 📘 [Open-source Model Library](https://modelscope.cn/models)
-- 🐦 [MCP Plaza](https://modelscope.cn/mcp)
-- 🌐 [Skills Center](https://modelscope.cn/skills)
-- 🐦 [Skillhub](https://skillhub.cloud.tencent.com/)
-
->  🌟 **Star this project to support China's open-source AI ecosystem!** </br>
-
----
-
-✅ **MaxKB4j — Easily build high-performance and stable agent workflows and RAG knowledge base solutions**
+✅ **MaxKB4j — build high-performance, stable agent workflows and RAG knowledge base solutions with ease**
