@@ -31,7 +31,6 @@ public class UserController {
 
     private final IUserInternalService userService;
 
-    @SaCheckRole(type = LoginType.ADMIN, value = {RoleConst.ADMIN, RoleConst.USER}, mode = SaMode.OR)
     @GetMapping("user/profile")
     public R<UserProfileVO> getUserProfile(@CurrentUserId String userId){
         return R.data(userService.getUserProfileById(userId));

@@ -116,6 +116,7 @@ public interface ModelConstants {
         String CLAUDE_3_5_SONNET = "claude-3-5-sonnet-20241022";
         String CLAUDE_3_5_HAIKU = "claude-3-5-haiku-20241022";
 
+        String DEEPSEEK_V4_FLASH_VISION = "deepseek-v4-flash-vision-exp";
         String DEEPSEEK_V4_FLASH = "deepseek-v4-flash";
         String DEEPSEEK_V4_PRO = "deepseek-v4-pro";
         String DEEPSEEK_CHAT = "deepseek-chat";
@@ -204,6 +205,9 @@ public interface ModelConstants {
         String XUNFEI_GENERAL_V3 = "generalv3";
         String XUNFEI_LITE = "lite";
 
+        String GLM_5_3_FLASH = "glm-5.3-flash";
+        String GLM_5_3 = "glm-5.3";
+        String GLM_5_2 = "glm-5.2";
         String GLM_5_1 = "glm-5.1";
         String GLM_5 = "glm-5";
         String GLM_4 = "glm-4";

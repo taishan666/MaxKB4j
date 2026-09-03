@@ -18,6 +18,9 @@ public class ZhiPuModelProvider extends OpenAiModelProvider {
     private static final String BASE_URL = BaseUrl.ZHI_PU;
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo(ModelName.GLM_5_3_FLASH, "", ModelType.LLM),
+            new ModelInfo(ModelName.GLM_5_3, "", ModelType.LLM),
+            new ModelInfo(ModelName.GLM_5_2, "", ModelType.LLM),
             new ModelInfo(ModelName.GLM_5_1, "", ModelType.LLM),
             new ModelInfo(ModelName.GLM_5, "", ModelType.LLM),
             new ModelInfo(ModelName.GLM_4, "", ModelType.LLM),

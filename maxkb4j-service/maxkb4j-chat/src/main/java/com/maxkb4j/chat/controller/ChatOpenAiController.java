@@ -2,7 +2,9 @@ package com.maxkb4j.chat.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.maxkb4j.application.dto.ApplicationApiKeyDTO;
 import com.maxkb4j.application.dto.ChatResponse;
+import com.maxkb4j.application.service.IApplicationApiKeyService;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.chat.dto.OpenAIChatCompletionRequest;
 import com.maxkb4j.chat.dto.OpenAIChatCompletionResponse;
@@ -16,6 +18,7 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.WebUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,11 +47,14 @@ public class ChatOpenAiController {
 
     private final IApplicationChatService chatService;
 
+    private final IApplicationApiKeyService apiKeyService;
+
     private final String DEFAULT_MODEL_NAME="gpt-5.4";
 
     @Operation(summary = "聊天对话", description = "兼容 OpenAI Chat Completions API 格式")
     @PostMapping(value = "/{appId}/chat/completions", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> chatCompletionStream(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
+        authenticate();
         PreparedChat prepared = prepareChat(appId, request);
         return handleStreamResponse(request, prepared.params(), prepared.chatState(), prepared.sink());
     }
@@ -56,6 +62,7 @@ public class ChatOpenAiController {
     @Operation(summary = "聊天对话", description = "兼容 OpenAI Chat Completions API 格式")
     @PostMapping(value = "/{appId}/chat/completions", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OpenAIChatCompletionResponse> chatCompletionSync(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
+        authenticate();
         PreparedChat prepared = prepareChat(appId, request);
         return handleSyncResponse(request, prepared.params(), prepared.chatState(), prepared.sink());
     }
@@ -78,6 +85,17 @@ public class ChatOpenAiController {
                 .debug(false)
                 .build();
         return new PreparedChat(params, chatState, sink);
+    }
+
+    /**
+     * Authenticate the request via the Authorization Bearer secretKey.
+     */
+    private void authenticate() {
+        String secretKey = WebUtil.getTokenValue();
+        ApplicationApiKeyDTO apiKey = apiKeyService.getBySecretKey(secretKey);
+        if (apiKey == null || !Boolean.TRUE.equals(apiKey.getIsActive())) {
+            throw new ApiException("chat.token.invalid.or.disabled");
+        }
     }
 
     /**
