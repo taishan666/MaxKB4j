@@ -2,7 +2,6 @@ package com.maxkb4j.application.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.enums.AppType;
 import com.maxkb4j.application.service.impl.ApplicationServiceImpl;
@@ -36,13 +35,9 @@ public class ApplicationModelService {
 
 
     public void normalizeAppModels(ApplicationEntity app) {
-        if (AppType.SIMPLE.name().equals(app.getType())&& StringUtils.isNotBlank(app.getModelId())){
+        if (AppType.SIMPLE.name().equals(app.getType())){
             app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.LLM));
-        }
-        if (AppType.SIMPLE.name().equals(app.getType())&& StringUtils.isNotBlank(app.getTtsModelId())){
             app.setTtsModelId(modelService.getSafeModelId(app.getModelId(), ModelType.TTS));
-        }
-        if (AppType.SIMPLE.name().equals(app.getType())&& StringUtils.isNotBlank(app.getSttModelId())){
             app.setSttModelId(modelService.getSafeModelId(app.getModelId(), ModelType.STT));
         }
         normalizeNodeModels(app.getWorkFlow());
@@ -63,49 +58,37 @@ public class ApplicationModelService {
                 JSONObject nodeData = WorkFlowNodes.getNodeData(node);
                 if (nodeData != null) {
                     String ttsModelId = nodeData.getString("ttsModelId");
-                    if (ttsModelId != null){
-                        nodeData.put("ttsModelId", modelService.getSafeModelId(ttsModelId, ModelType.TTS));
-                    }
+                    nodeData.put("ttsModelId", modelService.getSafeModelId(ttsModelId, ModelType.TTS));
                     String sttModelId = nodeData.getString("sttModelId");
-                    if (sttModelId != null){
-                        nodeData.put("sttModelId", modelService.getSafeModelId(sttModelId, ModelType.STT));
-                    }
+                    nodeData.put("sttModelId", modelService.getSafeModelId(sttModelId, ModelType.STT));
                 }
             }
             if (LLM_NODE_TYPES.contains(type)) {
                 JSONObject nodeData = WorkFlowNodes.getNodeData(node);
                 if (nodeData != null) {
                     String modelId = nodeData.getString("modelId");
-                    if (modelId != null){
-                        nodeData.put("modelId", modelService.getSafeModelId(modelId, ModelType.LLM));
-                    }
+                    nodeData.put("modelId", modelService.getSafeModelId(modelId, ModelType.LLM));
                 }
             }
             if (IMAGE_GENERATE.getKey().equals(type)) {
                 JSONObject nodeData = WorkFlowNodes.getNodeData(node);
                 if (nodeData != null) {
                     String modelId = nodeData.getString("modelId");
-                    if (modelId != null){
-                        nodeData.put("modelId", modelService.getSafeModelId(modelId, ModelType.TTI));
-                    }
+                    nodeData.put("modelId", modelService.getSafeModelId(modelId, ModelType.TTI));
                 }
             }
             if (TEXT_TO_SPEECH.getKey().equals(type)) {
                 JSONObject nodeData = WorkFlowNodes.getNodeData(node);
                 if (nodeData != null) {
                     String ttsModelId = nodeData.getString("ttsModelId");
-                    if (ttsModelId != null){
-                        nodeData.put("ttsModelId", modelService.getSafeModelId(ttsModelId, ModelType.TTS));
-                    }
+                    nodeData.put("ttsModelId", modelService.getSafeModelId(ttsModelId, ModelType.TTS));
                 }
             }
             if (SPEECH_TO_TEXT.getKey().equals(type)) {
                 JSONObject nodeData = WorkFlowNodes.getNodeData(node);
                 if (nodeData != null) {
                     String sttModelId = nodeData.getString("sttModelId");
-                    if (sttModelId != null){
-                        nodeData.put("sttModelId", modelService.getSafeModelId(sttModelId, ModelType.STT));
-                    }
+                    nodeData.put("sttModelId", modelService.getSafeModelId(sttModelId, ModelType.STT));
                 }
             }
             if (LOOP.getKey().equals(type)){
