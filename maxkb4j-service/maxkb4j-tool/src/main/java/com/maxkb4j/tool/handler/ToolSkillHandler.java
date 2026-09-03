@@ -90,12 +90,15 @@ public class ToolSkillHandler {
         SkillsToolUtil.deleteDirectory(entity.getId());
     }
 
-    /** 组装 VO 时获取 Skill 关联文件列表（非 SKILL 返回空列表，避免前端 NPE）。 */
+    /** 组装 VO 时获取 Skill 关联文件列表（非 SKILL 或文件缺失返回空列表，避免前端 NPE）。 */
     public List<ToolFileVO> resolveFileList(ToolEntity entity) {
-        if (isNotSkill(entity)) {
+        if (isNotSkill(entity) || StringUtils.isEmpty(entity.getCode())) {
             return List.of();
         }
         OssFile file = ossService.getFile(entity.getCode());
+        if (file == null) {
+            return List.of();
+        }
         ToolFileVO vo = BeanUtil.copy(file, ToolFileVO.class);
         vo.setId(file.getFileId());
         return List.of(vo);

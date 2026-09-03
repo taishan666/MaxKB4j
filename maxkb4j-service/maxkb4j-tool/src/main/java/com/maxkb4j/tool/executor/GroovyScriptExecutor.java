@@ -2,37 +2,35 @@ package com.maxkb4j.tool.executor;
 
 import com.alibaba.fastjson.JSON;
 import com.maxkb4j.common.util.I18nUtil;
-import com.maxkb4j.common.util.MD5Util;
+import com.maxkb4j.tool.sandbox.GroovySandboxCompilerConfigurer;
 import com.maxkb4j.tool.sandbox.GroovySandboxInterceptor;
+import com.maxkb4j.tool.sandbox.GroovySandboxPolicy;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import groovy.lang.Binding;
-import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.groovy.ast.expr.*;
-import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.ErrorCollector;
-import org.codehaus.groovy.control.MultipleCompilationErrorsException;
-import org.codehaus.groovy.control.customizers.ImportCustomizer;
-import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
-import org.codehaus.groovy.control.messages.ExceptionMessage;
-import org.codehaus.groovy.control.messages.Message;
-import org.kohsuke.groovy.sandbox.SandboxTransformer;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
- * 安全的 Groovy 脚本执行器
+ * 安全的 Groovy 脚本执行器。
  * <p>
- * 采用三层防护：
- * 1. 编译期 AST 限制（SecureASTCustomizer）：类引用仅限白名单、限制常量类型
- * 2. 运行期沙箱（SandboxTransformer + 白名单拦截器）：只允许白名单中的类和方法调用
- * 3. 超时控制：通过线程池限制脚本执行时间，防止无限循环/资源耗尽
+ * 采用多层防护，各层由独立组件承担：
+ * 1. 文本预检（{@link GroovySandboxPolicy#findDangerousToken}）：编译前粗粒度拦截脚本中的危险标记；
+ * 2. 编译期防护（{@link GroovySandboxCompilerConfigurer}）：AST 限制（类引用仅限白名单、限制常量类型）
+ *    与沙箱转换（注入运行期拦截点）；
+ * 3. 运行期沙箱（{@link GroovySandboxInterceptor}）：只允许白名单中的类和方法调用；
+ * 4. 超时控制：通过线程池限制脚本执行时间，防止无限循环/资源耗尽。
+ * 编译缓存由 {@link GroovyScriptCache} 负责，本类只关注执行编排。
  * </p>
  */
 @Slf4j
@@ -40,182 +38,6 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
 
     /** 脚本执行超时时间（秒） */
     private static final int EXECUTION_TIMEOUT_SECONDS = 60;
-
-    private static final CompilerConfiguration SAFE_CONFIG;
-
-    private static final Set<String> DANGEROUS_METHODS = Set.of(
-            "exec", "execute", "start", "getRuntime",
-            "forName", "loadClass", "newInstance",
-            "invoke", "invokeMethod", "getMethod", "getDeclaredMethod", "getMethods", "getDeclaredMethods",
-            "getField", "getDeclaredField", "getFields", "getDeclaredFields",
-            "getConstructor", "getDeclaredConstructor", "getConstructors", "getDeclaredConstructors",
-            "setAccessible", "getClass", "getClassLoader", "getMetaClass", "setMetaClass",
-            "parseClass", "evaluate"
-    );
-
-    private static final Set<String> DANGEROUS_PROPERTIES = Set.of(
-            "metaClass", "class", "classLoader", "declaringClass", "protectionDomain",
-            "methods", "declaredMethods", "fields", "declaredFields",
-            "constructors", "declaredConstructors", "this", "super"
-    );
-
-    static {
-        CompilerConfiguration config = new CompilerConfiguration();
-
-        // ========== 1. 导入限制 ==========
-        ImportCustomizer importCustomizer = new ImportCustomizer();
-        importCustomizer.addStaticStars("java.lang.Math");
-        importCustomizer.addStarImports("groovy.json", "groovy.xml", "net.objecthunter.exp4j","java.nio.file");
-
-        // ========== 2. AST 安全限制 ==========
-        SecureASTCustomizer ast = new SecureASTCustomizer();
-        ast.setClosuresAllowed(true);
-        ast.setDisallowedExpressions(List.of(
-                MethodPointerExpression.class,
-                AttributeExpression.class
-        ));
-        ast.addExpressionCheckers(GroovyScriptExecutor::isSafeExpression);
-        ast.setDisallowedImports(List.of(
-                "java.lang.Runtime",
-                "java.lang.Process",
-                "java.lang.ProcessBuilder",
-                "java.lang.System",
-                "java.lang.Class",
-                "java.lang.ClassLoader",
-                "java.net.URL",
-                "java.net.URI",
-                "groovy.lang.GroovyShell",
-                "groovy.lang.GroovyClassLoader",
-                "groovy.lang.MetaClass",
-                "groovy.lang.ExpandoMetaClass"
-        ));
-        ast.setDisallowedStarImports(List.of(
-                "java.lang.reflect",
-                "java.lang.invoke",
-                "java.io",
-                "java.net"
-        ));
-        ast.setDisallowedStaticImports(List.of(
-                "java.lang.Runtime.getRuntime",
-                "java.lang.System.getenv",
-                "java.lang.System.getProperty",
-                "java.lang.Class.forName"
-        ));
-        ast.setDisallowedStaticStarImports(List.of(
-                "java.lang.Runtime",
-                "java.lang.System",
-                "java.lang.Class",
-                "java.lang.ProcessBuilder"
-        ));
-
-        // 注意：Groovy 4 的 SecureASTCustomizer.visitVariableExpression 会复用该白名单校验
-        // 变量的静态类型，类型不在名单中的脚本变量会在编译期被拒绝，而脚本绑定变量与
-        // def 声明变量的推断类型均为 java.lang.Object，因此名单必须覆盖 Object、基本类型
-        // 及运行期白名单（GroovySandboxInterceptor）中的常见安全类型，否则正常业务脚本会被误杀。
-        @SuppressWarnings("rawtypes")
-        List<Class> allowedConstants = new ArrayList<>();
-        // 脚本绑定变量 / 闭包参数的默认静态类型
-        allowedConstants.add(Object.class);
-        // 基本类型（int x = 5 一类的显式类型声明与字面量）
-        allowedConstants.add(int.class);
-        allowedConstants.add(long.class);
-        allowedConstants.add(double.class);
-        allowedConstants.add(float.class);
-        allowedConstants.add(boolean.class);
-        allowedConstants.add(char.class);
-        allowedConstants.add(byte.class);
-        allowedConstants.add(short.class);
-        // ========== 新增：数组类型支持 ==========
-        // byte[] 是文件读写、编解码、加密等操作的常用类型，必须加入白名单
-        allowedConstants.add(byte[].class);
-        // 建议同时添加其他基本类型数组，避免后续类似报错
-        allowedConstants.add(int[].class);
-        allowedConstants.add(long[].class);
-        allowedConstants.add(double[].class);
-        allowedConstants.add(float[].class);
-        allowedConstants.add(boolean[].class);
-        allowedConstants.add(char[].class);
-        allowedConstants.add(short[].class);
-        // String 数组也常用于参数传递
-        allowedConstants.add(String[].class);
-        // Object 数组用于通用集合转换
-        allowedConstants.add(Object[].class);
-        // 字面量常量类型
-        allowedConstants.add(String.class);
-        allowedConstants.add(Integer.class);
-        allowedConstants.add(Long.class);
-        allowedConstants.add(Double.class);
-        allowedConstants.add(Float.class);
-        allowedConstants.add(Boolean.class);
-        allowedConstants.add(Character.class);
-        allowedConstants.add(BigDecimal.class);
-        allowedConstants.add(BigInteger.class);
-        allowedConstants.add(BigInteger.class);
-        // 显式类型声明常用类型（与运行期白名单 GroovySandboxInterceptor 保持一致）
-        allowedConstants.add(Number.class);
-        allowedConstants.add(java.util.Collection.class);
-        allowedConstants.add(java.util.List.class);
-        allowedConstants.add(java.util.ArrayList.class);
-        allowedConstants.add(java.util.LinkedList.class);
-        allowedConstants.add(java.util.Map.class);
-        allowedConstants.add(java.util.HashMap.class);
-        allowedConstants.add(java.util.LinkedHashMap.class);
-        allowedConstants.add(java.util.Set.class);
-        allowedConstants.add(java.util.HashSet.class);
-        allowedConstants.add(java.util.LinkedHashSet.class);
-        allowedConstants.add(StringBuilder.class);
-        allowedConstants.add(StringBuffer.class);
-        allowedConstants.add(Exception.class);
-        allowedConstants.add(groovy.lang.GString.class);
-        allowedConstants.add(java.util.Date.class);
-        allowedConstants.add(java.time.LocalDate.class);
-        allowedConstants.add(java.time.LocalDateTime.class);
-        allowedConstants.add(java.time.LocalTime.class);
-        allowedConstants.add(java.time.Instant.class);
-        allowedConstants.add(java.time.ZonedDateTime.class);
-        allowedConstants.add(java.time.ZoneId.class);
-        allowedConstants.add(java.time.format.DateTimeFormatter.class);
-        allowedConstants.add(java.nio.file.Files.class);
-        allowedConstants.add(java.nio.file.Path.class);
-        allowedConstants.add(io.github.mymonstercat.ocr.InferenceEngine.class);
-        allowedConstants.add(com.maxkb4j.oss.service.IOssService.class);
-        allowedConstants.add(com.maxkb4j.common.util.SpringUtil.class);
-        allowedConstants.add(io.github.mymonstercat.Model.class);
-        allowedConstants.add(com.benjaminwan.ocrlibrary.OcrResult.class);
-        ast.setAllowedConstantTypesClasses(allowedConstants);
-
-        // ========== 3. Groovy Sandbox 运行期沙箱 ==========
-        // SandboxTransformer 默认启用所有拦截：方法、构造函数、属性、数组、属性访问
-        SandboxTransformer sandboxTransformer = new SandboxTransformer();
-
-        // ========== 4. 组合配置 ==========
-        config.addCompilationCustomizers(importCustomizer, ast, sandboxTransformer);
-        config.setScriptBaseClass("groovy.lang.Script");
-        config.setDisabledGlobalASTTransformations(Set.of("Grab", "GrabConfig", "GrabResolver"));
-        SAFE_CONFIG = config;
-    }
-
-    /** 编译缓存最大条目数，超出按 LRU 淘汰 */
-    private static final int MAX_CACHED_SCRIPTS = 256;
-
-    /**
-     * 已编译脚本缓存：key 为脚本内容摘要，value 为脚本类及其专属 ClassLoader。
-     * <p>
-     * Groovy 每次编译都会生成新的 Class，重复编译既浪费 CPU 又导致 metaspace 增长。
-     * 相同脚本只编译一次，后续执行仅新建 Script 实例（实例独立、线程安全）。
-     * 每个唯一脚本使用独立 GroovyClassLoader，缓存淘汰后整个 loader 连同其加载的类可被 GC 回收。
-     * </p>
-     */
-    private static final Map<String, CompiledScript> SCRIPT_CACHE =
-            Collections.synchronizedMap(new LinkedHashMap<>(32, 0.75f, true) {
-                @Override
-                protected boolean removeEldestEntry(Map.Entry<String, CompiledScript> eldest) {
-                    return size() > MAX_CACHED_SCRIPTS;
-                }
-            });
-
-    private record CompiledScript(GroovyClassLoader loader, Class<?> scriptClass) {
-    }
 
     /** 重建共享执行器时的同步锁，保证超时替换时只有一个新池被创建 */
     private static final Object EXECUTOR_LOCK = new Object();
@@ -261,37 +83,7 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
 
     /** 供测试检查编译缓存命中情况 */
     static boolean isScriptCached(String code) {
-        return SCRIPT_CACHE.containsKey(cacheKey(code));
-    }
-
-    private static String cacheKey(String code) {
-        return MD5Util.encrypt(code);
-    }
-
-    private static CompiledScript cachedScript(String code) {
-        synchronized (SCRIPT_CACHE) {
-            return SCRIPT_CACHE.computeIfAbsent(cacheKey(code), key -> compileScript(code));
-        }
-    }
-
-    private static CompiledScript compileScript(String code) {
-        GroovyClassLoader loader = new GroovyClassLoader(GroovyScriptExecutor.class.getClassLoader(), SAFE_CONFIG);
-        Class<?> scriptClass;
-        try {
-            scriptClass = loader.parseClass(code);
-        } catch (CompilationFailedException e) {
-            // SecureAST 在编译期抛出的 SecurityException 会被包装进编译失败异常，
-            // 这里还原原始 SecurityException，保持与运行期沙箱拒绝一致的错误语义
-            SecurityException securityException = findCompileSecurityException(e);
-            if (securityException != null) {
-                throw securityException;
-            }
-            throw new RuntimeException(I18nUtil.get("tool.groovy.script.execution.failed", e.getMessage()), e);
-        }
-        if (!Script.class.isAssignableFrom(scriptClass)) {
-            throw new RuntimeException(I18nUtil.get("tool.groovy.script.execution.failed", "unsupported script structure"));
-        }
-        return new CompiledScript(loader, scriptClass);
+        return GroovyScriptCache.contains(code);
     }
 
     @Override
@@ -314,7 +106,10 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
             return "";
         }
 
-        validateScriptContent(code);
+        String dangerousToken = GroovySandboxPolicy.findDangerousToken(code);
+        if (dangerousToken != null) {
+            throw new SecurityException(I18nUtil.get("tool.groovy.script.dangerous.call", dangerousToken));
+        }
 
         // 不直接修改调用方传入的 map：合并到新 map，initParams 保持原有覆盖语义
         Map<String, Object> mergedParams = new LinkedHashMap<>();
@@ -327,7 +122,7 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
 
         // 编译结果复用：相同脚本只编译一次，每次执行新建 Script 实例保证隔离
         Binding binding = new Binding(mergedParams);
-        CompiledScript compiled = cachedScript(code);
+        GroovyScriptCache.CompiledScript compiled = GroovyScriptCache.get(code);
 
         GroovySandboxInterceptor interceptor = new GroovySandboxInterceptor();
         ExecutorService executor = scriptExecutor();
@@ -357,13 +152,12 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
             return future.get(EXECUTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             future.cancel(true);
-            // 关闭本次提交所在的共享池：脚本响应中断则线程立即回收；
-            // 死循环不响应中断时该 daemon 线程滞留，下一次执行会通过 scriptExecutor() 重建新池
+            // 关闭本次提交使用的执行池，避免死循环脚本阻塞后续执行；后续调用经 scriptExecutor() 重建新池
             executor.shutdownNow();
             throw new SecurityException(I18nUtil.get("tool.groovy.script.execution.timeout", EXECUTION_TIMEOUT_SECONDS));
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
-            SecurityException securityException = findSecurityException(cause);
+            SecurityException securityException = GroovySandboxPolicy.findSecurityException(cause);
             if (securityException != null) {
                 throw securityException;
             }
@@ -373,96 +167,4 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
             throw new RuntimeException(I18nUtil.get("tool.groovy.script.execution.interrupted"), e);
         }
     }
-
-    private static void validateScriptContent(String script) {
-        String normalized = script.toLowerCase();
-        for (String token : dangerousTokens()) {
-            if (normalized.contains(token)) {
-                throw new SecurityException(I18nUtil.get("tool.groovy.script.dangerous.call", token));
-            }
-        }
-    }
-
-    private static Collection<String> dangerousTokens() {
-        return List.of(
-                "runtime",
-                "processbuilder",
-                "java.lang.process", "java.lang.system",
-                "system.getenv", "system.getproperty",
-                "class.forname",
-                "getruntime",
-                ".exec",
-                ".execute",
-                ".start",
-                "getclass",
-                "getclassloader",
-                "loadclass",
-                "metaclass", "classloader", "java.lang.reflect", "java.lang.invoke", "setaccessible",
-                "getmethod", "getdeclaredmethod", "invoke(", "new file", "java.io.",
-                "java.net.",
-                "groovyshell", "groovyclassloader"
-        );
-    }
-
-    private static boolean isSafeExpression(Expression expression) {
-        if (expression instanceof ClassExpression classExpression) {
-            // 类引用（静态调用接收者、instanceof、.class 等）仅允许运行期白名单中的类，
-            // 未在白名单中的类在编译期即被拒绝，避免放开 ClassExpression 后引入任意类引用
-            return GroovySandboxInterceptor.isAllowedClassName(classExpression.getType().getName());
-        }
-        if (expression instanceof MethodCallExpression methodCallExpression) {
-            String methodName = methodCallExpression.getMethodAsString();
-            return methodName == null || !DANGEROUS_METHODS.contains(methodName);
-        }
-        if (expression instanceof StaticMethodCallExpression staticMethodCallExpression) {
-            return !DANGEROUS_METHODS.contains(staticMethodCallExpression.getMethod());
-        }
-        if (expression instanceof PropertyExpression propertyExpression) {
-            String propertyName = propertyExpression.getPropertyAsString();
-            return propertyName == null || !DANGEROUS_PROPERTIES.contains(propertyName);
-        }
-        return true;
-    }
-
-    private static SecurityException findSecurityException(Throwable throwable) {
-        while (throwable != null) {
-            if (throwable instanceof SecurityException securityException) {
-                return securityException;
-            }
-            throwable = throwable.getCause();
-        }
-        return null;
-    }
-
-    /**
-     * 从编译失败异常中提取 SecureASTCustomizer 抛出的 SecurityException。
-     * 编译期安全拒绝会被逐层包装为 MultipleCompilationErrorsException，
-     * 原始异常保存在错误收集器的 ExceptionMessage 中。
-     */
-    private static SecurityException findCompileSecurityException(CompilationFailedException exception) {
-        SecurityException fromCauseChain = findSecurityException(exception);
-        if (fromCauseChain != null) {
-            return fromCauseChain;
-        }
-        if (exception instanceof MultipleCompilationErrorsException multi) {
-            ErrorCollector collector = multi.getErrorCollector();
-            for (int i = 0; collector != null && i < collector.getErrorCount(); i++) {
-                Message message = collector.getError(i);
-                if (message instanceof ExceptionMessage exceptionMessage) {
-                    SecurityException found = findSecurityException(exceptionMessage.getCause());
-                    if (found != null) {
-                        return found;
-                    }
-                }
-            }
-            // 兜底：cause 链丢失时依据错误文本判定安全拒绝
-            String message = multi.getMessage();
-            if (message != null && message.contains(SecurityException.class.getName())) {
-                return new SecurityException(message);
-            }
-        }
-        return null;
-    }
-
 }
-

@@ -234,4 +234,23 @@ class GroovyScriptExecutorTest {
         GroovyScriptExecutor executor = new GroovyScriptExecutor("a + b", params("a", 100, "b", 200));
         assertEquals(300, executor.execute(params("a", 1, "b", 2)));
     }
+
+    @Test
+    void execute_enumConstantOnWhitelistedClass_allowed() {
+        // 枚举常量通过类名读取等价于对 Class 对象的静态属性访问（Model.ONNX_PPOCR_V4），
+        // 指向白名单类的类引用应放行，其它类仍被拒绝
+        String code = """
+                import io.github.mymonstercat.Model
+                return Model.ONNX_PPOCR_V4
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertEquals(io.github.mymonstercat.Model.ONNX_PPOCR_V4, executor.execute(params()));
+    }
+
+    @Test
+    void execute_staticConstantOnWhitelistedClass_allowed() {
+        String code = "return Integer.MAX_VALUE";
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertEquals(Integer.MAX_VALUE, executor.execute(params()));
+    }
 }
