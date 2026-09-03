@@ -111,7 +111,7 @@ public final class GroovySandboxPolicy {
             "org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation",
             "io.github.mymonstercat.ocr.InferenceEngine",
             "io.github.mymonstercat.Model",
-            "com.benjaminwen.ocrlibrary.OcrResult",
+            "com.benjaminwan.ocrlibrary.OcrResult",
             "com.maxkb4j.oss.service.IOssService",
             "com.maxkb4j.common.util.SpringUtil"
     );
@@ -203,7 +203,7 @@ public final class GroovySandboxPolicy {
             "getFileName", "getParent", "getRoot", "getName", "getNameCount", "subpath",
             "normalize", "toAbsolutePath",
             // ===== 异常 =====
-            "getMessage",
+            "getMessage", "printStackTrace",
             // ===== OCR =====
             "runOcr",
             // ===== 闭包 =====
@@ -268,6 +268,7 @@ public final class GroovySandboxPolicy {
             Map.entry("org.codehaus.groovy.runtime.ScriptBytecodeAdapter", Set.of("findRegex", "matchRegex")),
             Map.entry("java.nio.file.Path", Set.of("of")),
             Map.entry("io.github.mymonstercat.ocr.InferenceEngine", Set.of("getInstance")),
+            Map.entry("com.maxkb4j.common.util.SpringUtil", Set.of("getBean", "getBeansOfType")),
             Map.entry("java.nio.file.Files", Set.of(
                     "readString", "readAllLines", "readAllBytes",
                     "write", "writeString",
@@ -299,6 +300,15 @@ public final class GroovySandboxPolicy {
             "java.lang.Exception",
             "java.lang.RuntimeException",
             "java.lang.IllegalArgumentException"
+    );
+
+    /**
+     * 平台数据类（DTO/VO/实体/领域对象）的包名特征。
+     * 工作流/工具引擎会把这类对象作为绑定参数传入脚本（如 imageList 中的 OssFile），
+     * 允许对其做属性读取（由 getter 支撑）；方法调用仍受方法白名单约束。
+     */
+    private static final List<String> DATA_CLASS_PACKAGE_TOKENS = List.of(
+            ".domain.", ".dto.", ".vo.", ".entity."
     );
 
     // ==================================================================
@@ -402,6 +412,26 @@ public final class GroovySandboxPolicy {
             return false;
         }
         return isAllowedClassName(normalizeClassName(clazz)) && !isDangerousClass(clazz);
+    }
+
+    /**
+     * 是否为平台数据类（包名含 dto/vo/entity/domain 段的 com.maxkb4j.* 类）。
+     * 仅用于放开属性读取，不放开任意方法调用与属性写入。
+     */
+    public static boolean isReadableDataClass(Class<?> type) {
+        if (type == null || isDangerousClass(type)) {
+            return false;
+        }
+        String className = normalizeClassName(type);
+        if (!className.startsWith("com.maxkb4j.")) {
+            return false;
+        }
+        for (String token : DATA_CLASS_PACKAGE_TOKENS) {
+            if (className.contains(token)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -557,6 +587,14 @@ public final class GroovySandboxPolicy {
     /** 递归校验取值类型：拒绝危险类型与不安全数组，深入集合与 Map 逐项校验。 */
     public static void validateValue(Object value) {
         if (value == null) {
+            return;
+        }
+        if (value instanceof Class<?> classValue) {
+            // Class 字面量（如 SpringUtil.getBean(IOssService.class) 的参数）：
+            // 仅当指向白名单类时放行，避免 Class 对象携带任意类型穿透沙箱
+            if (!isAllowedClassReference(classValue)) {
+                throw new SecurityException("不允许使用危险类型: " + classValue.getName());
+            }
             return;
         }
         Class<?> valueClass = value.getClass();

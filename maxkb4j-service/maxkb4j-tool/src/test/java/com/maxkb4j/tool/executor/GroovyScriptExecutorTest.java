@@ -1,11 +1,13 @@
 package com.maxkb4j.tool.executor;
 
+import com.maxkb4j.tool.sandbox.GroovySandboxPolicy;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -252,5 +254,64 @@ class GroovyScriptExecutorTest {
         String code = "return Integer.MAX_VALUE";
         GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
         assertEquals(Integer.MAX_VALUE, executor.execute(params()));
+    }
+
+    @Test
+    void execute_springUtilGetBeanWithClassLiteral_passesSandbox() {
+        // SpringUtil.getBean(IOssService.class)：白名单静态调用 + 指向白名单类的 Class 字面量参数均应放行。
+        // 单测无 Spring 容器，getBean 内部抛 NPE 并被包装为 RuntimeException；
+        // 只要不是 SecurityException，即说明沙箱未拦截该调用模式
+        String code = """
+                import com.maxkb4j.common.util.SpringUtil
+                import com.maxkb4j.oss.service.IOssService
+                return SpringUtil.getBean(IOssService.class)
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> executor.execute(params()));
+        assertFalse(exception instanceof SecurityException, "沙箱不应拦截白名单类 Class 字面量参数: " + exception);
+    }
+
+    @Test
+    void execute_catchExceptionWithPrintStackTrace_allowed() {
+        String code = """
+                try {
+                    throw new IllegalArgumentException("boom")
+                } catch (Exception e) {
+                    e.printStackTrace()
+                    return "caught:" + e.getMessage()
+                }
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertEquals("caught:boom", executor.execute(params()));
+    }
+
+    @Test
+    void execute_propertyReadOnPlatformDto_allowed() {
+        // 绑定参数可能是平台数据类（如 imageList 中的 OssFile），属性读取应放行
+        com.maxkb4j.common.domain.dto.OssFile ossFile = new com.maxkb4j.common.domain.dto.OssFile();
+        ossFile.setFileId("fid-1");
+        ossFile.setName("a.png");
+        GroovyScriptExecutor executor = new GroovyScriptExecutor("file.fileId + '|' + file.name", null);
+        assertEquals("fid-1|a.png", executor.execute(params("file", ossFile)));
+    }
+
+    @Test
+    void execute_propertyWriteOnPlatformDto_rejected() {
+        // 数据类只放开属性读取，写入仍按默认拒绝策略处理
+        com.maxkb4j.common.domain.dto.OssFile ossFile = new com.maxkb4j.common.domain.dto.OssFile();
+        ossFile.setName("a.png");
+        GroovyScriptExecutor executor = new GroovyScriptExecutor("file.name = 'x'", null);
+        assertThrows(SecurityException.class, () -> executor.execute(params("file", ossFile)));
+    }
+
+    @Test
+    void sandboxPolicy_ocrRelatedWhitelistEntriesPresent() {
+        // 以类名断言白名单条目（不加载 Class，避免本地环境差异），
+        // 保障 OcrResult 属性读取、Model 枚举常量、InferenceEngine 静态调用等 OCR 场景
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("com.benjaminwan.ocrlibrary.OcrResult"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("io.github.mymonstercat.Model"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("io.github.mymonstercat.ocr.InferenceEngine"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("com.maxkb4j.common.domain.dto.OssFile")
+                || GroovySandboxPolicy.isReadableDataClass(com.maxkb4j.common.domain.dto.OssFile.class));
     }
 }

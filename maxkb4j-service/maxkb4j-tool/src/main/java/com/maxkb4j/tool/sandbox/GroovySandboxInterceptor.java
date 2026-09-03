@@ -90,6 +90,11 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
 
         Class<?> receiverClass = receiver.getClass();
         String className = GroovySandboxPolicy.normalizeClassName(receiverClass);
+        if (GroovySandboxPolicy.isReadableDataClass(receiverClass)) {
+            // 平台数据类（DTO/VO/实体）：作为绑定参数传入脚本，允许属性读取（getter 支撑），
+            // 方法调用与属性写入仍按默认拒绝策略处理
+            return GroovySandboxPolicy.validateReturnValue(invoker.call(receiver, property));
+        }
         if (!GroovySandboxPolicy.isAllowedType(receiverClass)) {
             throw new SecurityException("不允许在类 " + className + " 上访问属性: " + property);
         }
