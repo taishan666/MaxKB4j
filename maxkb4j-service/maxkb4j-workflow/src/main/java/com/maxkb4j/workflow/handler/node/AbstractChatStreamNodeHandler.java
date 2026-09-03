@@ -117,7 +117,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * @param workflow        工作流上下文
      * @param node            节点实例
      * @param imageFieldList  图片字段引用路径列表
-     * @return 图片内容列表，加载失败时返回空列表
+     * @return 图片列表，加载失败时返回空列表
      */
     protected List<Content> buildImageContents(IWorkflow workflow, AbsNode node, List<String> imageFieldList) {
         List<Content> contents = new ArrayList<>();
