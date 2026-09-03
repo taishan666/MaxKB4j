@@ -29,6 +29,44 @@ class GroovyScriptExecutorTest {
     }
 
     @Test
+    void execute_filesReadAndWriteScript_allowed() throws Exception {
+        // 文件操作白名单：java.nio.file.Files 静态方法与 Path.of 应通过编译期与运行期校验
+        java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("maxkb4j-groovy-", ".txt");
+        try {
+            java.nio.file.Files.writeString(tempFile, "hello maxkb");
+            String code = """
+                    import java.nio.file.Files
+                    import java.nio.file.Path
+
+                    def p = Path.of("%s")
+                    def content = Files.readString(p)
+                    Files.writeString(p, content + "!")
+                    return Files.readString(p) + "|" + Files.exists(p)
+                    """.formatted(tempFile.toString().replace("\\", "\\\\"));
+            GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+            assertEquals("hello maxkb!|true", executor.execute(params()));
+        } finally {
+            java.nio.file.Files.deleteIfExists(tempFile);
+        }
+    }
+
+    @Test
+    void execute_filesScriptWithoutExplicitImport_allowed() throws Exception {
+        // java.nio.file 已通过 ImportCustomizer 星号预导入，脚本无需显式 import
+        java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("maxkb4j-groovy-", ".txt");
+        try {
+            java.nio.file.Files.writeString(tempFile, "preset import");
+            String code = """
+                    return Files.readString(Path.of("%s"))
+                    """.formatted(tempFile.toString().replace("\\", "\\\\"));
+            GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+            assertEquals("preset import", executor.execute(params()));
+        } finally {
+            java.nio.file.Files.deleteIfExists(tempFile);
+        }
+    }
+
+    @Test
     void execute_stringConcatenation_returnsResult() {
         GroovyScriptExecutor executor = new GroovyScriptExecutor("name.toUpperCase() + '!'", null);
         assertEquals("MAXKB!", executor.execute(params("name", "maxkb")));

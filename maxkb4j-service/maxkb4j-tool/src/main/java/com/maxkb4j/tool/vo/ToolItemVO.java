@@ -13,6 +13,7 @@ public class ToolItemVO {
     private String name;
     private String desc;
     private String icon;
+    private String code;
     private String toolType;
     private Boolean isActive;
     private List<ToolInputField> inputFieldList;

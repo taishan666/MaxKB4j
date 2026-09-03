@@ -1,7 +1,6 @@
 package com.maxkb4j.tool.executor;
 
 import com.alibaba.fastjson.JSON;
-import lombok.extern.slf4j.Slf4j;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.MD5Util;
 import com.maxkb4j.tool.sandbox.GroovySandboxInterceptor;
@@ -9,14 +8,9 @@ import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.groovy.ast.expr.AttributeExpression;
-import org.codehaus.groovy.ast.expr.ClassExpression;
-import org.codehaus.groovy.ast.expr.Expression;
-import org.codehaus.groovy.ast.expr.MethodCallExpression;
-import org.codehaus.groovy.ast.expr.MethodPointerExpression;
-import org.codehaus.groovy.ast.expr.PropertyExpression;
-import org.codehaus.groovy.ast.expr.StaticMethodCallExpression;
+import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.ErrorCollector;
@@ -27,15 +21,9 @@ import org.codehaus.groovy.control.messages.ExceptionMessage;
 import org.codehaus.groovy.control.messages.Message;
 import org.kohsuke.groovy.sandbox.SandboxTransformer;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -77,7 +65,7 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         // ========== 1. 导入限制 ==========
         ImportCustomizer importCustomizer = new ImportCustomizer();
         importCustomizer.addStaticStars("java.lang.Math");
-        importCustomizer.addStarImports("groovy.json", "groovy.xml", "net.objecthunter.exp4j");
+        importCustomizer.addStarImports("groovy.json", "groovy.xml", "net.objecthunter.exp4j","java.nio.file");
 
         // ========== 2. AST 安全限制 ==========
         SecureASTCustomizer ast = new SecureASTCustomizer();
@@ -94,9 +82,6 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
                 "java.lang.System",
                 "java.lang.Class",
                 "java.lang.ClassLoader",
-                "java.io.File",
-                "java.nio.file.Files",
-                "java.nio.file.Path",
                 "java.net.URL",
                 "java.net.URI",
                 "groovy.lang.GroovyShell",
@@ -108,7 +93,6 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
                 "java.lang.reflect",
                 "java.lang.invoke",
                 "java.io",
-                "java.nio.file",
                 "java.net"
         ));
         ast.setDisallowedStaticImports(List.of(
@@ -141,6 +125,21 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         allowedConstants.add(char.class);
         allowedConstants.add(byte.class);
         allowedConstants.add(short.class);
+        // ========== 新增：数组类型支持 ==========
+        // byte[] 是文件读写、编解码、加密等操作的常用类型，必须加入白名单
+        allowedConstants.add(byte[].class);
+        // 建议同时添加其他基本类型数组，避免后续类似报错
+        allowedConstants.add(int[].class);
+        allowedConstants.add(long[].class);
+        allowedConstants.add(double[].class);
+        allowedConstants.add(float[].class);
+        allowedConstants.add(boolean[].class);
+        allowedConstants.add(char[].class);
+        allowedConstants.add(short[].class);
+        // String 数组也常用于参数传递
+        allowedConstants.add(String[].class);
+        // Object 数组用于通用集合转换
+        allowedConstants.add(Object[].class);
         // 字面量常量类型
         allowedConstants.add(String.class);
         allowedConstants.add(Integer.class);
@@ -150,6 +149,7 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         allowedConstants.add(Boolean.class);
         allowedConstants.add(Character.class);
         allowedConstants.add(BigDecimal.class);
+        allowedConstants.add(BigInteger.class);
         allowedConstants.add(BigInteger.class);
         // 显式类型声明常用类型（与运行期白名单 GroovySandboxInterceptor 保持一致）
         allowedConstants.add(Number.class);
@@ -165,6 +165,7 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         allowedConstants.add(java.util.LinkedHashSet.class);
         allowedConstants.add(StringBuilder.class);
         allowedConstants.add(StringBuffer.class);
+        allowedConstants.add(Exception.class);
         allowedConstants.add(groovy.lang.GString.class);
         allowedConstants.add(java.util.Date.class);
         allowedConstants.add(java.time.LocalDate.class);
@@ -174,6 +175,13 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         allowedConstants.add(java.time.ZonedDateTime.class);
         allowedConstants.add(java.time.ZoneId.class);
         allowedConstants.add(java.time.format.DateTimeFormatter.class);
+        allowedConstants.add(java.nio.file.Files.class);
+        allowedConstants.add(java.nio.file.Path.class);
+        allowedConstants.add(io.github.mymonstercat.ocr.InferenceEngine.class);
+        allowedConstants.add(com.maxkb4j.oss.service.IOssService.class);
+        allowedConstants.add(com.maxkb4j.common.util.SpringUtil.class);
+        allowedConstants.add(io.github.mymonstercat.Model.class);
+        allowedConstants.add(com.benjaminwan.ocrlibrary.OcrResult.class);
         ast.setAllowedConstantTypesClasses(allowedConstants);
 
         // ========== 3. Groovy Sandbox 运行期沙箱 ==========
@@ -184,7 +192,6 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         config.addCompilationCustomizers(importCustomizer, ast, sandboxTransformer);
         config.setScriptBaseClass("groovy.lang.Script");
         config.setDisabledGlobalASTTransformations(Set.of("Grab", "GrabConfig", "GrabResolver"));
-
         SAFE_CONFIG = config;
     }
 
@@ -200,7 +207,7 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
      * </p>
      */
     private static final Map<String, CompiledScript> SCRIPT_CACHE =
-            Collections.synchronizedMap(new LinkedHashMap<String, CompiledScript>(32, 0.75f, true) {
+            Collections.synchronizedMap(new LinkedHashMap<>(32, 0.75f, true) {
                 @Override
                 protected boolean removeEldestEntry(Map.Entry<String, CompiledScript> eldest) {
                     return size() > MAX_CACHED_SCRIPTS;
@@ -378,11 +385,22 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
 
     private static Collection<String> dangerousTokens() {
         return List.of(
-                "runtime", "processbuilder", "java.lang.process", "java.lang.system", "system.getenv", "system.getproperty", "class.forname",
-                "getruntime", ".exec", ".execute", ".start", "getclass", "getclassloader", "loadclass",
+                "runtime",
+                "processbuilder",
+                "java.lang.process", "java.lang.system",
+                "system.getenv", "system.getproperty",
+                "class.forname",
+                "getruntime",
+                ".exec",
+                ".execute",
+                ".start",
+                "getclass",
+                "getclassloader",
+                "loadclass",
                 "metaclass", "classloader", "java.lang.reflect", "java.lang.invoke", "setaccessible",
-                "getmethod", "getdeclaredmethod", "invoke(", "new file", "java.io.", "java.nio.file",
-                "files.read", "path.of", "java.net.", "groovyshell", "groovyclassloader"
+                "getmethod", "getdeclaredmethod", "invoke(", "new file", "java.io.",
+                "java.net.",
+                "groovyshell", "groovyclassloader"
         );
     }
 

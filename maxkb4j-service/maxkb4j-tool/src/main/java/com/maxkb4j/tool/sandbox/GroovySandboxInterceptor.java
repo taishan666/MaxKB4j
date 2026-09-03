@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+
 /**
  * 基于白名单的 Groovy 沙箱拦截器。
  * 配合 SandboxTransformer 使用，在运行期拦截所有方法调用、静态调用、构造函数调用和属性访问。
@@ -27,7 +28,6 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
      */
     private static final Set<String> ALLOWED_CLASSES = Set.of(
             // ===== 基础类型 =====
-            
             "java.lang.String",
             "java.lang.Boolean",
             "java.lang.Byte",
@@ -87,6 +87,8 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             "java.util.Locale",
             "java.util.TimeZone",
             "java.util.Currency",
+            // ===== 文件操作（java.nio.file 白名单入口） =====
+            "java.nio.file.Path",
             // ===== Groovy 运行时 =====
             "groovy.lang.Binding",
             "groovy.lang.Closure",
@@ -98,7 +100,11 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             "org.codehaus.groovy.runtime.DefaultGroovyMethods",
             "org.codehaus.groovy.runtime.StringGroovyMethods",
             "org.codehaus.groovy.runtime.EncodingGroovyMethods",
-            "org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation"
+            "org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation",
+            "io.github.mymonstercat.ocr.InferenceEngine",
+            "io.github.mymonstercat.Model",
+            "com.maxkb4j.oss.service.IOssService",
+            "com.maxkb4j.common.util.SpringUtil"
     );
 
     /**
@@ -182,6 +188,10 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             "drop", "dropWhile",
             // ===== JSON =====
             "parseText", "toJson", "prettyPrint",
+            // ===== Path 操作 =====
+            "resolve", "resolveSibling", "relativize",
+            "getFileName", "getParent", "getRoot", "getName", "getNameCount", "subpath",
+            "normalize", "toAbsolutePath",
             // ===== 闭包 =====
             "call", "doCall", "isCase"
     );
@@ -258,7 +268,23 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             Map.entry("groovy.json.JsonOutput", Set.of("toJson", "prettyPrint")),
             Map.entry("org.codehaus.groovy.runtime.DefaultGroovyMethods", ALLOWED_METHODS),
             Map.entry("org.codehaus.groovy.runtime.StringGroovyMethods", ALLOWED_METHODS),
-            Map.entry("org.codehaus.groovy.runtime.ScriptBytecodeAdapter", Set.of("findRegex", "matchRegex"))
+            Map.entry("org.codehaus.groovy.runtime.ScriptBytecodeAdapter", Set.of("findRegex", "matchRegex")),
+            Map.entry("java.nio.file.Path", Set.of("of")),
+            Map.entry("java.nio.file.Files", Set.of(
+                    "readString", "readAllLines", "readAllBytes",
+                    "write", "writeString",
+                    "exists", "notExists", "size",
+                    "isRegularFile", "isDirectory", "isReadable", "isWritable",
+                    "createDirectories", "delete", "deleteIfExists"))
+    );
+
+    /**
+     * java.nio.file 包内的白名单类：Files / Path 作为文件操作入口，
+     * 不受 java.nio.file.* 危险类前缀限制；同包其它类仍被禁止。
+     */
+    private static final Set<String> ALLOWED_NIO_CLASSES = Set.of(
+            "java.nio.file.Files",
+            "java.nio.file.Path"
     );
 
     @Override
@@ -392,9 +418,6 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
         if (type.isArray()) {
             return isSafeArrayType(type);
         }
-        if (isDangerousClass(type)) {
-            return false;
-        }
         if (ALLOWED_CLASSES.contains(normalizeClassName(type))) {
             return true;
         }
@@ -403,8 +426,11 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
                 return true;
             }
         }
+        if (isDangerousClass(type)) {
+            return false;
+        }
         Class<?> superclass = type.getSuperclass();
-        return superclass != null && isAllowedType(superclass);
+        return isAllowedType(superclass);
     }
 
     private static boolean isDangerousMethod(String method) {
@@ -437,7 +463,7 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
         return className.startsWith("java.lang.reflect.")
                 || className.startsWith("java.lang.invoke.")
                 || className.startsWith("java.io.")
-                || className.startsWith("java.nio.file.")
+                || (className.startsWith("java.nio.file.") && !ALLOWED_NIO_CLASSES.contains(className))
                 || className.startsWith("java.net.")
                 || className.equals("java.lang.System")
                 || className.equals("groovy.lang.GroovyShell")
