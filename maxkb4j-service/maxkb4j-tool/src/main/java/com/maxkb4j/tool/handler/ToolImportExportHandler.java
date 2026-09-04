@@ -1,17 +1,16 @@
 package com.maxkb4j.tool.handler;
 
-import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSON;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.IoUtil;
-import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolDTO;
+import com.maxkb4j.tool.dto.ToolExportData;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.exception.ToolImportExportException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,13 +18,17 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
-import java.util.regex.Pattern;
 
 /**
  * 工具导入导出处理器
+ *
+ * <p>仅负责导入/导出流程编排：
+ * <ul>
+ *   <li>导出：构建自包含的导出产物（{@link #prepareExport}），再写入 HTTP 响应；</li>
+ *   <li>导入：解析上传文件并重置属性（{@link #importTool}）；</li>
+ *   <li>SKILL 文件内容的 Base64 编解码委托给 {@link SkillFileCodec}。</li>
+ * </ul>
  *
  * @author tarzan
  */
@@ -34,148 +37,91 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class ToolImportExportHandler {
 
-    /** OSS 文件 ID 格式（24 位十六进制）：旧版导出的 .mk 中 SKILL 工具 code 为该格式 */
-    private static final Pattern OSS_FILE_ID_PATTERN = Pattern.compile("^[0-9a-f]{24}$");
-
     private final UserContext userContext;
-    private final IOssService ossService;
+    private final SkillFileCodec skillFileCodec;
 
     /**
-     * 导出工具到文件
+     * 导出工具到 HTTP 响应
      *
-     * <p>SKILL 类型工具的 code 字段存储的是 OSS 文件 ID，导出时需将其替换为
-     * 文件内容的 Base64 编码，使导出文件自包含、可跨环境导入。
-     *
-     * @param entity 工具实体
-     * @param response HTTP响应
+     * @param entity   工具实体
+     * @param response HTTP 响应
      */
     public void exportTool(ToolEntity entity, HttpServletResponse response) {
-        if (entity == null) {
-            throw new ToolImportExportException("工具不存在，无法导出");
-        }
+        ToolExportData exportData = prepareExport(entity);
         try {
-            if (ToolConstants.ToolType.SKILL.equals(entity.getToolType())) {
-                embedSkillFileContent(entity);
-            }
-            byte[] bytes = Objects.requireNonNull(JSONUtil.toJsonStr(entity)).getBytes(StandardCharsets.UTF_8);
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            String fileName = URLEncoder.encode(entity.getName()+ ToolConstants.FileType.TOOL_EXTENSION, StandardCharsets.UTF_8);
+            String fileName = URLEncoder.encode(exportData.fileName(), StandardCharsets.UTF_8);
             response.setHeader("Content-disposition", "attachment;filename=" + fileName);
             try (OutputStream outputStream = response.getOutputStream()) {
-                outputStream.write(bytes);
+                outputStream.write(exportData.content());
                 outputStream.flush();
             }
         } catch (Exception e) {
-            log.error("导出工具失败: {}", entity.getName(), e);
-            throw new ToolImportExportException("导出工具失败: " + e.getMessage(), e);
+            log.error("Failed to export tool: {}", entity.getName(), e);
+            throw new ToolImportExportException("Failed to export tool: " + e.getMessage(), e);
         }
     }
 
     /**
-     * SKILL 工具导出前置处理：以 code（OSS 文件 ID）查询文件字节数据，
-     * 将字节数据 Base64 编码后回写到 code 字段，使导出文件自包含。
-     */
-    private void embedSkillFileContent(ToolEntity entity) {
-        String fileId = entity.getCode();
-        if (StringUtils.isBlank(fileId)) {
-            throw new ToolImportExportException("SKILL 工具未关联文件，无法导出: " + entity.getName());
-        }
-        byte[] fileBytes = ossService.getBytes(fileId);
-        if (fileBytes == null || fileBytes.length == 0) {
-            throw new ToolImportExportException("SKILL 工具文件不存在或为空，无法导出: " + entity.getName());
-        }
-        entity.setCode(Base64.getEncoder().encodeToString(fileBytes));
-    }
-
-    /**
-     * 从文件导入工具
+     * 构建导出产物：SKILL 工具先嵌入文件内容，再序列化为 JSON 字节
      *
-     * @param file 上传的文件
-     * @param folderId 文件夹ID
-     * @return 导入的工具实体
+     * <p>不依赖 Servlet API，可独立测试。
+     *
+     * @param entity 工具实体
+     * @return 导出产物（文件名 + 文件内容）
+     */
+    public ToolExportData prepareExport(ToolEntity entity) {
+        if (entity == null) {
+            throw new ToolImportExportException("Tool does not exist, cannot export");
+        }
+        if (ToolConstants.ToolType.SKILL.equals(entity.getToolType())) {
+            entity.setCode(skillFileCodec.embed(entity.getName(), entity.getCode()));
+        }
+        byte[] content = JSON.toJSONString(entity).getBytes(StandardCharsets.UTF_8);
+        return new ToolExportData(entity.getName() + ToolConstants.FileType.TOOL_EXTENSION, content);
+    }
+
+    /**
+     * 导入工具：解析文件、还原 SKILL 文件并重置属性
+     *
+     * @param file     上传的工具文件（.mk）
+     * @param folderId 目标文件夹 ID
+     * @return 解析后的工具实体（未持久化）
      */
     public ToolEntity importTool(MultipartFile file, String folderId) {
-        if (file == null || file.isEmpty()) {
-            throw new ToolImportExportException("上传文件不能为空");
+        ToolEntity tool = parseToolFile(file);
+        if (ToolConstants.ToolType.SKILL.equals(tool.getToolType())) {
+            tool.setCode(skillFileCodec.restore(tool.getName(), tool.getCode()));
         }
-        try {
-            String text = IoUtil.readToString(file.getInputStream());
-            ToolEntity tool = com.alibaba.fastjson.JSONObject.parseObject(text, ToolEntity.class);
-
-            if (tool == null) {
-                throw new ToolImportExportException("工具文件格式不正确");
-            }
-            if (ToolConstants.ToolType.SKILL.equals(tool.getToolType())) {
-                restoreSkillFile(tool);
-            }
-            // 设置导入后的新属性
-            tool.setId(null); // 清除ID，生成新ID
-            tool.setIsActive(false); // 导入后默认非激活
-            tool.setFolderId(folderId);
-            tool.setUserId(userContext.getUserId()); // 设置当前用户
-            return tool;
-        } catch (Exception e) {
-            log.error("导入工具失败", e);
-            throw new ToolImportExportException("导入工具失败: " + e.getMessage(), e);
-        }
+        resetImportedAttributes(tool, folderId);
+        return tool;
     }
 
     /**
-     * SKILL 工具导入后置处理：导出时 code 被替换为文件内容的 Base64 编码，
-     * 导入时需将其解码还原为文件字节并上传至 OSS，以返回的文件 ID 作为 code。
-     */
-    private void restoreSkillFile(ToolEntity tool) {
-        String base64Content = tool.getCode();
-        if (StringUtils.isBlank(base64Content)) {
-            throw new ToolImportExportException("SKILL 工具文件内容为空，无法导入: " + tool.getName());
-        }
-        byte[] fileBytes;
-        try {
-            fileBytes = Base64.getDecoder().decode(base64Content);
-        } catch (IllegalArgumentException e) {
-            throw new ToolImportExportException("SKILL 工具文件内容不是合法的 Base64 编码: " + tool.getName(), e);
-        }
-        if (fileBytes.length == 0) {
-            throw new ToolImportExportException("SKILL 工具文件内容为空，无法导入: " + tool.getName());
-        }
-        String fileName = tool.getName() + ".zip";
-        String fileId = ossService.storeFile(fileBytes, fileName, "application/zip");
-        tool.setCode(fileId);
-    }
-
-    /**
-     * 应用导出前置处理：将列表中 SKILL 工具的 code（OSS 文件 ID）替换为
-     * 文件字节的 Base64 编码，使导出的应用文件自包含。
+     * 批量嵌入 SKILL 工具文件内容（导出用）
      *
-     * @param toolList 工具 DTO 列表
+     * <p>将 SKILL 工具的 code（OSS 文件 ID）替换为文件字节的 Base64 编码，使导出文件自包含。
+     *
+     * @param toolList 工具列表
      */
     public void embedSkillFileContents(List<ToolDTO> toolList) {
         if (CollectionUtils.isEmpty(toolList)) {
             return;
         }
         for (ToolDTO tool : toolList) {
-            if (!ToolConstants.ToolType.SKILL.equals(tool.getToolType())) {
-                continue;
+            if (ToolConstants.ToolType.SKILL.equals(tool.getToolType())) {
+                tool.setCode(skillFileCodec.embed(tool.getName(), tool.getCode()));
             }
-            String fileId = tool.getCode();
-            if (StringUtils.isBlank(fileId)) {
-                throw new ToolImportExportException("SKILL 工具未关联文件，无法导出: " + tool.getName());
-            }
-            byte[] fileBytes = ossService.getBytes(fileId);
-            if (fileBytes == null || fileBytes.length == 0) {
-                throw new ToolImportExportException("SKILL 工具文件不存在或为空，无法导出: " + tool.getName());
-            }
-            tool.setCode(Base64.getEncoder().encodeToString(fileBytes));
         }
     }
 
     /**
-     * 应用导入后置处理：将列表中 SKILL 工具的 code（文件字节的 Base64 编码）
-     * 解码还原为文件字节并上传至 OSS，以返回的文件 ID 作为 code。
+     * 批量还原 SKILL 工具文件（导入用）
      *
-     * <p>旧版导出的 .mk 中 code 为 OSS 文件 ID，跨环境无法还原，保持原样。
+     * <p>将 SKILL 工具的 code（Base64 编码的文件内容）解码并上传至 OSS，
+     * 以返回的文件 ID 作为 code。旧版导出的 OSS 文件 ID 格式无法还原，保留原值并记录警告。
      *
-     * @param toolList 工具 DTO 列表
+     * @param toolList 工具列表
      */
     public void restoreSkillFiles(List<ToolDTO> toolList) {
         if (CollectionUtils.isEmpty(toolList)) {
@@ -185,26 +131,43 @@ public class ToolImportExportHandler {
             if (!ToolConstants.ToolType.SKILL.equals(tool.getToolType())) {
                 continue;
             }
-            String code = tool.getCode();
-            if (StringUtils.isBlank(code)) {
-                throw new ToolImportExportException("SKILL 工具文件内容为空，无法导入: " + tool.getName());
-            }
-            if (OSS_FILE_ID_PATTERN.matcher(code).matches()) {
-                log.warn("SKILL 工具 [{}] 的 code 为 OSS 文件 ID（旧版导出格式），无法还原文件内容", tool.getName());
+            if (skillFileCodec.isLegacyOssFileId(tool.getCode())) {
+                log.warn("SKILL tool [{}] code is an OSS file ID (legacy export format), cannot restore file content", tool.getName());
                 continue;
             }
-            byte[] fileBytes;
-            try {
-                fileBytes = Base64.getDecoder().decode(code);
-            } catch (IllegalArgumentException e) {
-                throw new ToolImportExportException("SKILL 工具文件内容不是合法的 Base64 编码: " + tool.getName(), e);
-            }
-            if (fileBytes.length == 0) {
-                throw new ToolImportExportException("SKILL 工具文件内容为空，无法导入: " + tool.getName());
-            }
-            String fileName = tool.getName() + ".zip";
-            String fileId = ossService.storeFile(fileBytes, fileName, "application/zip");
-            tool.setCode(fileId);
+            tool.setCode(skillFileCodec.restore(tool.getName(), tool.getCode()));
         }
+    }
+
+    /**
+     * 解析上传的工具文件为实体
+     */
+    private ToolEntity parseToolFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new ToolImportExportException("The uploaded file cannot be empty");
+        }
+        try {
+            String text = IoUtil.readToString(file.getInputStream());
+            ToolEntity tool = JSON.parseObject(text, ToolEntity.class);
+            if (tool == null) {
+                throw new ToolImportExportException("The tool file format is invalid");
+            }
+            return tool;
+        } catch (ToolImportExportException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to import tool", e);
+            throw new ToolImportExportException("Failed to import tool: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 重置导入工具的属性：清空 ID、默认未启用、设置目标文件夹与当前用户
+     */
+    private void resetImportedAttributes(ToolEntity tool, String folderId) {
+        tool.setId(null);
+        tool.setIsActive(false);
+        tool.setFolderId(folderId);
+        tool.setUserId(userContext.getUserId());
     }
 }
