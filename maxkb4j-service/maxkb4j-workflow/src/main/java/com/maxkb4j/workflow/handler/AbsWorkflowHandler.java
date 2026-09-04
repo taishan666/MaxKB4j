@@ -114,12 +114,12 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      */
     private List<AbsNode> completeAsyncNode(IWorkflow workflow, AbsNode node, long startTime, NodeResult result, Throwable ex) {
         if (ex != null) {
-            handleNodeError(workflow, node, unwrapException(ex));
             Boolean enableException = node.getProperties().getBoolean("enableException");
             if (Boolean.TRUE.equals(enableException)){
                 result= new NodeResult(Map.of(WorkflowConstants.NodeField.BRANCH_ID,"exception","exception",ex.getMessage()));
                 return workflow.execution().nextNodes(node, result);
             }
+            handleNodeError(workflow, node, unwrapException(ex));
             return List.of();
         }
         recordExecutionTime(node, startTime);
