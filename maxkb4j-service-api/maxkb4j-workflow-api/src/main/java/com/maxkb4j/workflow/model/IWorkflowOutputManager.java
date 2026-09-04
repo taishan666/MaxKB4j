@@ -20,7 +20,7 @@ public interface IWorkflowOutputManager {
     /**
      * 获取工作流运行后所有节点回答。
      */
-    List<Answer> getAnswers();
+    List<Answer> getAnswers(String chatRecordId);
     /**
      * 获取工作流运行后节点运行时详情 JSON。
      */

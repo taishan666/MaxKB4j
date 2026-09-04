@@ -103,9 +103,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         try {
             resultFuture = nodeHandler.execute(workflow, node);
         } catch (Exception ex) {
-            // Synchronous exception thrown by execute() itself (e.g. pre-processing failure)
-            handleNodeError(workflow, node, ex);
-            return CompletableFuture.completedFuture(List.of());
+            return CompletableFuture.completedFuture(completeAsyncNode(workflow, node, startTime, null, ex));
         }
         return resultFuture.handle((result, ex) -> completeAsyncNode(workflow, node, startTime, result, ex));
     }

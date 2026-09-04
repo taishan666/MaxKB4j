@@ -37,7 +37,7 @@ class AbsNodeTest {
     @Test
     void getAnswerList_emptyWhenNoAnswerText() {
         AbsNode node = newNode("n1");
-        assertThat(node.getAnswerList()).isEmpty();
+        assertThat(node.getAnswerList("1")).isEmpty();
     }
 
     @Test
@@ -51,9 +51,9 @@ class AbsNodeTest {
         node.getDetail().put(NodeField.REASONING_CONTENT, "because");
         node.setViewType(ViewType.SINGLE_VIEW);
 
-        java.util.List<Answer> answers = node.getAnswerList();
+        java.util.List<Answer> answers = node.getAnswerList("1");
         assertThat(answers).hasSize(1);
-        Answer answer = answers.get(0);
+        Answer answer = answers.getFirst();
         assertThat(answer.getContent()).isEqualTo("done");
         assertThat(answer.getReasoningContent()).isEqualTo("because");
         assertThat(answer.getChatRecordId()).isEmpty();

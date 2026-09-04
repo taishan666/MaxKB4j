@@ -27,8 +27,7 @@ public class UserSelectNode extends AbsNode {
     }
 
     @Override
-    public List<Answer> getAnswerList()  {
-        String chatRecordId= (String) detail.getOrDefault(ChatField.CHAT_RECORD_ID,"");
+    public List<Answer> getAnswerList(String chatRecordId)  {
         String runtimeNodeId=super.getRuntimeNodeId();
         String formRender = FormRenderUtil.buildFormRender(new JSONObject(detail), FormField.CARD_SELECTION_RENDER_TAG);
         return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).viewType(this.getViewType()).build());

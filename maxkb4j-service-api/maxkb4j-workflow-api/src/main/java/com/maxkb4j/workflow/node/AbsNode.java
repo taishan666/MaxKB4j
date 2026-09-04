@@ -102,14 +102,14 @@ public abstract class AbsNode {
         return detail.containsKey(NodeField.REASONING_CONTENT_ENABLE) && (Boolean) detail.get(NodeField.REASONING_CONTENT_ENABLE);
     }
 
-    public List<Answer> getAnswerList() {
+    public List<Answer> getAnswerList(String chatRecordId) {
         if (isResult()) {
             Object answer = detail.getOrDefault(NodeField.ANSWER,"");
             Object reasoningContent = reasoningContentEnable()?detail.getOrDefault(NodeField.REASONING_CONTENT,""):"";
             return List.of(Answer.builder()
                     .content((String) answer)
                     .reasoningContent((String) reasoningContent)
-                    .chatRecordId("")
+                    .chatRecordId(chatRecordId)
                     .runtimeNodeId(runtimeNodeId)
                     .viewType(viewType)
                     .build());

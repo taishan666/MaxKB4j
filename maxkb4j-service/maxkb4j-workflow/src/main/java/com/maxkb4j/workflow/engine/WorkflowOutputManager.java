@@ -55,14 +55,14 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
     }
 
     @Override
-    public List<Answer> getAnswers() {
+    public List<Answer> getAnswers(String chatRecordId) {
         List<AbsNode> executedNodes=getExecutedNodes();
         if (executedNodes.isEmpty()) {
             return List.of();
         }
         List<Answer> answerList = new ArrayList<>(executedNodes.size());
         for (AbsNode node : executedNodes) {
-            answerList.addAll(node.getAnswerList());
+            answerList.addAll(node.getAnswerList(chatRecordId));
         }
         return answerList;
     }

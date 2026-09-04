@@ -40,7 +40,7 @@ public class LoopNode extends AbsNode {
      * 前端据此将持久化答案与循环内流式消息对齐。
      */
     @Override
-    public List<Answer> getAnswerList() {
+    public List<Answer> getAnswerList(String chatRecordId) {
         Object loopData = detail.get(LoopField.LOOP_NODE_DATA);
         if (!(loopData instanceof List<?> iterations) || iterations.isEmpty()) {
             return Collections.emptyList();
@@ -49,7 +49,7 @@ public class LoopNode extends AbsNode {
         List<Answer> answerList = new ArrayList<>();
         for (Object iteration : iterations) {
             if (iteration instanceof JSONObject iterationDetails) {
-                answerList.addAll(buildIterationAnswers(iterationDetails, resultNodeIds));
+                answerList.addAll(buildIterationAnswers(chatRecordId,iterationDetails, resultNodeIds));
             }
         }
         return answerList;
@@ -58,10 +58,10 @@ public class LoopNode extends AbsNode {
     /**
      * 将单次迭代的运行时详情转换为答案列表（按节点执行顺序）。
      */
-    private List<Answer> buildIterationAnswers(JSONObject iterationDetails, Set<String> resultNodeIds) {
+    private List<Answer> buildIterationAnswers(String chatRecordId,JSONObject iterationDetails, Set<String> resultNodeIds) {
         List<Answer> answers = new ArrayList<>();
         for (JSONObject nodeDetail : extractSortedNodeDetails(iterationDetails)) {
-            answers.addAll(buildNodeAnswers(nodeDetail, resultNodeIds));
+            answers.addAll(buildNodeAnswers(chatRecordId,nodeDetail, resultNodeIds));
         }
         return answers;
     }
@@ -88,7 +88,7 @@ public class LoopNode extends AbsNode {
      * 按子节点类型分发答案构建：表单/用户选择节点渲染交互组件，
      * 其余节点按输出节点规则提取文本答案。
      */
-    private List<Answer> buildNodeAnswers(JSONObject nodeDetail, Set<String> resultNodeIds) {
+    private List<Answer> buildNodeAnswers(String chatRecordId,JSONObject nodeDetail, Set<String> resultNodeIds) {
         String nodeType = nodeDetail.getString(RuntimeDetailField.TYPE);
         String runtimeNodeId=super.getRuntimeNodeId();
         if (NodeType.FORM.getKey().equals(nodeType)) {
@@ -100,17 +100,13 @@ public class LoopNode extends AbsNode {
         if (!isResultNode(nodeDetail, resultNodeIds)) {
             return Collections.emptyList();
         }
-        return buildTextAnswer(runtimeNodeId,nodeDetail);
-    }
-
-    public boolean reasoningContentEnable() {
-        return detail.containsKey(NodeField.REASONING_CONTENT_ENABLE) && (Boolean) detail.get(NodeField.REASONING_CONTENT_ENABLE);
+        return buildTextAnswer(chatRecordId,runtimeNodeId,nodeDetail);
     }
 
     /**
      * 构建输出节点的文本答案。
      */
-    private List<Answer> buildTextAnswer(String runtimeNodeId,JSONObject nodeDetail) {
+    private List<Answer> buildTextAnswer(String chatRecordId,String runtimeNodeId,JSONObject nodeDetail) {
         Object content = nodeDetail.get(NodeField.ANSWER);
         if (content == null) {
             return Collections.emptyList();
@@ -119,7 +115,7 @@ public class LoopNode extends AbsNode {
         return List.of(Answer.builder()
                 .content(String.valueOf(content))
                 .reasoningContent(reasoningContent != null ? String.valueOf(reasoningContent) : "")
-                .chatRecordId("")
+                .chatRecordId(chatRecordId)
                 .runtimeNodeId(runtimeNodeId)
                 .viewType(ViewType.MANY_VIEW)
                 .build());
