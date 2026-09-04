@@ -59,7 +59,6 @@ public class StartNodeHandler extends AbsNodeHandler {
                 }
 
             }
-
             // 构建节点变量
             nodeVariable.put(NodeField.QUESTION, chatParams.getMessage());
             nodeVariable.put(NodeField.IMAGE, chatParams.getImageList());
