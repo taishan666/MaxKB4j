@@ -146,7 +146,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
         }
         skillHandler.onUpdate(oldTool, dto);
         this.updateById(dto);
-        return assembleHandler.assemble(dto);
+        return assembleHandler.assemble(this.getById(dto.getId()));
     }
 
     /** 获取工具详情。 */
