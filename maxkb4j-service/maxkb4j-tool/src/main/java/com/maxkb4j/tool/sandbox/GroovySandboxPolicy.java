@@ -116,7 +116,11 @@ public final class GroovySandboxPolicy {
             "com.maxkb4j.common.util.SpringUtil",
             // ===== 数学表达式求值引擎（内置工具「数学公式执行」） =====
             "net.objecthunter.exp4j.Expression",
-            "net.objecthunter.exp4j.ExpressionBuilder"
+            "net.objecthunter.exp4j.ExpressionBuilder",
+            // ===== fastjson（内置工具 JSON 处理，如 web_search 结果解析） =====
+            "com.alibaba.fastjson.JSON",
+            "com.alibaba.fastjson.JSONObject",
+            "com.alibaba.fastjson.JSONArray"
     );
 
     /**
@@ -201,6 +205,13 @@ public final class GroovySandboxPolicy {
             "drop", "dropWhile",
             // ===== JSON =====
             "parseText", "toJson", "prettyPrint",
+            // ===== fastjson（JSONObject/JSONArray 类型化访问与序列化） =====
+            "toJSONString",
+            "getString", "getInteger", "getLong", "getDouble", "getFloat",
+            "getBoolean", "getBigDecimal", "getBigInteger", "getDate",
+            "getJSONObject", "getJSONArray", "getObject", "getInnerMap",
+            "toJavaObject", "toJavaList",
+            "fluentPut", "fluentAdd",
             // ===== Path 操作 =====
             "resolve", "resolveSibling", "relativize",
             "getFileName", "getParent", "getRoot", "getName", "getNameCount", "subpath",
@@ -235,7 +246,10 @@ public final class GroovySandboxPolicy {
             "java.text.DecimalFormat",
             "groovy.json.JsonSlurper",
             "java.lang.IllegalArgumentException",
-            "net.objecthunter.exp4j.ExpressionBuilder"
+            "net.objecthunter.exp4j.ExpressionBuilder",
+            // fastjson：内置工具构造 JSON 对象（new JSONObject() / new JSONArray()）
+            "com.alibaba.fastjson.JSONObject",
+            "com.alibaba.fastjson.JSONArray"
     );
 
     /** 允许静态调用的类及其方法白名单。 */
@@ -275,6 +289,11 @@ public final class GroovySandboxPolicy {
             Map.entry("org.codehaus.groovy.runtime.StringGroovyMethods", ALLOWED_METHODS),
             Map.entry("org.codehaus.groovy.runtime.ScriptBytecodeAdapter", Set.of("findRegex", "matchRegex")),
             Map.entry("java.nio.file.Path", Set.of("of")),
+            // fastjson：内置工具 JSON 解析/序列化入口（JSON.parseObject / JSON.toJSONString 等）
+            Map.entry("com.alibaba.fastjson.JSON", Set.of(
+                    "parse", "parseObject", "parseArray",
+                    "toJSONString", "toJSONBytes",
+                    "isValid", "isValidArray", "isValidObject")),
             Map.entry("io.github.mymonstercat.ocr.InferenceEngine", Set.of("getInstance")),
             Map.entry("com.maxkb4j.common.util.SpringUtil", Set.of("getBean", "getBeansOfType")),
             Map.entry("java.nio.file.Files", Set.of(

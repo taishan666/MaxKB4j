@@ -375,6 +375,55 @@ class GroovyScriptExecutorTest {
     }
 
     @Test
+    void execute_fastjsonJsonObjectAndArray_allowed() {
+        // fastjson 用于内置工具 JSON 处理（如 web_search 结果解析）：
+        // JSONObject/JSONArray 变量声明、JSON.parseObject 静态调用、类型化 getter 与构造器均应放行，
+        // 否则编译期报 "Usage of variables of type [com.alibaba.fastjson.JSONArray] is not allowed"
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("com.alibaba.fastjson.JSON"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("com.alibaba.fastjson.JSONObject"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("com.alibaba.fastjson.JSONArray"));
+
+        String code = """
+                import com.alibaba.fastjson.JSON
+                import com.alibaba.fastjson.JSONArray
+                import com.alibaba.fastjson.JSONObject
+
+                JSONObject user = JSON.parseObject(inputData)
+                JSONArray tags = user.getJSONArray("tags")
+                def joined = ""
+                for (int i = 0; i < tags.size(); i++) {
+                    if (i > 0) {
+                        joined = joined + ","
+                    }
+                    joined = joined + tags.getString(i)
+                }
+                JSONObject result = new JSONObject()
+                result.put("name", user.getString("name"))
+                result.put("age", user.getInteger("age"))
+                result.put("tags", joined.toString())
+                return result.toJSONString()
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        Object result = executor.execute(params("inputData",
+                "{\"name\":\"maxkb\",\"age\":3,\"tags\":[\"rag\",\"kb\"]}"));
+        com.alibaba.fastjson.JSONObject json = com.alibaba.fastjson.JSON.parseObject(result.toString());
+        assertEquals("maxkb", json.getString("name"));
+        assertEquals(Integer.valueOf(3), json.getInteger("age"));
+        assertEquals("rag,kb", json.getString("tags"));
+    }
+
+    @Test
+    void execute_fastjsonJsonPath_rejectedAtCompileTime() {
+        // fastjson 兼容包仅放开 JSON/JSONObject/JSONArray，JSONPath 等其它类仍在编译期拒绝
+        String code = """
+                import com.alibaba.fastjson.JSONPath
+                return JSONPath.compile('$.name')
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertThrows(SecurityException.class, () -> executor.execute(params()));
+    }
+
+    @Test
     void sandboxPolicy_ocrRelatedWhitelistEntriesPresent() {
         // 以类名断言白名单条目（不加载 Class，避免本地环境差异），
         // 保障 OcrResult 属性读取、Model 枚举常量、InferenceEngine 静态调用等 OCR 场景

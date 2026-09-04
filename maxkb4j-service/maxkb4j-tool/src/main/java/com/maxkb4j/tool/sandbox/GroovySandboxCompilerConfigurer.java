@@ -177,6 +177,11 @@ public final class GroovySandboxCompilerConfigurer {
         // （如 Expression engine = new ExpressionBuilder(...).build()）
         allowedConstants.add(net.objecthunter.exp4j.Expression.class);
         allowedConstants.add(net.objecthunter.exp4j.ExpressionBuilder.class);
+        // fastjson（内置工具 JSON 处理）：允许作为脚本变量类型，否则编译期报
+        // "Usage of variables of type [com.alibaba.fastjson.JSONArray] is not allowed"
+        allowedConstants.add(com.alibaba.fastjson.JSON.class);
+        allowedConstants.add(com.alibaba.fastjson.JSONObject.class);
+        allowedConstants.add(com.alibaba.fastjson.JSONArray.class);
         ast.setAllowedConstantTypesClasses(allowedConstants);
 
         // ========== 3. Groovy Sandbox 运行期沙箱 ==========
