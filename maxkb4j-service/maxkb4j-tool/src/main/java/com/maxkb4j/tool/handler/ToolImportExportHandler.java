@@ -131,11 +131,8 @@ public class ToolImportExportHandler {
         if (fileBytes.length == 0) {
             throw new ToolImportExportException("SKILL 工具文件内容为空，无法导入: " + tool.getName());
         }
-        String fileName = StringUtils.isNotBlank(tool.getCodeFileName())
-                ? tool.getCodeFileName()
-                : tool.getName() + ".zip";
+        String fileName = tool.getName() + ".zip";
         String fileId = ossService.storeFile(fileBytes, fileName, "application/zip");
         tool.setCode(fileId);
-        tool.setCodeFileName(null);
     }
 }
