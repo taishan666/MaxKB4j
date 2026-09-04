@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * 工具服务：仅负责编排，具体职责委托给各 Handler。
@@ -124,7 +123,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
 
     /** 轻量字段版本：供前端列表展示使用。 */
     public List<ToolListVO> toolList(String scope, String toolType) {
-        LambdaQueryWrapper<ToolEntity> wrapper = buildListWrapper(null, scope, null)
+        LambdaQueryWrapper<ToolEntity> wrapper = buildListWrapper( scope)
                 .eq(StringUtils.isNotBlank(toolType),ToolEntity::getToolType, toolType)
                 .select(
                         ToolEntity::getId,
@@ -139,7 +138,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
     /**
      * 更新工具：处理 Skill 文件替换后入库，并返回组装好的 VO。
      */
-    public ToolVO updateTool(ToolEntity dto) throws IOException {
+    public ToolVO updateTool(ToolEntity dto) {
         ToolEntity oldTool = this.getById(dto.getId());
         if (oldTool == null) {
             return null;
@@ -174,8 +173,15 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
     }
 
     @Override
+    public void embedSkillFileContents(List<ToolDTO> toolList) {
+        importExportHandler.embedSkillFileContents(toolList);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void saveOrUpdateBatch(List<ToolDTO> toolDTOList,String userId) {
+        // .mk 导入的 SKILL 工具 code 为文件字节的 Base64 编码，先还原为 OSS 文件 ID
+        importExportHandler.restoreSkillFiles(toolDTOList);
         List<ToolEntity> toolEntities= BeanUtil.copyList(toolDTOList, ToolEntity.class);
         // 工具可能来自 .mk 模板，DTO 携带的是模板作者的 userId，需重置为当前导入用户，
         // 否则 tool.user_id 指向不存在的用户，违反 tool_user_id_fk_user_id 外键约束。
@@ -204,38 +210,9 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
         return result;
     }
 
-    /** 构造分页查询条件（不含排序与权限过滤）。 */
-    private LambdaQueryWrapper<ToolEntity> buildPageQueryWrapper(ToolQuery query) {
-        LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
-        if (StringUtils.isNotBlank(query.getName())) {
-            wrapper.like(ToolEntity::getName, query.getName());
-        }
-        if (StringUtils.isNotBlank(query.getCreateUser())) {
-            wrapper.eq(ToolEntity::getUserId, query.getCreateUser());
-        }
-        wrapper.eq(ToolEntity::getFolderId,
-                StringUtils.isNotBlank(query.getFolderId()) ? query.getFolderId() : "default");
-        if (StringUtils.isNotBlank(query.getScope())) {
-            wrapper.eq(ToolEntity::getScope, query.getScope());
-        }
-        if (StringUtils.isNotBlank(query.getToolType())) {
-            wrapper.eq(ToolEntity::getToolType, query.getToolType());
-        }
-        if (Objects.nonNull(query.getIsActive())) {
-            wrapper.eq(ToolEntity::getIsActive, query.getIsActive());
-        }
-        return wrapper;
-    }
-
     /** 构造列表查询通用条件（含权限过滤与排序，select 字段由上层指定）。 */
-    private LambdaQueryWrapper<ToolEntity> buildListWrapper(String folderId, String scope, String[] toolTypeList) {
+    private LambdaQueryWrapper<ToolEntity> buildListWrapper(String scope) {
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
-        if (StringUtils.isNotBlank(folderId)) {
-            wrapper.eq(ToolEntity::getFolderId, folderId);
-        }
-        if (toolTypeList!=null && toolTypeList.length>0) {
-            wrapper.in(ToolEntity::getToolType, Arrays.asList(toolTypeList));
-        }
         wrapper.eq(ToolEntity::getIsActive, ToolConstants.Status.ACTIVE);
         wrapper.eq(ToolEntity::getScope, scope);
         wrapper.orderByDesc(ToolEntity::getCreateTime);

@@ -67,6 +67,8 @@ public class ApplicationExportService {
         List<ToolDTO> toolList=new ArrayList<>();
         if (!toolIds.isEmpty()){
             toolList=toolService.listDtoByIds(toolIds);
+            // SKILL 工具的 code 为 OSS 文件 ID，导出时替换为文件字节的 Base64 编码，使导出文件自包含
+            toolService.embedSkillFileContents(toolList);
         }
         MaxKb4J maxKb4J = new MaxKb4J(app, toolList, "v2");
         byte[] bytes = Objects.requireNonNull(JSONUtil.toJsonStr(maxKb4J)).getBytes(StandardCharsets.UTF_8);
