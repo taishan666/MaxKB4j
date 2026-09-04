@@ -117,6 +117,11 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
     private List<AbsNode> completeAsyncNode(IWorkflow workflow, AbsNode node, long startTime, NodeResult result, Throwable ex) {
         if (ex != null) {
             handleNodeError(workflow, node, unwrapException(ex));
+            Boolean enableException = node.getProperties().getBoolean("enableException");
+            if (Boolean.TRUE.equals(enableException)){
+                result= new NodeResult(Map.of(WorkflowConstants.NodeField.BRANCH_ID,"exception","exception",ex.getMessage()));
+                return workflow.execution().nextNodes(node, result);
+            }
             return List.of();
         }
         recordExecutionTime(node, startTime);
@@ -173,14 +178,9 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * Handles node execution errors through the {@link ExceptionResolverChain}.
      * Sets ERROR status on the node and returns an empty error NodeResult.
      */
-    protected NodeResult handleNodeError(IWorkflow workflow, AbsNode node, Exception ex) {
+    protected void handleNodeError(IWorkflow workflow, AbsNode node, Exception ex) {
         exceptionResolverChain.resolve(workflow, node, ex);
         node.setStatus(NodeStatus.ERROR.getStatus());
-        Boolean enableException = node.getProperties().getBoolean("enableException");
-        if (Boolean.TRUE.equals(enableException)){
-            return new NodeResult(Map.of(WorkflowConstants.NodeField.BRANCH_ID,"exception","exception",ex.getMessage()));
-        }
-        return null;
     }
 
     /**
