@@ -27,13 +27,6 @@ public interface INodeHandler {
     CompletableFuture<NodeResult> execute(IWorkflow workflow, AbsNode node) throws Exception;
 
     /**
-     * Async nodes run on their own future instead of occupying a workflowTaskExecutor thread.
-     */
-    default boolean isAsync() {
-        return false;
-    }
-
-    /**
      * Whether workflow execution should pause after this node (e.g. waiting for user input).
      */
     default boolean shouldInterrupt(AbsNode node) {
