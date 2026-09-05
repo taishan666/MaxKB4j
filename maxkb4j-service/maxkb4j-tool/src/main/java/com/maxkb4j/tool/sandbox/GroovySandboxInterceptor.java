@@ -52,8 +52,14 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             throw new SecurityException("不允许调用静态方法: " + sender.getName() + "." + method);
         }
         GroovySandboxPolicy.validateArguments(args);
+        // 脚本自身定义的静态方法（sender 为脚本类，继承自 groovy.lang.Script）：
+        // 方法体已在编译期通过 SecureAST 校验并被 SandboxTransformer 转换，
+        // 其内部对外部类的调用仍会逐一经过本拦截器，放行脚本类自身的静态调用是安全的
+        if (sender != null && Script.class.isAssignableFrom(sender)) {
+            return GroovySandboxPolicy.validateReturnValue(invoker.call(sender, method, args));
+        }
         String className = GroovySandboxPolicy.normalizeClassName(sender);
-        if (!GroovySandboxPolicy.isStaticCallAllowed(className, method)) {
+        if (!GroovySandboxPolicy.isStaticCallAllowed(sender, method)) {
             throw new SecurityException("不允许调用静态方法: " + className + "." + method);
         }
         return GroovySandboxPolicy.validateReturnValue(invoker.call(sender, method, args));

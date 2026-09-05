@@ -424,6 +424,37 @@ class GroovyScriptExecutorTest {
     }
 
     @Test
+    void execute_scriptOwnStaticMethod_allowed() {
+        // 脚本内定义并调用自身静态方法：sender 为脚本类（Script 子类），应放行
+        String code = """
+                public static String greet(String name) {
+                    return "hello " + name
+                }
+                return greet(inputData)
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertEquals("hello maxkb", executor.execute(params("inputData", "maxkb")));
+    }
+
+    @Test
+    void execute_fastjsonStaticMethodViaSubclass_allowed() {
+        // JSONObject.parseArray / JSONObject.toJSONString 为继承自 JSON 的静态方法，
+        // 经子类名调用时应沿继承链命中白名单
+        String code = """
+                import com.alibaba.fastjson.JSONArray
+                import com.alibaba.fastjson.JSONObject
+
+                JSONArray arr = JSONObject.parseArray(inputData)
+                JSONObject obj = new JSONObject()
+                obj.put("size", arr.size())
+                return JSONObject.toJSONString(obj)
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        Object result = executor.execute(params("inputData", "[1,2,3]"));
+        assertEquals("{\"size\":3}", result.toString());
+    }
+
+    @Test
     void sandboxPolicy_ocrRelatedWhitelistEntriesPresent() {
         // 以类名断言白名单条目（不加载 Class，避免本地环境差异），
         // 保障 OcrResult 属性读取、Model 枚举常量、InferenceEngine 静态调用等 OCR 场景

@@ -429,6 +429,23 @@ public final class GroovySandboxPolicy {
     }
 
     /**
+     * 运行期静态调用校验（含继承链）：静态方法可经子类名调用
+     * （如 {@code JSONObject.parseArray} 实际声明于父类 {@code JSON}），
+     * 精确类名未命中时沿父类链向上查找，仅当某级父类已显式登记静态方法白名单时才放行。
+     */
+    public static boolean isStaticCallAllowed(Class<?> sender, String method) {
+        if (sender == null || method == null) {
+            return false;
+        }
+        for (Class<?> clazz = sender; clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+            if (isStaticCallAllowed(normalizeClassName(clazz), method)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 运行期静态调用空操作判定：命中时静默跳过，不执行真实方法。
      * <p>
      * 典型来源：脚本中的 {@code @Grab} 注解。编译期已按注册全限定名禁用

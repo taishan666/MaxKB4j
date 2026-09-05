@@ -1,6 +1,7 @@
 package com.maxkb4j.tool.controller;
 
 import cn.hutool.http.HttpResponse;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.annotation.SaCheckPerm;
@@ -112,7 +113,7 @@ public class ToolController {
         Map<String, Object> params = new HashMap<>(5);
         if (!CollectionUtils.isEmpty(dto.getDebugFieldList())) {
             for (ToolInputField inputField : dto.getDebugFieldList()) {
-                params.put(inputField.getName(), inputField.getValue());
+                params.put(inputField.getName(), convertValue(inputField.getType(), inputField.getValue()));
             }
         }
         log.info("input params: {}", params);
@@ -125,6 +126,33 @@ public class ToolController {
         }
         return R.data(result);
 
+    }
+
+    /**
+     * 将调试字段的字符串 value 按 dataType 转换为对应类型
+     *
+     * @param dataType 数据类型：string、int、dict、array、float、boolean
+     * @param value    原始值（字符串）
+     * @return 转换后的值，转换失败时返回原始值
+     */
+    private Object convertValue(String dataType, Object value) {
+        if (!(value instanceof String str) || StringUtils.isBlank(str) || StringUtils.isBlank(dataType)) {
+            return value;
+        }
+        String trimmed = str.trim();
+        try {
+            return switch (dataType.toLowerCase()) {
+                case "int" -> Long.parseLong(trimmed);
+                case "float" -> Double.parseDouble(trimmed);
+                case "boolean" -> Boolean.parseBoolean(trimmed);
+                case "dict" -> JSONUtil.isTypeJSONObject(trimmed) ? JSONUtil.parseObj(trimmed) : value;
+                case "array" -> JSONUtil.isTypeJSONArray(trimmed) ? JSONUtil.parseArray(trimmed) : value;
+                default -> str;
+            };
+        } catch (NumberFormatException e) {
+            log.warn("Failed to convert debug field value [{}] to type [{}]", str, dataType);
+            return value;
+        }
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
