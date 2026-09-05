@@ -1,10 +1,12 @@
 package com.maxkb4j.tool.executor;
 
 import com.maxkb4j.tool.sandbox.GroovySandboxInterceptor;
+import cn.hutool.json.JSONUtil;
 import com.maxkb4j.tool.sandbox.GroovySandboxPolicy;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -453,6 +455,262 @@ class GroovyScriptExecutorTest {
         Object result = executor.execute(params("inputData", "[1,2,3]"));
         assertEquals("{\"size\":3}", result.toString());
     }
+
+    // ========== 调试面板字符串入参 vs AI 调用 List 入参 ==========
+
+    /**
+     * 复现线上报错：/tool/debug 的入参来自前端 el-input 文本框，无论字段声明为
+     * string 还是 array，绑定进脚本的都是字符串（如 "[a,b,c]"）。
+     * 脚本方法签名声明为 List 时，Groovy 不会把 String 隐式转成 List，
+     * 于是抛 MissingMethodException（被 execute 包装成 RuntimeException）。
+     */
+    @Test
+    void execute_listSignatureCalledWithStringParam_throwsMissingMethodException() {
+        String code = """
+                import java.util.List
+                public static String render(List<?> xs, List<?> ys) {
+                    return xs.size() + "/" + ys.size()
+                }
+                return render(xAxis, yAxis)
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> executor.execute(params("xAxis", "[a,b,c]", "yAxis", "[1,2,3]")));
+        assertTrue(exception.getCause() instanceof groovy.lang.MissingMethodException,
+                "根因应为方法签名不匹配: " + exception.getCause());
+    }
+
+    /**
+     * 修复方式：脚本内先做入参归一化（toList），再调用 List 签名的业务方法。
+     * 调试面板传的非严格 JSON 字符串（[a,b,c]）也能正确解析。
+     */
+    @Test
+    void execute_echartsScript_withDebugStringParams_returnsEchartsHtml() {
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(ECHARTS_TOOL_SCRIPT, null);
+        Object result = executor.execute(params(
+                "xAxis", "[a,b,c]",
+                "yAxis", "[1,2,3]",
+                "chartTitle", "折线图",
+                "chartType", "line"));
+
+        String html = String.valueOf(result);
+        assertTrue(html.startsWith("<echarts_render>"), html);
+        assertTrue(html.endsWith("</echarts_render>"), html);
+        assertTrue(html.contains("\"text\":\"折线图\""), html);
+        assertTrue(html.contains("\"type\":\"line\""), html);
+        assertTrue(html.contains("\"data\":[\"a\",\"b\",\"c\"]"), html);
+        assertTrue(html.contains("\"data\":[1,2,3]"), html);
+        assertTrue(html.contains("\"trigger\":\"axis\""), html);
+        assertTrue(html.contains("\"type\":\"max\""), html);
+    }
+
+    /** 调试面板传严格 JSON 数组字符串时，走 JSON.parseArray 分支。 */
+    @Test
+    void execute_echartsScript_withStrictJsonStringParams_returnsEchartsHtml() {
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(ECHARTS_TOOL_SCRIPT, null);
+        Object result = executor.execute(params(
+                "xAxis", "[\"a\",\"b\",\"c\"]",
+                "yAxis", "[1,2,3]",
+                "chartTitle", "折线图",
+                "chartType", "line"));
+
+        String html = String.valueOf(result);
+        assertTrue(html.contains("\"data\":[\"a\",\"b\",\"c\"]"), html);
+        assertTrue(html.contains("\"data\":[1,2,3]"), html);
+    }
+
+    /** AI 调用路径：langchain4j 已把 arguments 解析成真实 List，脚本同样可用。 */
+    @Test
+    void execute_echartsScript_withListParams_returnsEchartsHtml() {
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(ECHARTS_TOOL_SCRIPT, null);
+        Object result = executor.execute(params(
+                "xAxis", List.of("a", "b", "c"),
+                "yAxis", List.of(1, 2, 3),
+                "chartTitle", "折线图",
+                "chartType", "line"));
+
+        String html = String.valueOf(result);
+        assertTrue(html.contains("\"data\":[\"a\",\"b\",\"c\"]"), html);
+        assertTrue(html.contains("\"data\":[1,2,3]"), html);
+    }
+
+    /** 饼图分支：xAxis 作为 name、yAxis 作为 value 组装 [{value,name}]。 */
+    @Test
+    void execute_echartsScript_withPieType_buildsNameValuePairs() {
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(ECHARTS_TOOL_SCRIPT, null);
+        Object result = executor.execute(params(
+                "xAxis", "[a,b,c]",
+                "yAxis", "[1,2,3]",
+                "chartTitle", "饼图",
+                "chartType", "pie"));
+
+        String html = String.valueOf(result);
+        assertTrue(html.contains("\"type\":\"pie\""), html);
+        assertTrue(html.contains("\"trigger\":\"item\""), html);
+        assertTrue(html.contains("\"name\":\"a\""), html);
+        assertTrue(html.contains("\"value\":1"), html);
+        assertTrue(html.contains("\"value\":3"), html);
+        assertFalse(html.contains("markPoint"), "饼图分支不应有 markPoint: " + html);
+    }
+
+    /**
+     * ToolController#convertValue 会把 array 类型的调试入参转成 cn.hutool.json.JSONArray，
+     * 它实现了 List/Collection，沙箱按集合类型放行，因此 List 签名的脚本方法无需改动即可使用。
+     */
+    @Test
+    void execute_listSignature_withHutoolJsonArrayParam_shouldWork() {
+        String code = """
+                import java.util.List
+                public static String render(List<?> xs, List<?> ys) {
+                    return xs.size() + "/" + ys.size() + "/" + xs.get(0) + "/" + ys.get(0)
+                }
+                return render(xAxis, yAxis)
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        Object result = executor.execute(params(
+                "xAxis", JSONUtil.parseArray("[a,b,c]"),
+                "yAxis", JSONUtil.parseArray("[1,2,3]")));
+        assertEquals("3/3/a/1", result);
+    }
+
+    /**
+     * ECharts 图表工具脚本（修复版）：
+     * 业务方法保持 List 签名，入参在调用前经 toList 归一化，
+     * 同时兼容调试面板字符串与 AI 调用的真实集合。
+     */
+    private static final String ECHARTS_TOOL_SCRIPT = """
+            import com.alibaba.fastjson.JSON
+            import com.alibaba.fastjson.JSONArray
+            import com.alibaba.fastjson.JSONObject
+
+            import java.util.List
+
+            // 入参归一化：List/JSONArray 直接返回；字符串兼容 ["a","b"] 与 [a,b,c] 两种写法
+            static List<Object> toList(Object value) {
+                List<Object> result = new ArrayList<Object>()
+                if (value == null) {
+                    return result
+                }
+                if (value instanceof List) {
+                    result.addAll((List) value)
+                    return result
+                }
+                String text = value.toString().trim()
+                if (text.isEmpty()) {
+                    return result
+                }
+                String body = text
+                if (body.length() > 1 && '['.equals(body.substring(0, 1))
+                        && ']'.equals(body.substring(body.length() - 1))) {
+                    body = body.substring(1, body.length() - 1)
+                    try {
+                        result.addAll(JSON.parseArray(text))
+                        return result
+                    } catch (Exception ignored) {
+                        // 非严格 JSON（如 [a,b,c]），继续走下面的容错切分
+                    }
+                }
+                if (body.trim().isEmpty()) {
+                    return result
+                }
+                List<String> items = Arrays.asList(body.split(','))
+                for (int i = 0; i < items.size(); i++) {
+                    String item = items.get(i).trim()
+                    if (item.length() > 1 && '"'.equals(item.substring(0, 1))
+                            && '"'.equals(item.substring(item.length() - 1))) {
+                        item = item.substring(1, item.length() - 1)
+                    }
+                    result.add(toValue(item))
+                }
+                return result
+            }
+
+            // 能转数字就转数字，ECharts 的 data 需要数值型
+            static Object toValue(String text) {
+                if (text == null || text.isEmpty()) {
+                    return text
+                }
+                try {
+                    return new BigDecimal(text)
+                } catch (Exception ignored) {
+                    return text
+                }
+            }
+
+            public static String generateEChartsHtml(List<?> xAxisData, List<?> yAxisData, String chartTitle, String chartType) {
+                JSONObject style = new JSONObject()
+                style.put("height", "400px")
+                style.put("width", "100%")
+
+                JSONObject title = new JSONObject()
+                title.put("text", chartTitle)
+                title.put("left", "center")
+
+                JSONObject option = new JSONObject()
+                option.put("title", title)
+
+                JSONObject series = new JSONObject()
+                series.put("type", chartType)
+
+                JSONObject tooltip = new JSONObject()
+                if (!"pie".equals(chartType)) {
+                    JSONObject xAxis = new JSONObject()
+                    xAxis.put("type", "category")
+                    xAxis.put("boundaryGap", false)
+                    xAxis.put("data", xAxisData)
+
+                    JSONObject yAxis = new JSONObject()
+                    yAxis.put("type", "value")
+
+                    JSONObject markPointDataMax = new JSONObject()
+                    markPointDataMax.put("type", "max")
+                    markPointDataMax.put("name", "最大值")
+
+                    JSONObject markPointDataMin = new JSONObject()
+                    markPointDataMin.put("type", "min")
+                    markPointDataMin.put("name", "最小值")
+
+                    JSONArray markPointDataArray = new JSONArray()
+                    markPointDataArray.add(markPointDataMax)
+                    markPointDataArray.add(markPointDataMin)
+
+                    JSONObject onlineMarkPoint = new JSONObject()
+                    onlineMarkPoint.put("data", markPointDataArray)
+
+                    series.put("data", yAxisData)
+                    series.put("markPoint", onlineMarkPoint)
+
+                    option.put("xAxis", xAxis)
+                    option.put("yAxis", yAxis)
+
+                    tooltip.put("trigger", "axis")
+                } else {
+                    JSONArray seriesData = new JSONArray()
+                    for (int i = 0; i < xAxisData.size(); i++) {
+                        JSONObject dataItem = new JSONObject()
+                        dataItem.put("value", yAxisData.get(i))
+                        dataItem.put("name", xAxisData.get(i))
+                        seriesData.add(dataItem)
+                    }
+                    series.put("data", seriesData)
+                    tooltip.put("trigger", "item")
+                }
+
+                option.put("tooltip", tooltip)
+                JSONArray seriesArray = new JSONArray()
+                seriesArray.add(series)
+                option.put("series", seriesArray)
+
+                JSONObject formSetting = new JSONObject()
+                formSetting.put("actionType", "JSON")
+                formSetting.put("style", style)
+                formSetting.put("option", option)
+
+                return "<echarts_render>" + JSONObject.toJSONString(formSetting) + "</echarts_render>"
+            }
+
+            return generateEChartsHtml(toList(xAxis), toList(yAxis), chartTitle, chartType)
+            """;
 
     @Test
     void sandboxPolicy_ocrRelatedWhitelistEntriesPresent() {

@@ -136,7 +136,11 @@ public class ToolController {
      * @return 转换后的值，转换失败时返回原始值
      */
     private Object convertValue(String dataType, Object value) {
-        if (!(value instanceof String str) || StringUtils.isBlank(str) || StringUtils.isBlank(dataType)) {
+        // 仅当 value 是字符串类型时才进行转换，否则原样返回
+        if (!(value instanceof String str)) {
+            return value;
+        }
+        if (StringUtils.isBlank(str) || StringUtils.isBlank(dataType)) {
             return value;
         }
         String trimmed = str.trim();
