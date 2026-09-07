@@ -105,6 +105,18 @@ public final class GroovySandboxPolicy {
             "groovy.lang.Range",
             "groovy.json.JsonSlurper",
             "groovy.json.JsonOutput",
+            "groovy.json.JsonBuilder",
+            // ===== 数据库查询（内置 MySQL/PostgreSQL 查询工具） =====
+            "groovy.sql.Sql",
+            "java.sql.Timestamp",
+            "java.sql.Date",
+            // Sql.eachRow 传给闭包的 row 是 GroovyResultSetProxy 创建的 JDK 动态代理
+            // （运行期类名为 jdk.proxyN.$ProxyM），直接接口为 groovy.sql.GroovyResultSet，
+            // isAllowedType 需按该接口放行，否则 row.getMetaData()/row[columnName] 均被拒绝
+            "groovy.sql.GroovyResultSet",
+            // row.getMetaData() 返回驱动实现类（如 PgResultSetMetaData），按接口放行
+            // .columnCount 属性读取与 getColumnName 方法调用
+            "java.sql.ResultSetMetaData",
             "org.codehaus.groovy.runtime.DefaultGroovyMethods",
             "org.codehaus.groovy.runtime.StringGroovyMethods",
             "org.codehaus.groovy.runtime.EncodingGroovyMethods",
@@ -120,7 +132,25 @@ public final class GroovySandboxPolicy {
             // ===== fastjson（内置工具 JSON 处理，如 web_search 结果解析） =====
             "com.alibaba.fastjson.JSON",
             "com.alibaba.fastjson.JSONObject",
-            "com.alibaba.fastjson.JSONArray"
+            "com.alibaba.fastjson.JSONArray",
+            // ===== MongoDB 驱动（mongodb-driver-sync，沙箱脚本访问 MongoDB） =====
+            // 运行期实现类（MongoClientImpl/MongoDatabaseImpl/MongoCollectionImpl/
+            // FindIterableImpl）均按下列接口放行
+            "com.mongodb.client.MongoClient",
+            "com.mongodb.client.MongoClients",
+            "com.mongodb.client.MongoDatabase",
+            "com.mongodb.client.MongoCollection",
+            "com.mongodb.client.MongoIterable",
+            "com.mongodb.client.FindIterable",
+            "org.bson.Document",
+            "org.bson.types.ObjectId",
+            "org.bson.conversions.Bson",
+            // ===== 邮箱消息推送（内置 SMTP 邮件通知工具） =====
+            "org.springframework.mail.javamail.JavaMailSenderImpl",
+            "org.springframework.mail.SimpleMailMessage",
+            // JavaMailSenderImpl.getJavaMailProperties() 返回 Properties，
+            // 脚本对 props.put(...) 的接收者即该类型
+            "java.util.Properties"
     );
 
     /**
@@ -205,6 +235,18 @@ public final class GroovySandboxPolicy {
             "drop", "dropWhile",
             // ===== JSON =====
             "parseText", "toJson", "prettyPrint",
+            // ===== 数据库查询（groovy.sql.Sql） =====
+            "rows",
+            // sql.rows(query) 返回 GroovyRowResult（implements Map），DGM 扩展
+            // DefaultGroovyMethods.toMapString(Map) 可输出 [列名:值, ...] 字符串。
+            // 注意：eachRow 闭包的 row 是 GroovyResultSet 动态代理（非 Map），不支持
+            // toMapString，需改用 sql.rows(query)
+            "toMapString",
+            // PostgreSQL 查询工具：eachRow 遍历结果集、getMetaData/getColumnName 取列名、
+            // times 按列数迭代、close 在 finally 中释放连接（toDouble 已在类型转换白名单中）
+            "eachRow", "getMetaData", "getColumnName", "times", "close",
+            // rows << map：List 的 leftShift 追加元素
+            "leftShift",
             // ===== fastjson（JSONObject/JSONArray 类型化访问与序列化） =====
             "toJSONString",
             "getString", "getInteger", "getLong", "getDouble", "getFloat",
@@ -225,7 +267,16 @@ public final class GroovySandboxPolicy {
             // ===== exp4j 表达式求值（内置工具「数学公式执行」） =====
             "build", "evaluate", "setVariable", "setVariables", "variables",
             // ===== 闭包 =====
-            "call", "doCall", "isCase"
+            "call", "doCall", "isCase",
+            // ===== MongoDB（find/close/parse/toString 已在上方白名单中） =====
+            // client.getDatabase(name) / db.getCollection(name) / find(...).forEach { doc -> }
+            "getDatabase", "getCollection", "forEach",
+            // ===== 邮箱消息推送（内置 SMTP 邮件通知工具） =====
+            // JavaMailSenderImpl/SimpleMailMessage 的配置与发送方法（put 已在访问白名单中）
+            "setHost", "setPort", "setUsername", "setPassword",
+            "setDefaultEncoding", "setProtocol",
+            "getJavaMailProperties", "setJavaMailProperties",
+            "setFrom", "setTo", "setSubject", "setText", "send"
     );
 
     /** 允许通过 new 实例化的类。 */
@@ -245,11 +296,21 @@ public final class GroovySandboxPolicy {
             "java.text.SimpleDateFormat",
             "java.text.DecimalFormat",
             "groovy.json.JsonSlurper",
+            // 数据库查询工具：new JsonBuilder(rows).toString() 序列化结果集，
+            // new String(bytes, "UTF-8") 将 BLOB/byte[] 字段还原为文本
+            "groovy.json.JsonBuilder",
+            "java.lang.String",
             "java.lang.IllegalArgumentException",
             "net.objecthunter.exp4j.ExpressionBuilder",
             // fastjson：内置工具构造 JSON 对象（new JSONObject() / new JSONArray()）
             "com.alibaba.fastjson.JSONObject",
-            "com.alibaba.fastjson.JSONArray"
+            "com.alibaba.fastjson.JSONArray",
+            // MongoDB：new Document(map) 构造查询条件；new ObjectId(hex) 构造/比较 _id
+            "org.bson.Document",
+            "org.bson.types.ObjectId",
+            // 邮箱消息推送：new JavaMailSenderImpl() / new SimpleMailMessage()
+            "org.springframework.mail.javamail.JavaMailSenderImpl",
+            "org.springframework.mail.SimpleMailMessage"
     );
 
     /** 允许静态调用的类及其方法白名单。 */
@@ -285,6 +346,11 @@ public final class GroovySandboxPolicy {
             Map.entry("java.time.ZoneId", Set.of("of", "systemDefault", "ofOffset")),
             Map.entry("java.time.format.DateTimeFormatter", Set.of("ofPattern", "ofLocalizedDate", "ofLocalizedTime", "ofLocalizedDateTime")),
             Map.entry("groovy.json.JsonOutput", Set.of("toJson", "prettyPrint")),
+            // 数据库查询（内置 MySQL/PostgreSQL 查询工具）：
+            // Sql.withInstance(url, user, pwd, driver) { conn -> ... } 建立连接并在闭包内执行查询；
+            // Sql.newInstance(url, user, pwd, driver) 建立连接返回 Sql 实例（配合 eachRow/close 使用），
+            // 连接参数均由工具配置提供，二者建连能力等价
+            Map.entry("groovy.sql.Sql", Set.of("withInstance", "newInstance")),
             Map.entry("org.codehaus.groovy.runtime.DefaultGroovyMethods", ALLOWED_METHODS),
             Map.entry("org.codehaus.groovy.runtime.StringGroovyMethods", ALLOWED_METHODS),
             Map.entry("org.codehaus.groovy.runtime.ScriptBytecodeAdapter", Set.of("findRegex", "matchRegex")),
@@ -301,7 +367,11 @@ public final class GroovySandboxPolicy {
                     "write", "writeString",
                     "exists", "notExists", "size",
                     "isRegularFile", "isDirectory", "isReadable", "isWritable",
-                    "createDirectories", "createTempFile", "delete", "deleteIfExists"))
+                    "createDirectories", "createTempFile", "delete", "deleteIfExists")),
+            // MongoDB：MongoClients.create(connectionString) 创建客户端；
+            // Document.parse(json) 解析 JSON 查询条件
+            Map.entry("com.mongodb.client.MongoClients", Set.of("create")),
+            Map.entry("org.bson.Document", Set.of("parse"))
     );
 
     /**
@@ -389,7 +459,8 @@ public final class GroovySandboxPolicy {
             "getruntime",
             ".exec",
             ".execute",
-            ".start",
+            // 必须带左括号：裸 ".start" 会把白名单方法 startsWith 误判为危险调用
+            ".start(",
             "getclass",
             "getclassloader",
             "loadclass",

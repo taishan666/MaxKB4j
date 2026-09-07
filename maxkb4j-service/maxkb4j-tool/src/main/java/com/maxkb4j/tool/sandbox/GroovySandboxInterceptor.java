@@ -48,7 +48,11 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             // 静默忽略（不执行真实下载逻辑），脚本继续使用 classpath 已有依赖执行
             return null;
         }
-        if (GroovySandboxPolicy.isDangerousMethod(method) || GroovySandboxPolicy.isDangerousClass(sender)) {
+        // 显式静态白名单（如 groovy.sql.Sql#newInstance）优先于危险方法名黑名单；
+        // 危险类仍无条件拦截
+        if (GroovySandboxPolicy.isDangerousClass(sender)
+                || (GroovySandboxPolicy.isDangerousMethod(method)
+                        && !GroovySandboxPolicy.isStaticCallAllowed(sender, method))) {
             throw new SecurityException("不允许调用静态方法: " + sender.getName() + "." + method);
         }
         GroovySandboxPolicy.validateArguments(args);

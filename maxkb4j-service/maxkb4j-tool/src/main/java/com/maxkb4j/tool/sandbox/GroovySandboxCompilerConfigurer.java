@@ -182,6 +182,30 @@ public final class GroovySandboxCompilerConfigurer {
         allowedConstants.add(com.alibaba.fastjson.JSON.class);
         allowedConstants.add(com.alibaba.fastjson.JSONObject.class);
         allowedConstants.add(com.alibaba.fastjson.JSONArray.class);
+        // 数据库查询（内置「PostgreSQL 查询」工具）：允许 Sql 作为脚本变量类型
+        // （如 Sql sql = null），否则编译期报
+        // "Usage of variables of type [groovy.sql.Sql] is not allowed"；
+        // Timestamp/Date 供结果集时间字段的变量类型声明
+        allowedConstants.add(groovy.sql.Sql.class);
+        allowedConstants.add(java.sql.Timestamp.class);
+        allowedConstants.add(java.sql.Date.class);
+        // MongoDB（沙箱脚本访问 MongoDB）：允许作为脚本变量类型
+        // （如 MongoClient client = null / MongoCollection<Document> col），否则编译期报
+        // "Usage of variables of type [com.mongodb.client.MongoClient] is not allowed"
+        allowedConstants.add(com.mongodb.client.MongoClient.class);
+        allowedConstants.add(com.mongodb.client.MongoClients.class);
+        allowedConstants.add(com.mongodb.client.MongoDatabase.class);
+        allowedConstants.add(com.mongodb.client.MongoCollection.class);
+        allowedConstants.add(com.mongodb.client.FindIterable.class);
+        allowedConstants.add(org.bson.Document.class);
+        allowedConstants.add(org.bson.types.ObjectId.class);
+        // 邮箱消息推送（内置工具）：允许作为脚本变量类型
+        // （JavaMailSenderImpl mailSender = new JavaMailSenderImpl() / SimpleMailMessage message = ... /
+        //   Properties props = mailSender.getJavaMailProperties()），否则编译期报
+        // "Usage of variables of type [...] is not allowed"
+        allowedConstants.add(org.springframework.mail.javamail.JavaMailSenderImpl.class);
+        allowedConstants.add(org.springframework.mail.SimpleMailMessage.class);
+        allowedConstants.add(java.util.Properties.class);
         ast.setAllowedConstantTypesClasses(allowedConstants);
 
         // ========== 3. Groovy Sandbox 运行期沙箱 ==========
@@ -215,7 +239,14 @@ public final class GroovySandboxCompilerConfigurer {
         if (expression instanceof ClassExpression classExpression) {
             // 类引用（静态调用接收者、instanceof、.class 等）仅允许运行期白名单中的类，
             // 未在白名单中的类在编译期即被拒绝，避免放开 ClassExpression 后引入任意类引用
-            return GroovySandboxPolicy.isAllowedClassName(classExpression.getType().getName());
+            ClassNode type = classExpression.getType();
+            // 数组类型（如 instanceof byte[]、String[]）的 ClassNode 名为 JVM 描述符（[B、[Ljava.lang.String;），
+            // 需解包到元素类型再校验：基本类型元素（byte[] 等）由 isAllowedClassName 的基本类型白名单放行，
+            // 引用类型元素则按元素类名走白名单
+            while (type.isArray()) {
+                type = type.getComponentType();
+            }
+            return GroovySandboxPolicy.isAllowedClassName(type.getName());
         }
         if (expression instanceof MethodCallExpression methodCallExpression) {
             String methodName = methodCallExpression.getMethodAsString();
@@ -230,10 +261,23 @@ public final class GroovySandboxCompilerConfigurer {
             if (receiverType == null || receiverType == Object.class) {
                 return true;
             }
+            // 受信静态调用例外：接收者为类引用（如 Sql.newInstance(...)）时，
+            // 显式静态白名单优先于危险方法名黑名单，否则内置「PostgreSQL 查询」工具的
+            // Sql.newInstance 会在编译期被 "newInstance" 危险方法名拦截
+            if (receiver instanceof ClassExpression
+                    && GroovySandboxPolicy.isStaticCallAllowed(receiverNode.getName(), methodName)) {
+                return true;
+            }
             return !GroovySandboxPolicy.isDangerousMethod(receiverType, methodName);
         }
         if (expression instanceof StaticMethodCallExpression staticMethodCallExpression) {
-            return !GroovySandboxPolicy.isDangerousMethod(staticMethodCallExpression.getMethod());
+            ClassNode ownerType = staticMethodCallExpression.getOwnerType();
+            String method = staticMethodCallExpression.getMethod();
+            // 受信静态调用例外：显式静态白名单优先于危险方法名黑名单
+            if (ownerType != null && GroovySandboxPolicy.isStaticCallAllowed(ownerType.getName(), method)) {
+                return true;
+            }
+            return !GroovySandboxPolicy.isDangerousMethod(method);
         }
         if (expression instanceof PropertyExpression propertyExpression) {
             String propertyName = propertyExpression.getPropertyAsString();

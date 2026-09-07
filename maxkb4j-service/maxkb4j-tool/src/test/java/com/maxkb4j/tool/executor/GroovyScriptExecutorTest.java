@@ -722,4 +722,571 @@ class GroovyScriptExecutorTest {
         assertTrue(GroovySandboxPolicy.isAllowedClassName("com.maxkb4j.common.domain.dto.OssFile")
                 || GroovySandboxPolicy.isReadableDataClass(com.maxkb4j.common.domain.dto.OssFile.class));
     }
+
+    @Test
+    void sandboxPolicy_databaseQueryToolWhitelistEntriesPresent() {
+        // 内置「MySQL 查询」工具依赖 groovy.sql.Sql 建连查询、JsonBuilder 序列化结果集，
+        // 以及 Timestamp/Date/byte[] 字段类型转换，白名单需完整覆盖，否则编译期报
+        // "Expression [ClassExpression] is not allowed: groovy.sql.Sql"
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("groovy.sql.Sql"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("groovy.json.JsonBuilder"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("java.sql.Timestamp"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("java.sql.Date"));
+        assertTrue(GroovySandboxPolicy.isStaticCallAllowed("groovy.sql.Sql", "withInstance"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("rows"));
+        assertTrue(GroovySandboxPolicy.isConstructorAllowed("groovy.json.JsonBuilder"));
+        assertTrue(GroovySandboxPolicy.isConstructorAllowed("java.lang.String"));
+    }
+
+    @Test
+    void execute_mysqlQueryResultSetProcessing_allowed() {
+        // 复现内置「MySQL 查询」工具的结果集处理逻辑（不实际连库）：
+        // collect/collectEntries 遍历、instanceof Timestamp/Date/BigDecimal/byte[] 类型分派、
+        // new String(bytes,charset) 还原 BLOB、new JsonBuilder(...).toString() 序列化，
+        // 均应通过编译期 ClassExpression 白名单（含 byte[] 数组解包）与运行期拦截器
+        String code = """
+                import groovy.json.JsonBuilder
+                import java.sql.Timestamp
+                import java.sql.Date
+                import java.math.BigDecimal
+
+                def processedRows = rows.collect { row ->
+                    row.collectEntries { key, value ->
+                        def processedValue = value
+                        if (value instanceof Timestamp || value instanceof Date) {
+                            processedValue = value.toInstant().toString()
+                        } else if (value instanceof BigDecimal) {
+                            processedValue = value.doubleValue()
+                        } else if (value instanceof byte[]) {
+                            processedValue = new String(value, 'UTF-8')
+                        }
+                        [(key): processedValue]
+                    }
+                }
+                return new JsonBuilder(processedRows).toString()
+                """;
+        Map<String, Object> row = new java.util.LinkedHashMap<>();
+        row.put("ts", new java.sql.Timestamp(0L));
+        row.put("n", new java.math.BigDecimal("1.5"));
+        row.put("b", "abc".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        row.put("s", "plain");
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        Object result = executor.execute(params("rows", List.of(row)));
+        String json = result.toString();
+        assertTrue(json.contains("\"ts\":\"1970-01-01T00:00:00Z\""), json);
+        assertTrue(json.contains("\"n\":1.5"), json);
+        assertTrue(json.contains("\"b\":\"abc\""), json);
+        assertTrue(json.contains("\"s\":\"plain\""), json);
+    }
+
+    @Test
+    void sandboxPolicy_postgresqlQueryToolWhitelistEntriesPresent() {
+        // PostgreSQL 查询类脚本白名单：Sql.newInstance 建连、close 释放连接、toDouble 转换
+        // BigDecimal 为模板（sql.rows 方案）所需；eachRow/getMetaData/getColumnName/times/
+        // leftShift 为用户自定义 eachRow 脚本所需（模板已改用 rows/collect/each，见下方编译测试）
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("java.sql.ResultSetMetaData"));
+        assertTrue(GroovySandboxPolicy.isStaticCallAllowed("groovy.sql.Sql", "newInstance"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("eachRow"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("getMetaData"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("getColumnName"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("times"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("toDouble"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("close"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("leftShift"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("toMapString"));
+    }
+
+    @Test
+    void sandboxPolicy_groovyRowResultAllowedAsMap() {
+        // sql.rows(query) 返回 GroovyRowResult（implements Map），isAllowedType 需按
+        // java.util.Map 接口白名单放行；DGM 扩展 toMapString(Map) 才能作用于它。
+        // 对比 eachRow 的 GroovyResultSet 代理（非 Map）——toMapString 对其不适用
+        assertTrue(GroovySandboxPolicy.isAllowedType(groovy.sql.GroovyRowResult.class));
+        assertTrue(java.util.Map.class.isAssignableFrom(groovy.sql.GroovyRowResult.class));
+        // GroovyResultSet 代理不是 Map，toMapString 无法作用（运行期会 MissingMethodException）
+        assertFalse(java.util.Map.class.isAssignableFrom(groovy.sql.GroovyResultSet.class));
+    }
+
+    @Test
+    void sandboxPolicy_eachRowJdkProxyReceiverAllowed() {
+        // 运行期复现：Sql.eachRow 传给闭包的 row 是 GroovyResultSetProxy 创建的 JDK 动态代理
+        // （类名形如 jdk.proxy2.$Proxy187），直接接口为 groovy.sql.GroovyResultSet。
+        // isAllowedType 需按接口白名单放行，否则报"不允许在类 jdk.proxyN.$ProxyM 上调用方法: getMetaData"
+        Object proxy = java.lang.reflect.Proxy.newProxyInstance(
+                getClass().getClassLoader(),
+                new Class<?>[]{groovy.sql.GroovyResultSet.class},
+                (p, m, args) -> null);
+        assertTrue(proxy.getClass().getName().contains("$Proxy"), proxy.getClass().getName());
+        assertTrue(GroovySandboxPolicy.isAllowedType(proxy.getClass()));
+    }
+
+    @Test
+    void execute_postgresqlQueryScript_compiles() {
+        // 复现内置「PostgreSQL 查询」工具脚本（sql.rows 方案，仅验证编译期，不实际连库）：
+        // Sql sql = null 变量类型声明、Sql.newInstance 受信静态调用（"newInstance" 在
+        // 危险方法名黑名单中，需静态白名单优先放行）、rows/collect/each/putAt/toInstant/
+        // toDouble/toString/close 均应通过 SecureASTCustomizer 与编译期表达式检查器。
+        // 模板已从 eachRow 改为 sql.rows：eachRow 的 row 是 GroovyResultSetProxy 动态代理，
+        // 运行期不支持 toMapString；sql.rows 返回 GroovyRowResult（本身就是 Map），更健壮
+        String code = """
+                import groovy.sql.Sql
+                import groovy.json.JsonBuilder
+                import java.sql.Timestamp
+                import java.math.BigDecimal
+
+                def url = "jdbc:postgresql://${host}:${port}/${database}"
+                def driver = 'org.postgresql.Driver'
+
+                Sql sql = null
+                try {
+                    sql = Sql.newInstance(url, user, password, driver)
+                    println "连接成功！"
+
+                    def result = sql.rows(query).collect { row ->
+                        def map = [:]
+                        row.each { columnName, value ->
+                            if (value instanceof Timestamp) {
+                                map[columnName] = value.toInstant().toString()
+                            } else if (value instanceof BigDecimal) {
+                                map[columnName] = value.toDouble()
+                            } else {
+                                map[columnName] = value
+                            }
+                        }
+                        map
+                    }
+
+                    return new JsonBuilder(result).toString()
+                } catch (Exception e) {
+                    println "发生错误：${e.message}"
+                    throw e
+                } finally {
+                    sql?.close()
+                }
+                """;
+        // GroovyScriptCache.get 触发编译（不执行）：编译期任一层拦截
+        // （变量类型/ClassExpression/危险方法名）都会抛 SecurityException 使本测试失败。
+        // 注意：GroovyScriptExecutor 构造器并不编译，必须经缓存 get 才真正走编译期沙箱
+        GroovyScriptCache.get(code);
+        assertTrue(GroovyScriptExecutor.isScriptCached(code));
+    }
+
+    @Test
+    void sandboxPolicy_mongoQueryToolWhitelistEntriesPresent() throws Exception {
+        // 内置「MongoDB 查询」工具依赖 MongoClients.create 建连、getDatabase/getCollection
+        // 定位集合、find().forEach 遍历、Document.parse 解析查询条件、ObjectId 转换 _id，
+        // 白名单需完整覆盖，否则编译期报
+        // "Usage of variables of type [com.mongodb.client.MongoClient] is not allowed"
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("com.mongodb.client.MongoClient"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("com.mongodb.client.MongoClients"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("com.mongodb.client.MongoDatabase"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("com.mongodb.client.MongoCollection"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("com.mongodb.client.FindIterable"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("org.bson.Document"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("org.bson.types.ObjectId"));
+        assertTrue(GroovySandboxPolicy.isStaticCallAllowed("com.mongodb.client.MongoClients", "create"));
+        assertTrue(GroovySandboxPolicy.isStaticCallAllowed("org.bson.Document", "parse"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("getDatabase"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("getCollection"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("forEach"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("find"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("close"));
+        assertTrue(GroovySandboxPolicy.isConstructorAllowed("org.bson.Document"));
+        assertTrue(GroovySandboxPolicy.isConstructorAllowed("org.bson.types.ObjectId"));
+        // 运行期接收者是 internal 实现类（部分为包私有，需 Class.forName 加载），
+        // isAllowedType 需沿接口链命中白名单
+        assertTrue(GroovySandboxPolicy.isAllowedType(Class.forName("com.mongodb.client.internal.MongoClientImpl")));
+        assertTrue(GroovySandboxPolicy.isAllowedType(Class.forName("com.mongodb.client.internal.MongoDatabaseImpl")));
+        assertTrue(GroovySandboxPolicy.isAllowedType(Class.forName("com.mongodb.client.internal.MongoCollectionImpl")));
+        assertTrue(GroovySandboxPolicy.isAllowedType(Class.forName("com.mongodb.client.internal.FindIterableImpl")));
+    }
+
+    @Test
+    void execute_mongoDocumentResultProcessing_allowed() {
+        // 复现「MongoDB 查询」工具的结果处理逻辑（离线执行，不实际连库）：
+        // new Document(map) 构造、instanceof ObjectId 转换 _id、each 遍历中
+        // instanceof byte[] 还原二进制字段、JsonOutput.toJson 序列化，
+        // 均应通过编译期 ClassExpression/变量类型白名单与运行期拦截器
+        String code = """
+                import org.bson.Document
+                import org.bson.types.ObjectId
+                import groovy.json.JsonOutput
+
+                Document doc = new Document(row)
+                if (doc.get("_id") instanceof ObjectId) {
+                    doc.put("_id", doc.get("_id").toString())
+                }
+                doc.each { key, value ->
+                    if (value instanceof byte[]) {
+                        doc.put(key, new String(value, "UTF-8"))
+                    }
+                }
+                return JsonOutput.toJson(doc)
+                """;
+        Map<String, Object> row = new java.util.LinkedHashMap<>();
+        row.put("_id", new org.bson.types.ObjectId("507f1f77bcf86cd799439011"));
+        row.put("name", "test");
+        row.put("blob", "abc".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        Object result = executor.execute(params("row", row));
+        String json = result.toString();
+        assertTrue(json.contains("\"_id\":\"507f1f77bcf86cd799439011\""), json);
+        assertTrue(json.contains("\"name\":\"test\""), json);
+        assertTrue(json.contains("\"blob\":\"abc\""), json);
+    }
+
+    @Test
+    void execute_mongoQueryScript_compiles() {
+        // 复现内置「MongoDB 查询」工具完整脚本（仅验证编译期，不实际连库）：
+        // MongoClient/MongoDatabase/MongoCollection/Document 变量类型声明、
+        // MongoClients.create 受信静态调用、Document.parse 查询条件解析、
+        // find().forEach 遍历、JsonBuilder/JsonOutput 序列化、finally 中 close，
+        // 均应通过 SecureASTCustomizer 与编译期表达式检查器。
+        // 注意：@Grab 在沙箱中被禁用（no-op），mongodb-driver-sync 由平台 classpath 提供；
+        // System.err 属于危险类 java.lang.System，脚本内需使用 println 输出日志
+        String code = """
+                @Grab('org.mongodb:mongodb-driver-sync:4.11.1')
+                import com.mongodb.client.MongoClients
+                import com.mongodb.client.MongoClient
+                import com.mongodb.client.MongoCollection
+                import com.mongodb.client.MongoDatabase
+                import org.bson.Document
+                import org.bson.types.ObjectId
+                import groovy.json.JsonBuilder
+                import groovy.json.JsonOutput
+
+                import java.time.format.DateTimeFormatter
+                import java.time.Instant
+                import java.time.ZoneId
+
+                MongoClient client = null
+                try {
+                    String connectionString = "mongodb://${user}:${password}@${host}:${port}/?authSource=admin"
+                    client = MongoClients.create(connectionString)
+
+                    MongoDatabase db = client.getDatabase(database)
+                    MongoCollection<Document> col = db.getCollection(collection)
+
+                    Document queryDoc
+                    if (query instanceof String) {
+                        String qStr = query.trim()
+                        if (!qStr) {
+                            qStr = "{}"
+                        }
+                        queryDoc = Document.parse(qStr)
+                    } else if (query instanceof Map) {
+                        queryDoc = new Document(query)
+                    } else {
+                        throw new IllegalArgumentException("Query must be a JSON string or a Map")
+                    }
+
+                    def results = []
+                    col.find(queryDoc).forEach { doc ->
+                        if (doc.containsKey("_id") && doc.get("_id") instanceof ObjectId) {
+                            doc.put("_id", doc.get("_id").toString())
+                        }
+                        doc.each { key, value ->
+                            if (value instanceof byte[]) {
+                                doc.put(key, new String(value, "UTF-8"))
+                            }
+                        }
+                        results << doc
+                    }
+
+                    def serialize = { obj ->
+                        if (obj == null) return null
+                        if (obj instanceof Date) {
+                            Instant instant = obj.toInstant()
+                            return instant.atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                        }
+                        if (obj instanceof byte[]) {
+                            return new String(obj, "UTF-8")
+                        }
+                        return obj
+                    }
+
+                    def jsonBuilder = new JsonBuilder()
+                    jsonBuilder.call(results.collect { doc ->
+                        doc.collectEntries { k, v ->
+                            [(k): serialize(v)]
+                        }
+                    })
+
+                    return JsonOutput.prettyPrint(jsonBuilder.toString())
+                } catch (Exception e) {
+                    println("Error while connecting to MongoDB: ${e.message}")
+                    e.printStackTrace()
+                    throw e
+                } finally {
+                    if (client) {
+                        client.close()
+                    }
+                }
+                """;
+        // GroovyScriptCache.get 触发编译（不执行）：编译期任一层拦截都会抛 SecurityException
+        GroovyScriptCache.get(code);
+        assertTrue(GroovyScriptExecutor.isScriptCached(code));
+    }
+
+    /**
+     * 内置「MongoDB 查询」工具的 query 归一化逻辑（与模板脚本保持一致，不连库）。
+     * 大模型常把 query 填成 mongo shell 语句，直接交给 Document.parse 会抛
+     * "JSON reader was expecting a value but found 'db'"。
+     */
+    private static final String MONGO_QUERY_NORMALIZE_CODE = """
+            import org.bson.Document
+            import groovy.json.JsonOutput
+
+            def extractJsonBlocks = { String text ->
+                def blocks = []
+                int depth = 0
+                int start = -1
+                boolean inString = false
+                boolean escaped = false
+                int len = text.length()
+                for (int i = 0; i < len; i++) {
+                    String ch = text.substring(i, i + 1)
+                    if (inString) {
+                        if (escaped) {
+                            escaped = false
+                        } else if ('\\\\'.equals(ch)) {
+                            escaped = true
+                        } else if ('"'.equals(ch)) {
+                            inString = false
+                        }
+                        continue
+                    }
+                    if ('"'.equals(ch)) {
+                        inString = true
+                    } else if ('{'.equals(ch) || '['.equals(ch)) {
+                        if (depth == 0) {
+                            start = i
+                        }
+                        depth = depth + 1
+                    } else if ('}'.equals(ch) || ']'.equals(ch)) {
+                        depth = depth - 1
+                        if (depth == 0 && start >= 0) {
+                            def block = new LinkedHashMap()
+                            block.put("start", start)
+                            block.put("json", text.substring(start, i + 1))
+                            blocks << block
+                            start = -1
+                        }
+                    }
+                }
+                return blocks
+            }
+
+            def blockAfter = { String text, List blocks, String keyword ->
+                int idx = text.indexOf(keyword)
+                if (idx < 0) {
+                    return null
+                }
+                for (int i = 0; i < blocks.size(); i++) {
+                    def block = blocks.get(i)
+                    if (block.get("start") > idx) {
+                        return block.get("json").toString()
+                    }
+                }
+                return null
+            }
+
+            def numberAfter = { String text, String keyword ->
+                int idx = text.indexOf(keyword)
+                if (idx < 0) {
+                    return null
+                }
+                String tail = text.substring(idx + keyword.length())
+                String digits = ""
+                int tailLen = tail.length()
+                for (int i = 0; i < tailLen; i++) {
+                    String ch = tail.substring(i, i + 1)
+                    if ('0123456789'.contains(ch)) {
+                        digits = "${digits}${ch}"
+                    } else {
+                        break
+                    }
+                }
+                if (digits.isEmpty()) {
+                    return null
+                }
+                return Integer.valueOf(digits)
+            }
+
+            Document queryDoc
+            Document projectionDoc = null
+            Document sortDoc = null
+            Integer limitNum = null
+            Integer skipNum = null
+
+            if (query instanceof Map) {
+                queryDoc = new Document(query)
+            } else {
+                String qStr = query == null ? "" : query.toString().trim()
+                if (qStr.isEmpty()) {
+                    qStr = "{}"
+                }
+                if (qStr.startsWith("{")) {
+                    queryDoc = Document.parse(qStr)
+                } else if (qStr.startsWith("[")) {
+                    throw new IllegalArgumentException('query 不支持聚合管道写法')
+                } else {
+                    def blocks = extractJsonBlocks(qStr)
+                    if (blocks.size() == 0) {
+                        throw new IllegalArgumentException('query 必须是 MongoDB JSON 过滤条件')
+                    }
+                    String filterJson = blockAfter(qStr, blocks, "find(")
+                    if (filterJson == null) {
+                        filterJson = blockAfter(qStr, blocks, "findOne(")
+                    }
+                    if (filterJson == null) {
+                        filterJson = blocks.get(0).get("json").toString()
+                    }
+                    if (filterJson.startsWith("[")) {
+                        throw new IllegalArgumentException('query 不支持聚合管道写法')
+                    }
+                    queryDoc = Document.parse(filterJson)
+
+                    int filterIdx = qStr.indexOf(filterJson)
+                    int filterEnd = filterIdx + filterJson.length()
+                    for (int i = 0; i < blocks.size(); i++) {
+                        def block = blocks.get(i)
+                        def blockStart = block.get("start")
+                        if (blockStart >= filterEnd) {
+                            String between = qStr.substring(filterEnd, blockStart)
+                            if (!between.contains(")")) {
+                                projectionDoc = Document.parse(block.get("json").toString())
+                            }
+                            break
+                        }
+                    }
+
+                    String sortJson = blockAfter(qStr, blocks, ".sort(")
+                    if (sortJson != null) {
+                        sortDoc = Document.parse(sortJson)
+                    }
+                    limitNum = numberAfter(qStr, ".limit(")
+                    skipNum = numberAfter(qStr, ".skip(")
+                }
+            }
+
+            def out = new LinkedHashMap()
+            out.put("filter", queryDoc.toJson())
+            out.put("projection", projectionDoc == null ? null : projectionDoc.toJson())
+            out.put("sort", sortDoc == null ? null : sortDoc.toJson())
+            out.put("limit", limitNum)
+            out.put("skip", skipNum)
+            return JsonOutput.toJson(out)
+            """;
+
+    @Test
+    void execute_mongoQueryNormalization_parsesShellStyleQuery() {
+        // db.user.find({"name":"zhangsan"}, {"_id":0}).sort({"age":-1}).limit(10).skip(5)
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(MONGO_QUERY_NORMALIZE_CODE, null);
+        Object result = executor.execute(params("query",
+                "db.user.find({\"name\":\"zhangsan\"}, {\"_id\":0}).sort({\"age\":-1}).limit(10).skip(5)"));
+        String json = result.toString();
+        assertTrue(json.contains("zhangsan"), json);
+        assertFalse(json.contains("\"projection\":null"), json);
+        assertFalse(json.contains("\"sort\":null"), json);
+        assertTrue(json.contains("\"limit\":10"), json);
+        assertTrue(json.contains("\"skip\":5"), json);
+    }
+
+    @Test
+    void execute_mongoQueryNormalization_keepsPlainJsonQuery() {
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(MONGO_QUERY_NORMALIZE_CODE, null);
+        Object result = executor.execute(params("query", "{\"age\":{\"$gt\":18}}"));
+        String json = result.toString();
+        assertTrue(json.contains("$gt"), json);
+        assertTrue(json.contains("\"projection\":null"), json);
+        assertTrue(json.contains("\"limit\":null"), json);
+    }
+
+    @Test
+    void execute_mongoQueryNormalization_rejectsUnparsableQuery() {
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(MONGO_QUERY_NORMALIZE_CODE, null);
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> executor.execute(params("query", "db")));
+        // 测试环境无 Spring MessageSource，外层 message 只有 i18n key，脚本原始提示在 cause 上
+        String cause = String.valueOf(ex.getCause().getMessage());
+        assertTrue(cause.contains("query 必须是 MongoDB JSON 过滤条件"), cause);
+    }
+
+    @Test
+    void execute_startsWith_notRejectedByDangerousTokenScan() {
+        // 回归：脚本文本预检的危险标记若写成裸 ".start"，会误杀白名单方法 startsWith
+        GroovyScriptExecutor executor = new GroovyScriptExecutor("""
+                return query.startsWith("{") ? "json" : "shell"
+                """, null);
+        assertEquals("json", executor.execute(params("query", "{\"a\":1}")));
+        assertEquals("shell", executor.execute(params("query", "db.a.find({})")));
+    }
+
+    @Test
+    void mongoToolTemplateScript_passesTokenScanAndCompiles() throws Exception {
+        // 校验内置「MongoDB 数据库查询」工具模板：JSON 转义正确、脚本可通过文本预检与沙箱编译期检查
+        java.nio.file.Path template = java.nio.file.Path.of("..", "..", "maxkb4j-start", "src", "main",
+                "resources", "templates", "tool", "database_search", "MongoDB+数据库查询-1.0.0.tool");
+        org.junit.jupiter.api.Assumptions.assumeTrue(java.nio.file.Files.exists(template),
+                "模板文件不存在，跳过：" + template.toAbsolutePath());
+        String script = JSONUtil.parseObj(java.nio.file.Files.readString(template,
+                java.nio.charset.StandardCharsets.UTF_8)).getStr("script");
+        assertNull(GroovySandboxPolicy.findDangerousToken(script));
+        GroovyScriptCache.get(script);
+        assertTrue(GroovyScriptExecutor.isScriptCached(script));
+    }
+
+    /**
+     * 白名单必须覆盖内置「邮箱消息推送」工具脚本用到的类/方法/构造器。
+     */
+    @Test
+    void sandboxPolicy_emailPushToolWhitelistEntriesPresent() {
+        assertTrue(GroovySandboxPolicy.isAllowedClassName(
+                "org.springframework.mail.javamail.JavaMailSenderImpl"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName(
+                "org.springframework.mail.SimpleMailMessage"));
+        // props.put(...) 的运行期接收者类型（getJavaMailProperties 返回值）
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("java.util.Properties"));
+        assertTrue(GroovySandboxPolicy.isConstructorAllowed(
+                "org.springframework.mail.javamail.JavaMailSenderImpl"));
+        assertTrue(GroovySandboxPolicy.isConstructorAllowed(
+                "org.springframework.mail.SimpleMailMessage"));
+        for (String method : new String[]{"setHost", "setPort", "setUsername", "setPassword",
+                "setDefaultEncoding", "setProtocol", "getJavaMailProperties", "setJavaMailProperties",
+                "setFrom", "setTo", "setSubject", "setText", "send"}) {
+            assertTrue(GroovySandboxPolicy.isMethodAllowed(method), "方法未在白名单中: " + method);
+        }
+    }
+
+    /**
+     * 回归测试：内置「邮箱消息推送」脚本的字符串字面量 "mail.smtp.starttls.enable" 中的
+     * ".starttls" 曾因裸 token ".start" 的纯子串匹配被文本预检误判为危险调用
+     * （报 "脚本包含不允许的危险调用：.start"）。token 已改为带左括号的 ".start("：
+     * 字面量不再命中，真实的线程启动调用仍被拦截。
+     */
+    @Test
+    void findDangerousToken_smtpStarttlsProperty_notRejected() {
+        assertNull(GroovySandboxPolicy.findDangerousToken(
+                "props.put(\"mail.smtp.starttls.enable\", tlsEnable)"));
+        assertEquals(".start(", GroovySandboxPolicy.findDangerousToken(
+                "new Thread(r).start()"));
+    }
+
+    /**
+     * 内置「邮箱消息推送」工具模板脚本必须通过文本预检与编译期沙箱校验
+     * （SecureASTCustomizer 变量类型白名单含 JavaMailSenderImpl/SimpleMailMessage/Properties）。
+     * 仅编译不执行：执行会真实连接 SMTP 服务器发送邮件。
+     */
+    @Test
+    void emailToolTemplateScript_passesTokenScanAndCompiles() throws Exception {
+        java.nio.file.Path template = java.nio.file.Path.of("..", "..", "maxkb4j-start", "src", "main", "resources",
+                "templates", "tool", "send_message", "邮箱消息推送-1.0.0.tool");
+        org.junit.jupiter.api.Assumptions.assumeTrue(java.nio.file.Files.exists(template),
+                "模板文件不存在，跳过：" + template.toAbsolutePath());
+        String script = JSONUtil.parseObj(java.nio.file.Files.readString(template,
+                java.nio.charset.StandardCharsets.UTF_8)).getStr("code");
+        assertNull(GroovySandboxPolicy.findDangerousToken(script));
+        GroovyScriptCache.get(script);
+        assertTrue(GroovyScriptExecutor.isScriptCached(script));
+    }
 }
