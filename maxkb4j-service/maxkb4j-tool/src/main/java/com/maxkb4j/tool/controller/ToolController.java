@@ -119,7 +119,7 @@ public class ToolController {
         log.info("input params: {}", params);
         Object result;
         if (ToolConstants.ToolType.HTTP.equals(dto.getToolType())){
-            HttpResponse httpResponse = toolExecuteService.httpExecute(dto.getCode(),params);
+            HttpResponse httpResponse = toolExecuteService.httpExecute(dto.getCode(),dto.getInitParams(),params);
             result = httpResponse.body();
         }else {
             result = toolExecuteService.customExecute(dto.getCode(), dto.getInitParams(),params);

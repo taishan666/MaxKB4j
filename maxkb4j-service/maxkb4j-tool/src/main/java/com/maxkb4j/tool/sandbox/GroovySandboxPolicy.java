@@ -150,7 +150,19 @@ public final class GroovySandboxPolicy {
             "org.springframework.mail.SimpleMailMessage",
             // JavaMailSenderImpl.getJavaMailProperties() 返回 Properties，
             // 脚本对 props.put(...) 的接收者即该类型
-            "java.util.Properties"
+            "java.util.Properties",
+            // ===== 受控 HTTP 客户端（脚本内发起 http/https 请求） =====
+            // URL 构造 + 连接/流类型。运行期 openConnection()/getInputStream() 返回的是
+            // JDK 内部实现类（如 sun.net.www.protocol.https.*），这些具体类不在本集合内，
+            // 由 isAllowedNetworkOrIoType 按基类（URLConnection/InputStream/...）指派放行。
+            "java.net.URL",
+            "java.net.URI",
+            "java.net.URLConnection",
+            "java.net.HttpURLConnection",
+            "java.io.InputStream",
+            "java.io.OutputStream",
+            "java.io.Reader",
+            "java.io.Writer"
     );
 
     /**
@@ -276,7 +288,14 @@ public final class GroovySandboxPolicy {
             "setHost", "setPort", "setUsername", "setPassword",
             "setDefaultEncoding", "setProtocol",
             "getJavaMailProperties", "setJavaMailProperties",
-            "setFrom", "setTo", "setSubject", "setText", "send"
+            "setFrom", "setTo", "setSubject", "setText", "send",
+            // ===== 受控 HTTP 客户端（URL.openConnection / HttpURLConnection 请求与响应读写） =====
+            // 典型脚本：url.openConnection() → 设置请求方法/头 → 写请求体 → 读响应 → disconnect
+            "openConnection", "setRequestProperty", "addRequestProperty", "disconnect",
+            "setRequestMethod", "setDoOutput", "setDoInput",
+            "setConnectTimeout", "setReadTimeout",
+            "getOutputStream", "getInputStream", "withWriter", "withReader", "getText",
+            "getResponseCode", "getResponseMessage", "getHeaderField", "getContentType", "getContentLength"
     );
 
     /** 允许通过 new 实例化的类。 */
@@ -310,7 +329,9 @@ public final class GroovySandboxPolicy {
             "org.bson.types.ObjectId",
             // 邮箱消息推送：new JavaMailSenderImpl() / new SimpleMailMessage()
             "org.springframework.mail.javamail.JavaMailSenderImpl",
-            "org.springframework.mail.SimpleMailMessage"
+            "org.springframework.mail.SimpleMailMessage",
+            // 受控 HTTP 客户端：new URL(spec) 构造（协议在运行期校验，仅放行 http/https）
+            "java.net.URL"
     );
 
     /** 允许静态调用的类及其方法白名单。 */
@@ -635,6 +656,10 @@ public final class GroovySandboxPolicy {
         if (ALLOWED_CLASSES.contains(className) || ALLOWED_EXCEPTION_CLASSES.contains(className)) {
             return true;
         }
+        // 受控 HTTP 客户端：连接/流的具体实现类（JDK 内部类，如 sun.net.www.*）按基类指派放行
+        if (isAllowedNetworkOrIoType(type)) {
+            return true;
+        }
         for (Class<?> iface : type.getInterfaces()) {
             if (isAllowedType(iface)) {
                 return true;
@@ -666,6 +691,12 @@ public final class GroovySandboxPolicy {
                 || Constructor.class.isAssignableFrom(type)) {
             return true;
         }
+        // 受控 HTTP 客户端：URL/URI/URLConnection 及读写请求/响应体所需的流
+        // （含 JDK 内部实现类，如 sun.net.www.protocol.https.*）按基类指派放行，不视为危险类；
+        // 其余 java.net.*（Socket/ServerSocket 等）与 java.io.*（File/FileInputStream 等）仍拦截。
+        if (isAllowedNetworkOrIoType(type)) {
+            return false;
+        }
         String className = normalizeClassName(type);
         return className.startsWith("java.lang.reflect.")
                 || className.startsWith("java.lang.invoke.")
@@ -679,6 +710,65 @@ public final class GroovySandboxPolicy {
                 || className.equals("groovy.lang.MetaMethod")
                 || className.equals("groovy.lang.ExpandoMetaClass")
                 || className.equals("org.codehaus.groovy.runtime.InvokerHelper");
+    }
+
+    /**
+     * 受控 HTTP 客户端放行的网络/IO 基类判定。
+     * <p>
+     * 仅放行发起 HTTP(S) 请求所必需的类型及其运行期实现类：URL/URI、URLConnection
+     * （含 HttpURLConnection 及 sun.net.www.* 等 JDK 内部实现），以及读写请求/响应体所需的
+     * InputStream/OutputStream/Reader/Writer。Socket、ServerSocket、File、FileInputStream 等
+     * 不在此列，仍被 {@link #isDangerousClass} 拦截。
+     * </p>
+     *
+     * @param type 待判定类型（调用方已保证非 null）
+     * @return 属于受控 HTTP 客户端可放行的网络/IO 类型返回 true
+     */
+    private static boolean isAllowedNetworkOrIoType(Class<?> type) {
+        return type == java.net.URL.class
+                || type == java.net.URI.class
+                || java.net.URLConnection.class.isAssignableFrom(type)
+                || java.io.InputStream.class.isAssignableFrom(type)
+                || java.io.OutputStream.class.isAssignableFrom(type)
+                || java.io.Reader.class.isAssignableFrom(type)
+                || java.io.Writer.class.isAssignableFrom(type);
+    }
+
+    /** 受控 HTTP 客户端允许的 URL 协议：仅 http/https，禁止 file:/jar:/ftp: 等读取本地资源。 */
+    private static final Set<String> ALLOWED_URL_PROTOCOLS = Set.of("http", "https");
+
+    /**
+     * 校验 {@code new URL(...)} 构造参数：仅放行 http/https 协议。
+     * <p>
+     * 兼容两种构造形式：
+     * <ul>
+     *   <li>{@code new URL("https://host/path")}：取 {@code ://} 之前的协议名</li>
+     *   <li>{@code new URL("https", "host", "/path")}：首参即协议名</li>
+     * </ul>
+     * 协议非 http/https（如 file:/jar:）时拒绝，防止脚本读取本地文件或访问非预期资源。
+     * </p>
+     *
+     * @param args URL 构造器参数
+     * @throws SecurityException 协议不在白名单内
+     */
+    public static void validateUrlConstruction(Object... args) {
+        String protocol = extractUrlProtocol(args);
+        if (protocol == null || !ALLOWED_URL_PROTOCOLS.contains(protocol.toLowerCase(java.util.Locale.ROOT))) {
+            throw new SecurityException("仅允许 http/https 协议的 URL，实际协议: "
+                    + (protocol == null ? "未知" : protocol));
+        }
+    }
+
+    /** 从 URL 构造参数中解析协议名，无法识别时返回 null。 */
+    private static String extractUrlProtocol(Object... args) {
+        if (args == null || args.length == 0 || !(args[0] instanceof String first)) {
+            return null;
+        }
+        if (args.length == 1) {
+            int idx = first.indexOf("://");
+            return idx > 0 ? first.substring(0, idx) : null;
+        }
+        return first;
     }
 
     /** 数组类型是否安全：最终组件类型为基本类型、字符串、数字、布尔、字符或枚举。 */

@@ -43,7 +43,7 @@ public class ToolNodeHandler extends AbsNodeHandler {
         }
         Object result;
         if (ToolConstants.ToolType.HTTP.equals(params.getToolType())){
-            HttpResponse httpResponse = toolExecuteService.httpExecute(params.getCode(),execParams);
+            HttpResponse httpResponse = toolExecuteService.httpExecute(params.getCode(),params.getInitParams(),execParams);
             result = httpResponse.body();
         }else {
             result = toolExecuteService.customExecute(params.getCode(), params.getInitParams(),execParams);

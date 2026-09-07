@@ -21,8 +21,8 @@ import java.util.Map;
 public class ToolExecuteServiceImpl implements IToolExecuteService {
 
     @Override
-    public HttpResponse httpExecute(String code, Map<String, Object> parameter) throws IOException {
-        HttpRequestExecutor executor = new HttpRequestExecutor(code);
+    public HttpResponse httpExecute(String code, Map<String, Object> initParams,Map<String, Object> parameter) throws IOException {
+        HttpRequestExecutor executor = new HttpRequestExecutor(code,initParams);
         return executor.execute(parameter);
     }
 

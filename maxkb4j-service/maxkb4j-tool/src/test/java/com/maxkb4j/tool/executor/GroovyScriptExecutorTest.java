@@ -1289,4 +1289,194 @@ class GroovyScriptExecutorTest {
         GroovyScriptCache.get(script);
         assertTrue(GroovyScriptExecutor.isScriptCached(script));
     }
+
+    // ==================== 受控 HTTP 客户端（脚本内发起 http/https 请求） ====================
+
+    /**
+     * 用户原始脚本（new URL + HttpURLConnection POST + JsonBuilder 请求体 + 读取响应）：
+     * 针对本地 HTTP 服务器验证完整链路——构造 URL、openConnection、设置请求方法/头、
+     * 写请求体（outputStream.withWriter）、读响应（inputStream.text）、disconnect 全部放行。
+     */
+    @Test
+    void execute_httpPostScript_allowed() throws Exception {
+        com.sun.net.httpserver.HttpServer server = com.sun.net.httpserver.HttpServer.create(
+                new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        final String[] receivedMethod = {null};
+        final String[] receivedAuth = {null};
+        final String[] receivedContentType = {null};
+        final String[] receivedBody = {null};
+        server.createContext("/api/v1/search", exchange -> {
+            receivedMethod[0] = exchange.getRequestMethod();
+            receivedAuth[0] = exchange.getRequestHeaders().getFirst("Authorization");
+            receivedContentType[0] = exchange.getRequestHeaders().getFirst("Content-Type");
+            receivedBody[0] = new String(exchange.getRequestBody().readAllBytes(),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            byte[] resp = "{\"ok\":true,\"echo\":\"received\"}".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, resp.length);
+            exchange.getResponseBody().write(resp);
+            exchange.close();
+        });
+        server.start();
+        int port = server.getAddress().getPort();
+        try {
+            String code = """
+                    import groovy.json.JsonBuilder
+                    import groovy.json.JsonSlurper
+
+                    def url = new URL("http://127.0.0.1:%d/api/v1/search")
+                    def connection = url.openConnection() as HttpURLConnection
+                    connection.requestMethod = "POST"
+                    connection.doOutput = true
+                    connection.setRequestProperty("Authorization", "Bearer ${apiKey}")
+                    connection.setRequestProperty("Accept", "application/json")
+                    connection.setRequestProperty("Content-Type", "application/json")
+
+                    def payload = new JsonBuilder([
+                        q: query,
+                        scope: "webpage",
+                        includeSummary: false,
+                        size: "10",
+                        includeRawContent: false,
+                        conciseSnippet: false
+                    ]).toString()
+
+                    connection.outputStream.withWriter { writer ->
+                        writer << payload
+                    }
+
+                    def responseText = connection.inputStream.text
+                    connection.disconnect()
+
+                    return responseText
+                    """.formatted(port);
+            GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+            Object result = executor.execute(params("apiKey", "test-key-123", "query", "hello world"));
+            assertEquals("{\"ok\":true,\"echo\":\"received\"}", result.toString());
+            assertEquals("POST", receivedMethod[0]);
+            assertEquals("Bearer test-key-123", receivedAuth[0]);
+            assertEquals("application/json", receivedContentType[0]);
+            assertTrue(receivedBody[0].contains("\"q\":\"hello world\""), receivedBody[0]);
+            assertTrue(receivedBody[0].contains("\"scope\":\"webpage\""), receivedBody[0]);
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    /**
+     * 用户提供的原始脚本（指向 https://metaso.cn）：仅验证编译期放行（文本扫描 + SecureASTCustomizer），
+     * 不发起真实网络请求。证明 new URL / as HttpURLConnection / setRequestProperty / withWriter 等
+     * 在编译期不被拒绝。
+     */
+    @Test
+    void execute_userMetasoScript_compiles() {
+        String code = """
+                import groovy.json.JsonBuilder
+                import groovy.json.JsonSlurper
+
+                def url = new URL("https://metaso.cn/api/v1/search")
+                def connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.doOutput = true
+                connection.setRequestProperty("Authorization", "Bearer ${apiKey}")
+                connection.setRequestProperty("Accept", "application/json")
+                connection.setRequestProperty("Content-Type", "application/json")
+
+                def payload = new JsonBuilder([
+                    q: query,
+                    scope: "webpage",
+                    includeSummary: false,
+                    size: "10",
+                    includeRawContent: false,
+                    conciseSnippet: false
+                ]).toString()
+
+                connection.outputStream.withWriter { writer ->
+                    writer << payload
+                }
+
+                def responseText = connection.inputStream.text
+                connection.disconnect()
+
+                return responseText
+                """;
+        GroovyScriptCache.get(code);
+        assertTrue(GroovyScriptExecutor.isScriptCached(code));
+    }
+
+    /** new URL("file:///...") 被协议白名单拒绝：防止借 URL 读取本地文件（LFI）。 */
+    @Test
+    void execute_urlWithFileProtocol_rejected() {
+        String code = "return new URL('file:///etc/passwd').text";
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertThrows(SecurityException.class, () -> executor.execute(params()));
+    }
+
+    /** new URL("jar:...") 等非 http/https 协议同样被拒绝。 */
+    @Test
+    void execute_urlWithJarProtocol_rejected() {
+        String code = "return new URL('jar:file:///tmp/a.jar!/b').text";
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertThrows(SecurityException.class, () -> executor.execute(params()));
+    }
+
+    /** Socket 仍被拦截：受控 HTTP 客户端只放行 URL/连接/流，不放开原始套接字。 */
+    @Test
+    void execute_socketConstruction_rejected() {
+        String code = "return new Socket('127.0.0.1', 80)";
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertThrows(SecurityException.class, () -> executor.execute(params()));
+    }
+
+    /** 受控 HTTP 客户端白名单条目齐全：类名/构造器/方法/类型指派均放行，Socket/File 仍拦截。 */
+    @Test
+    void sandboxPolicy_httpClientWhitelistEntriesPresent() {
+        // 类名白名单（编译期 ClassExpression 校验依赖）
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("java.net.URL"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("java.net.HttpURLConnection"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("java.net.URLConnection"));
+        // 构造器白名单
+        assertTrue(GroovySandboxPolicy.isConstructorAllowed("java.net.URL"));
+        // 方法白名单
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("openConnection"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("setRequestProperty"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("disconnect"));
+        assertTrue(GroovySandboxPolicy.isMethodAllowed("withWriter"));
+        // 类型指派（运行期接收者校验依赖，含基类）
+        assertTrue(GroovySandboxPolicy.isAllowedType(java.net.URL.class));
+        assertTrue(GroovySandboxPolicy.isAllowedType(java.net.HttpURLConnection.class));
+        assertTrue(GroovySandboxPolicy.isAllowedType(java.io.InputStream.class));
+        assertTrue(GroovySandboxPolicy.isAllowedType(java.io.OutputStream.class));
+        assertTrue(GroovySandboxPolicy.isAllowedType(java.io.Writer.class));
+        // URL/连接/流不再被判定为危险类
+        assertFalse(GroovySandboxPolicy.isDangerousClass(java.net.URL.class));
+        assertFalse(GroovySandboxPolicy.isDangerousClass(java.net.HttpURLConnection.class));
+        assertFalse(GroovySandboxPolicy.isDangerousClass(java.io.InputStream.class));
+        // 但 Socket / File 仍是危险类，且不在类型白名单内
+        assertTrue(GroovySandboxPolicy.isDangerousClass(java.net.Socket.class));
+        assertTrue(GroovySandboxPolicy.isDangerousClass(java.io.File.class));
+        assertFalse(GroovySandboxPolicy.isAllowedType(java.net.Socket.class));
+        assertFalse(GroovySandboxPolicy.isAllowedType(java.io.File.class));
+    }
+
+    /** URL 协议校验：http/https 放行，file/jar/ftp 及无法识别的协议拒绝。 */
+    @Test
+    void validateUrlConstruction_protocolWhitelist() {
+        // http/https 放行（不抛异常）
+        GroovySandboxPolicy.validateUrlConstruction("https://metaso.cn/api/v1/search");
+        GroovySandboxPolicy.validateUrlConstruction("http://127.0.0.1:8080/x");
+        GroovySandboxPolicy.validateUrlConstruction("https", "metaso.cn", "/api/v1/search");
+        // file/jar/ftp 拒绝
+        assertThrows(SecurityException.class,
+                () -> GroovySandboxPolicy.validateUrlConstruction("file:///etc/passwd"));
+        assertThrows(SecurityException.class,
+                () -> GroovySandboxPolicy.validateUrlConstruction("jar:file:///tmp/a.jar!/b"));
+        assertThrows(SecurityException.class,
+                () -> GroovySandboxPolicy.validateUrlConstruction("ftp://host/x"));
+        // 无协议 / 无参数拒绝
+        assertThrows(SecurityException.class,
+                () -> GroovySandboxPolicy.validateUrlConstruction("metaso.cn/api"));
+        assertThrows(SecurityException.class,
+                () -> GroovySandboxPolicy.validateUrlConstruction());
+    }
 }

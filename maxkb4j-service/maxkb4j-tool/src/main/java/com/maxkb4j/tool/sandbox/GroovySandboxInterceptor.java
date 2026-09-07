@@ -79,6 +79,11 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
         if (!GroovySandboxPolicy.isConstructorAllowed(className)) {
             throw new SecurityException("不允许实例化类: " + className);
         }
+        // 受控 HTTP 客户端：new URL(...) 仅放行 http/https 协议，
+        // 阻断 file:/jar:/ftp: 等借 URL 读取本地文件或访问非预期资源
+        if (java.net.URL.class.equals(sender)) {
+            GroovySandboxPolicy.validateUrlConstruction(args);
+        }
         // 构造函数：Invoker 需要方法名参数，"<init>" 是标准构造调用标记
         return GroovySandboxPolicy.validateReturnValue(invoker.call(sender, "<init>", args));
     }

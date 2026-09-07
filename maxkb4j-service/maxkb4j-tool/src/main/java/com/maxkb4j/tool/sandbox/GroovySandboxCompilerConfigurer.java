@@ -58,6 +58,9 @@ public final class GroovySandboxCompilerConfigurer {
                 AttributeExpression.class
         ));
         ast.addExpressionCheckers(GroovySandboxCompilerConfigurer::isSafeExpression);
+        // 注意：java.net.URL / java.net.URI 已从禁止导入名单移除——受控 HTTP 客户端允许脚本
+        // 显式导入并构造 URL（运行期由 GroovySandboxPolicy.validateUrlConstruction 限定 http/https）。
+        // java.net / java.io 的星号导入仍禁止（见 disallowedStarImports），脚本依赖 Groovy 默认导入即可。
         ast.setDisallowedImports(List.of(
                 "java.lang.Runtime",
                 "java.lang.Process",
@@ -65,8 +68,6 @@ public final class GroovySandboxCompilerConfigurer {
                 "java.lang.System",
                 "java.lang.Class",
                 "java.lang.ClassLoader",
-                "java.net.URL",
-                "java.net.URI",
                 "groovy.lang.GroovyShell",
                 "groovy.lang.GroovyClassLoader",
                 "groovy.lang.MetaClass",
@@ -206,6 +207,17 @@ public final class GroovySandboxCompilerConfigurer {
         allowedConstants.add(org.springframework.mail.javamail.JavaMailSenderImpl.class);
         allowedConstants.add(org.springframework.mail.SimpleMailMessage.class);
         allowedConstants.add(java.util.Properties.class);
+        // 受控 HTTP 客户端（脚本内发起 http/https 请求）：允许 URL/连接/流类型作为
+        // 脚本变量与强制转换的静态类型（如 def conn = url.openConnection() as HttpURLConnection），
+        // 否则编译期报 "Usage of variables of type [java.net.HttpURLConnection] is not allowed"
+        allowedConstants.add(java.net.URL.class);
+        allowedConstants.add(java.net.URI.class);
+        allowedConstants.add(java.net.URLConnection.class);
+        allowedConstants.add(java.net.HttpURLConnection.class);
+        allowedConstants.add(java.io.InputStream.class);
+        allowedConstants.add(java.io.OutputStream.class);
+        allowedConstants.add(java.io.Reader.class);
+        allowedConstants.add(java.io.Writer.class);
         ast.setAllowedConstantTypesClasses(allowedConstants);
 
         // ========== 3. Groovy Sandbox 运行期沙箱 ==========

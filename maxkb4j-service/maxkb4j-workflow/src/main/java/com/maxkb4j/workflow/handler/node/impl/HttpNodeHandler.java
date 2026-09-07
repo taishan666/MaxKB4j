@@ -31,7 +31,7 @@ public class HttpNodeHandler extends AbsNodeHandler {
         Map<String, Object> variables = workflow.getPromptVariables();
         String code = JSON.toJSONString(params);
         ToolHttpRequest  request = JSONObject.parseObject(code, ToolHttpRequest.class);
-        try (HttpResponse response = toolExecuteService.httpExecute(JSON.toJSONString(params), variables)) {
+        try (HttpResponse response = toolExecuteService.httpExecute(JSON.toJSONString(params),Map.of(), variables)) {
             int resStatus = response.getStatus();
             String resBody = response.body();
             // 使用辅助方法写入详情

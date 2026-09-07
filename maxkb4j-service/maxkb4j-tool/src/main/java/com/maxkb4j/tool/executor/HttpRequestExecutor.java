@@ -11,16 +11,14 @@ import dev.langchain4j.model.input.PromptTemplate;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.ArrayList;
+import java.util.*;
 
 @Getter
 public class HttpRequestExecutor extends AbsToolExecutor {
     private final ToolHttpRequest data;
+    private final Map<String, Object> initParams;
 
-    public HttpRequestExecutor(String code) {
+    public HttpRequestExecutor(String code, Map<String, Object> initParams) {
         ToolHttpRequest  tempData = JSONObject.parseObject(code, ToolHttpRequest.class);
         List<KeyAndValue>  headers =tempData.getHeaders();
         List<KeyAndValue>  params =tempData.getParams();
@@ -38,6 +36,7 @@ public class HttpRequestExecutor extends AbsToolExecutor {
             tempData.setParams(new ArrayList<>());
         }
         this.data = tempData;
+        this.initParams=initParams;
     }
 
     private boolean isEmptyKeyAndValue(KeyAndValue kav) {
@@ -57,7 +56,15 @@ public class HttpRequestExecutor extends AbsToolExecutor {
         return response.body();
     }
 
-    public HttpResponse execute(Map<String, Object> variables) {
+    public HttpResponse execute(Map<String, Object> inputParams) {
+        // 不直接修改调用方传入的 map：合并到新 map，initParams 保持原有覆盖语义
+        Map<String, Object> variables = new LinkedHashMap<>();
+        if (inputParams != null) {
+            variables.putAll(inputParams);
+        }
+        if (initParams != null) {
+            variables.putAll(initParams);
+        }
         HttpRequest request= HttpUtil.createRequest(data.getMethod(), data.getUrl());
         List<KeyAndValue> headers=data.getHeaders();
         for (KeyAndValue header : headers) {

@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public interface IToolExecuteService {
 
-    HttpResponse httpExecute(String code, Map<String, Object> parameter) throws IOException;
+    HttpResponse httpExecute(String code, Map<String, Object> initParams,Map<String, Object> parameter) throws IOException;
 
     Object customExecute(String code, Map<String, Object> initParams, Map<String, Object> parameter) throws IOException;
 

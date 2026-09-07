@@ -148,7 +148,7 @@ public class TriggerTaskExecutor {
             JSONObject parameter = task.getParameter();
             Object response;
             if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())){
-                HttpResponse httpResponse = toolExecuteService.httpExecute(tool.getCode(),parameter);
+                HttpResponse httpResponse = toolExecuteService.httpExecute(tool.getCode(),tool.getInitParams(),parameter);
                 response = httpResponse.isOk()?httpResponse.body():null;
             }else {
                 response = toolExecuteService.customExecute(tool.getCode(), tool.getInitParams(),parameter);

@@ -96,12 +96,12 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
     /**
      * 执行 Groovy 脚本（带沙箱隔离和超时控制）
      *
-     * @param params 脚本参数
+     * @param inputParams 脚本参数
      * @return 脚本执行结果
      * @throws SecurityException 当脚本尝试调用非白名单中的类或方法时
      * @throws RuntimeException  当脚本执行超时或失败时
      */
-    public Object execute(Map<String, Object> params) {
+    public Object execute(Map<String, Object> inputParams) {
         if (StringUtils.isBlank(code)) {
             return "";
         }
@@ -113,8 +113,8 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
 
         // 不直接修改调用方传入的 map：合并到新 map，initParams 保持原有覆盖语义
         Map<String, Object> mergedParams = new LinkedHashMap<>();
-        if (params != null) {
-            mergedParams.putAll(params);
+        if (inputParams != null) {
+            mergedParams.putAll(inputParams);
         }
         if (initParams != null) {
             mergedParams.putAll(initParams);
