@@ -5,6 +5,7 @@ import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.sandbox.GroovySandboxCompilerConfigurer;
 import com.maxkb4j.tool.sandbox.GroovySandboxInterceptor;
 import com.maxkb4j.tool.sandbox.GroovySandboxPolicy;
+import com.maxkb4j.tool.sandbox.GroovyScriptCache;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import groovy.lang.Binding;
 import groovy.lang.Script;
@@ -168,3 +169,5 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         }
     }
 }
+
+

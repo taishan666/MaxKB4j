@@ -49,6 +49,10 @@ public final class GroovySandboxCompilerConfigurer {
         ImportCustomizer importCustomizer = new ImportCustomizer();
         importCustomizer.addStaticStars("java.lang.Math");
         importCustomizer.addStarImports("groovy.json", "groovy.xml", "net.objecthunter.exp4j","java.nio.file");
+        // SearXNG 模板脚本（templates/tool/web_search/SearXNG-1.0.0.tool）未显式 import 即裸用
+        // SearXNGWebSearchEngine，而该类实际位于 dev.langchain4j.community.web.search.searxng 包
+        // （非脚本作者直觉的 dev.langchain4j.web.search），需星号导入才能解析
+        importCustomizer.addStarImports("dev.langchain4j.community.web.search.searxng");
 
         // ========== 2. AST 安全限制 ==========
         SecureASTCustomizer ast = new SecureASTCustomizer();
@@ -218,6 +222,23 @@ public final class GroovySandboxCompilerConfigurer {
         allowedConstants.add(java.io.OutputStream.class);
         allowedConstants.add(java.io.Reader.class);
         allowedConstants.add(java.io.Writer.class);
+        // langchain4j Web Search（web_search 工具族：SearXNG / Tavily / SearchApi / Google 自定义搜索）：
+        // 允许作为脚本变量的静态类型（如 SearXNGWebSearchEngine searchEngine = ... /
+        // WebSearchResults webSearchResults = ...），否则编译期报
+        // "Usage of variables of type [...] is not allowed"
+        allowedConstants.add(dev.langchain4j.web.search.WebSearchEngine.class);
+        allowedConstants.add(dev.langchain4j.web.search.WebSearchResults.class);
+        allowedConstants.add(dev.langchain4j.web.search.WebSearchOrganicResult.class);
+        allowedConstants.add(dev.langchain4j.web.search.WebSearchRequest.class);
+        allowedConstants.add(dev.langchain4j.web.search.WebSearchInformationResult.class);
+        allowedConstants.add(dev.langchain4j.community.web.search.searxng.SearXNGWebSearchEngine.class);
+        allowedConstants.add(dev.langchain4j.community.web.search.searxng.SearXNGWebSearchEngine.Builder.class);
+        allowedConstants.add(dev.langchain4j.web.search.tavily.TavilyWebSearchEngine.class);
+        allowedConstants.add(dev.langchain4j.web.search.tavily.TavilyWebSearchEngine.TavilyWebSearchEngineBuilder.class);
+        allowedConstants.add(dev.langchain4j.web.search.searchapi.SearchApiWebSearchEngine.class);
+        allowedConstants.add(dev.langchain4j.web.search.searchapi.SearchApiWebSearchEngine.SearchApiWebSearchEngineBuilder.class);
+        allowedConstants.add(dev.langchain4j.web.search.google.customsearch.GoogleCustomWebSearchEngine.class);
+        allowedConstants.add(dev.langchain4j.web.search.google.customsearch.GoogleCustomWebSearchEngine.GoogleCustomWebSearchEngineBuilder.class);
         ast.setAllowedConstantTypesClasses(allowedConstants);
 
         // ========== 3. Groovy Sandbox 运行期沙箱 ==========

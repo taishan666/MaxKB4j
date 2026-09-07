@@ -3,6 +3,7 @@ package com.maxkb4j.tool.executor;
 import com.maxkb4j.tool.sandbox.GroovySandboxInterceptor;
 import cn.hutool.json.JSONUtil;
 import com.maxkb4j.tool.sandbox.GroovySandboxPolicy;
+import com.maxkb4j.tool.sandbox.GroovyScriptCache;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -1230,7 +1231,7 @@ class GroovyScriptExecutorTest {
         org.junit.jupiter.api.Assumptions.assumeTrue(java.nio.file.Files.exists(template),
                 "模板文件不存在，跳过：" + template.toAbsolutePath());
         String script = JSONUtil.parseObj(java.nio.file.Files.readString(template,
-                java.nio.charset.StandardCharsets.UTF_8)).getStr("script");
+                java.nio.charset.StandardCharsets.UTF_8)).getStr("code");
         assertNull(GroovySandboxPolicy.findDangerousToken(script));
         GroovyScriptCache.get(script);
         assertTrue(GroovyScriptExecutor.isScriptCached(script));
@@ -1478,5 +1479,182 @@ class GroovyScriptExecutorTest {
                 () -> GroovySandboxPolicy.validateUrlConstruction("metaso.cn/api"));
         assertThrows(SecurityException.class,
                 () -> GroovySandboxPolicy.validateUrlConstruction());
+    }
+
+    // ==================== langchain4j Web Search（web_search 工具族） ====================
+
+    /**
+     * 内置「SearXNG 联网搜索」模板脚本（templates/tool/web_search/SearXNG-1.0.0.tool）必须通过
+     * 文本预检与沙箱编译期校验：SearXNGWebSearchEngine 裸类名（经编译配置器星号导入解析）、
+     * WebSearchResults/JSONObject 变量类型声明、SearXNGWebSearchEngine.builder() 静态工厂、
+     * Map.of/Duration.ofSeconds 静态调用、builder 链式配置均应放行。
+     * 仅编译不执行：执行会真实联网调用 SearXNG 服务。
+     */
+    @Test
+    void searxngToolTemplateScript_passesTokenScanAndCompiles() throws Exception {
+        java.nio.file.Path template = java.nio.file.Path.of("..", "..", "maxkb4j-start", "src", "main",
+                "resources", "templates", "tool", "web_search", "SearXNG-1.0.0.tool");
+        org.junit.jupiter.api.Assumptions.assumeTrue(java.nio.file.Files.exists(template),
+                "模板文件不存在，跳过：" + template.toAbsolutePath());
+        String script = JSONUtil.parseObj(java.nio.file.Files.readString(template,
+                java.nio.charset.StandardCharsets.UTF_8)).getStr("code");
+        assertNull(GroovySandboxPolicy.findDangerousToken(script));
+        GroovyScriptCache.get(script);
+        assertTrue(GroovyScriptExecutor.isScriptCached(script));
+    }
+
+    /**
+     * 模板脚本的结果处理链路（离线执行，不联网）：
+     * results.results().stream().map(e->{...}).toList() 中 WebSearchResults 接收者、
+     * Stream.map、WebSearchOrganicResult 访问器（title/url/snippet/content/metadata）
+     * 与 fastjson JSONObject 组装均应放行，最终返回 List&lt;JSONObject&gt;。
+     */
+    @Test
+    void execute_webSearchResultsMapping_allowed() {
+        String code = """
+                import com.alibaba.fastjson.JSONObject
+
+                return results.results().stream().map(e->{
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("title",e.title());
+                    jsonObject.put("url",e.url());
+                    jsonObject.put("snippet",e.snippet());
+                    jsonObject.put("content",e.content());
+                    jsonObject.put("metadata",e.metadata());
+                    return jsonObject;
+                }).toList();
+                """;
+        dev.langchain4j.web.search.WebSearchOrganicResult organic =
+                new dev.langchain4j.web.search.WebSearchOrganicResult(
+                        "MaxKB4j", java.net.URI.create("https://example.com/maxkb4j"),
+                        "open source kb", "MaxKB4j content", Map.of("source", "unit-test"));
+        dev.langchain4j.web.search.WebSearchResults webResults =
+                new dev.langchain4j.web.search.WebSearchResults(
+                        new dev.langchain4j.web.search.WebSearchInformationResult(1L), List.of(organic));
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        Object result = executor.execute(params("results", webResults));
+        assertTrue(result instanceof List<?> list && list.size() == 1, "应返回单元素列表: " + result);
+        com.alibaba.fastjson.JSONObject item = (com.alibaba.fastjson.JSONObject) ((List<?>) result).get(0);
+        assertEquals("MaxKB4j", item.getString("title"));
+        assertEquals("https://example.com/maxkb4j", item.getString("url"));
+        assertEquals("open source kb", item.getString("snippet"));
+        assertEquals("MaxKB4j content", item.getString("content"));
+        assertEquals("unit-test", item.getJSONObject("metadata").getString("source"));
+    }
+
+    /**
+     * 用户原始脚本（GoogleCustomWebSearchEngine.builder() 构建引擎 + search + 结果流转 JSONObject）：
+     * 仅验证编译期放行（文本扫描 + SecureASTCustomizer 变量类型/ClassExpression 白名单），
+     * 不发起真实网络请求。引擎构建参数 apiKey/csi/includeImages/timeout/maxRetries 均为绑定变量。
+     */
+    @Test
+    void execute_googleCustomSearchScript_compiles() {
+        String code = """
+                import dev.langchain4j.web.search.WebSearchResults;
+                import dev.langchain4j.web.search.google.customsearch.GoogleCustomWebSearchEngine;
+                import com.alibaba.fastjson.JSONObject;
+
+                import java.time.Duration;
+                import java.util.List;
+
+
+                GoogleCustomWebSearchEngine searchEngine = GoogleCustomWebSearchEngine.builder()
+                                .apiKey(apiKey)
+                                .csi(csi)
+                                .includeImages(includeImages)
+                                .timeout(Duration.ofSeconds(timeout))
+                                .maxRetries(maxRetries)
+                                .build();
+                WebSearchResults webSearchResults = searchEngine.search(query);
+                return webSearchResults.results().stream().map(e->{
+                            JSONObject jsonObject = new JSONObject();
+                            jsonObject.put("title",e.title());
+                            jsonObject.put("url",e.url());
+                            jsonObject.put("snippet",e.snippet());
+                            jsonObject.put("content",e.content());
+                            jsonObject.put("metadata",e.metadata());
+                            return jsonObject;
+                        }).toList();
+                """;
+        GroovyScriptCache.get(code);
+        assertTrue(GroovyScriptExecutor.isScriptCached(code));
+    }
+
+    /**
+     * 用户原始脚本（TavilyWebSearchEngine.builder() 构建引擎 + search + 结果流转 JSONObject）：
+     * 仅验证编译期放行（文本扫描 + SecureASTCustomizer 变量类型/ClassExpression 白名单），
+     * 不发起真实网络请求。引擎构建参数 apiKey/timeout 均为绑定变量。
+     */
+    @Test
+    void execute_tavilySearchScript_compiles() {
+        String code = """
+                import dev.langchain4j.web.search.WebSearchResults;
+                import dev.langchain4j.web.search.tavily.TavilyWebSearchEngine;
+                import com.alibaba.fastjson.JSONObject;
+
+                import java.time.Duration;
+                import java.util.List;
+
+
+                TavilyWebSearchEngine searchEngine = TavilyWebSearchEngine.builder()
+                        .apiKey(apiKey)
+                        .timeout(Duration.ofSeconds(timeout))
+                        .build();
+                WebSearchResults webSearchResults = searchEngine.search(query);
+                return webSearchResults.results().stream().map(e->{
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("title",e.title());
+                    jsonObject.put("url",e.url());
+                    jsonObject.put("snippet",e.snippet());
+                    jsonObject.put("content",e.content());
+                    jsonObject.put("metadata",e.metadata());
+                    return jsonObject;
+                }).toList();
+                """;
+        GroovyScriptCache.get(code);
+        assertTrue(GroovyScriptExecutor.isScriptCached(code));
+    }
+
+    /**
+     * 用户原始脚本（SearchApiWebSearchEngine.builder() + optionalParameters 自定义参数 + 结果流转 JSONObject）：
+     * 仅验证编译期放行（文本扫描 + SecureASTCustomizer 变量类型/ClassExpression 白名单），
+     * 不发起真实网络请求。optionalParameters 为 SearchApi 引擎特有 Builder 方法。
+     */
+    @Test
+    void execute_searchApiSearchScript_compiles() {
+        String code = """
+                import dev.langchain4j.web.search.WebSearchResults;
+                import dev.langchain4j.web.search.searchapi.SearchApiWebSearchEngine;
+                import com.alibaba.fastjson.JSONObject;
+
+                import java.time.Duration;
+                import java.util.HashMap;
+                import java.util.List;
+                import java.util.Map;
+
+                Map<String, Object> optionalParameters = new HashMap<>();
+                optionalParameters.put("gl", "us");
+                optionalParameters.put("hl", "en");
+                optionalParameters.put("google_domain", "google.com");
+                SearchApiWebSearchEngine searchEngine = SearchApiWebSearchEngine.builder()
+                        .apiKey(apiKey)
+                        .engine("google")
+                        .optionalParameters(optionalParameters)
+                        .timeout(Duration.ofSeconds(timeout))
+                        .build();
+                WebSearchResults webSearchResults = searchEngine.search(query);
+                return webSearchResults.results().stream().map(e->{
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("title",e.title());
+                    jsonObject.put("url",e.url());
+                    jsonObject.put("snippet",e.snippet());
+                    jsonObject.put("content",e.content());
+                    jsonObject.put("metadata",e.metadata());
+                    return jsonObject;
+                }).toList();
+                """;
+        assertNull(GroovySandboxPolicy.findDangerousToken(code));
+        GroovyScriptCache.get(code);
+        assertTrue(GroovyScriptExecutor.isScriptCached(code));
     }
 }

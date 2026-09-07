@@ -56,7 +56,7 @@ class AbsNodeTest {
         Answer answer = answers.getFirst();
         assertThat(answer.getContent()).isEqualTo("done");
         assertThat(answer.getReasoningContent()).isEqualTo("because");
-        assertThat(answer.getChatRecordId()).isEmpty();
+        assertThat(answer.getChatRecordId()).isEqualTo("1");
         assertThat(answer.getViewType()).isEqualTo(ViewType.SINGLE_VIEW);
     }
 }

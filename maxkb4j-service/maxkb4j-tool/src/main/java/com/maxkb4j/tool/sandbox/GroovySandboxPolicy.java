@@ -162,7 +162,27 @@ public final class GroovySandboxPolicy {
             "java.io.InputStream",
             "java.io.OutputStream",
             "java.io.Reader",
-            "java.io.Writer"
+            "java.io.Writer",
+
+            // ========== langchain4j Web Search(内置「联网搜索」工具:SearchApi/Tavily/Google/SearXNG) ==========
+            // 搜索结果容器与单条结果:WebSearchResults.results() 返回 List<WebSearchOrganicResult>,
+            // 其 url() 返回 java.net.URI(已由上方受控 HTTP 客户端白名单作为值类型放行)
+            "dev.langchain4j.web.search.WebSearchEngine",
+            "dev.langchain4j.web.search.WebSearchResults",
+            "dev.langchain4j.web.search.WebSearchOrganicResult",
+            // SearchApi 引擎与 Lombok Builder 内部类:运行期类名含单个 $(normalizeClassName 不剥离),
+            // 须按精确名称入白名单,否则 .apiKey()/.engine() 等 builder 链式调用接收者校验被拒
+            "dev.langchain4j.web.search.searchapi.SearchApiWebSearchEngine",
+            "dev.langchain4j.web.search.searchapi.SearchApiWebSearchEngine$SearchApiWebSearchEngineBuilder",
+            // Tavily 引擎与 Builder
+            "dev.langchain4j.web.search.tavily.TavilyWebSearchEngine",
+            "dev.langchain4j.web.search.tavily.TavilyWebSearchEngine$TavilyWebSearchEngineBuilder",
+            // Google Custom Search 引擎与 Builder
+            "dev.langchain4j.web.search.google.customsearch.GoogleCustomWebSearchEngine",
+            "dev.langchain4j.web.search.google.customsearch.GoogleCustomWebSearchEngine$GoogleCustomWebSearchEngineBuilder",
+            // SearXNG 引擎与 Builder(community 包)
+            "dev.langchain4j.community.web.search.searxng.SearXNGWebSearchEngine",
+            "dev.langchain4j.community.web.search.searxng.SearXNGWebSearchEngine$Builder"
     );
 
     /**
@@ -295,7 +315,18 @@ public final class GroovySandboxPolicy {
             "setRequestMethod", "setDoOutput", "setDoInput",
             "setConnectTimeout", "setReadTimeout",
             "getOutputStream", "getInputStream", "withWriter", "withReader", "getText",
-            "getResponseCode", "getResponseMessage", "getHeaderField", "getContentType", "getContentLength"
+            "getResponseCode", "getResponseMessage", "getHeaderField", "getContentType", "getContentLength",
+            // ===== langchain4j Web Search（web_search 工具族：SearXNG / Tavily / SearchApi / Google 自定义搜索） =====
+            // map 供 Stream.map 中间操作（搜索结果流式转换为 JSONObject）；
+            // search/results 为引擎检索与结果读取；title/url/snippet/content/metadata
+            // 为 WebSearchOrganicResult 访问器；其余为各引擎 builder 链式配置方法（build 已在白名单中）
+            "map",
+            "search", "results", "searchInformation", "searchMetadata",
+            "title", "url", "snippet", "content", "metadata",
+            "baseUrl", "duration", "optionalParams", "optionalParameters",
+            "apiKey", "timeout", "engine", "csi", "siteRestrict", "includeImages",
+            "maxRetries", "searchDepth", "includeAnswer", "includeRawContent",
+            "includeDomains", "excludeDomains", "logRequests", "logResponses"
     );
 
     /** 允许通过 new 实例化的类。 */
@@ -331,7 +362,12 @@ public final class GroovySandboxPolicy {
             "org.springframework.mail.javamail.JavaMailSenderImpl",
             "org.springframework.mail.SimpleMailMessage",
             // 受控 HTTP 客户端：new URL(spec) 构造（协议在运行期校验，仅放行 http/https）
-            "java.net.URL"
+            "java.net.URL",
+            // langchain4j Web Search 结果数据类（纯数据载体，无危险行为，
+            // 供脚本离线构造/组装搜索结果）
+            "dev.langchain4j.web.search.WebSearchResults",
+            "dev.langchain4j.web.search.WebSearchOrganicResult",
+            "dev.langchain4j.web.search.WebSearchInformationResult"
     );
 
     /** 允许静态调用的类及其方法白名单。 */
@@ -392,7 +428,17 @@ public final class GroovySandboxPolicy {
             // MongoDB：MongoClients.create(connectionString) 创建客户端；
             // Document.parse(json) 解析 JSON 查询条件
             Map.entry("com.mongodb.client.MongoClients", Set.of("create")),
-            Map.entry("org.bson.Document", Set.of("parse"))
+            Map.entry("org.bson.Document", Set.of("parse")),
+            // JDK 集合/URI 工厂方法：Map.of(...) 供脚本构造常量 Map
+            // （如 SearXNG optionalParams(Map.of("format", "json"))）；
+            // URI.create 为纯字符串解析构造 URI（如离线构造搜索结果 url），不触发网络访问
+            Map.entry("java.util.Map", Set.of("of", "copyOf", "entry")),
+            Map.entry("java.net.URI", Set.of("create")),
+            // langchain4j Web Search 引擎静态工厂 builder()（web_search 工具族）
+            Map.entry("dev.langchain4j.community.web.search.searxng.SearXNGWebSearchEngine", Set.of("builder")),
+            Map.entry("dev.langchain4j.web.search.tavily.TavilyWebSearchEngine", Set.of("builder")),
+            Map.entry("dev.langchain4j.web.search.searchapi.SearchApiWebSearchEngine", Set.of("builder")),
+            Map.entry("dev.langchain4j.web.search.google.customsearch.GoogleCustomWebSearchEngine", Set.of("builder"))
     );
 
     /**

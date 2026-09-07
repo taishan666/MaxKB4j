@@ -1,17 +1,14 @@
-package com.maxkb4j.tool.executor;
+package com.maxkb4j.tool.sandbox;
 
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.MD5Util;
-import com.maxkb4j.tool.sandbox.GroovySandboxCompilerConfigurer;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
 import org.codehaus.groovy.control.CompilationFailedException;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.Map;
-
-/**
+import java.util.Map; /**
  * Groovy 脚本编译缓存。
  * <p>
  * Groovy 每次编译都会生成新的 Class，重复编译既浪费 CPU 又导致 metaspace 增长。
