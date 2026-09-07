@@ -1,7 +1,5 @@
 package com.maxkb4j.tool.controller;
 
-import cn.hutool.http.HttpResponse;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.annotation.SaCheckPerm;
@@ -16,7 +14,6 @@ import com.maxkb4j.tool.dto.ToolDebugDTO;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.dto.ToolSaveDTO;
 import com.maxkb4j.tool.entity.ToolEntity;
-import com.maxkb4j.tool.dto.ToolInputField;
 import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.tool.service.IToolInternalService;
 import com.maxkb4j.tool.vo.ToolCardVO;
@@ -28,12 +25,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author tarzan
@@ -110,53 +109,7 @@ public class ToolController {
     @SaCheckPerm(PermissionEnum.TOOL_DEBUG)
     @PostMapping("/tool/debug")
     public R<Object> debug(@Valid @RequestBody ToolDebugDTO dto) throws IOException {
-        Map<String, Object> params = new HashMap<>(5);
-        if (!CollectionUtils.isEmpty(dto.getDebugFieldList())) {
-            for (ToolInputField inputField : dto.getDebugFieldList()) {
-                params.put(inputField.getName(), convertValue(inputField.getType(), inputField.getValue()));
-            }
-        }
-        log.info("input params: {}", params);
-        Object result;
-        if (ToolConstants.ToolType.HTTP.equals(dto.getToolType())){
-            HttpResponse httpResponse = toolExecuteService.httpExecute(dto.getCode(),dto.getInitParams(),params);
-            result = httpResponse.body();
-        }else {
-            result = toolExecuteService.customExecute(dto.getCode(), dto.getInitParams(),params);
-        }
-        return R.data(result);
-
-    }
-
-    /**
-     * 将调试字段的字符串 value 按 dataType 转换为对应类型
-     *
-     * @param dataType 数据类型：string、int、dict、array、float、boolean
-     * @param value    原始值（字符串）
-     * @return 转换后的值，转换失败时返回原始值
-     */
-    private Object convertValue(String dataType, Object value) {
-        // 仅当 value 是字符串类型时才进行转换，否则原样返回
-        if (!(value instanceof String str)) {
-            return value;
-        }
-        if (StringUtils.isBlank(str) || StringUtils.isBlank(dataType)) {
-            return value;
-        }
-        String trimmed = str.trim();
-        try {
-            return switch (dataType.toLowerCase()) {
-                case "int" -> Long.parseLong(trimmed);
-                case "float" -> Double.parseDouble(trimmed);
-                case "boolean" -> Boolean.parseBoolean(trimmed);
-                case "dict" -> JSONUtil.isTypeJSONObject(trimmed) ? JSONUtil.parseObj(trimmed) : value;
-                case "array" -> JSONUtil.isTypeJSONArray(trimmed) ? JSONUtil.parseArray(trimmed) : value;
-                default -> str;
-            };
-        } catch (NumberFormatException e) {
-            log.warn("Failed to convert debug field value [{}] to type [{}]", str, dataType);
-            return value;
-        }
+        return R.data(toolExecuteService.httpOrCodeExecute(dto.getToolType(),dto.getCode(),dto.getInitParams(),dto.getDebugFieldList()));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
