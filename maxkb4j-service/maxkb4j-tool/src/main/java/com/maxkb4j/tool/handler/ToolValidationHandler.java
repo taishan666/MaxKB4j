@@ -54,67 +54,16 @@ public class ToolValidationHandler {
                 if (urlStr.trim().isEmpty()) {
                     return false;
                 }
-                // type 必须是 "streamable_http" 或 "sse"
                 if (!(typeObj instanceof String typeStr)) {
                     return false;
                 }
-                boolean supported = "streamable_http".equals(typeStr) || "sse".equals(typeStr);
+                boolean supported = ToolConstants.McpType.STREAMABLE_HTTP.equals(typeStr) || ToolConstants.McpType.SSE.equals(typeStr);
                 if (!supported) {
                     return false;
                 }
             }
             return true; // 所有检查通过
         }
-        return true;
-    }
-
-    /**
-     * 验证工具实体的基本属性
-     *
-     * @param entity 工具实体
-     * @return 验证结果
-     */
-    public boolean validateToolEntity(ToolEntity entity) {
-        if (entity == null) {
-            return false;
-        }
-
-        // 验证必填字段
-        if (entity.getName() == null || entity.getName().trim().isEmpty()) {
-            return false;
-        }
-
-        if (entity.getDesc() == null) {
-            return false;
-        }
-
-        // 验证长度限制
-        if (entity.getName().length() > 100) { // 可以配置化
-            return false;
-        }
-
-        if (entity.getDesc().length() > 500) { // 可以配置化
-            return false;
-        }
-
-        if (entity.getCode() != null && entity.getCode().length() > 10000) { // 可以配置化
-            return false;
-        }
-
-        // 验证工具类型
-        if (entity.getToolType() != null) {
-            boolean validType = ToolConstants.ToolType.CUSTOM.equals(entity.getToolType()) ||
-                               ToolConstants.ToolType.MCP.equals(entity.getToolType());
-            if (!validType) {
-                return false;
-            }
-        }
-
-        // 验证MCP配置
-        if (ToolConstants.ToolType.MCP.equals(entity.getToolType())) {
-            return validateMcpServerConfig(entity);
-        }
-
         return true;
     }
 }
