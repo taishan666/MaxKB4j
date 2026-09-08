@@ -127,13 +127,6 @@ public class ToolProviderServiceImpl implements IToolProviderService {
                 aiServiceTools.addAll(handler.buildAiServiceTools(toolList));
             }
         });
-   /*     for (ToolEntity tool : tools) {
-            AbsToolHandler handler = toolHandlerRegistry.get(tool.getToolType());
-            if (handler == null) {
-                continue;
-            }
-            aiServiceTools.addAll(handler.buildAiServiceTools(tool));
-        }*/
         return aiServiceTools;
     }
 
