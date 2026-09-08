@@ -8,7 +8,6 @@ import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.McpTransport;
-import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.mcp.client.transport.http.StreamableHttpMcpTransport;
 import dev.langchain4j.model.chat.request.json.*;
 import dev.langchain4j.service.tool.AiServiceTool;
@@ -72,22 +71,12 @@ public class McpToolUtil {
         if (serverConfig.containsKey("headers")) {
              headers = (Map<String, String>) serverConfig.get("headers");
         }
-        McpTransport transport;
-        if ("sse".equals(type)) {
-            transport = new HttpMcpTransport.Builder()
-                    .sseUrl(url)
-                    .customHeaders(headers)
-                    .logRequests(true)
-                    .logResponses(true)
-                    .build();
-        } else {
-             transport = StreamableHttpMcpTransport.builder()
-                     .url(url)
-                     .customHeaders(headers)
-                     .logRequests(true)
-                     .logResponses(true)
-                     .build();
-        }
+        McpTransport transport=StreamableHttpMcpTransport.builder()
+                .url(url)
+                .customHeaders(headers)
+                .logRequests(true)
+                .logResponses(true)
+                .build();
         return new DefaultMcpClient.Builder()
                 .key(key)
                 .transport(transport)
@@ -114,36 +103,47 @@ public class McpToolUtil {
             JSONObject properties = new JSONObject();
             tool.parameters().properties().forEach((k, v) -> {
                 JSONObject property = new JSONObject();
-                if (v instanceof JsonStringSchema schema) {
-                    property.put("type", "string");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonNumberSchema schema) {
-                    property.put("type", "number");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonArraySchema schema) {
-                    property.put("type", "array");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonBooleanSchema schema) {
-                    property.put("type", "boolean");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonObjectSchema schema) {
-                    property.put("type", "object");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonEnumSchema schema) {
-                    property.put("type", "enum");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonIntegerSchema schema) {
-                    property.put("type", "int");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonAnyOfSchema schema) {
-                    property.put("type", "any");
-                    property.put("description", schema.description());
-                } else if (v instanceof JsonReferenceSchema schema) {
-                    property.put("type", "reference");
-                    property.put("description", schema.reference());
-                } else {
-                    property.put("type", "null");
-                    property.put("description", "");
+                switch (v) {
+                    case JsonStringSchema schema -> {
+                        property.put("type", "string");
+                        property.put("description", schema.description());
+                    }
+                    case JsonNumberSchema schema -> {
+                        property.put("type", "number");
+                        property.put("description", schema.description());
+                    }
+                    case JsonArraySchema schema -> {
+                        property.put("type", "array");
+                        property.put("description", schema.description());
+                    }
+                    case JsonBooleanSchema schema -> {
+                        property.put("type", "boolean");
+                        property.put("description", schema.description());
+                    }
+                    case JsonObjectSchema schema -> {
+                        property.put("type", "object");
+                        property.put("description", schema.description());
+                    }
+                    case JsonEnumSchema schema -> {
+                        property.put("type", "enum");
+                        property.put("description", schema.description());
+                    }
+                    case JsonIntegerSchema schema -> {
+                        property.put("type", "int");
+                        property.put("description", schema.description());
+                    }
+                    case JsonAnyOfSchema schema -> {
+                        property.put("type", "any");
+                        property.put("description", schema.description());
+                    }
+                    case JsonReferenceSchema schema -> {
+                        property.put("type", "reference");
+                        property.put("description", schema.reference());
+                    }
+                    case null, default -> {
+                        property.put("type", "null");
+                        property.put("description", "");
+                    }
                 }
                 properties.put(k, property);
             });

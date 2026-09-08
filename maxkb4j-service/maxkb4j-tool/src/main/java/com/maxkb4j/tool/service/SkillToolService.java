@@ -100,8 +100,10 @@ public class SkillToolService {
      * 构建带 tool_&lt;id&gt; 命名的 ShellSkills（单 Skill 场景）。
      */
     private ShellSkills buildNamedShellSkills(FileSystemSkill fileSystemSkill, String toolId) {
+        String DEFAULT_DESCRIPTION = "Execute a shell command on the local " + System.getProperty("os.name") +" machine. Output in UTF-8 encoding format.";
         RunShellCommandToolConfig config = RunShellCommandToolConfig.builder()
                 .name(ToolNaming.buildToolName(toolId))
+                .description(DEFAULT_DESCRIPTION)
                 .build();
         return ShellSkills.builder()
                 .skills(fileSystemSkill)
