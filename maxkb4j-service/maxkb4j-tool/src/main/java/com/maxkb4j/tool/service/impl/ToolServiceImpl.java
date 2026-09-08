@@ -153,7 +153,7 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
         return assembleHandler.assemble(this.getById(id));
     }
 
-    public String uploadSkillFile(MultipartFile file) throws IOException {
+    public SkillFileVO uploadSkillFile(MultipartFile file) throws IOException {
         return skillHandler.uploadSkillFile(file);
     }
 

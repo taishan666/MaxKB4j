@@ -16,6 +16,7 @@ import com.maxkb4j.tool.dto.ToolSaveDTO;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.tool.service.IToolInternalService;
+import com.maxkb4j.tool.vo.SkillFileVO;
 import com.maxkb4j.tool.vo.ToolCardVO;
 import com.maxkb4j.tool.vo.ToolItemVO;
 import com.maxkb4j.tool.vo.ToolListVO;
@@ -167,7 +168,7 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_EDIT)
     @PutMapping("/tool/upload_skill_file")
-    public R<String> uploadSkillFile(MultipartFile file) throws IOException {
+    public R<SkillFileVO> uploadSkillFile(MultipartFile file) throws IOException {
         return R.data(toolService.uploadSkillFile(file));
     }
 

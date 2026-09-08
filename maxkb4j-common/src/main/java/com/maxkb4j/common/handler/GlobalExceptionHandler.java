@@ -131,20 +131,6 @@ public class GlobalExceptionHandler {
                 || msg.contains("远程主机强迫关闭了一个现有的连接");
     }
 
-    /**
-     * 处理静态资源 404（NoResourceFoundException），避免落入兜底 Exception 处理器打完整堆栈：
-     * 1) SPA 前端路由回退：/chat/**、/admin/** 下不含 "." 的路径是前端路由（如 /chat/{token}），
-     *    静态资源处理器找不到对应文件，需转发到对应入口页；带尾部斜杠的先重定向去掉斜杠，
-     *    否则 index.html 中的相对路径资源（./assets/...）会以 /chat/{token}/ 为基准解析导致 404
-     * 2) 其余情况（如浏览器自动请求的 /favicon.ico、真正缺失的资源）按 404 静默返回，仅记单行 warn
-     */
-/*    @ExceptionHandler(NoResourceFoundException.class)
-    public String handleException(NoResourceFoundException e, HttpServletRequest request, HttpServletResponse response) {
-        // 非前端路由（含 "." 的静态资源、未知路径）：404 + 单行日志，不打堆栈
-        log.warn("静态资源未找到: {}", e.getMessage());
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        return null;
-    }*/
 
     /**
      * 处理 @RequestBody 参数校验失败异常（@Valid 触发）
@@ -222,14 +208,14 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleException(AuthenticationException e) {
         log.error("模型接口token鉴权失败: {}", e.getMessage(), e);
-        return R.fail(e.getMessage());
+        return R.fail(500,e.getMessage());
     }
 
     @ExceptionHandler(InvalidRequestException.class)
     @ResponseBody
     public R<String> handleException(InvalidRequestException e) {
         log.error("模型接口请求失败: {}", e.getMessage(), e);
-        return R.fail(e.getMessage());
+        return R.fail(500,e.getMessage());
     }
 
     @ExceptionHandler(SecurityException.class)
@@ -243,14 +229,14 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public R<String> handleException(IllegalArgumentException e) {
         log.error("非法参数: {}", e.getMessage(), e);
-        return R.fail(e.getMessage());
+        return R.fail(500,e.getMessage());
     }
 
     @ExceptionHandler(FileLimitExceededException.class)
     @ResponseBody
     public R<String> handleException(FileLimitExceededException e) {
         log.error("业务规则校验失败: {}", e.getMessage(), e);
-        return R.fail(400, e.getMessage());
+        return R.fail(500, e.getMessage());
     }
 
     @ExceptionHandler(ModelNotFoundException.class)

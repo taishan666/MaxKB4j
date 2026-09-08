@@ -135,6 +135,11 @@ tool:
     file:
       extract:
         failed: Failed to extract the skill file.
+      format:
+        invalid: Please upload a valid zip archive.
+      missing:
+        skill:
+          md: SKILL.md is missing in the archive.
 
 trigger:
   schedule:

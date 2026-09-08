@@ -135,6 +135,11 @@ tool:
     file:
       extract:
         failed: 技能文件解压失败
+      format:
+        invalid: 请上传有效的 zip 压缩包文件
+      missing:
+        skill:
+          md: 压缩包中缺少 SKILL.md 文件
 
 trigger:
   schedule:
