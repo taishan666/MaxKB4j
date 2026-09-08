@@ -222,6 +222,22 @@ public final class GroovySandboxCompilerConfigurer {
         allowedConstants.add(java.io.OutputStream.class);
         allowedConstants.add(java.io.Reader.class);
         allowedConstants.add(java.io.Writer.class);
+        // Apache HttpClient（HTTP 推送工具，如钉钉机器人）：允许作为脚本变量与闭包参数的
+        // 推断静态类型（def httpPost = new HttpPost(...)、
+        // HttpClients.createDefault().withCloseable { httpClient -> ... }、
+        // def response = httpClient.execute(...)），否则编译期报
+        // "Usage of variables of type [...] is not allowed"
+        allowedConstants.add(org.apache.http.client.methods.HttpGet.class);
+        allowedConstants.add(org.apache.http.client.methods.HttpPost.class);
+        allowedConstants.add(org.apache.http.client.methods.HttpPut.class);
+        allowedConstants.add(org.apache.http.client.methods.HttpDelete.class);
+        allowedConstants.add(org.apache.http.impl.client.CloseableHttpClient.class);
+        allowedConstants.add(org.apache.http.client.methods.CloseableHttpResponse.class);
+        allowedConstants.add(org.apache.http.StatusLine.class);
+        allowedConstants.add(org.apache.http.HttpEntity.class);
+        allowedConstants.add(org.apache.http.entity.StringEntity.class);
+        // Jackson：def objectMapper = new ObjectMapper() 的推断静态类型
+        allowedConstants.add(com.fasterxml.jackson.databind.ObjectMapper.class);
         // langchain4j Web Search（web_search 工具族：SearXNG / Tavily / SearchApi / Google 自定义搜索）：
         // 允许作为脚本变量的静态类型（如 SearXNGWebSearchEngine searchEngine = ... /
         // WebSearchResults webSearchResults = ...），否则编译期报

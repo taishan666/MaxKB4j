@@ -164,6 +164,41 @@ public final class GroovySandboxPolicy {
             "java.io.Reader",
             "java.io.Writer",
 
+            // ===== 哈希摘要 / 随机盐 / URL 编码（如百度翻译签名脚本） =====
+            // MessageDigest 仅放行 getInstance/digest，纯摘要计算无系统副作用
+            "java.security.MessageDigest",
+            // Random 用于生成随机盐值
+            "java.util.Random",
+            // URLEncoder.encode 仅做 URL 查询参数转义（纯字符串处理），
+            // isDangerousClass 中对 java.net.* 的拦截为其开了精确豁免
+            "java.net.URLEncoder",
+            // EncodingGroovyMethods.encodeHex(byte[]) 的返回类型（hex Writable），
+            // 脚本对编码结果调用 toString 输出十六进制字符串
+            "groovy.lang.Writable",
+
+            // ===== Apache HttpClient（HTTP 推送工具脚本，如钉钉机器人） =====
+            // 请求对象/客户端/响应/状态行/实体为方法接收者；@Grab 已禁用，
+            // 依赖预置于 classpath（见 maxkb4j-tool/pom.xml），脚本内 @Grab 注解按空操作忽略
+            "org.apache.http.client.methods.HttpGet",
+            "org.apache.http.client.methods.HttpPost",
+            "org.apache.http.client.methods.HttpPut",
+            "org.apache.http.client.methods.HttpDelete",
+            // HttpClients.createDefault() 返回 InternalHttpClient，沿父类链命中此项
+            "org.apache.http.impl.client.CloseableHttpClient",
+            // execute 返回的响应实现类（HttpResponseProxy 等）沿父类链命中此项
+            "org.apache.http.client.methods.CloseableHttpResponse",
+            // BasicStatusLine 实现的接口（getStatusCode 放行链）
+            "org.apache.http.StatusLine",
+            "org.apache.http.HttpEntity",
+            "org.apache.http.entity.StringEntity",
+            // 静态工厂/静态工具（配合 ALLOWED_STATIC_METHODS 的 createDefault/toString）
+            "org.apache.http.impl.client.HttpClients",
+            "org.apache.http.util.EntityUtils",
+            // execute 返回的响应接口（HttpResponseProxy 的父接口之一）
+            "org.apache.http.HttpResponse",
+            // ===== Jackson（HTTP 请求体/响应体 JSON 序列化，如钉钉机器人脚本） =====
+            "com.fasterxml.jackson.databind.ObjectMapper",
+
             // ========== langchain4j Web Search(内置「联网搜索」工具:SearchApi/Tavily/Google/SearXNG) ==========
             // 搜索结果容器与单条结果:WebSearchResults.results() 返回 List<WebSearchOrganicResult>,
             // 其 url() 返回 java.net.URI(已由上方受控 HTTP 客户端白名单作为值类型放行)
@@ -251,6 +286,9 @@ public final class GroovySandboxPolicy {
             "next", "previous",
             // ===== 哈希 =====
             "hashCode",
+            // ===== 摘要 / 随机数 / hex 编码（哈希签名脚本：MessageDigest.digest、
+            // Random.nextInt、byte[].encodeHex → Writable.toString） =====
+            "digest", "nextInt", "encodeHex",
             // ===== 迭代 =====
             "each", "eachWithIndex",
             "collect", "collectEntries", "collectNested",
@@ -313,9 +351,14 @@ public final class GroovySandboxPolicy {
             // 典型脚本：url.openConnection() → 设置请求方法/头 → 写请求体 → 读响应 → disconnect
             "openConnection", "setRequestProperty", "addRequestProperty", "disconnect",
             "setRequestMethod", "setDoOutput", "setDoInput",
-            "setConnectTimeout", "setReadTimeout",
+            "setConnectTimeout", "setReadTimeout", "connect",
             "getOutputStream", "getInputStream", "withWriter", "withReader", "getText",
             "getResponseCode", "getResponseMessage", "getHeaderField", "getContentType", "getContentLength",
+            // ===== Apache HttpClient + Jackson（HTTP 推送工具，如钉钉机器人脚本） =====
+            // withCloseable 为 DGM 对 Closeable 的资源托管扩展；execute 为危险方法名
+            // 受信例外，仅放行 HttpClient 系接收者（见 DANGEROUS_METHOD_EXCEPTIONS）
+            "withCloseable", "execute", "setEntity", "getEntity",
+            "getStatusLine", "getStatusCode", "writeValueAsString", "readValue",
             // ===== langchain4j Web Search（web_search 工具族：SearXNG / Tavily / SearchApi / Google 自定义搜索） =====
             // map 供 Stream.map 中间操作（搜索结果流式转换为 JSONObject）；
             // search/results 为引擎检索与结果读取；title/url/snippet/content/metadata
@@ -363,11 +406,21 @@ public final class GroovySandboxPolicy {
             "org.springframework.mail.SimpleMailMessage",
             // 受控 HTTP 客户端：new URL(spec) 构造（协议在运行期校验，仅放行 http/https）
             "java.net.URL",
+            // 随机盐值生成（如百度翻译签名脚本 new Random().nextInt(...)）
+            "java.util.Random",
             // langchain4j Web Search 结果数据类（纯数据载体，无危险行为，
             // 供脚本离线构造/组装搜索结果）
             "dev.langchain4j.web.search.WebSearchResults",
             "dev.langchain4j.web.search.WebSearchOrganicResult",
-            "dev.langchain4j.web.search.WebSearchInformationResult"
+            "dev.langchain4j.web.search.WebSearchInformationResult",
+            // Apache HttpClient：请求/实体构造（钉钉机器人等 HTTP 推送工具脚本）
+            "org.apache.http.client.methods.HttpGet",
+            "org.apache.http.client.methods.HttpPost",
+            "org.apache.http.client.methods.HttpPut",
+            "org.apache.http.client.methods.HttpDelete",
+            "org.apache.http.entity.StringEntity",
+            // Jackson：new ObjectMapper() 构造 JSON 序列化器
+            "com.fasterxml.jackson.databind.ObjectMapper"
     );
 
     /** 允许静态调用的类及其方法白名单。 */
@@ -434,6 +487,14 @@ public final class GroovySandboxPolicy {
             // URI.create 为纯字符串解析构造 URI（如离线构造搜索结果 url），不触发网络访问
             Map.entry("java.util.Map", Set.of("of", "copyOf", "entry")),
             Map.entry("java.net.URI", Set.of("create")),
+            // 哈希签名脚本：MessageDigest.getInstance(algorithm) 获取摘要器
+            Map.entry("java.security.MessageDigest", Set.of("getInstance")),
+            // URL 查询参数转义：URLEncoder.encode(value, charset) 纯字符串编码
+            Map.entry("java.net.URLEncoder", Set.of("encode")),
+            // Apache HttpClient：HttpClients.createDefault() 创建客户端、
+            // EntityUtils.toString(entity, charset) 读取响应体（钉钉机器人等 HTTP 推送工具）
+            Map.entry("org.apache.http.impl.client.HttpClients", Set.of("createDefault")),
+            Map.entry("org.apache.http.util.EntityUtils", Set.of("toString")),
             // langchain4j Web Search 引擎静态工厂 builder()（web_search 工具族）
             Map.entry("dev.langchain4j.community.web.search.searxng.SearXNGWebSearchEngine", Set.of("builder")),
             Map.entry("dev.langchain4j.web.search.tavily.TavilyWebSearchEngine", Set.of("builder")),
@@ -497,10 +558,17 @@ public final class GroovySandboxPolicy {
     /**
      * 危险方法名的受信例外：方法名命中危险名单，但接收者属于白名单安全类时放行。
      * 例如 exp4j Expression#evaluate 是纯数学表达式求值，
-     * 与 GroovyShell#evaluate 这类任意脚本执行有本质区别。
+     * 与 GroovyShell#evaluate 这类任意脚本执行有本质区别；
+     * HttpClient#execute 仅发送 HTTP 请求，与 Runtime#exec 这类命令执行有本质区别。
      */
     private static final Map<String, Set<String>> DANGEROUS_METHOD_EXCEPTIONS = Map.of(
-            "evaluate", Set.of("net.objecthunter.exp4j.Expression")
+            "evaluate", Set.of("net.objecthunter.exp4j.Expression"),
+            "execute", Set.of(
+                    "net.objecthunter.exp4j.Expression",
+                    // 受控 HTTP 客户端：编译期推断类型为接口/抽象类，
+                    // 运行期接收者为 InternalHttpClient 等实现类（沿继承链匹配）
+                    "org.apache.http.client.HttpClient",
+                    "org.apache.http.impl.client.CloseableHttpClient")
     );
 
     /**
@@ -524,8 +592,10 @@ public final class GroovySandboxPolicy {
             "system.getenv", "system.getproperty",
             "class.forname",
             "getruntime",
-            ".exec",
-            ".execute",
+            // ".exec"/".execute" 不再进入文本预检：HttpClient 等白名单接收者的 execute(...)
+            // 会被粗筛误杀（如钉钉机器人脚本的 httpClient.execute）。
+            // 命令执行入口已由 "runtime"/"processbuilder" 标记与 DANGEROUS_METHODS
+            // （exec/execute 仅放行受信接收者）在编译期+运行期双层拦截
             // 必须带左括号：裸 ".start" 会把白名单方法 startsWith 误判为危险调用
             ".start(",
             "getclass",
@@ -612,6 +682,11 @@ public final class GroovySandboxPolicy {
     /**
      * 带接收者类型的危险方法检查：命中危险方法名但属于受信例外组合（接收者类 + 方法名）时不视为危险。
      * 接收者类型未知（null）时退化为纯方法名校验，保持保守拦截。
+     * <p>
+     * 受信例外沿父类与接口链匹配：运行期接收者往往是白名单抽象类的具体实现
+     * （如 HttpClients.createDefault() 实际返回 InternalHttpClient，
+     * 编译期推断类型为 CloseableHttpClient / HttpClient）。
+     * </p>
      */
     public static boolean isDangerousMethod(Class<?> receiverClass, String method) {
         if (!isDangerousMethod(method)) {
@@ -621,7 +696,20 @@ public final class GroovySandboxPolicy {
             return true;
         }
         Set<String> exceptions = DANGEROUS_METHOD_EXCEPTIONS.get(method);
-        return exceptions == null || !exceptions.contains(normalizeClassName(receiverClass));
+        if (exceptions == null) {
+            return true;
+        }
+        for (Class<?> clazz = receiverClass; clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+            if (exceptions.contains(normalizeClassName(clazz))) {
+                return false;
+            }
+            for (Class<?> iface : clazz.getInterfaces()) {
+                if (exceptions.contains(normalizeClassName(iface))) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public static boolean isDangerousProperty(String property) {
@@ -748,7 +836,10 @@ public final class GroovySandboxPolicy {
                 || className.startsWith("java.lang.invoke.")
                 || className.startsWith("java.io.")
                 || (className.startsWith("java.nio.file.") && !ALLOWED_NIO_CLASSES.contains(className))
-                || className.startsWith("java.net.")
+                || (className.startsWith("java.net.")
+                        // URLEncoder.encode 仅做 URL 参数转义（纯字符串处理），
+                        // 是受控 HTTP 客户端构造查询串的组成部分，精确豁免
+                        && !"java.net.URLEncoder".equals(className))
                 || className.equals("java.lang.System")
                 || className.equals("groovy.lang.GroovyShell")
                 || className.equals("groovy.lang.GroovyClassLoader")

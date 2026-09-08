@@ -59,6 +59,7 @@
         <ivy.version>2.5.2</ivy.version>
         <ofdrw.version>2.2.3</ofdrw.version>
         <jaudiotagger.version>2.0.3</jaudiotagger.version>
+        <httpclient.version>4.5.14</httpclient.version>
     </properties>
     <modules>
         <module>maxkb4j-common</module>
@@ -544,6 +545,12 @@
                 <groupId>org</groupId>
                 <artifactId>jaudiotagger</artifactId>
                 <version>${jaudiotagger.version}</version>
+            </dependency>
+            <!-- Apache HttpClient：沙箱 HTTP 推送工具脚本使用（@Grab 已禁用，依赖必须预置于 classpath） -->
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

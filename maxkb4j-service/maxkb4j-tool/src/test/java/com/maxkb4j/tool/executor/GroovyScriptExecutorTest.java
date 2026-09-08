@@ -9,6 +9,9 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.nio.charset.StandardCharsets;
+import java.net.InetSocketAddress;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -1481,6 +1484,421 @@ class GroovyScriptExecutorTest {
                 () -> GroovySandboxPolicy.validateUrlConstruction());
     }
 
+    // ==================== Apache HttpClient + Jackson（HTTP 推送工具，如钉钉机器人） ====================
+
+    /**
+     * Apache HttpClient / Jackson 白名单必须完整覆盖钉钉机器人等 HTTP 推送脚本：
+     * 类引用、静态调用（HttpClients.createDefault / EntityUtils.toString）、
+     * 构造器（HttpPost / StringEntity / ObjectMapper）与实例方法（withCloseable /
+     * execute / setEntity / getEntity / getStatusLine / getStatusCode /
+     * writeValueAsString / readValue）。
+     */
+    @Test
+    void sandboxPolicy_apacheHttpClientWhitelistEntriesPresent() throws Exception {
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("org.apache.http.client.methods.HttpPost"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("org.apache.http.impl.client.HttpClients"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("org.apache.http.impl.client.CloseableHttpClient"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("org.apache.http.client.methods.CloseableHttpResponse"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("org.apache.http.StatusLine"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("org.apache.http.util.EntityUtils"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("org.apache.http.entity.StringEntity"));
+        assertTrue(GroovySandboxPolicy.isAllowedClassName("com.fasterxml.jackson.databind.ObjectMapper"));
+        assertTrue(GroovySandboxPolicy.isStaticCallAllowed("org.apache.http.impl.client.HttpClients", "createDefault"));
+        assertTrue(GroovySandboxPolicy.isStaticCallAllowed("org.apache.http.util.EntityUtils", "toString"));
+        assertTrue(GroovySandboxPolicy.isConstructorAllowed("org.apache.http.client.methods.HttpPost"));
+        assertTrue(GroovySandboxPolicy.isConstructorAllowed("org.apache.http.entity.StringEntity"));
+        assertTrue(GroovySandboxPolicy.isConstructorAllowed("com.fasterxml.jackson.databind.ObjectMapper"));
+        for (String method : new String[]{"withCloseable", "execute", "setEntity", "getEntity",
+                "getStatusLine", "getStatusCode", "writeValueAsString", "readValue"}) {
+            assertTrue(GroovySandboxPolicy.isMethodAllowed(method), "方法未在白名单中: " + method);
+        }
+        // 运行期接收者是实现类：isAllowedType 需沿父类/接口链命中白名单
+        assertTrue(GroovySandboxPolicy.isAllowedType(Class.forName("org.apache.http.impl.client.InternalHttpClient")));
+        assertTrue(GroovySandboxPolicy.isAllowedType(org.apache.http.impl.client.CloseableHttpClient.class));
+        // execute 为危险方法名受信例外：HttpClient 系接收者放行，String.execute() 等仍拦截
+        assertFalse(GroovySandboxPolicy.isDangerousMethod(org.apache.http.impl.client.CloseableHttpClient.class, "execute"));
+        assertFalse(GroovySandboxPolicy.isDangerousMethod(org.apache.http.client.HttpClient.class, "execute"));
+        assertTrue(GroovySandboxPolicy.isDangerousMethod(String.class, "execute"));
+    }
+
+    /**
+     * 钉钉机器人脚本核心链路（针对本地 HTTP 服务器离线验证完整执行）：
+     * @Grab 注解按空操作忽略、HttpClients.createDefault().withCloseable { httpClient ->
+     * httpClient.execute(httpPost) }、ObjectMapper 序列化请求体/解析响应体、
+     * EntityUtils.toString 读取响应，全部应通过沙箱。
+     */
+    @Test
+    void execute_dingtalkRobotScript_allowed() throws Exception {
+        com.sun.net.httpserver.HttpServer server = com.sun.net.httpserver.HttpServer.create(
+                new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        final String[] receivedBody = {null};
+        server.createContext("/robot/send", exchange -> {
+            receivedBody[0] = new String(exchange.getRequestBody().readAllBytes(),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            byte[] resp = "{\"errcode\":0,\"errmsg\":\"ok\"}".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, resp.length);
+            exchange.getResponseBody().write(resp);
+            exchange.close();
+        });
+        server.start();
+        int port = server.getAddress().getPort();
+        try {
+            String code = """
+                    @Grab('org.apache.httpcomponents:httpclient:4.5.14')
+                    @Grab('com.fasterxml.jackson.core:jackson-databind:2.15.3')
+                    import org.apache.http.client.methods.HttpPost
+                    import org.apache.http.entity.StringEntity
+                    import org.apache.http.impl.client.HttpClients
+                    import org.apache.http.util.EntityUtils
+                    import com.fasterxml.jackson.databind.ObjectMapper
+
+                    def dingtalkrobot(pushMessage, accessToken) {
+                        def at = ["atMobiles": [], "atUserIds": [], "isAtAll": false]
+                        def url = "http://127.0.0.1:%d/robot/send?access_token=${accessToken}"
+                        HttpClients.createDefault().withCloseable { httpClient ->
+                            def httpPost = new HttpPost(url)
+                            def objectMapper = new ObjectMapper()
+                            def requestBody = [
+                                "msgtype": "text",
+                                "text": ["content": pushMessage],
+                                "at": at
+                            ]
+                            def jsonBody = objectMapper.writeValueAsString(requestBody)
+                            httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
+                            try {
+                                def response = httpClient.execute(httpPost)
+                                def statusCode = response.getStatusLine().getStatusCode()
+                                def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
+                                if (statusCode == 200) {
+                                    def responseJson = objectMapper.readValue(responseBody, Map)
+                                    if (responseJson.errcode == 0) {
+                                        return "信息：钉钉机器人推送成功。"
+                                    }
+                                    return "错误：钉钉机器人推送失败 - ${responseJson.errmsg}"
+                                }
+                                return "错误：钉钉机器人推送失败，状态码：${statusCode}"
+                            } catch (Exception e) {
+                                return "错误：钉钉机器人推送异常 - ${e.getMessage()}"
+                            }
+                        }
+                    }
+                    return dingtalkrobot(pushMessage, accessToken)
+                    """.formatted(port);
+            GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+            Object result = executor.execute(params("pushMessage", "测试消息", "accessToken", "token-1"));
+            assertEquals("信息：钉钉机器人推送成功。", result);
+            assertTrue(receivedBody[0].contains("\"msgtype\":\"text\""), receivedBody[0]);
+            assertTrue(receivedBody[0].contains("\"content\":\"测试消息\""), receivedBody[0]);
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    /**
+     * 用户原始钉钉机器人脚本（文本 + Markdown 两个推送函数）：仅验证编译期放行
+     * （文本预检 + SecureASTCustomizer），不发起真实网络请求。
+     */
+    @Test
+    void execute_userDingtalkRobotScript_compiles() {
+        assertNull(GroovySandboxPolicy.findDangerousToken(DINGTALK_ROBOT_SCRIPT));
+        GroovyScriptCache.get(DINGTALK_ROBOT_SCRIPT);
+        assertTrue(GroovyScriptExecutor.isScriptCached(DINGTALK_ROBOT_SCRIPT));
+    }
+
+    /** 用户提供的钉钉机器人推送脚本（含 @Grab 依赖声明）。 */
+    private static final String DINGTALK_ROBOT_SCRIPT = """
+            @Grab('org.apache.httpcomponents:httpclient:4.5.14')
+            @Grab('org.apache.httpcomponents:httpcore:4.4.16')
+            @Grab('com.fasterxml.jackson.core:jackson-databind:2.15.3')
+
+            import org.apache.http.client.methods.HttpPost
+            import org.apache.http.entity.StringEntity
+            import org.apache.http.impl.client.HttpClients
+            import org.apache.http.util.EntityUtils
+            import com.fasterxml.jackson.databind.ObjectMapper
+
+            /**
+             * 钉钉机器人推送消息
+             */
+            def dingtalkrobot(push_message, accessToken, is_at_all, at_mobiles, at_user_ids) {
+                def at = [
+                    "atMobiles": [],
+                    "atUserIds": [],
+                    "isAtAll": is_at_all
+                ]
+
+                if (at_mobiles) {
+                    def mobile_numbers = at_mobiles.split(",").collect { it.trim() }
+                    at.atMobiles.addAll(mobile_numbers)
+                }
+
+                if (at_user_ids) {
+                    def user_ids = at_user_ids.split(",").collect { it.trim() }
+                    at.atUserIds.addAll(user_ids)
+                }
+
+                def url = "https://oapi.dingtalk.com/robot/send?access_token=${accessToken}"
+
+                HttpClients.createDefault().withCloseable { httpClient ->
+                    def httpPost = new HttpPost(url)
+
+                    def objectMapper = new ObjectMapper()
+                    def requestBody = [
+                        "msgtype": "text",
+                        "text": [
+                            "content": push_message
+                        ],
+                        "at": at
+                    ]
+                    def jsonBody = objectMapper.writeValueAsString(requestBody)
+                    httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
+
+                    try {
+                        def response = httpClient.execute(httpPost)
+                        def statusCode = response.getStatusLine().getStatusCode()
+                        def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
+
+                        if (statusCode == 200) {
+                            def responseJson = objectMapper.readValue(responseBody, Map)
+                            def errcode = responseJson.errcode
+                            if (errcode == 0) {
+                                return "信息：钉钉机器人推送成功。"
+                            } else {
+                                return "错误：钉钉机器人推送失败 - ${responseJson.errmsg}"
+                            }
+                        } else {
+                            return "错误：钉钉机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
+                        }
+                    } catch (Exception e) {
+                        return "错误：钉钉机器人推送异常 - ${e.getMessage()}"
+                    }
+                }
+            }
+
+            /**
+             * 发送Markdown格式消息
+             */
+            def dingtalkrobotMarkdown(title, text, accessToken, is_at_all, at_mobiles, at_user_ids) {
+                def at = [
+                    "atMobiles": [],
+                    "atUserIds": [],
+                    "isAtAll": is_at_all
+                ]
+
+                if (at_mobiles) {
+                    def mobile_numbers = at_mobiles.split(",").collect { it.trim() }
+                    at.atMobiles.addAll(mobile_numbers)
+                }
+
+                if (at_user_ids) {
+                    def user_ids = at_user_ids.split(",").collect { it.trim() }
+                    at.atUserIds.addAll(user_ids)
+                }
+
+                def url = "https://oapi.dingtalk.com/robot/send?access_token=${accessToken}"
+
+                HttpClients.createDefault().withCloseable { httpClient ->
+                    def httpPost = new HttpPost(url)
+
+                    def objectMapper = new ObjectMapper()
+                    def requestBody = [
+                        "msgtype": "markdown",
+                        "markdown": [
+                            "title": title,
+                            "text": text
+                        ],
+                        "at": at
+                    ]
+                    def jsonBody = objectMapper.writeValueAsString(requestBody)
+                    httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
+
+                    try {
+                        def response = httpClient.execute(httpPost)
+                        def statusCode = response.getStatusLine().getStatusCode()
+                        def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
+
+                        if (statusCode == 200) {
+                            def responseJson = objectMapper.readValue(responseBody, Map)
+                            def errcode = responseJson.errcode
+                            if (errcode == 0) {
+                                return "信息：钉钉机器人推送成功。"
+                            } else {
+                                return "错误：钉钉机器人推送失败 - ${responseJson.errmsg}"
+                            }
+                        } else {
+                            return "错误：钉钉机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
+                        }
+                    } catch (Exception e) {
+                        return "错误：钉钉机器人推送异常 - ${e.getMessage()}"
+                    }
+                }
+            }
+
+            // 示例用法
+            // def result1 = dingtalkrobot("测试消息", "your_access_token", false, "13800138000,13900139000", "")
+            // println result1
+
+            // def markdownText = "# 测试标题\\n## 测试副标题\\n- 测试内容1\\n- 测试内容2"
+            // def result2 = dingtalkrobotMarkdown("测试通知", markdownText, "your_access_token", false, "13800138000", "")
+            // println result2
+            """;
+
+    /**
+     * 用户提供的飞书机器人推送脚本（文本 + 富文本两个推送函数）：仅验证编译期放行
+     * （文本预检 + SecureASTCustomizer），不发起真实网络请求。
+     * 与钉钉机器人脚本同构（@Grab 声明 + HttpClients.withCloseable + ObjectMapper），
+     * 运行期链路由 execute_dingtalkRobotScript_allowed 覆盖。
+     */
+    @Test
+    void execute_userFeishuRobotScript_compiles() {
+        assertNull(GroovySandboxPolicy.findDangerousToken(FEISHU_ROBOT_SCRIPT));
+        GroovyScriptCache.get(FEISHU_ROBOT_SCRIPT);
+        assertTrue(GroovyScriptExecutor.isScriptCached(FEISHU_ROBOT_SCRIPT));
+    }
+
+    /** 用户提供的飞书机器人推送脚本（含 @Grab 依赖声明与 <at> 提及拼接）。 */
+    private static final String FEISHU_ROBOT_SCRIPT = """
+            @Grab('org.apache.httpcomponents:httpclient:4.5.14')
+            @Grab('org.apache.httpcomponents:httpcore:4.4.16')
+            @Grab('com.fasterxml.jackson.core:jackson-databind:2.15.3')
+
+            import org.apache.http.client.methods.HttpPost
+            import org.apache.http.entity.StringEntity
+            import org.apache.http.impl.client.HttpClients
+            import org.apache.http.util.EntityUtils
+            import com.fasterxml.jackson.databind.ObjectMapper
+
+            /**
+             * 飞书机器人推送消息
+             */
+            def feishurobot(push_message, webhook, at_users, at_all) {
+                def content_text = push_message
+
+                if (at_users) {
+                    def user_mentions = at_users.split(",").collect { it.trim() }
+                    user_mentions.each { mention ->
+                        if (mention.startsWith("user_id:")) {
+                            def user_id = mention.substring(7)
+                            content_text += " <at user_id=\\"${user_id}\\"></at>"
+                        } else if (mention.startsWith("email:")) {
+                            def email = mention.substring(6)
+                            content_text += " <at email=\\"${email}\\"></at>"
+                        }
+                    }
+                }
+
+                if (at_all) {
+                    content_text += " <at user_id=\\"all\\"></at>"
+                }
+
+                HttpClients.createDefault().withCloseable { httpClient ->
+                    def httpPost = new HttpPost(webhook)
+                    def objectMapper = new ObjectMapper()
+                    def requestBody = [
+                        "msg_type": "text",
+                        "content": [
+                            "text": content_text
+                        ]
+                    ]
+                    def jsonBody = objectMapper.writeValueAsString(requestBody)
+                    httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
+                    try {
+                        def response = httpClient.execute(httpPost)
+                        def statusCode = response.getStatusLine().getStatusCode()
+                        def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
+                        if (statusCode == 200) {
+                            def responseJson = objectMapper.readValue(responseBody, Map)
+                            def code = responseJson.code
+                            if (code == 0) {
+                                return "信息：飞书机器人推送成功。"
+                            } else {
+                                return "错误：飞书机器人推送失败 - ${responseJson.msg}"
+                            }
+                        } else {
+                            return "错误：飞书机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
+                        }
+                    } catch (Exception e) {
+                        return "错误：飞书机器人推送异常 - ${e.getMessage()}"
+                    }
+                }
+            }
+
+            /**
+             * 飞书机器人推送富文本消息
+             */
+            def feishurobotRichText(title, content, webhook, at_users, at_all) {
+                def content_text = content
+
+                if (at_users) {
+                    def user_mentions = at_users.split(",").collect { it.trim() }
+                    user_mentions.each { mention ->
+                        if (mention.startsWith("user_id:")) {
+                            def user_id = mention.substring(7)
+                            content_text += " <at user_id=\\"${user_id}\\"></at>"
+                        } else if (mention.startsWith("email:")) {
+                            def email = mention.substring(6)
+                            content_text += " <at email=\\"${email}\\"></at>"
+                        }
+                    }
+                }
+
+                if (at_all) {
+                    content_text += " <at user_id=\\"all\\"></at>"
+                }
+
+                HttpClients.createDefault().withCloseable { httpClient ->
+                    def httpPost = new HttpPost(webhook)
+                    def objectMapper = new ObjectMapper()
+                    def requestBody = [
+                        "msg_type": "post",
+                        "content": [
+                            "post": [
+                                "zh_cn": [
+                                    "title": title,
+                                    "content": [
+                                        [
+                                            [
+                                                "tag": "text",
+                                                "text": content_text
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                    def jsonBody = objectMapper.writeValueAsString(requestBody)
+                    httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
+                    try {
+                        def response = httpClient.execute(httpPost)
+                        def statusCode = response.getStatusLine().getStatusCode()
+                        def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
+                        if (statusCode == 200) {
+                            def responseJson = objectMapper.readValue(responseBody, Map)
+                            def code = responseJson.code
+                            if (code == 0) {
+                                return "信息：飞书机器人推送成功。"
+                            } else {
+                                return "错误：飞书机器人推送失败 - ${responseJson.msg}"
+                            }
+                        } else {
+                            return "错误：飞书机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
+                        }
+                    } catch (Exception e) {
+                        return "错误：飞书机器人推送异常 - ${e.getMessage()}"
+                    }
+                }
+            }
+
+            // 示例用法
+            // def result1 = feishurobot("测试消息", "https://open.feishu.cn/open-apis/bot/v2/hook/your_webhook", "user_id:ou_xxxxxx,email:user@example.com", false)
+            // println result1
+
+            // def result2 = feishurobotRichText("测试通知", "# 测试标题\\n- 测试内容1\\n- 测试内容2", "https://open.feishu.cn/open-apis/bot/v2/hook/your_webhook", "", false)
+            // println result2
+            """;
+
     // ==================== langchain4j Web Search（web_search 工具族） ====================
 
     /**
@@ -1656,5 +2074,152 @@ class GroovyScriptExecutorTest {
         assertNull(GroovySandboxPolicy.findDangerousToken(code));
         GroovyScriptCache.get(code);
         assertTrue(GroovyScriptExecutor.isScriptCached(code));
+    }
+
+    /**
+     * 用户原始脚本（企业微信机器人推送）：@Grab 依赖由平台 classpath 预置（httpclient 4.5.14 /
+     * jackson-databind，见 maxkb4j-tool/pom.xml），脚本内 @Grab 按空操作忽略。
+     * 验证 HttpClients.createDefault + withCloseable + execute + ObjectMapper +
+     * EntityUtils.toString 全链路在编译期各层（文本预检 + SecureASTCustomizer + 表达式检查器）放行。
+     */
+    @Test
+    void execute_wecomRobotScript_compiles() {
+        String code = """
+                @Grab('org.apache.httpcomponents:httpclient:4.5.14')
+                @Grab('org.apache.httpcomponents:httpcore:4.4.16')
+                @Grab('com.fasterxml.jackson.core:jackson-databind:2.15.3')
+
+                import org.apache.http.client.methods.HttpPost
+                import org.apache.http.entity.StringEntity
+                import org.apache.http.impl.client.HttpClients
+                import org.apache.http.util.EntityUtils
+                import com.fasterxml.jackson.databind.ObjectMapper
+
+                def wecomrobot(push_message, accessKey, is_at_all, at_mobiles) {
+                    def mentioned_mobile_list = []
+                    if (is_at_all) {
+                        mentioned_mobile_list.add("@all")
+                    }
+                    if (at_mobiles) {
+                        def mobile_numbers = at_mobiles.split(",").collect { it.trim() }
+                        mentioned_mobile_list.addAll(mobile_numbers)
+                    }
+
+                    def url = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=${accessKey}"
+
+                    HttpClients.createDefault().withCloseable { httpClient ->
+                        def httpPost = new HttpPost(url)
+
+                        def objectMapper = new ObjectMapper()
+                        def requestBody = [
+                            "msgtype": "text",
+                            "text": [
+                                "content": push_message,
+                                "mentioned_mobile_list": mentioned_mobile_list
+                            ]
+                        ]
+                        def jsonBody = objectMapper.writeValueAsString(requestBody)
+                        httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
+
+                        try {
+                            def response = httpClient.execute(httpPost)
+                            def statusCode = response.getStatusLine().getStatusCode()
+                            def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
+
+                            if (statusCode == 200) {
+                                return "信息：企业微信机器人推送成功。"
+                            } else {
+                                return "错误：企业微信机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
+                            }
+                        } catch (Exception e) {
+                            return "错误：企业微信机器人推送异常 - ${e.getMessage()}"
+                        }
+                    }
+                }
+                """;
+        assertNull(GroovySandboxPolicy.findDangerousToken(code));
+        GroovyScriptCache.get(code);
+        assertTrue(GroovyScriptExecutor.isScriptCached(code));
+    }
+
+    /**
+     * 与用户脚本相同的 API 链路，但 URL 指向本地临时 HTTP 服务，验证完整执行链：
+     * HttpClients.createDefault().withCloseable { httpClient.execute(httpPost) } →
+     * getStatusLine().getStatusCode() / EntityUtils.toString(getEntity())。
+     */
+    @Test
+    void execute_wecomRobotScript_sendsPostAndReadsResponse() throws Exception {
+        com.sun.net.httpserver.HttpServer server = com.sun.net.httpserver.HttpServer.create(new InetSocketAddress(0), 0);
+        AtomicReference<String> receivedBody = new AtomicReference<>();
+        server.createContext("/cgi-bin/webhook/send", exchange -> {
+            receivedBody.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            byte[] resp = "{\"errcode\":0}".getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, resp.length);
+            exchange.getResponseBody().write(resp);
+            exchange.close();
+        });
+        server.start();
+        try {
+            int port = server.getAddress().getPort();
+            String code = """
+                    @Grab('org.apache.httpcomponents:httpclient:4.5.14')
+                    @Grab('com.fasterxml.jackson.core:jackson-databind:2.15.3')
+
+                    import org.apache.http.client.methods.HttpPost
+                    import org.apache.http.entity.StringEntity
+                    import org.apache.http.impl.client.HttpClients
+                    import org.apache.http.util.EntityUtils
+                    import com.fasterxml.jackson.databind.ObjectMapper
+
+                    def wecomrobot(push_message, accessKey, is_at_all, at_mobiles) {
+                        def mentioned_mobile_list = []
+                        if (is_at_all) {
+                            mentioned_mobile_list.add("@all")
+                        }
+                        if (at_mobiles) {
+                            def mobile_numbers = at_mobiles.split(",").collect { it.trim() }
+                            mentioned_mobile_list.addAll(mobile_numbers)
+                        }
+                        def url = "http://127.0.0.1:${port}/cgi-bin/webhook/send?key=${accessKey}"
+                        HttpClients.createDefault().withCloseable { httpClient ->
+                            def httpPost = new HttpPost(url)
+                            def objectMapper = new ObjectMapper()
+                            def requestBody = [
+                                "msgtype": "text",
+                                "text": [
+                                    "content": push_message,
+                                    "mentioned_mobile_list": mentioned_mobile_list
+                                ]
+                            ]
+                            def jsonBody = objectMapper.writeValueAsString(requestBody)
+                            httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
+                            try {
+                                def response = httpClient.execute(httpPost)
+                                def statusCode = response.getStatusLine().getStatusCode()
+                                def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
+                                if (statusCode == 200) {
+                                    return "信息：企业微信机器人推送成功。"
+                                } else {
+                                    return "错误：企业微信机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
+                                }
+                            } catch (Exception e) {
+                                return "错误：企业微信机器人推送异常 - ${e.getMessage()}"
+                            }
+                        }
+                    }
+
+                    return wecomrobot("测试消息", "test-key", false, "13800138000,13900139000")
+                    """;
+            GroovyScriptExecutor executor = new GroovyScriptExecutor(code, Map.of("port", port));
+            Object result = executor.execute(params());
+            assertEquals("信息：企业微信机器人推送成功。", result.toString());
+            String body = receivedBody.get();
+            assertTrue(body.contains("测试消息"), body);
+            assertTrue(body.contains("13800138000"), body);
+            assertTrue(body.contains("13900139000"), body);
+        } finally {
+            server.stop(0);
+        }
     }
 }
