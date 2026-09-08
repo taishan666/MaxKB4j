@@ -10,9 +10,10 @@ import java.util.List;
 
 public interface IToolProviderService {
 
-    ShellSkills getShellSkills(List<String> toolIds) throws ApiException;
+
     List<AiServiceTool> getTools(List<String> toolIds, List<String> applicationIds) throws ApiException;
     List<ToolProvider> getToolProviders(List<String> toolIds, List<String> applicationIds) throws ApiException;
+    ShellSkills getShellSkills(List<String> toolIds) throws ApiException;
     List<AiServiceTool> getAppTools(List<String> applicationIds) throws ApiException;
     List<AiServiceTool> getKnowledgeTools(List<String> knowledgeIds, KnowledgeSetting knowledgeSetting) throws ApiException;
 }
