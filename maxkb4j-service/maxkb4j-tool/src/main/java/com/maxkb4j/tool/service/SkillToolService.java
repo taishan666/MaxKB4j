@@ -5,10 +5,8 @@ import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.handler.ToolSkillHandler;
 import com.maxkb4j.tool.service.impl.ToolProviderServiceImpl;
 import com.maxkb4j.tool.util.ToolNaming;
-import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.service.tool.AiServiceTool;
 import dev.langchain4j.service.tool.ToolProvider;
-import dev.langchain4j.service.tool.ToolProviderRequest;
 import dev.langchain4j.service.tool.ToolProviderResult;
 import dev.langchain4j.skills.FileSystemSkill;
 import dev.langchain4j.skills.shell.RunShellCommandToolConfig;
@@ -75,16 +73,18 @@ public class SkillToolService {
     /**
      * 构建单个 Skill 工具的 AiServiceTool 列表（基于 chatMemoryId 模式）。
      *
-     * @param userMessage 用户消息
-     * @param tool        工具实体
+     * @param tools        工具实体集合
      * @return AiServiceTool 列表
      */
-    public List<AiServiceTool> getSkillsTools(String userMessage, ToolEntity tool) throws ApiException {
-        FileSystemSkill fileSystemSkill = loadFileSystemSkill(tool);
-        ShellSkills shellSkills = buildNamedShellSkills(fileSystemSkill, tool.getId());
-        ToolProviderRequest request = new ToolProviderRequest("default", UserMessage.from(userMessage));
-        ToolProviderResult result = shellSkills.toolProvider().provideTools(request);
-        return result.aiServiceTools();
+    public List<AiServiceTool> getSkillsTools(List<ToolEntity> tools) throws ApiException {
+        List<AiServiceTool> aiServiceTools=new ArrayList<>();
+        tools.forEach(tool->{
+            FileSystemSkill fileSystemSkill = loadFileSystemSkill(tool);
+            ShellSkills shellSkills = buildNamedShellSkills(fileSystemSkill, tool.getId());
+            ToolProviderResult result = shellSkills.toolProvider().provideTools(null);
+            aiServiceTools.addAll(result.aiServiceTools());
+        });
+        return aiServiceTools;
     }
 
     // ===== 私有方法 =====

@@ -17,7 +17,6 @@ import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.skills.shell.ShellSkills;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -46,13 +45,13 @@ public class ToolProviderServiceImpl implements IToolProviderService {
 
 
     @Override
-    public List<AiServiceTool> getTools(String userMessage, List<String> toolIds, List<String> applicationIds) throws ApiException {
+    public List<AiServiceTool> getTools(List<String> toolIds, List<String> applicationIds) throws ApiException {
         List<AiServiceTool> tools = new ArrayList<>();
         if (CollectionUtils.isEmpty(toolIds) && CollectionUtils.isEmpty(applicationIds)) {
             return tools;
         }
-        if (!CollectionUtils.isEmpty(toolIds) && StringUtils.isNotBlank(userMessage)) {
-            tools.addAll(buildAiServiceTools(toolIds, userMessage));
+        if (!CollectionUtils.isEmpty(toolIds)) {
+            tools.addAll(buildAiServiceTools(toolIds));
         }
         if (!CollectionUtils.isEmpty(applicationIds)) {
             tools.addAll(agentToolService.buildTools(applicationIds));
@@ -117,16 +116,24 @@ public class ToolProviderServiceImpl implements IToolProviderService {
     /**
      * Build AiServiceTools by dispatching each tool to its registered handler.
      */
-    private List<AiServiceTool> buildAiServiceTools(List<String> toolIds, String userMessage) {
+    private List<AiServiceTool> buildAiServiceTools(List<String> toolIds) {
         List<ToolEntity> tools = queryActiveTools(toolIds);
         List<AiServiceTool> aiServiceTools = new ArrayList<>();
-        for (ToolEntity tool : tools) {
+        Map<String, List<ToolEntity>> toolMap = tools.stream()
+                .collect(Collectors.groupingBy(ToolEntity::getToolType));
+        toolMap.forEach((toolType, toolList) -> {
+            AbsToolHandler handler = toolHandlerRegistry.get(toolType);
+            if (handler != null) {
+                aiServiceTools.addAll(handler.buildAiServiceTools(toolList));
+            }
+        });
+   /*     for (ToolEntity tool : tools) {
             AbsToolHandler handler = toolHandlerRegistry.get(tool.getToolType());
             if (handler == null) {
                 continue;
             }
-            aiServiceTools.addAll(handler.buildAiServiceTools(tool, userMessage));
-        }
+            aiServiceTools.addAll(handler.buildAiServiceTools(tool));
+        }*/
         return aiServiceTools;
     }
 

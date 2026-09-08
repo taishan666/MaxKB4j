@@ -33,8 +33,8 @@ public abstract class ExecutorToolHandler extends AbsToolHandler {
     }
 
     @Override
-    public List<AiServiceTool> buildAiServiceTools(ToolEntity tool, String userMessage) {
-        return List.of(buildTool(tool));
+    public List<AiServiceTool> buildAiServiceTools(List<ToolEntity> tools) {
+        return tools.stream().map(this::buildTool).toList();
     }
 
     @Override

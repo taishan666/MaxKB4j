@@ -16,11 +16,10 @@ public abstract class AbsToolHandler {
     /**
      * Build {@link AiServiceTool}s for a single tool (used when assembling an AiService).
      *
-     * @param tool         the tool entity
-     * @param userMessage  the user message (used by SKILL type tools)
+     * @param tools         the tool entities
      * @return the built tools (empty list by default)
      */
-    public List<AiServiceTool> buildAiServiceTools(ToolEntity tool, String userMessage) {
+    public List<AiServiceTool> buildAiServiceTools(List<ToolEntity> tools) {
         return List.of();
     }
 

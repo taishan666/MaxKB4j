@@ -11,11 +11,24 @@ import dev.langchain4j.mcp.client.transport.McpTransport;
 import dev.langchain4j.mcp.client.transport.http.StreamableHttpMcpTransport;
 import dev.langchain4j.model.chat.request.json.*;
 import dev.langchain4j.service.tool.AiServiceTool;
+import dev.langchain4j.service.tool.ToolExecutor;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class McpToolUtil {
+
+
+    public static Map<ToolSpecification, ToolExecutor> getToolMap(JSONObject mcpServers) {
+        McpClient mcpClient = getMcpClient(mcpServers);
+        if (Objects.nonNull(mcpClient)){
+            return mcpClient.listTools().stream().collect(Collectors.toMap(
+                    toolSpecification -> toolSpecification,
+                    toolSpecification -> new McpToolExecutor(mcpClient)
+            ));
+        }
+        return Map.of();
+    }
 
     public static List<AiServiceTool> getTools(JSONObject mcpServers) {
         McpClient mcpClient = getMcpClient(mcpServers);
