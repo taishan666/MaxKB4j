@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.application.dto.ApplicationBatchEditDTO;
 import com.maxkb4j.application.dto.ApplicationDTO;
 import com.maxkb4j.application.dto.ApplicationQuery;
+import com.maxkb4j.application.dto.ApplicationSimple;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
@@ -33,6 +34,8 @@ public interface IApplicationInternalService extends IApplicationService, IServi
 
     ApplicationVO getDetail(String id);
 
+    ApplicationVO getAppDetail(String appId, boolean debug);
+
     Boolean updateAppById(ApplicationDTO appDTO);
 
     ApplicationEntity publish(String id, JSONObject params);
@@ -42,4 +45,6 @@ public interface IApplicationInternalService extends IApplicationService, IServi
     boolean deleteBatch(List<String> idList);
 
     boolean batchCleanTime(@Valid ApplicationBatchEditDTO dto);
+
+    List<ApplicationSimple> listAppSimpleByIds(List<String> applicationIds);
 }

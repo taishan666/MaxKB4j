@@ -3,6 +3,7 @@ package com.maxkb4j.workflow.handler.node;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -27,16 +28,9 @@ public interface INodeHandler {
     CompletableFuture<NodeResult> execute(IWorkflow workflow, AbsNode node) throws Exception;
 
     /**
-     * Async nodes run on their own future instead of occupying a workflowTaskExecutor thread.
-     */
-    default boolean isAsync() {
-        return false;
-    }
-
-    /**
      * Whether workflow execution should pause after this node (e.g. waiting for user input).
      */
-    default boolean shouldInterrupt(AbsNode node) {
+    default boolean shouldInterrupt(INode node) {
         return false;
     }
 

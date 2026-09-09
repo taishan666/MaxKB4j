@@ -2,6 +2,8 @@ package com.maxkb4j.model.service;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.model.base.STTModel;
+import com.maxkb4j.model.base.TTSModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -35,7 +37,7 @@ public interface IModelProviderService {
 
     ScoringModel buildScoringModel(String modelId);
 
-    ITTSModel buildTTSModel(String modelId, JSONObject modelParams);
+    TTSModel buildTTSModel(String modelId, JSONObject modelParams);
 
-    ISTTModel buildSTTModel(String modelId, JSONObject modelParams);
+    STTModel buildSTTModel(String modelId, JSONObject modelParams);
 }

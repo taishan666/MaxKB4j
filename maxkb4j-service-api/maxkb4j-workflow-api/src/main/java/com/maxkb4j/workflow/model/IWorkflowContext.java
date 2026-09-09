@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.model;
 
-import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 
 import java.util.List;
 import java.util.Map;
@@ -16,7 +16,7 @@ public interface IWorkflowContext {
     /**
      * 添加或更新节点到上下文（按 id + runtimeNodeId 去重替换）。
      */
-    void appendNode(AbsNode currentNode);
+    void appendNode(INode currentNode);
 
     /**
      * 渲染模板（使用上下文全部变量）。
@@ -63,7 +63,7 @@ public interface IWorkflowContext {
     /**
      * 获取已执行节点（按 nodeId）。
      */
-    AbsNode getExecutedNode(String nodeId);
+    INode getExecutedNode(String nodeId);
 
     /**
      * 全局变量上下文。
@@ -78,7 +78,7 @@ public interface IWorkflowContext {
     /**
      * 节点变量上下文列表。
      */
-    List<AbsNode> getNodeContext();
+    List<INode> getNodeContext();
 
     /**
      * 循环变量上下文。

@@ -8,8 +8,8 @@ import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.params.ImageModelParams;
 import com.maxkb4j.model.custom.params.OpenAiChatModelParams;
 import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.service.ISTTModel;
-import com.maxkb4j.model.service.ITTSModel;
+import com.maxkb4j.model.base.STTModel;
+import com.maxkb4j.model.base.TTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
@@ -231,7 +231,7 @@ public abstract class AbsModelProvider {
      * @param params     additional parameters
      * @return the STT model instance
      */
-    public ISTTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
+    public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
         throw new ModelDisabledException("STTModel is disabled");
     }
 
@@ -243,7 +243,7 @@ public abstract class AbsModelProvider {
      * @param params     additional parameters
      * @return the TTS model instance
      */
-    public ITTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
+    public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         throw new ModelDisabledException("TTSModel is disabled");
     }
 

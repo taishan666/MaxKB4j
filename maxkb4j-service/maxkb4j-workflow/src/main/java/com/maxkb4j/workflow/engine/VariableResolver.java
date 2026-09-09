@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.engine;
 
 
-import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -51,7 +51,7 @@ public class VariableResolver {
         }
         // Node variables
         if (context.getNodeContext() != null) {
-            for (AbsNode node : context.getNodeContext()) {
+            for (INode node : context.getNodeContext()) {
                 result.putAll(getNodeVariables(node));
             }
         }
@@ -75,7 +75,7 @@ public class VariableResolver {
      * @param node node object
      * @return variable map in "nodeName.variable": value format
      */
-    public Map<String, Object> getNodeVariables(AbsNode node) {
+    public Map<String, Object> getNodeVariables(INode node) {
         if (node == null || node.getProperties() == null) {
             return new HashMap<>(0);
         }
@@ -112,7 +112,7 @@ public class VariableResolver {
         result.put(Scope.LOOP, context.getLoopContext() != null ? context.getLoopContext() : new HashMap<>());
 
         if (context.getNodeContext() != null) {
-            for (AbsNode node : context.getNodeContext()) {
+            for (INode node : context.getNodeContext()) {
                 if (node != null && node.getId() != null) {
                     result.put(node.getId(), node.getContext() != null ? node.getContext() : new HashMap<>());
                 }

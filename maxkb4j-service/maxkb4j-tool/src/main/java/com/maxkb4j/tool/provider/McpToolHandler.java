@@ -21,9 +21,13 @@ import java.util.List;
 public class McpToolHandler extends AbsToolHandler {
 
     @Override
-    public List<AiServiceTool> buildAiServiceTools(ToolEntity tool, String userMessage) {
-        JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
-        return McpToolUtil.getTools(mcpConfig);
+    public List<AiServiceTool> buildAiServiceTools(List<ToolEntity> tools) {
+        List<AiServiceTool> aiServiceTools=new ArrayList<>();
+        for (ToolEntity tool : tools) {
+            JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
+            aiServiceTools.addAll(McpToolUtil.getTools(mcpConfig));
+        }
+        return aiServiceTools;
     }
 
     @Override

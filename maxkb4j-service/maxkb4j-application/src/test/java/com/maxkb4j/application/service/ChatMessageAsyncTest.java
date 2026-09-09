@@ -1,12 +1,11 @@
 package com.maxkb4j.application.service;
 
-import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatShareLinkMapper;
 import com.maxkb4j.application.service.impl.ApplicationChatServiceImpl;
 import com.maxkb4j.common.cache.ChatCache;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatInfo;
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.exception.ApiException;
@@ -18,12 +17,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,7 +43,7 @@ class ChatMessageAsyncTest {
     }
 
     private ApplicationChatServiceImpl newChatService(ApplicationChatUserStatsService statsServiceMock,
-                                                      IApplicationService applicationService) {
+                                                      IApplicationInternalService applicationService) {
         return new ApplicationChatServiceImpl(
                 mock(IApplicationChatRecordInternalService.class),
                 applicationService,
@@ -91,7 +86,7 @@ class ChatMessageAsyncTest {
         ApplicationChatUserStatsService statsServiceMock = mock(ApplicationChatUserStatsService.class);
         when(statsServiceMock.ensureStatsExists(anyString(), any(), anyString()))
                 .thenThrow(new IllegalStateException("stats backend unavailable"));
-        ApplicationChatServiceImpl chatService = newChatService(statsServiceMock, mock(IApplicationService.class));
+        ApplicationChatServiceImpl chatService = newChatService(statsServiceMock, mock(IApplicationInternalService.class));
 
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         chatService.chatMessageAsync(chatParams(), chatState(), sink);
@@ -107,7 +102,7 @@ class ChatMessageAsyncTest {
         // visitCountOver 通过（首次访问），但应用不存在 → chatMessage 自行 emit ApiException 后正常返回
         ApplicationChatUserStatsService statsServiceMock = mock(ApplicationChatUserStatsService.class);
         when(statsServiceMock.ensureStatsExists(anyString(), any(), anyString())).thenReturn(true);
-        IApplicationService applicationService = mock(IApplicationService.class);
+        IApplicationInternalService applicationService = mock(IApplicationInternalService.class);
         when(applicationService.getAppDetail(anyString(), anyBoolean())).thenReturn(null);
         ApplicationChatServiceImpl chatService = newChatService(statsServiceMock, applicationService);
         ChatCache.put(CHAT_ID, new ChatInfo(CHAT_ID, "app-1"));

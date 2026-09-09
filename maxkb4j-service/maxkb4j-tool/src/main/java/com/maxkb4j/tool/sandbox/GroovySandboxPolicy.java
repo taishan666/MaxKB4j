@@ -1,0 +1,1023 @@
+package com.maxkb4j.tool.sandbox;
+
+import groovy.lang.Closure;
+
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Groovy 沙箱安全策略：编译期与运行期共用的唯一事实来源。
+ * <p>
+ * 集中维护类/方法/属性/构造器/静态调用白名单、危险调用黑名单，
+ * 以及类型与取值的安全判定逻辑。运行期 {@link GroovySandboxInterceptor}
+ * 与编译期 AST 校验（GroovySandboxCompilerConfigurer）均只依赖本类，
+ * 策略数据不再在多个类之间重复维护。
+ * </p>
+ * <p>安全模型：默认拒绝（deny-by-default），只允许白名单中的类和方法。</p>
+ */
+public final class GroovySandboxPolicy {
+
+    private GroovySandboxPolicy() {
+    }
+
+    // ==================================================================
+    // 白名单数据
+    // ==================================================================
+
+    /**
+     * 允许作为方法接收者的安全类（白名单）。
+     * 不在白名单中的类，任何方法调用都会被拒绝。
+     */
+    private static final Set<String> ALLOWED_CLASSES = Set.of(
+            // ===== 基础类型 =====
+            "java.lang.String",
+            "java.lang.Boolean",
+            "java.lang.Byte",
+            "java.lang.Short",
+            "java.lang.Integer",
+            "java.lang.Long",
+            "java.lang.Float",
+            "java.lang.Double",
+            "java.lang.Number",
+            "java.math.BigDecimal",
+            "java.math.BigInteger",
+            "java.lang.Character",
+            // ===== 时间 =====
+            "java.time.LocalDate",
+            "java.time.LocalDateTime",
+            "java.time.LocalTime",
+            "java.time.ZonedDateTime",
+            "java.time.Instant",
+            "java.time.Duration",
+            "java.time.Period",
+            "java.time.ZoneId",
+            "java.time.format.DateTimeFormatter",
+            "java.time.temporal.TemporalAccessor",
+            "java.util.Date",
+            "java.util.Calendar",
+            "java.util.GregorianCalendar",
+            // ===== 集合 =====
+            "java.util.List",
+            "java.util.ArrayList",
+            "java.util.LinkedList",
+            "java.util.Set",
+            "java.util.HashSet",
+            "java.util.LinkedHashSet",
+            "java.util.TreeSet",
+            "java.util.Collection",
+            "java.util.Map",
+            "java.util.HashMap",
+            "java.util.LinkedHashMap",
+            "java.util.TreeMap",
+            "java.util.Iterator",
+            "java.util.ListIterator",
+            "java.util.Spliterator",
+            "java.util.stream.Stream",
+            "java.util.stream.StreamSupport",
+            "java.util.stream.Collectors",
+            "java.util.Optional",
+            "java.util.Arrays",
+            "java.util.Collections",
+            // ===== 常用工具 =====
+            "java.lang.StringBuilder",
+            "java.lang.StringBuffer",
+            "java.util.regex.Pattern",
+            "java.util.regex.Matcher",
+            "java.text.SimpleDateFormat",
+            "java.text.DecimalFormat",
+            "java.util.UUID",
+            "java.util.Locale",
+            "java.util.TimeZone",
+            "java.util.Currency",
+            // ===== 文件操作（java.nio.file 白名单入口） =====
+            "java.nio.file.Path",
+            // ===== Groovy 运行时 =====
+            "groovy.lang.Binding",
+            "groovy.lang.Closure",
+            "groovy.lang.GString",
+            "groovy.lang.IntRange",
+            "groovy.lang.Range",
+            "groovy.json.JsonSlurper",
+            "groovy.json.JsonOutput",
+            "groovy.json.JsonBuilder",
+            // ===== 数据库查询（内置 MySQL/PostgreSQL 查询工具） =====
+            "groovy.sql.Sql",
+            "java.sql.Timestamp",
+            "java.sql.Date",
+            // Sql.eachRow 传给闭包的 row 是 GroovyResultSetProxy 创建的 JDK 动态代理
+            // （运行期类名为 jdk.proxyN.$ProxyM），直接接口为 groovy.sql.GroovyResultSet，
+            // isAllowedType 需按该接口放行，否则 row.getMetaData()/row[columnName] 均被拒绝
+            "groovy.sql.GroovyResultSet",
+            // row.getMetaData() 返回驱动实现类（如 PgResultSetMetaData），按接口放行
+            // .columnCount 属性读取与 getColumnName 方法调用
+            "java.sql.ResultSetMetaData",
+            "org.codehaus.groovy.runtime.DefaultGroovyMethods",
+            "org.codehaus.groovy.runtime.StringGroovyMethods",
+            "org.codehaus.groovy.runtime.EncodingGroovyMethods",
+            "org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation",
+            "io.github.mymonstercat.ocr.InferenceEngine",
+            "io.github.mymonstercat.Model",
+            "com.benjaminwan.ocrlibrary.OcrResult",
+            "com.maxkb4j.oss.service.IOssService",
+            "com.maxkb4j.common.util.SpringUtil",
+            // ===== 数学表达式求值引擎（内置工具「数学公式执行」） =====
+            "net.objecthunter.exp4j.Expression",
+            "net.objecthunter.exp4j.ExpressionBuilder",
+            // ===== fastjson（内置工具 JSON 处理，如 web_search 结果解析） =====
+            "com.alibaba.fastjson.JSON",
+            "com.alibaba.fastjson.JSONObject",
+            "com.alibaba.fastjson.JSONArray",
+            // ===== MongoDB 驱动（mongodb-driver-sync，沙箱脚本访问 MongoDB） =====
+            // 运行期实现类（MongoClientImpl/MongoDatabaseImpl/MongoCollectionImpl/
+            // FindIterableImpl）均按下列接口放行
+            "com.mongodb.client.MongoClient",
+            "com.mongodb.client.MongoClients",
+            "com.mongodb.client.MongoDatabase",
+            "com.mongodb.client.MongoCollection",
+            "com.mongodb.client.MongoIterable",
+            "com.mongodb.client.FindIterable",
+            "org.bson.Document",
+            "org.bson.types.ObjectId",
+            "org.bson.conversions.Bson",
+            // ===== 邮箱消息推送（内置 SMTP 邮件通知工具） =====
+            "org.springframework.mail.javamail.JavaMailSenderImpl",
+            "org.springframework.mail.SimpleMailMessage",
+            // JavaMailSenderImpl.getJavaMailProperties() 返回 Properties，
+            // 脚本对 props.put(...) 的接收者即该类型
+            "java.util.Properties",
+            // ===== 受控 HTTP 客户端（脚本内发起 http/https 请求） =====
+            // URL 构造 + 连接/流类型。运行期 openConnection()/getInputStream() 返回的是
+            // JDK 内部实现类（如 sun.net.www.protocol.https.*），这些具体类不在本集合内，
+            // 由 isAllowedNetworkOrIoType 按基类（URLConnection/InputStream/...）指派放行。
+            "java.net.URL",
+            "java.net.URI",
+            "java.net.URLConnection",
+            "java.net.HttpURLConnection",
+            "java.io.InputStream",
+            "java.io.OutputStream",
+            "java.io.Reader",
+            "java.io.Writer",
+
+            // ===== 哈希摘要 / 随机盐 / URL 编码（如百度翻译签名脚本） =====
+            // MessageDigest 仅放行 getInstance/digest，纯摘要计算无系统副作用
+            "java.security.MessageDigest",
+            // Random 用于生成随机盐值
+            "java.util.Random",
+            // URLEncoder.encode 仅做 URL 查询参数转义（纯字符串处理），
+            // isDangerousClass 中对 java.net.* 的拦截为其开了精确豁免
+            "java.net.URLEncoder",
+            // EncodingGroovyMethods.encodeHex(byte[]) 的返回类型（hex Writable），
+            // 脚本对编码结果调用 toString 输出十六进制字符串
+            "groovy.lang.Writable",
+
+            // ===== Apache HttpClient（HTTP 推送工具脚本，如钉钉机器人） =====
+            // 请求对象/客户端/响应/状态行/实体为方法接收者；@Grab 已禁用，
+            // 依赖预置于 classpath（见 maxkb4j-tool/pom.xml），脚本内 @Grab 注解按空操作忽略
+            "org.apache.http.client.methods.HttpGet",
+            "org.apache.http.client.methods.HttpPost",
+            "org.apache.http.client.methods.HttpPut",
+            "org.apache.http.client.methods.HttpDelete",
+            // HttpClients.createDefault() 返回 InternalHttpClient，沿父类链命中此项
+            "org.apache.http.impl.client.CloseableHttpClient",
+            // execute 返回的响应实现类（HttpResponseProxy 等）沿父类链命中此项
+            "org.apache.http.client.methods.CloseableHttpResponse",
+            // BasicStatusLine 实现的接口（getStatusCode 放行链）
+            "org.apache.http.StatusLine",
+            "org.apache.http.HttpEntity",
+            "org.apache.http.entity.StringEntity",
+            // 静态工厂/静态工具（配合 ALLOWED_STATIC_METHODS 的 createDefault/toString）
+            "org.apache.http.impl.client.HttpClients",
+            "org.apache.http.util.EntityUtils",
+            // execute 返回的响应接口（HttpResponseProxy 的父接口之一）
+            "org.apache.http.HttpResponse",
+            // ===== Jackson（HTTP 请求体/响应体 JSON 序列化，如钉钉机器人脚本） =====
+            "com.fasterxml.jackson.databind.ObjectMapper",
+
+            // ========== langchain4j Web Search(内置「联网搜索」工具:SearchApi/Tavily/Google/SearXNG) ==========
+            // 搜索结果容器与单条结果:WebSearchResults.results() 返回 List<WebSearchOrganicResult>,
+            // 其 url() 返回 java.net.URI(已由上方受控 HTTP 客户端白名单作为值类型放行)
+            "dev.langchain4j.web.search.WebSearchEngine",
+            "dev.langchain4j.web.search.WebSearchResults",
+            "dev.langchain4j.web.search.WebSearchOrganicResult",
+            // SearchApi 引擎与 Lombok Builder 内部类:运行期类名含单个 $(normalizeClassName 不剥离),
+            // 须按精确名称入白名单,否则 .apiKey()/.engine() 等 builder 链式调用接收者校验被拒
+            "dev.langchain4j.web.search.searchapi.SearchApiWebSearchEngine",
+            "dev.langchain4j.web.search.searchapi.SearchApiWebSearchEngine$SearchApiWebSearchEngineBuilder",
+            // Tavily 引擎与 Builder
+            "dev.langchain4j.web.search.tavily.TavilyWebSearchEngine",
+            "dev.langchain4j.web.search.tavily.TavilyWebSearchEngine$TavilyWebSearchEngineBuilder",
+            // Google Custom Search 引擎与 Builder
+            "dev.langchain4j.web.search.google.customsearch.GoogleCustomWebSearchEngine",
+            "dev.langchain4j.web.search.google.customsearch.GoogleCustomWebSearchEngine$GoogleCustomWebSearchEngineBuilder",
+            // SearXNG 引擎与 Builder(community 包)
+            "dev.langchain4j.community.web.search.searxng.SearXNGWebSearchEngine",
+            "dev.langchain4j.community.web.search.searxng.SearXNGWebSearchEngine$Builder"
+    );
+
+    /**
+     * 允许调用的方法名。
+     * 即使接收者在 ALLOWED_CLASSES 中，也只有白名单中的方法名可以被调用。
+     */
+    private static final Set<String> ALLOWED_METHODS = Set.of(
+            // ===== 比较与相等 =====
+            "equals", "compareTo", "compareToIgnoreCase",
+            "contains", "containsAll", "containsKey", "containsValue",
+            "startsWith", "endsWith",
+            // ===== 访问 =====
+            "get", "getAt", "getKey", "getValue",
+            "put", "putAt", "putIfAbsent",
+            "first", "firstKey", "firstEntry",
+            "last", "lastKey", "lastEntry",
+            "head", "tail",
+            "getOrDefault",
+            // ===== 集合操作 =====
+            "size", "isEmpty", "isBlank", "isNotBlank",
+            "iterator", "listIterator", "spliterator", "stream", "parallelStream",
+            "keySet", "values", "entrySet",
+            "subList", "subMap", "subSet",
+            "addAll", "remove", "removeAll", "clear",
+            // ===== 时间 =====
+            "atZone", "toInstant", "toEpochMilli",
+            "withZone", "withLocale",
+            "plusDays", "minusDays", "plusWeeks", "minusWeeks",
+            "plusMonths", "minusMonths", "plusYears", "minusYears",
+            "plusHours", "minusHours", "plusMinutes", "minusMinutes",
+            "plusSeconds", "minusSeconds", "plusNanos", "minusNanos",
+            "withYear", "withMonth", "withDayOfMonth",
+            "withHour", "withMinute", "withSecond", "withNano",
+            // ===== 字符串 =====
+            "toString", "length", "charAt", "substring", "trim", "strip",
+            "indexOf", "lastIndexOf",
+            "toUpperCase", "toLowerCase",
+            "replace", "replaceAll", "replaceFirst",
+            "split",
+            "format",
+            "parse",
+            "concat",
+            "matches",
+            "group", "groupCount",
+            "repeat",
+            "chars", "codePoints",
+            "lines",
+            // ===== 类型转换 =====
+            "intValue", "longValue", "doubleValue", "floatValue",
+            "byteValue", "shortValue", "charValue",
+            "booleanValue",
+            "toInteger", "toLong", "toDouble", "toFloat",
+            "toBoolean", "toBigDecimal", "toBigInteger",
+            "toSet", "toList", "toArray", "toMap",
+            "asType",
+            "toCharArray", "getBytes",
+            "inspect",
+            // ===== 数字运算 =====
+            "abs", "ceil", "floor", "round", "truncate",
+            "max", "min",
+            "plus", "minus", "div", "mod",
+            "add", "subtract", "multiply", "divide", "remainder",
+            "pow", "sqrt", "cbrt",
+            "negate", "signum",
+            "increment", "decrement",
+            "next", "previous",
+            // ===== 哈希 =====
+            "hashCode",
+            // ===== 摘要 / 随机数 / hex 编码（哈希签名脚本：MessageDigest.digest、
+            // Random.nextInt、byte[].encodeHex → Writable.toString） =====
+            "digest", "nextInt", "encodeHex",
+            // ===== 迭代 =====
+            "each", "eachWithIndex",
+            "collect", "collectEntries", "collectNested",
+            "findAll", "find", "findIndexOf", "findLastIndexOf",
+            "any", "every",
+            "inject", "fold",
+            "groupBy",
+            "intersect", "disjoint",
+            "join", "flatten",
+            "reverse", "reverseEach",
+            "sort", "unique",
+            "count", "sum", "average",
+            "take", "takeWhile",
+            "drop", "dropWhile",
+            // ===== JSON =====
+            "parseText", "toJson", "prettyPrint",
+            // ===== 数据库查询（groovy.sql.Sql） =====
+            "rows",
+            // sql.rows(query) 返回 GroovyRowResult（implements Map），DGM 扩展
+            // DefaultGroovyMethods.toMapString(Map) 可输出 [列名:值, ...] 字符串。
+            // 注意：eachRow 闭包的 row 是 GroovyResultSet 动态代理（非 Map），不支持
+            // toMapString，需改用 sql.rows(query)
+            "toMapString",
+            // PostgreSQL 查询工具：eachRow 遍历结果集、getMetaData/getColumnName 取列名、
+            // times 按列数迭代、close 在 finally 中释放连接（toDouble 已在类型转换白名单中）
+            "eachRow", "getMetaData", "getColumnName", "times", "close",
+            // rows << map：List 的 leftShift 追加元素
+            "leftShift",
+            // ===== fastjson（JSONObject/JSONArray 类型化访问与序列化） =====
+            "toJSONString",
+            "getString", "getInteger", "getLong", "getDouble", "getFloat",
+            "getBoolean", "getBigDecimal", "getBigInteger", "getDate",
+            "getJSONObject", "getJSONArray", "getObject", "getInnerMap",
+            "toJavaObject", "toJavaList",
+            "fluentPut", "fluentAdd",
+            // ===== Path 操作 =====
+            "resolve", "resolveSibling", "relativize",
+            "getFileName", "getParent", "getRoot", "getName", "getNameCount", "subpath",
+            "normalize", "toAbsolutePath",
+            // ===== 异常（只读访问器；接收者仍受异常类白名单约束） =====
+            "getMessage", "getLocalizedMessage", "getCause", "printStackTrace",
+            // DateTimeParseException 特有访问器（日期解析失败的 catch 场景）
+            "getParsedString", "getErrorIndex",
+            // ===== OCR =====
+            "runOcr",
+            // ===== exp4j 表达式求值（内置工具「数学公式执行」） =====
+            "build", "evaluate", "setVariable", "setVariables", "variables",
+            // ===== 闭包 =====
+            "call", "doCall", "isCase",
+            // ===== MongoDB（find/close/parse/toString 已在上方白名单中） =====
+            // client.getDatabase(name) / db.getCollection(name) / find(...).forEach { doc -> }
+            "getDatabase", "getCollection", "forEach",
+            // ===== 邮箱消息推送（内置 SMTP 邮件通知工具） =====
+            // JavaMailSenderImpl/SimpleMailMessage 的配置与发送方法（put 已在访问白名单中）
+            "setHost", "setPort", "setUsername", "setPassword",
+            "setDefaultEncoding", "setProtocol",
+            "getJavaMailProperties", "setJavaMailProperties",
+            "setFrom", "setTo", "setSubject", "setText", "send",
+            // ===== 受控 HTTP 客户端（URL.openConnection / HttpURLConnection 请求与响应读写） =====
+            // 典型脚本：url.openConnection() → 设置请求方法/头 → 写请求体 → 读响应 → disconnect
+            "openConnection", "setRequestProperty", "addRequestProperty", "disconnect",
+            "setRequestMethod", "setDoOutput", "setDoInput",
+            "setConnectTimeout", "setReadTimeout", "connect",
+            "getOutputStream", "getInputStream", "withWriter", "withReader", "getText",
+            "getResponseCode", "getResponseMessage", "getHeaderField", "getContentType", "getContentLength",
+            // ===== Apache HttpClient + Jackson（HTTP 推送工具，如钉钉机器人脚本） =====
+            // withCloseable 为 DGM 对 Closeable 的资源托管扩展；execute 为危险方法名
+            // 受信例外，仅放行 HttpClient 系接收者（见 DANGEROUS_METHOD_EXCEPTIONS）
+            "withCloseable", "execute", "setEntity", "getEntity",
+            "getStatusLine", "getStatusCode", "writeValueAsString", "readValue",
+            // ===== langchain4j Web Search（web_search 工具族：SearXNG / Tavily / SearchApi / Google 自定义搜索） =====
+            // map 供 Stream.map 中间操作（搜索结果流式转换为 JSONObject）；
+            // search/results 为引擎检索与结果读取；title/url/snippet/content/metadata
+            // 为 WebSearchOrganicResult 访问器；其余为各引擎 builder 链式配置方法（build 已在白名单中）
+            "map",
+            "search", "results", "searchInformation", "searchMetadata",
+            "title", "url", "snippet", "content", "metadata",
+            "baseUrl", "duration", "optionalParams", "optionalParameters",
+            "apiKey", "timeout", "engine", "csi", "siteRestrict", "includeImages",
+            "maxRetries", "searchDepth", "includeAnswer", "includeRawContent",
+            "includeDomains", "excludeDomains", "logRequests", "logResponses"
+    );
+
+    /** 允许通过 new 实例化的类。 */
+    private static final Set<String> ALLOWED_CONSTRUCTOR_CLASSES = Set.of(
+            "java.util.ArrayList",
+            "java.util.LinkedList",
+            "java.util.HashSet",
+            "java.util.LinkedHashSet",
+            "java.util.TreeSet",
+            "java.util.HashMap",
+            "java.util.LinkedHashMap",
+            "java.util.TreeMap",
+            "java.math.BigDecimal",
+            "java.math.BigInteger",
+            "java.lang.StringBuilder",
+            "java.lang.StringBuffer",
+            "java.text.SimpleDateFormat",
+            "java.text.DecimalFormat",
+            "groovy.json.JsonSlurper",
+            // 数据库查询工具：new JsonBuilder(rows).toString() 序列化结果集，
+            // new String(bytes, "UTF-8") 将 BLOB/byte[] 字段还原为文本
+            "groovy.json.JsonBuilder",
+            "java.lang.String",
+            "java.lang.IllegalArgumentException",
+            "net.objecthunter.exp4j.ExpressionBuilder",
+            // fastjson：内置工具构造 JSON 对象（new JSONObject() / new JSONArray()）
+            "com.alibaba.fastjson.JSONObject",
+            "com.alibaba.fastjson.JSONArray",
+            // MongoDB：new Document(map) 构造查询条件；new ObjectId(hex) 构造/比较 _id
+            "org.bson.Document",
+            "org.bson.types.ObjectId",
+            // 邮箱消息推送：new JavaMailSenderImpl() / new SimpleMailMessage()
+            "org.springframework.mail.javamail.JavaMailSenderImpl",
+            "org.springframework.mail.SimpleMailMessage",
+            // 受控 HTTP 客户端：new URL(spec) 构造（协议在运行期校验，仅放行 http/https）
+            "java.net.URL",
+            // 随机盐值生成（如百度翻译签名脚本 new Random().nextInt(...)）
+            "java.util.Random",
+            // langchain4j Web Search 结果数据类（纯数据载体，无危险行为，
+            // 供脚本离线构造/组装搜索结果）
+            "dev.langchain4j.web.search.WebSearchResults",
+            "dev.langchain4j.web.search.WebSearchOrganicResult",
+            "dev.langchain4j.web.search.WebSearchInformationResult",
+            // Apache HttpClient：请求/实体构造（钉钉机器人等 HTTP 推送工具脚本）
+            "org.apache.http.client.methods.HttpGet",
+            "org.apache.http.client.methods.HttpPost",
+            "org.apache.http.client.methods.HttpPut",
+            "org.apache.http.client.methods.HttpDelete",
+            "org.apache.http.entity.StringEntity",
+            // Jackson：new ObjectMapper() 构造 JSON 序列化器
+            "com.fasterxml.jackson.databind.ObjectMapper"
+    );
+
+    /** 允许静态调用的类及其方法白名单。 */
+    private static final Map<String, Set<String>> ALLOWED_STATIC_METHODS = Map.ofEntries(
+            Map.entry("java.lang.Math", Set.of(
+                    "abs", "acos", "asin", "atan", "atan2", "ceil", "cos", "cosh", "exp", "floor",
+                    "log", "log10", "max", "min", "pow", "random", "round", "signum", "sin", "sinh",
+                    "sqrt", "tan", "tanh", "toDegrees", "toRadians")),
+            Map.entry("java.lang.Integer", Set.of("parseInt", "valueOf", "toString", "compare", "sum", "max", "min")),
+            Map.entry("java.lang.Long", Set.of("parseLong", "valueOf", "toString", "compare", "sum", "max", "min")),
+            Map.entry("java.lang.Double", Set.of("parseDouble", "valueOf", "toString", "compare", "sum", "max", "min", "isNaN", "isInfinite")),
+            Map.entry("java.lang.Float", Set.of("parseFloat", "valueOf", "toString", "compare", "sum", "max", "min", "isNaN", "isInfinite")),
+            Map.entry("java.lang.Boolean", Set.of("parseBoolean", "valueOf", "toString", "logicalAnd", "logicalOr", "logicalXor")),
+            Map.entry("java.lang.String", Set.of("join", "valueOf", "format")),
+            Map.entry("java.math.BigDecimal", Set.of("valueOf")),
+            Map.entry("java.math.BigInteger", Set.of("valueOf")),
+            Map.entry("java.util.Arrays", Set.of("asList", "copyOf", "copyOfRange", "equals", "deepEquals", "sort", "toString", "deepToString")),
+            Map.entry("java.util.Collections", Set.of(
+                    "emptyList", "emptyMap", "emptySet", "singletonList", "singletonMap", "singleton",
+                    "unmodifiableList", "unmodifiableMap", "unmodifiableSet", "sort", "reverse", "min", "max", "frequency")),
+            Map.entry("java.util.Objects", Set.of("equals", "deepEquals", "hash", "hashCode", "isNull", "nonNull", "toString", "compare")),
+            Map.entry("java.util.UUID", Set.of("randomUUID", "fromString", "nameUUIDFromBytes")),
+            Map.entry("java.util.stream.Stream", Set.of("of", "empty", "concat")),
+            Map.entry("java.util.stream.StreamSupport", Set.of("stream")),
+            Map.entry("java.util.stream.Collectors", Set.of("toList", "toSet", "toMap", "joining", "counting", "groupingBy")),
+            Map.entry("java.time.LocalDate", Set.of("now", "of", "parse")),
+            Map.entry("java.time.LocalDateTime", Set.of("now", "of", "parse")),
+            Map.entry("java.time.LocalTime", Set.of("now", "of", "parse")),
+            Map.entry("java.time.ZonedDateTime", Set.of("now", "of", "parse")),
+            Map.entry("java.time.Instant", Set.of("now", "ofEpochMilli", "ofEpochSecond", "parse")),
+            Map.entry("java.time.Duration", Set.of("ofDays", "ofHours", "ofMinutes", "ofSeconds", "ofMillis", "between", "parse")),
+            Map.entry("java.time.Period", Set.of("of", "ofDays", "ofMonths", "ofYears", "between", "parse")),
+            Map.entry("java.time.ZoneId", Set.of("of", "systemDefault", "ofOffset")),
+            Map.entry("java.time.format.DateTimeFormatter", Set.of("ofPattern", "ofLocalizedDate", "ofLocalizedTime", "ofLocalizedDateTime")),
+            Map.entry("groovy.json.JsonOutput", Set.of("toJson", "prettyPrint")),
+            // 数据库查询（内置 MySQL/PostgreSQL 查询工具）：
+            // Sql.withInstance(url, user, pwd, driver) { conn -> ... } 建立连接并在闭包内执行查询；
+            // Sql.newInstance(url, user, pwd, driver) 建立连接返回 Sql 实例（配合 eachRow/close 使用），
+            // 连接参数均由工具配置提供，二者建连能力等价
+            Map.entry("groovy.sql.Sql", Set.of("withInstance", "newInstance")),
+            Map.entry("org.codehaus.groovy.runtime.DefaultGroovyMethods", ALLOWED_METHODS),
+            Map.entry("org.codehaus.groovy.runtime.StringGroovyMethods", ALLOWED_METHODS),
+            Map.entry("org.codehaus.groovy.runtime.ScriptBytecodeAdapter", Set.of("findRegex", "matchRegex")),
+            Map.entry("java.nio.file.Path", Set.of("of")),
+            // fastjson：内置工具 JSON 解析/序列化入口（JSON.parseObject / JSON.toJSONString 等）
+            Map.entry("com.alibaba.fastjson.JSON", Set.of(
+                    "parse", "parseObject", "parseArray",
+                    "toJSONString", "toJSONBytes",
+                    "isValid", "isValidArray", "isValidObject")),
+            Map.entry("io.github.mymonstercat.ocr.InferenceEngine", Set.of("getInstance")),
+            Map.entry("com.maxkb4j.common.util.SpringUtil", Set.of("getBean", "getBeansOfType")),
+            Map.entry("java.nio.file.Files", Set.of(
+                    "readString", "readAllLines", "readAllBytes",
+                    "write", "writeString",
+                    "exists", "notExists", "size",
+                    "isRegularFile", "isDirectory", "isReadable", "isWritable",
+                    "createDirectories", "createTempFile", "delete", "deleteIfExists")),
+            // MongoDB：MongoClients.create(connectionString) 创建客户端；
+            // Document.parse(json) 解析 JSON 查询条件
+            Map.entry("com.mongodb.client.MongoClients", Set.of("create")),
+            Map.entry("org.bson.Document", Set.of("parse")),
+            // JDK 集合/URI 工厂方法：Map.of(...) 供脚本构造常量 Map
+            // （如 SearXNG optionalParams(Map.of("format", "json"))）；
+            // URI.create 为纯字符串解析构造 URI（如离线构造搜索结果 url），不触发网络访问
+            Map.entry("java.util.Map", Set.of("of", "copyOf", "entry")),
+            Map.entry("java.net.URI", Set.of("create")),
+            // 哈希签名脚本：MessageDigest.getInstance(algorithm) 获取摘要器
+            Map.entry("java.security.MessageDigest", Set.of("getInstance")),
+            // URL 查询参数转义：URLEncoder.encode(value, charset) 纯字符串编码
+            Map.entry("java.net.URLEncoder", Set.of("encode")),
+            // Apache HttpClient：HttpClients.createDefault() 创建客户端、
+            // EntityUtils.toString(entity, charset) 读取响应体（钉钉机器人等 HTTP 推送工具）
+            Map.entry("org.apache.http.impl.client.HttpClients", Set.of("createDefault")),
+            Map.entry("org.apache.http.util.EntityUtils", Set.of("toString")),
+            // langchain4j Web Search 引擎静态工厂 builder()（web_search 工具族）
+            Map.entry("dev.langchain4j.community.web.search.searxng.SearXNGWebSearchEngine", Set.of("builder")),
+            Map.entry("dev.langchain4j.web.search.tavily.TavilyWebSearchEngine", Set.of("builder")),
+            Map.entry("dev.langchain4j.web.search.searchapi.SearchApiWebSearchEngine", Set.of("builder")),
+            Map.entry("dev.langchain4j.web.search.google.customsearch.GoogleCustomWebSearchEngine", Set.of("builder"))
+    );
+
+    /**
+     * java.nio.file 包内的白名单类：Files / Path 作为文件操作入口，
+     * 不受 java.nio.file.* 危险类前缀限制；同包其它类仍被禁止。
+     */
+    private static final Set<String> ALLOWED_NIO_CLASSES = Set.of(
+            "java.nio.file.Files",
+            "java.nio.file.Path"
+    );
+
+    /** 基本类型名（编译期 ClassExpression 白名单校验用）。 */
+    private static final Set<String> PRIMITIVE_TYPE_NAMES = Set.of(
+            "int", "long", "double", "float", "boolean", "char", "byte", "short", "void"
+    );
+
+    /** 闭包接收者仅允许调用转发相关方法。 */
+    private static final Set<String> CLOSURE_METHODS = Set.of("call", "doCall", "isCase");
+
+    /** 允许作为接收者的异常类白名单（脚本可 catch 并读取其消息）。 */
+    private static final Set<String> ALLOWED_EXCEPTION_CLASSES = Set.of(
+            "java.lang.Throwable",
+            "java.lang.Exception",
+            "java.lang.RuntimeException",
+            "java.lang.IllegalArgumentException",
+            "java.lang.NumberFormatException",
+            // java.time 日期解析/构造失败抛出的异常族（如 LocalDate.parse 的 catch 场景）
+            "java.time.DateTimeException",
+            "java.time.format.DateTimeParseException"
+    );
+
+    /**
+     * 平台数据类（DTO/VO/实体/领域对象）的包名特征。
+     * 工作流/工具引擎会把这类对象作为绑定参数传入脚本（如 imageList 中的 OssFile），
+     * 允许对其做属性读取（由 getter 支撑）；方法调用仍受方法白名单约束。
+     */
+    private static final List<String> DATA_CLASS_PACKAGE_TOKENS = List.of(
+            ".domain.", ".dto.", ".vo.", ".entity."
+    );
+
+    // ==================================================================
+    // 黑名单数据
+    // ==================================================================
+
+    /** 危险方法名：任何情况下都不允许调用。 */
+    private static final Set<String> DANGEROUS_METHODS = Set.of(
+            "exec", "execute", "start", "getRuntime",
+            "forName", "loadClass", "newInstance",
+            "invoke", "invokeMethod", "getMethod", "getDeclaredMethod", "getMethods", "getDeclaredMethods",
+            "getField", "getDeclaredField", "getFields", "getDeclaredFields",
+            "getConstructor", "getDeclaredConstructor", "getConstructors", "getDeclaredConstructors",
+            "setAccessible", "getClass", "getClassLoader", "getMetaClass", "setMetaClass",
+            "parseClass", "evaluate"
+    );
+
+    /**
+     * 危险方法名的受信例外：方法名命中危险名单，但接收者属于白名单安全类时放行。
+     * 例如 exp4j Expression#evaluate 是纯数学表达式求值，
+     * 与 GroovyShell#evaluate 这类任意脚本执行有本质区别；
+     * HttpClient#execute 仅发送 HTTP 请求，与 Runtime#exec 这类命令执行有本质区别。
+     */
+    private static final Map<String, Set<String>> DANGEROUS_METHOD_EXCEPTIONS = Map.of(
+            "evaluate", Set.of("net.objecthunter.exp4j.Expression"),
+            "execute", Set.of(
+                    "net.objecthunter.exp4j.Expression",
+                    // 受控 HTTP 客户端：编译期推断类型为接口/抽象类，
+                    // 运行期接收者为 InternalHttpClient 等实现类（沿继承链匹配）
+                    "org.apache.http.client.HttpClient",
+                    "org.apache.http.impl.client.CloseableHttpClient")
+    );
+
+    /**
+     * 禁止访问/设置的属性名。
+     * 这些属性可用于操控 Groovy 运行时行为，即使在 ALLOWED_CLASSES 中的类上也不允许操作。
+     */
+    private static final Set<String> BLOCKED_PROPERTIES = Set.of(
+            "metaClass", "class", "classLoader", "declaringClass", "protectionDomain",
+            "methods", "declaredMethods", "fields", "declaredFields",
+            "constructors", "declaredConstructors", "this", "super"
+    );
+
+    /**
+     * 脚本文本预检的危险标记（按匹配优先级排序，全部小写）。
+     * 在编译前对脚本内容做粗粒度拦截，命中即拒绝。
+     */
+    private static final List<String> DANGEROUS_TOKENS = List.of(
+            "runtime",
+            "processbuilder",
+            "java.lang.process", "java.lang.system",
+            "system.getenv", "system.getproperty",
+            "class.forname",
+            "getruntime",
+            // ".exec"/".execute" 不再进入文本预检：HttpClient 等白名单接收者的 execute(...)
+            // 会被粗筛误杀（如钉钉机器人脚本的 httpClient.execute）。
+            // 命令执行入口已由 "runtime"/"processbuilder" 标记与 DANGEROUS_METHODS
+            // （exec/execute 仅放行受信接收者）在编译期+运行期双层拦截
+            // 必须带左括号：裸 ".start" 会把白名单方法 startsWith 误判为危险调用
+            ".start(",
+            "getclass",
+            "getclassloader",
+            "loadclass",
+            "metaclass", "classloader", "java.lang.reflect", "java.lang.invoke", "setaccessible",
+            "getmethod", "getdeclaredmethod", "invoke(", "new file", "java.io.",
+            "java.net.",
+            "groovyshell", "groovyclassloader"
+    );
+
+    // ==================================================================
+    // 编译期 / 运行期共用的判定方法
+    // ==================================================================
+
+    /**
+     * 编译期 ClassExpression 白名单校验：脚本中允许引用（类名）的类。
+     * 与运行期白名单及可实例化类保持一致的单一事实来源，
+     * 未在白名单中的类在编译期即被拒绝。
+     */
+    public static boolean isAllowedClassName(String className) {
+        return "java.lang.Object".equals(className)
+                || PRIMITIVE_TYPE_NAMES.contains(className)
+                || ALLOWED_CLASSES.contains(className)
+                || ALLOWED_STATIC_METHODS.containsKey(className)
+                || ALLOWED_CONSTRUCTOR_CLASSES.contains(className)
+                || ALLOWED_EXCEPTION_CLASSES.contains(className);
+    }
+
+    /** 方法名是否在实例方法白名单中。 */
+    public static boolean isMethodAllowed(String method) {
+        return ALLOWED_METHODS.contains(method);
+    }
+
+    /** 静态调用是否在白名单中（类 + 方法双重校验）。 */
+    public static boolean isStaticCallAllowed(String className, String method) {
+        Set<String> methods = ALLOWED_STATIC_METHODS.get(className);
+        return methods != null && methods.contains(method);
+    }
+
+    /**
+     * 运行期静态调用校验（含继承链）：静态方法可经子类名调用
+     * （如 {@code JSONObject.parseArray} 实际声明于父类 {@code JSON}），
+     * 精确类名未命中时沿父类链向上查找，仅当某级父类已显式登记静态方法白名单时才放行。
+     */
+    public static boolean isStaticCallAllowed(Class<?> sender, String method) {
+        if (sender == null || method == null) {
+            return false;
+        }
+        for (Class<?> clazz = sender; clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+            if (isStaticCallAllowed(normalizeClassName(clazz), method)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 运行期静态调用空操作判定：命中时静默跳过，不执行真实方法。
+     * <p>
+     * 典型来源：脚本中的 {@code @Grab} 注解。编译期已按注册全限定名禁用
+     * {@code groovy.grape.GrabAnnotationTransformation}，正常编译不会注入任何
+     * Grape 调用；但若存在禁用未生效的环境或历史编译产物，{@code @Grab} 会被
+     * 转换为运行期 {@code Grape.grab(...)} 静态调用。沙箱禁止联网下载依赖，
+     * 此类调用按空操作忽略（绝不放行真实下载），脚本继续使用应用 classpath
+     * 中已存在的依赖执行。
+     * </p>
+     */
+    public static boolean isNoOpStaticCall(Class<?> sender, String method) {
+        return sender != null
+                && "groovy.grape.Grape".equals(sender.getName())
+                && "grab".equals(method);
+    }
+
+    /** 类是否允许通过 new 实例化。 */
+    public static boolean isConstructorAllowed(String className) {
+        return ALLOWED_CONSTRUCTOR_CLASSES.contains(className);
+    }
+
+    public static boolean isDangerousMethod(String method) {
+        return DANGEROUS_METHODS.contains(method);
+    }
+
+    /**
+     * 带接收者类型的危险方法检查：命中危险方法名但属于受信例外组合（接收者类 + 方法名）时不视为危险。
+     * 接收者类型未知（null）时退化为纯方法名校验，保持保守拦截。
+     * <p>
+     * 受信例外沿父类与接口链匹配：运行期接收者往往是白名单抽象类的具体实现
+     * （如 HttpClients.createDefault() 实际返回 InternalHttpClient，
+     * 编译期推断类型为 CloseableHttpClient / HttpClient）。
+     * </p>
+     */
+    public static boolean isDangerousMethod(Class<?> receiverClass, String method) {
+        if (!isDangerousMethod(method)) {
+            return false;
+        }
+        if (receiverClass == null) {
+            return true;
+        }
+        Set<String> exceptions = DANGEROUS_METHOD_EXCEPTIONS.get(method);
+        if (exceptions == null) {
+            return true;
+        }
+        for (Class<?> clazz = receiverClass; clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+            if (exceptions.contains(normalizeClassName(clazz))) {
+                return false;
+            }
+            for (Class<?> iface : clazz.getInterfaces()) {
+                if (exceptions.contains(normalizeClassName(iface))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static boolean isDangerousProperty(String property) {
+        return BLOCKED_PROPERTIES.contains(property);
+    }
+
+    /**
+     * 接收者是否为指向白名单类的类引用对象（Class 实例）。
+     * 用于「类名.静态属性」场景（如枚举常量 Model.ONNX_PPOCR_V4、
+     * 静态字段 Integer.MAX_VALUE）：Groovy 将其编译为对 Class 对象的属性读取，
+     * 仅当 Class 指向的目标类在白名单中时放行，读取结果仍经过取值校验。
+     */
+    public static boolean isAllowedClassReference(Object receiver) {
+        if (!(receiver instanceof Class<?> clazz)) {
+            return false;
+        }
+        return isAllowedClassName(normalizeClassName(clazz)) && !isDangerousClass(clazz);
+    }
+
+    /**
+     * 是否为平台数据类（包名含 dto/vo/entity/domain 段的 com.maxkb4j.* 类）。
+     * 仅用于放开属性读取，不放开任意方法调用与属性写入。
+     */
+    public static boolean isReadableDataClass(Class<?> type) {
+        if (type == null || isDangerousClass(type)) {
+            return false;
+        }
+        String className = normalizeClassName(type);
+        if (!className.startsWith("com.maxkb4j.")) {
+            return false;
+        }
+        for (String token : DATA_CLASS_PACKAGE_TOKENS) {
+            if (className.contains(token)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 脚本文本预检：返回脚本内容中命中的第一个危险标记，未命中返回 null。
+     */
+    public static String findDangerousToken(String script) {
+        String normalized = script.toLowerCase();
+        for (String token : DANGEROUS_TOKENS) {
+            if (normalized.contains(token)) {
+                return token;
+            }
+        }
+        return null;
+    }
+
+    // ==================================================================
+    // 运行期类型判定
+    // ==================================================================
+
+    /** 接收者类型 + 方法名的组合是否允许（闭包仅放行转发方法）。 */
+    public static boolean isAllowedReceiver(Class<?> receiverClass, String method) {
+        if (Closure.class.isAssignableFrom(receiverClass)) {
+            return CLOSURE_METHODS.contains(method);
+        }
+        return isAllowedType(receiverClass);
+    }
+
+    /** 类型是否在白名单中（沿接口与父类链查找；Object 本身不放行）。 */
+    public static boolean isAllowedType(Class<?> type) {
+        if (type == null) {
+            return false;
+        }
+        // Object 是所有类的祖先，若放行会导致类白名单对任意类失效
+        if (Object.class.equals(type)) {
+            return false;
+        }
+        if (type.isArray()) {
+            return isSafeArrayType(type);
+        }
+        String className = normalizeClassName(type);
+        if (ALLOWED_CLASSES.contains(className) || ALLOWED_EXCEPTION_CLASSES.contains(className)) {
+            return true;
+        }
+        // 受控 HTTP 客户端：连接/流的具体实现类（JDK 内部类，如 sun.net.www.*）按基类指派放行
+        if (isAllowedNetworkOrIoType(type)) {
+            return true;
+        }
+        for (Class<?> iface : type.getInterfaces()) {
+            if (isAllowedType(iface)) {
+                return true;
+            }
+        }
+        if (isDangerousClass(type)) {
+            return false;
+        }
+        Class<?> superclass = type.getSuperclass();
+        return isAllowedType(superclass);
+    }
+
+    /** 类型是否属于危险类（反射 / 进程 / 类加载 / IO / 网络 / Groovy 运行时入口等）。 */
+    public static boolean isDangerousClass(Class<?> type) {
+        if (type == null) {
+            return false;
+        }
+        if (type.isArray()) {
+            return isDangerousClass(type.getComponentType());
+        }
+        if (Class.class.equals(type)
+                || ClassLoader.class.isAssignableFrom(type)
+                || Runtime.class.isAssignableFrom(type)
+                || Process.class.isAssignableFrom(type)
+                || ProcessBuilder.class.isAssignableFrom(type)
+                || AccessibleObject.class.isAssignableFrom(type)
+                || Method.class.isAssignableFrom(type)
+                || Field.class.isAssignableFrom(type)
+                || Constructor.class.isAssignableFrom(type)) {
+            return true;
+        }
+        // 受控 HTTP 客户端：URL/URI/URLConnection 及读写请求/响应体所需的流
+        // （含 JDK 内部实现类，如 sun.net.www.protocol.https.*）按基类指派放行，不视为危险类；
+        // 其余 java.net.*（Socket/ServerSocket 等）与 java.io.*（File/FileInputStream 等）仍拦截。
+        if (isAllowedNetworkOrIoType(type)) {
+            return false;
+        }
+        String className = normalizeClassName(type);
+        return className.startsWith("java.lang.reflect.")
+                || className.startsWith("java.lang.invoke.")
+                || className.startsWith("java.io.")
+                || (className.startsWith("java.nio.file.") && !ALLOWED_NIO_CLASSES.contains(className))
+                || (className.startsWith("java.net.")
+                        // URLEncoder.encode 仅做 URL 参数转义（纯字符串处理），
+                        // 是受控 HTTP 客户端构造查询串的组成部分，精确豁免
+                        && !"java.net.URLEncoder".equals(className))
+                || className.equals("java.lang.System")
+                || className.equals("groovy.lang.GroovyShell")
+                || className.equals("groovy.lang.GroovyClassLoader")
+                || className.equals("groovy.lang.MetaClass")
+                || className.equals("groovy.lang.MetaMethod")
+                || className.equals("groovy.lang.ExpandoMetaClass")
+                || className.equals("org.codehaus.groovy.runtime.InvokerHelper");
+    }
+
+    /**
+     * 受控 HTTP 客户端放行的网络/IO 基类判定。
+     * <p>
+     * 仅放行发起 HTTP(S) 请求所必需的类型及其运行期实现类：URL/URI、URLConnection
+     * （含 HttpURLConnection 及 sun.net.www.* 等 JDK 内部实现），以及读写请求/响应体所需的
+     * InputStream/OutputStream/Reader/Writer。Socket、ServerSocket、File、FileInputStream 等
+     * 不在此列，仍被 {@link #isDangerousClass} 拦截。
+     * </p>
+     *
+     * @param type 待判定类型（调用方已保证非 null）
+     * @return 属于受控 HTTP 客户端可放行的网络/IO 类型返回 true
+     */
+    private static boolean isAllowedNetworkOrIoType(Class<?> type) {
+        return type == java.net.URL.class
+                || type == java.net.URI.class
+                || java.net.URLConnection.class.isAssignableFrom(type)
+                || java.io.InputStream.class.isAssignableFrom(type)
+                || java.io.OutputStream.class.isAssignableFrom(type)
+                || java.io.Reader.class.isAssignableFrom(type)
+                || java.io.Writer.class.isAssignableFrom(type);
+    }
+
+    /** 受控 HTTP 客户端允许的 URL 协议：仅 http/https，禁止 file:/jar:/ftp: 等读取本地资源。 */
+    private static final Set<String> ALLOWED_URL_PROTOCOLS = Set.of("http", "https");
+
+    /**
+     * 校验 {@code new URL(...)} 构造参数：仅放行 http/https 协议。
+     * <p>
+     * 兼容两种构造形式：
+     * <ul>
+     *   <li>{@code new URL("https://host/path")}：取 {@code ://} 之前的协议名</li>
+     *   <li>{@code new URL("https", "host", "/path")}：首参即协议名</li>
+     * </ul>
+     * 协议非 http/https（如 file:/jar:）时拒绝，防止脚本读取本地文件或访问非预期资源。
+     * </p>
+     *
+     * @param args URL 构造器参数
+     * @throws SecurityException 协议不在白名单内
+     */
+    public static void validateUrlConstruction(Object... args) {
+        String protocol = extractUrlProtocol(args);
+        if (protocol == null || !ALLOWED_URL_PROTOCOLS.contains(protocol.toLowerCase(java.util.Locale.ROOT))) {
+            throw new SecurityException("仅允许 http/https 协议的 URL，实际协议: "
+                    + (protocol == null ? "未知" : protocol));
+        }
+    }
+
+    /** 从 URL 构造参数中解析协议名，无法识别时返回 null。 */
+    private static String extractUrlProtocol(Object... args) {
+        if (args == null || args.length == 0 || !(args[0] instanceof String first)) {
+            return null;
+        }
+        if (args.length == 1) {
+            int idx = first.indexOf("://");
+            return idx > 0 ? first.substring(0, idx) : null;
+        }
+        return first;
+    }
+
+    /** 数组类型是否安全：最终组件类型为基本类型、字符串、数字、布尔、字符或枚举。 */
+    public static boolean isSafeArrayType(Class<?> type) {
+        Class<?> componentType = type.getComponentType();
+        while (componentType != null && componentType.isArray()) {
+            componentType = componentType.getComponentType();
+        }
+        if (componentType == null || Object.class.equals(componentType) || isDangerousClass(componentType)) {
+            return false;
+        }
+        return componentType.isPrimitive()
+                || String.class.equals(componentType)
+                || Number.class.isAssignableFrom(componentType)
+                || Boolean.class.equals(componentType)
+                || Character.class.equals(componentType)
+                || componentType.isEnum();
+    }
+
+    /** Groovy 生成的内部类名归一化（去掉 $$ 之后的部分）。 */
+    public static String normalizeClassName(Class<?> type) {
+        String className = type.getName();
+        if (className.contains("$$")) {
+            return className.substring(0, className.indexOf("$$"));
+        }
+        return className;
+    }
+
+    // ==================================================================
+    // 运行期取值校验
+    // ==================================================================
+
+    /** 数组/下标访问校验：接收者与下标取值都必须安全。 */
+    public static void validateArrayAccess(Object receiver, Object index) {
+        if (receiver == null) {
+            throw new SecurityException("不允许访问空对象数组");
+        }
+        validateValue(index);
+        Class<?> receiverClass = receiver.getClass();
+        String className = normalizeClassName(receiverClass);
+        if (receiverClass.isArray()) {
+            if (!isSafeArrayType(receiverClass)) {
+                throw new SecurityException("不允许访问数组类型: " + className);
+            }
+            return;
+        }
+        if (!isAllowedType(receiverClass)) {
+            throw new SecurityException("不允许在类 " + className + " 上访问数组");
+        }
+    }
+
+    public static void validateArguments(Object... args) {
+        if (args == null) {
+            return;
+        }
+        for (Object arg : args) {
+            validateValue(arg);
+        }
+    }
+
+    public static Object validateReturnValue(Object value) {
+        validateValue(value);
+        return value;
+    }
+
+    /** 递归校验取值类型：拒绝危险类型与不安全数组，深入集合与 Map 逐项校验。 */
+    public static void validateValue(Object value) {
+        if (value == null) {
+            return;
+        }
+        if (value instanceof Class<?> classValue) {
+            // Class 字面量（如 SpringUtil.getBean(IOssService.class) 的参数）：
+            // 仅当指向白名单类时放行，避免 Class 对象携带任意类型穿透沙箱
+            if (!isAllowedClassReference(classValue)) {
+                throw new SecurityException("不允许使用危险类型: " + classValue.getName());
+            }
+            return;
+        }
+        Class<?> valueClass = value.getClass();
+        if (valueClass.isArray()) {
+            if (!isSafeArrayType(valueClass)) {
+                throw new SecurityException("不允许使用数组类型: " + normalizeClassName(valueClass));
+            }
+            return;
+        }
+        if (isDangerousClass(valueClass)) {
+            throw new SecurityException("不允许使用危险类型: " + normalizeClassName(valueClass));
+        }
+        if (value instanceof Collection<?> collection) {
+            for (Object item : collection) {
+                validateValue(item);
+            }
+        } else if (value instanceof Map<?, ?> map) {
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                validateValue(entry.getKey());
+                validateValue(entry.getValue());
+            }
+        }
+    }
+
+    // ==================================================================
+    // 安全异常提取
+    // ==================================================================
+
+    /** 沿异常 cause 链查找 SecurityException（沙箱拒绝语义），未找到返回 null。 */
+    public static SecurityException findSecurityException(Throwable throwable) {
+        while (throwable != null) {
+            if (throwable instanceof SecurityException securityException) {
+                return securityException;
+            }
+            throwable = throwable.getCause();
+        }
+        return null;
+    }
+}

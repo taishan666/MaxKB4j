@@ -1,19 +1,17 @@
 package com.maxkb4j.trigger.service;
 
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.http.HttpResponse;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.constant.ResourceType;
-import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.application.dto.ChatResponse;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatSource;
-import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.tool.service.IToolService;
@@ -146,13 +144,7 @@ public class TriggerTaskExecutor {
         try {
             ToolDTO tool = toolService.getDtoById(toolId);
             JSONObject parameter = task.getParameter();
-            Object response;
-            if (ToolConstants.ToolType.HTTP.equals(tool.getToolType())){
-                HttpResponse httpResponse = toolExecuteService.httpExecute(tool.getCode(),parameter);
-                response = httpResponse.isOk()?httpResponse.body():null;
-            }else {
-                response = toolExecuteService.customExecute(tool.getCode(), tool.getInitParams(),parameter);
-            }
+            Object response=toolExecuteService.httpOrCodeExecute(tool.getToolType(),tool.getCode(),tool.getInitParams(),parameter);
             float runTime = (System.currentTimeMillis() - startTime) / 1000f;
             TaskState state = (response != null) ? TaskState.SUCCESS : TaskState.FAILURE;
             JSONObject meta = new JSONObject();

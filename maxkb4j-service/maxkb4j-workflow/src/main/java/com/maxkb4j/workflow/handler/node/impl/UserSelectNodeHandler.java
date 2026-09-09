@@ -9,6 +9,7 @@ import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import com.maxkb4j.workflow.node.impl.UserSelectNode;
 import org.springframework.stereotype.Component;
 
@@ -62,7 +63,7 @@ public class UserSelectNodeHandler extends AbsNodeHandler {
     }
 
     @Override
-    public boolean shouldInterrupt(AbsNode node) {
+    public boolean shouldInterrupt(INode node) {
         return !(boolean) node.getContext().getOrDefault(FormField.IS_SUBMIT, false);
     }
 }

@@ -62,10 +62,9 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
     }
 
     @Override
-    protected NodeResult handleNodeError(IWorkflow workflow, AbsNode node, Exception ex) {
-        NodeResult result = super.handleNodeError(workflow, node, ex);
+    protected void handleNodeError(IWorkflow workflow, AbsNode node, Exception ex) {
+        super.handleNodeError(workflow, node, ex);
         emitErrorToSink(workflow, node, ex);
-        return result;
     }
 
     /**

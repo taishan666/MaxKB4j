@@ -80,6 +80,7 @@
         t.name,
         t."desc",
         t.icon,
+        t.code,
         t.tool_type,
         t.input_field_list,
         t.init_params,

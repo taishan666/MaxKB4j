@@ -54,7 +54,7 @@ class VisitCountOverTest {
                                                       IApplicationAccessTokenInternalService accessTokenService) {
         return new ApplicationChatServiceImpl(
                 mock(IApplicationChatRecordInternalService.class),
-                mock(IApplicationService.class),
+                mock(IApplicationInternalService.class),
                 statsServiceMock,
                 accessTokenService,
                 mock(ApplicationVersionService.class),

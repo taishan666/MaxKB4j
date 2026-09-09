@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.model;
 
-import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 
 import java.util.List;
 
@@ -15,19 +15,19 @@ public interface IWorkflowExecutionAccessor {
     /**
      * 获取当前执行节点。
      */
-    AbsNode currentNode();
+    INode currentNode();
     /**
      * 获取下一个节点列表（根据当前节点执行结果与下游边计算，处理断言分支与跳过）。
      */
-    List<AbsNode> nextNodes(AbsNode currentNode, NodeResult currentNodeResult);
+    List<INode> nextNodes(INode currentNode, NodeResult currentNodeResult);
 
     /**
      * 检查依赖节点是否已执行（开始节点无上游依赖直接通过）。
      */
-    boolean dependenciesNotExecuted(AbsNode node);
+    boolean dependenciesNotExecuted(INode node);
 
     /**
      * 记录节点执行（runtimeNodeId 顺序与时间戳）。
      */
-    void recordExecution(AbsNode node);
+    void recordExecution(INode node);
 }

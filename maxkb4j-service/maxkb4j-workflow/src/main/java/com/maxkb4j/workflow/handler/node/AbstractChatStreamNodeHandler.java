@@ -66,11 +66,6 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
     }
 
     @Override
-    public boolean isAsync() {
-        return true;
-    }
-
-    @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         throw new UnsupportedOperationException("Streaming node uses async execution via doExecuteAsync");
     }

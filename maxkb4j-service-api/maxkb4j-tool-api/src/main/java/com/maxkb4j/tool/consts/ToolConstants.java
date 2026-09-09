@@ -44,6 +44,7 @@ public interface ToolConstants {
      * MCP服务器类型
      */
     interface McpType {
+        String STDIO = "stdio";
         String SSE = "sse";
         String STREAMABLE_HTTP = "streamable_http";
     }

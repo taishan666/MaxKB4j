@@ -44,7 +44,6 @@ public class ApplicationMkImportService {
 
     private final UserContext userContext;
     private final IToolService toolService;
-    private final IModelService modelService;
 
     /**
      * 从 classpath 的 templates/app 目录加载并解析 .mk 模板。
@@ -97,88 +96,9 @@ public class ApplicationMkImportService {
         app.setUserId(userId);
         app.setCreateTime(null);
         app.setUpdateTime(null);
-        if (AppType.SIMPLE.name().equals(app.getType())&& StringUtils.isNotBlank(app.getModelId())){
-            app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.LLM));
-        }
-        if (AppType.SIMPLE.name().equals(app.getType())&& StringUtils.isNotBlank(app.getTtsModelId())){
-            app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.TTS));
-        }
-        if (AppType.SIMPLE.name().equals(app.getType())&& StringUtils.isNotBlank(app.getSttModelId())){
-            app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.STT));
-        }
         if (!CollectionUtils.isEmpty(toolList)) {
             toolService.saveOrUpdateBatch(toolList,userId);
         }
-        normalizeLlmNodeModels(app.getWorkFlow());
     }
 
-    private void normalizeLlmNodeModels(JSONObject workFlow) {
-        JSONArray nodes = WorkFlowNodes.getNodes(workFlow);
-        if (nodes == null) {
-            return;
-        }
-        for (int i = 0; i < nodes.size(); i++) {
-            JSONObject node = nodes.getJSONObject(i);
-            if (node == null) {
-                continue;
-            }
-            String type = node.getString("type");
-            if (BASE.getKey().equals(type)) {
-                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
-                if (nodeData != null) {
-                    String ttsModelId = nodeData.getString("ttsModelId");
-                    if (ttsModelId != null){
-                        nodeData.put("ttsModelId", modelService.getSafeModelId(ttsModelId, ModelType.TTS));
-                    }
-                    String sttModelId = nodeData.getString("sttModelId");
-                    if (sttModelId != null){
-                        nodeData.put("sttModelId", modelService.getSafeModelId(sttModelId, ModelType.STT));
-                    }
-                }
-            }
-            if (LLM_NODE_TYPES.contains(type)) {
-                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
-                if (nodeData != null) {
-                    String modelId = nodeData.getString("modelId");
-                    if (modelId != null){
-                        nodeData.put("modelId", modelService.getSafeModelId(modelId, ModelType.LLM));
-                    }
-                }
-            }
-            if (IMAGE_GENERATE.getKey().equals(type)) {
-                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
-                if (nodeData != null) {
-                    String modelId = nodeData.getString("modelId");
-                    if (modelId != null){
-                        nodeData.put("modelId", modelService.getSafeModelId(modelId, ModelType.TTI));
-                    }
-                }
-            }
-            if (TEXT_TO_SPEECH.getKey().equals(type)) {
-                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
-                if (nodeData != null) {
-                    String ttsModelId = nodeData.getString("ttsModelId");
-                    if (ttsModelId != null){
-                        nodeData.put("ttsModelId", modelService.getSafeModelId(ttsModelId, ModelType.TTS));
-                    }
-                }
-            }
-            if (SPEECH_TO_TEXT.getKey().equals(type)) {
-                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
-                if (nodeData != null) {
-                    String sttModelId = nodeData.getString("sttModelId");
-                    if (sttModelId != null){
-                        nodeData.put("sttModelId", modelService.getSafeModelId(sttModelId, ModelType.STT));
-                    }
-                }
-            }
-            if (LOOP.getKey().equals(type)){
-                JSONObject nodeData = WorkFlowNodes.getNodeData(node);
-                if (nodeData != null){
-                    JSONObject loopBody= nodeData.getJSONObject("loopBody");
-                    normalizeLlmNodeModels(loopBody);
-                }
-            }
-        }
-    }
 }

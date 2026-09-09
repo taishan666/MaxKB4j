@@ -26,21 +26,23 @@ public class ToolConnectionHandler {
         if (serverConfig == null || serverConfig.isEmpty()) {
             return false;
         }
-        McpClient mcpClient= McpToolUtil.getMcpClient(serverConfig);
-        if (mcpClient == null){
-            return false;
-        }
-        boolean flag=false;
+        McpClient mcpClient = null;
+        boolean flag = false;
         try {
-            mcpClient.checkHealth();
-            flag= true;
+            mcpClient = McpToolUtil.getMcpClient(serverConfig);
+            if (mcpClient != null) {
+                mcpClient.checkHealth();
+                flag = true;
+            }
         } catch (Exception e) {
             log.warn("MCP服务器连接测试失败", e);
         } finally {
-            try {
-                mcpClient.close();
-            } catch (Exception e) {
-                log.warn("关闭MCP客户端时发生错误", e);
+            if (mcpClient != null) {
+                try {
+                    mcpClient.close();
+                } catch (Exception e) {
+                    log.warn("关闭MCP客户端时发生错误", e);
+                }
             }
         }
         return flag;

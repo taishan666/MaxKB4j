@@ -1,18 +1,20 @@
 package com.maxkb4j.workflow.engine;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.IWorkflowExecutionAccessor;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 
@@ -79,7 +81,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
      * @return 下一个节点列表
      */
     @Override
-    public List<AbsNode> nextNodes(AbsNode currentNode, NodeResult currentNodeResult) {
+    public List<INode> nextNodes(INode currentNode, NodeResult currentNodeResult) {
         // 检查是否需要中断执行
         if (currentNodeResult != null && NodeResultWriter.isInterruptExec(currentNodeResult, currentNode)) {
             return List.of();
@@ -89,24 +91,24 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
         if (sourceEdges.isEmpty()) {
             return List.of();
         }
-
-        // 获取目标节点ID
-        List<String> targetNodeIds = sourceEdges.stream()
-                .map(LfEdge::getTargetNodeId)
-                .distinct()
-                .toList();
-
-        // 处理断言结果分支
+        // 处理断言结果分支：命中分支的节点正常执行，未命中的标记 SKIP
         if (currentNodeResult != null && NodeResultWriter.isAssertionResult(currentNodeResult)) {
-            List<AbsNode> targetNodes = buildNextNodes(targetNodeIds, currentNode);
+            Set<String> assertionNodeIds = findAssertionTargetNodeIds(currentNodeResult, sourceEdges);
+            List<INode> targetNodes = buildNextNodes(extractTargetNodeIds(sourceEdges), currentNode);
             targetNodes.forEach(node -> {
-                if (!isAssertionNode(node.getId(), currentNodeResult, sourceEdges)) {
+                if (!assertionNodeIds.contains(node.getId())) {
                     node.setStatus(NodeStatus.SKIP.getStatus());
                 }
             });
             return targetNodes;
         }
-        return buildNextNodes(targetNodeIds, currentNode);
+        // 普通分支：仅保留默认出口（right 锚点）的下游节点
+        List<String> targetNodeIds = sourceEdges.stream()
+                .filter(edge -> edge.getSourceAnchorId().equals(edge.getSourceNodeId() + "_right"))
+                .map(LfEdge::getTargetNodeId)
+                .distinct()
+                .toList();
+        return targetNodeIds.isEmpty() ? List.of() : buildNextNodes(targetNodeIds, currentNode);
     }
 
     /**
@@ -116,7 +118,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
      * @return 是否所有依赖节点都已执行
      */
     @Override
-    public boolean dependenciesNotExecuted(AbsNode node) {
+    public boolean dependenciesNotExecuted(INode node) {
         return dependencyChecker.dependenciesNotExecuted(node);
     }
 
@@ -139,7 +141,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
      * @param node 正在执行的节点
      */
     @Override
-    public void recordExecution(AbsNode node) {
+    public void recordExecution(INode node) {
         executionTracker.recordExecution(node);
     }
 
@@ -150,34 +152,49 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
      * @param currentNode   当前节点
      * @return 节点列表
      */
-    private List<AbsNode> buildNextNodes(List<String> targetNodeIds, AbsNode currentNode) {
+    private List<INode> buildNextNodes(List<String> targetNodeIds, INode currentNode) {
         List<String> upNodeIdList = new ArrayList<>(currentNode.getUpNodeIdList());
         upNodeIdList.add(currentNode.getId());
-        return targetNodeIds.stream()
-                .map(nodeId -> configuration.getNodeInstance(nodeId, upNodeIdList, null))
-                .filter(Objects::nonNull)
+        List<INode> nextNodes = new ArrayList<>(targetNodeIds.size());
+        for (String nodeId : targetNodeIds) {
+            AbsNode node = configuration.getNodeInstance(nodeId, upNodeIdList, null);
+            if (Objects.nonNull(node)) {
+                nextNodes.add(node);
+            }
+        }
+        return nextNodes;
+    }
+
+    /**
+     * 提取下游边指向的目标节点ID（去重）
+     *
+     * @param sourceEdges 下游边列表
+     * @return 目标节点ID列表
+     */
+    private static List<String> extractTargetNodeIds(List<LfEdge> sourceEdges) {
+        return sourceEdges.stream()
+                .map(LfEdge::getTargetNodeId)
+                .distinct()
                 .toList();
     }
 
     /**
-     * 判断是否为断言节点
+     * 计算断言结果命中的目标节点ID集合
+     * <p>
+     * 断言结果通过 branchId 标识命中分支，对应边的锚点格式为 {sourceNodeId}_{branchId}_right
+     * </p>
      *
-     * @param nodeId            节点ID
      * @param currentNodeResult 当前节点执行结果
      * @param sourceEdges       下游边列表
-     * @return 是否为断言节点
+     * @return 命中断言分支的目标节点ID集合
      */
-    private boolean isAssertionNode(String nodeId, NodeResult currentNodeResult, List<LfEdge> sourceEdges) {
-        List<String> assertionNodeIds = sourceEdges.stream()
-                .filter(edge -> {
-                    Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
-                    String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault(NodeField.BRANCH_ID, "") : "";
-                    String expectedAnchorId = String.format("%s_%s_right", edge.getSourceNodeId(), branchId);
-                    return expectedAnchorId.equals(edge.getSourceAnchorId());
-                })
+    private static Set<String> findAssertionTargetNodeIds(NodeResult currentNodeResult, List<LfEdge> sourceEdges) {
+        Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
+        String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault(NodeField.BRANCH_ID, "") : "";
+        return sourceEdges.stream()
+                .filter(edge -> (edge.getSourceNodeId() + "_" + branchId + "_right").equals(edge.getSourceAnchorId()))
                 .map(LfEdge::getTargetNodeId)
-                .toList();
-        return CollectionUtils.isNotEmpty(assertionNodeIds) && assertionNodeIds.contains(nodeId);
+                .collect(Collectors.toSet());
     }
 
 }

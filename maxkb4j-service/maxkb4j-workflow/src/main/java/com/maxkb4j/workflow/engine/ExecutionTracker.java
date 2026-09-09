@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.engine;
 
-import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,7 +51,7 @@ public class ExecutionTracker {
      *
      * @param node 正在执行的节点
      */
-    public void recordExecution(AbsNode node) {
+    public void recordExecution(INode node) {
         if (node == null || node.getRuntimeNodeId() == null) {
             return;
         }

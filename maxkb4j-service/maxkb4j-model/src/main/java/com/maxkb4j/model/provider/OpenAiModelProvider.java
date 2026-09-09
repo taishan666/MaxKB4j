@@ -12,8 +12,8 @@ import com.maxkb4j.model.custom.model.OpenAiTTSModel;
 import com.maxkb4j.model.custom.params.OpenAiChatModelParams;
 import com.maxkb4j.model.custom.params.OpenAiImageModelParams;
 import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.service.ISTTModel;
-import com.maxkb4j.model.service.ITTSModel;
+import com.maxkb4j.model.base.STTModel;
+import com.maxkb4j.model.base.TTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -135,12 +135,12 @@ public class OpenAiModelProvider extends AbsModelProvider {
     }
 
     @Override
-    public ISTTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
+    public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
         return new OpenAiSTTModel(modelName, credential, params);
     }
 
     @Override
-    public ITTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
+    public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         return new OpenAiTTSModel(modelName, credential, params);
     }
 }

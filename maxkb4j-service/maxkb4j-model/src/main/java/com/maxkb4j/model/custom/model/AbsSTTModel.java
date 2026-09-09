@@ -1,6 +1,6 @@
 package com.maxkb4j.model.custom.model;
 
-import com.maxkb4j.model.service.ISTTModel;
+import com.maxkb4j.model.base.STTModel;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jaudiotagger.audio.AudioFile;
@@ -19,7 +19,7 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Slf4j
 @Data
-public abstract class AbsSTTModel implements ISTTModel {
+public abstract class AbsSTTModel implements STTModel {
 
     protected int getSampleRate(byte[] audioBytes, String extension) {
         int sampleRate;

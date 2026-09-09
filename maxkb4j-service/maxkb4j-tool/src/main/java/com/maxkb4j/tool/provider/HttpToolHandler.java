@@ -21,6 +21,6 @@ public class HttpToolHandler extends ExecutorToolHandler {
 
     @Override
     protected ToolExecutor createExecutor(ToolEntity tool) {
-        return new HttpRequestExecutor(tool.getCode());
+        return new HttpRequestExecutor(tool.getCode(), tool.getInitParams());
     }
 }

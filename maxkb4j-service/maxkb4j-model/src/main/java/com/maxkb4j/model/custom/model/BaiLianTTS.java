@@ -4,14 +4,14 @@ import com.alibaba.dashscope.audio.ttsv2.SpeechSynthesisParam;
 import com.alibaba.dashscope.audio.ttsv2.SpeechSynthesizer;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.entity.ModelCredential;
-import com.maxkb4j.model.service.ITTSModel;
+import com.maxkb4j.model.base.TTSModel;
 import lombok.Data;
 
 import java.nio.ByteBuffer;
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
-public class BaiLianTTS implements ITTSModel {
+public class BaiLianTTS implements TTSModel {
 
     private SpeechSynthesisParam param;
 

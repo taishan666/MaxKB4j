@@ -1,35 +1,30 @@
 package com.maxkb4j.tool.controller;
 
-import cn.hutool.http.HttpResponse;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.domain.dto.MessageDTO;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.consts.ToolConstants;
-import com.maxkb4j.tool.dto.ToolConnectionTestDTO;
-import com.maxkb4j.tool.dto.ToolDebugDTO;
-import com.maxkb4j.tool.dto.ToolQuery;
-import com.maxkb4j.tool.dto.ToolSaveDTO;
+import com.maxkb4j.tool.dto.*;
 import com.maxkb4j.tool.entity.ToolEntity;
-import com.maxkb4j.tool.dto.ToolInputField;
 import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.tool.service.IToolInternalService;
-import com.maxkb4j.tool.vo.ToolCardVO;
-import com.maxkb4j.tool.vo.ToolItemVO;
-import com.maxkb4j.tool.vo.ToolListVO;
-import com.maxkb4j.tool.vo.ToolVO;
+import com.maxkb4j.tool.service.ToolCodeGenerateService;
+import com.maxkb4j.tool.vo.*;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.CollectionUtils;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.util.*;
@@ -46,6 +41,7 @@ public class ToolController {
 
     private final IToolInternalService toolService;
     private final IToolExecuteService toolExecuteService;
+    private final ToolCodeGenerateService toolCodeGenerateService;
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool/{current}/{size}")
@@ -109,22 +105,7 @@ public class ToolController {
     @SaCheckPerm(PermissionEnum.TOOL_DEBUG)
     @PostMapping("/tool/debug")
     public R<Object> debug(@Valid @RequestBody ToolDebugDTO dto) throws IOException {
-        Map<String, Object> params = new HashMap<>(5);
-        if (!CollectionUtils.isEmpty(dto.getDebugFieldList())) {
-            for (ToolInputField inputField : dto.getDebugFieldList()) {
-                params.put(inputField.getName(), inputField.getValue());
-            }
-        }
-        log.info("input params: {}", params);
-        Object result;
-        if (ToolConstants.ToolType.HTTP.equals(dto.getToolType())){
-            HttpResponse httpResponse = toolExecuteService.httpExecute(dto.getCode(),params);
-            result = httpResponse.body();
-        }else {
-            result = toolExecuteService.customExecute(dto.getCode(), dto.getInitParams(),params);
-        }
-        return R.data(result);
-
+        return R.data(toolExecuteService.httpOrCodeExecute(dto.getToolType(),dto.getCode(),dto.getInitParams(),dto.getDebugFieldList()));
     }
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
@@ -182,8 +163,14 @@ public class ToolController {
 
     @SaCheckPerm(PermissionEnum.TOOL_EDIT)
     @PutMapping("/tool/upload_skill_file")
-    public R<String> uploadSkillFile(MultipartFile file) throws IOException {
+    public R<SkillFileVO> uploadSkillFile(MultipartFile file) throws IOException {
         return R.data(toolService.uploadSkillFile(file));
+    }
+
+    @SaCheckPerm(PermissionEnum.TOOL_EDIT)
+    @PostMapping(path = "/tool/generateCode", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<MessageDTO> generateCode(@RequestBody @Valid GenerateCodeDTO dto) {
+        return toolCodeGenerateService.generateCode(dto);
     }
 
 

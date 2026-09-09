@@ -7,6 +7,7 @@ import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.model.IWorkflowOutputManager;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
@@ -55,14 +56,14 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
     }
 
     @Override
-    public List<Answer> getAnswers() {
-        List<AbsNode> executedNodes=getExecutedNodes();
+    public List<Answer> getAnswers(String chatRecordId) {
+        List<INode> executedNodes=getExecutedNodes();
         if (executedNodes.isEmpty()) {
             return List.of();
         }
         List<Answer> answerList = new ArrayList<>(executedNodes.size());
-        for (AbsNode node : executedNodes) {
-            answerList.addAll(node.getAnswerList());
+        for (INode node : executedNodes) {
+            answerList.addAll(node.getAnswerList(chatRecordId));
         }
         return answerList;
     }
@@ -75,12 +76,12 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
     @Override
     public JSONObject runtimeDetails() {
         JSONObject result = new JSONObject(true);
-        List<AbsNode> validNodes = getExecutedNodes();
+        List<INode> validNodes = getExecutedNodes();
         if (validNodes.isEmpty()) {
             return result;
         }
         for (int index = 0; index < validNodes.size(); index++) {
-            AbsNode node = validNodes.get(index);
+            INode node = validNodes.get(index);
             JSONObject runtimeDetail = new JSONObject(true);
             runtimeDetail.putAll(node.getDetail());
             runtimeDetail.put(RuntimeDetailField.INDEX, index);
@@ -104,7 +105,7 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
      *
      * @return 有效节点列表
      */
-    public List<AbsNode> getExecutedNodes() {
+    public List<INode> getExecutedNodes() {
         Set<String> configuredNodeIds = configuration.getNodes().stream()
                 .map(AbsNode::getId)
                 .collect(Collectors.toSet());

@@ -7,6 +7,7 @@ import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.util.SkillsToolUtil;
+import com.maxkb4j.tool.vo.SkillFileVO;
 import com.maxkb4j.tool.vo.ToolFileVO;
 import dev.langchain4j.skills.FileSystemSkill;
 import dev.langchain4j.skills.FileSystemSkillLoader;
@@ -20,6 +21,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -90,12 +92,15 @@ public class ToolSkillHandler {
         SkillsToolUtil.deleteDirectory(entity.getId());
     }
 
-    /** 组装 VO 时获取 Skill 关联文件列表（非 SKILL 返回空列表，避免前端 NPE）。 */
+    /** 组装 VO 时获取 Skill 关联文件列表（非 SKILL 或文件缺失返回空列表，避免前端 NPE）。 */
     public List<ToolFileVO> resolveFileList(ToolEntity entity) {
-        if (isNotSkill(entity)) {
+        if (isNotSkill(entity) || StringUtils.isEmpty(entity.getCode())) {
             return List.of();
         }
         OssFile file = ossService.getFile(entity.getCode());
+        if (file == null) {
+            return List.of();
+        }
         ToolFileVO vo = BeanUtil.copy(file, ToolFileVO.class);
         vo.setId(file.getFileId());
         return List.of(vo);
@@ -105,8 +110,23 @@ public class ToolSkillHandler {
         return !(entity != null && ToolConstants.ToolType.SKILL.equals(entity.getToolType()));
     }
 
-    /** 上传 Skill 压缩包到 oss，返回 fileId。 */
-    public String uploadSkillFile(MultipartFile file) throws IOException {
-        return ossService.storeFile(file);
+    /**
+     * 上传 Skill 压缩包到 oss：
+     * <ol>
+     *     <li>校验文件格式是否为 zip 压缩包；</li>
+     *     <li>校验压缩包内是否包含 SKILL.md；</li>
+     *     <li>从 SKILL.md 的 YAML front matter 中提取 skill 的 name / description。</li>
+     * </ol>
+     * 校验不通过直接抛出异常，不会写入 oss。
+     */
+    public SkillFileVO uploadSkillFile(MultipartFile file) throws IOException {
+        byte[] zipBytes = file.getBytes();
+        Map<String, String> meta = SkillsToolUtil.parseSkillMeta(zipBytes);
+        String fileId = ossService.storeFile(file);
+        SkillFileVO vo = new SkillFileVO();
+        vo.setFileId(fileId);
+        vo.setName(meta.get("name"));
+        vo.setDescription(meta.get("description"));
+        return vo;
     }
 }

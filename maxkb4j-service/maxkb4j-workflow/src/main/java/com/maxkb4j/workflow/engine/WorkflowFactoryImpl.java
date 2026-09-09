@@ -7,10 +7,12 @@ import com.maxkb4j.workflow.engine.graph.ChatWorkflowBuilder;
 import com.maxkb4j.workflow.engine.graph.KnowledgeLoopWorkflow;
 import com.maxkb4j.workflow.engine.graph.KnowledgeWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
+import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.service.WorkflowFactory;
-import com.maxkb4j.workflow.service.WorkflowSpec;
+import com.maxkb4j.workflow.model.WorkflowSpec;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -40,7 +42,7 @@ public class WorkflowFactoryImpl implements WorkflowFactory {
     }
 
     private IWorkflow createApplication(WorkflowSpec spec) {
-        return ChatWorkflowBuilder.create(WorkflowMode.APPLICATION, spec.getNodes(), spec.getEdges())
+        return ChatWorkflowBuilder.create(WorkflowMode.APPLICATION, engineNodes(spec), spec.getEdges())
                 .chatParams(spec.getChatParams())
                 .chatState(spec.getChatState())
                 .sink(spec.getSink())
@@ -48,7 +50,7 @@ public class WorkflowFactoryImpl implements WorkflowFactory {
     }
 
     private IWorkflow createKnowledge(WorkflowSpec spec) {
-        return new KnowledgeWorkflow(spec.getNodes(), spec.getEdges(), spec.getKnowledgeParams());
+        return new KnowledgeWorkflow(engineNodes(spec), spec.getEdges(), spec.getKnowledgeParams());
     }
 
     /**
@@ -57,13 +59,22 @@ public class WorkflowFactoryImpl implements WorkflowFactory {
     private IWorkflow createLoop(WorkflowSpec spec) {
         IWorkflow parent = spec.getParent();
         if (parent instanceof ChatWorkflow chatParent) {
-            return new ChatLoopWorkflow(chatParent, spec.getNodes(), spec.getEdges(),
+            return new ChatLoopWorkflow(chatParent, engineNodes(spec), spec.getEdges(),
                     spec.getLoopParams(), spec.getDetails(), spec.getSink());
         }
         if (parent instanceof KnowledgeWorkflow knowledgeParent) {
-            return new KnowledgeLoopWorkflow(knowledgeParent, spec.getNodes(), spec.getEdges(), spec.getLoopParams());
+            return new KnowledgeLoopWorkflow(knowledgeParent, engineNodes(spec), spec.getEdges(), spec.getLoopParams());
         }
         throw new IllegalArgumentException(
                 "Unsupported loop parent workflow: " + (parent != null ? parent.getClass().getName() : "null"));
+    }
+
+    /**
+     * 将契约节点收窄为引擎节点：节点经 {@code INodeCreator} 创建，运行时必为 {@link AbsNode}。
+     */
+    private List<AbsNode> engineNodes(WorkflowSpec spec) {
+        return spec.getNodes().stream()
+                .map(AbsNode.class::cast)
+                .toList();
     }
 }

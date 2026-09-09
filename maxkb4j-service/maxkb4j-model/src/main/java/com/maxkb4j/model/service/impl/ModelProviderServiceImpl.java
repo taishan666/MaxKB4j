@@ -7,8 +7,8 @@ import com.maxkb4j.model.exception.ModelNotFoundException;
 import com.maxkb4j.model.provider.AbsModelProvider;
 import com.maxkb4j.model.service.IModelInternalService;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.model.service.ISTTModel;
-import com.maxkb4j.model.service.ITTSModel;
+import com.maxkb4j.model.base.STTModel;
+import com.maxkb4j.model.base.TTSModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -71,7 +71,7 @@ public class ModelProviderServiceImpl implements IModelProviderService {
     }
 
     @Override
-    public ITTSModel buildTTSModel(String modelId, JSONObject modelParams) {
+    public TTSModel buildTTSModel(String modelId, JSONObject modelParams) {
         ModelEntity model = getModelOrThrow(modelId);
         AbsModelProvider modelProvider = getModelProviderOrThrow(model);
         modelParams = modelParams == null ? new JSONObject() : modelParams;
@@ -79,7 +79,7 @@ public class ModelProviderServiceImpl implements IModelProviderService {
     }
 
     @Override
-    public ISTTModel buildSTTModel(String modelId,JSONObject modelParams) {
+    public STTModel buildSTTModel(String modelId, JSONObject modelParams) {
         ModelEntity model = getModelOrThrow(modelId);
         AbsModelProvider modelProvider = getModelProviderOrThrow(model);
         return modelProvider.buildSTTModel(model.getModelName(), model.getCredential(),modelParams);

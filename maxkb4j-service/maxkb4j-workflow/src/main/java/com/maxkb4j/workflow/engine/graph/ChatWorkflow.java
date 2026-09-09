@@ -7,7 +7,7 @@ import com.maxkb4j.workflow.engine.WorkflowExecutionAccessor;
 import com.maxkb4j.workflow.engine.WorkflowOutputManager;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.model.IChatWorkflow;
-import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import lombok.Getter;
 import reactor.core.publisher.Sinks;
 
@@ -62,7 +62,7 @@ public class ChatWorkflow extends AbstractWorkflow implements IChatWorkflow {
      * @return 开始节点实例
      */
     @Override
-    public List<AbsNode> startNodes() {
+    public List<INode> startNodes() {
         return List.of(getNode(NodeType.START.getKey()));
     }
 

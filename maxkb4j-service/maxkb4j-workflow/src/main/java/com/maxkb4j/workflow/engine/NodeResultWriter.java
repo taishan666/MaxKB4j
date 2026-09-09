@@ -3,7 +3,7 @@ package com.maxkb4j.workflow.engine;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 
 import java.util.Map;
 
@@ -29,7 +29,7 @@ public final class NodeResultWriter {
      * 将节点结果写入节点上下文与工作流上下文。
      * <p>回调未指定时应用引擎默认实现。
      */
-    public static void writeContext(NodeResult result, AbsNode node, IWorkflow workflow) {
+    public static void writeContext(NodeResult result, INode node, IWorkflow workflow) {
         Map<String, Object> nodeVariable = result.getNodeVariable();
         if (nodeVariable != null) {
             node.getContext().putAll(nodeVariable);
@@ -42,7 +42,7 @@ public final class NodeResultWriter {
      * 将节点结果写入节点运行时详情。
      * <p>回调未指定时应用引擎默认实现。
      */
-    public static void writeDetail(NodeResult result, AbsNode node) {
+    public static void writeDetail(NodeResult result, INode node) {
         Map<String, Object> nodeVariable = result.getNodeVariable();
         if (nodeVariable != null) {
             if (NodeType.VARIABLE_AGGREGATE.getKey().equals(node.getType())) {
@@ -56,7 +56,7 @@ public final class NodeResultWriter {
     /**
      * 判断节点结果是否要求中断执行。回调未指定时默认不中断。
      */
-    public static boolean isInterruptExec(NodeResult result, AbsNode node) {
+    public static boolean isInterruptExec(NodeResult result, INode node) {
         NodeResult.IsInterruptFunction fn = result.getIsInterrupt();
         return fn != null && fn.apply(node);
     }

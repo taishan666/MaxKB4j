@@ -12,14 +12,7 @@ import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.entity.ApplicationVersionEntity;
 import com.maxkb4j.application.mapper.ApplicationMapper;
-import com.maxkb4j.application.service.ApplicationCascadeDeleteService;
-import com.maxkb4j.application.service.ApplicationDetailAssembler;
-import com.maxkb4j.application.service.ApplicationMkImportService;
-import com.maxkb4j.application.service.ApplicationResourceMappingService;
-import com.maxkb4j.application.service.ApplicationVersionService;
-import com.maxkb4j.application.service.IApplicationAccessTokenInternalService;
-import com.maxkb4j.application.service.IApplicationInternalService;
-import com.maxkb4j.application.service.PublishedApplicationCache;
+import com.maxkb4j.application.service.*;
 import com.maxkb4j.application.util.WorkFlowNodes;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationVO;
@@ -38,11 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.maxkb4j.workflow.enums.NodeType.BASE;
 
@@ -71,6 +60,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     private final ApplicationDetailAssembler detailAssembler;
     private final PublishedApplicationCache publishedApplicationCache;
     private final ApplicationCascadeDeleteService cascadeDeleteService;
+    private final ApplicationModelService applicationModelService;
 
     @Override
     public IPage<ApplicationListVO> selectAppPage(int page, int size, ApplicationQuery query) {
@@ -159,6 +149,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
 
     @Transactional(rollbackFor = Exception.class)
     public boolean saveOrUpdateApp(ApplicationEntity application) {
+        applicationModelService.normalizeAppModels(application);
         if (application.getId() == null) {
             if (StringUtils.isBlank(application.getFolderId())) {
                 application.setFolderId(ToolConstants.Defaults.DEFAULT_FOLDER_ID);
@@ -242,6 +233,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         applicationResourceMappingService.saveResourceMappings(appDTO);
         publishedApplicationCache.invalidate(appDTO.getId());
         ApplicationEntity entity=BeanUtil.copy(appDTO, ApplicationEntity.class);
+       // applicationModelService.normalizeAppModels(entity);
         return this.updateById(entity);
     }
 

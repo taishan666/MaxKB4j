@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.model;
 
 import com.maxkb4j.workflow.enums.WorkflowMode;
-import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import dev.langchain4j.data.message.ChatMessage;
 
 import java.util.List;
@@ -115,12 +115,12 @@ public interface IWorkflow {
     /**
      * 获取开始节点。
      */
-    List<AbsNode> startNodes();
+    List<INode> startNodes();
 
     /**
      * 根据节点 ID 获取节点。
      */
-    AbsNode getNode(String nodeId);
+    INode getNode(String nodeId);
     /**
      * 获取节点执行超时时间（分钟），与 TimeUnit.MINUTES 配合使用。
      */

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.tool.dto.ToolQuery;
 import com.maxkb4j.tool.entity.ToolEntity;
+import com.maxkb4j.tool.vo.SkillFileVO;
 import com.maxkb4j.tool.vo.ToolCardVO;
 import com.maxkb4j.tool.vo.ToolItemVO;
 import com.maxkb4j.tool.vo.ToolListVO;
@@ -45,7 +46,7 @@ public interface IToolInternalService extends IToolService, IService<ToolEntity>
 
     ToolVO getVoById(String id);
 
-    String uploadSkillFile(MultipartFile file) throws IOException;
+    SkillFileVO uploadSkillFile(MultipartFile file) throws IOException;
 
     Boolean delMulApplication(List<String> idList);
 }

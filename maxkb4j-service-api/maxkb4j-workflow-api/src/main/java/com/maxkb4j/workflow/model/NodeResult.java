@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.model;
 
-import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,7 +40,7 @@ public class NodeResult {
 
     @FunctionalInterface
     public interface IsInterruptFunction {
-        boolean apply(AbsNode currentNode);
+        boolean apply(INode currentNode);
     }
 
 }

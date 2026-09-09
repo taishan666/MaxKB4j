@@ -6,6 +6,7 @@ import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import com.maxkb4j.workflow.node.impl.VariableAggregationNode;
 import org.springframework.stereotype.Component;
 
@@ -58,7 +59,7 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
     private void resetVariable(List<VariableAggregationNode.Variable> variableList, IWorkflow workflow) {
         for (VariableAggregationNode.Variable e : variableList) {
             String nodeId = e.getVariable().getFirst();
-            AbsNode lfNode = workflow.getNode(nodeId);
+            INode lfNode = workflow.getNode(nodeId);
             String nodeName =lfNode==null?"未知节点": lfNode.getProperties().getString(RuntimeDetailField.NODE_NAME);
             e.setNodeName(nodeName == null ? "未知节点" : nodeName);
             String field = e.getVariable().get(1);

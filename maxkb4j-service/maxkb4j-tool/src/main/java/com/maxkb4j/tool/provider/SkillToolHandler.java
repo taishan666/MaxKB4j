@@ -22,8 +22,8 @@ public class SkillToolHandler extends AbsToolHandler {
     private final SkillToolService skillToolService;
 
     @Override
-    public List<AiServiceTool> buildAiServiceTools(ToolEntity tool, String userMessage) {
-        return skillToolService.getSkillsTools(userMessage, tool);
+    public List<AiServiceTool> buildAiServiceTools(List<ToolEntity> tools) {
+        return skillToolService.getSkillsTools(tools);
     }
 
     @Override

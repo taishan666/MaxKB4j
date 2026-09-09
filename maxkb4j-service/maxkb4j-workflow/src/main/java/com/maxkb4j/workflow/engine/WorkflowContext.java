@@ -2,12 +2,11 @@ package com.maxkb4j.workflow.engine;
 
 import com.maxkb4j.workflow.model.IWorkflowContext;
 import com.maxkb4j.workflow.model.NodeReference;
-import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
@@ -33,7 +32,7 @@ public class WorkflowContext implements IWorkflowContext {
     /**
      * 节点变量上下文列表
      */
-    private final List<AbsNode> nodeContext;
+    private final List<INode> nodeContext;
 
     private final Map<String, Object> loopContext;
 
@@ -63,9 +62,9 @@ public class WorkflowContext implements IWorkflowContext {
      * 添加节点到上下文
      */
     @Override
-    public void appendNode(AbsNode currentNode) {
+    public void appendNode(INode currentNode) {
         for (int i = 0; i < this.nodeContext.size(); i++) {
-            AbsNode node = this.nodeContext.get(i);
+            INode node = this.nodeContext.get(i);
             if (currentNode.getId().equals(node.getId()) && currentNode.getRuntimeNodeId().equals(node.getRuntimeNodeId())) {
                 this.nodeContext.set(i, currentNode);
                 return;
@@ -120,9 +119,8 @@ public class WorkflowContext implements IWorkflowContext {
     }
 
     @Override
-    public AbsNode getExecutedNode(String nodeId) {
-        Optional<AbsNode> optional=nodeContext.stream().filter(node -> node.getId().equals(nodeId)).findFirst();
-        return optional.orElse(null);
+    public INode getExecutedNode(String nodeId) {
+        return nodeContext.stream().filter(node -> node.getId().equals(nodeId)).findFirst().orElse(null);
     }
 
 }

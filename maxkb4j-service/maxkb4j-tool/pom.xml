@@ -73,6 +73,28 @@
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
         </dependency>
+        <!-- MongoDB driver：沙箱 Groovy 脚本访问 MongoDB（@Grab 已禁用，驱动必须预置于 classpath） -->
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+        </dependency>
+        <!-- Apache HttpClient：钉钉/飞书机器人等 HTTP 推送工具脚本使用（@Grab 已禁用，依赖必须预置于 classpath）。
+             版本由根 pom 的 dependencyManagement 管理（${httpclient.version}）；httpcore 4.4.16 由其传递引入 -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+        <!-- Jackson：HTTP 推送工具脚本的请求体/响应体 JSON 序列化（版本由 spring-boot-starter-parent 管理） -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <!-- 邮件：内置「邮箱消息推送」工具脚本使用 JavaMailSenderImpl / SimpleMailMessage，
+             GroovySandboxCompilerConfigurer 编译期需要这些类在 classpath 上 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
@@ -122,6 +144,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.mymonstercat</groupId>
+            <artifactId>rapidocr</artifactId>
         </dependency>
     </dependencies>
 

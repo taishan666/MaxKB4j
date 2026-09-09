@@ -4,22 +4,18 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.application.dto.*;
 import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
-import com.maxkb4j.application.vo.ApplicationAccessTokenVO;
 import com.maxkb4j.application.entity.ApplicationEntity;
-import com.maxkb4j.application.service.IApplicationAccessTokenInternalService;
-import com.maxkb4j.application.service.ApplicationExportService;
-import com.maxkb4j.application.service.ApplicationPromptService;
-import com.maxkb4j.application.service.IApplicationInternalService;
-import com.maxkb4j.application.service.IApplicationSpeechService;
-import com.maxkb4j.application.service.ApplicationStatsService;
+import com.maxkb4j.application.service.*;
+import com.maxkb4j.application.vo.ApplicationAccessTokenVO;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationStatisticsVO;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
-import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.domain.dto.MessageDTO;
 import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.tool.vo.McpToolVO;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,7 +32,6 @@ import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author tarzan
@@ -165,7 +160,7 @@ public class ApplicationController {
 
     @SaCheckPerm(PermissionEnum.APPLICATION_EDIT)
     @PostMapping(path = "application/{id}/model/{modelId}/prompt_generate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<Map<String, String>> promptGenerate(@PathVariable String id, @PathVariable String modelId, @Valid @RequestBody PromptGenerateDTO dto) {
+    public Flux<MessageDTO> promptGenerate(@PathVariable String id, @PathVariable String modelId, @Valid @RequestBody PromptGenerateDTO dto) {
         return applicationPromptService.promptGenerate(applicationService.getById(id), modelId, dto);
     }
 
