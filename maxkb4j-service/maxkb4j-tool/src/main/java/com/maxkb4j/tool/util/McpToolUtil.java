@@ -1,6 +1,8 @@
 package com.maxkb4j.tool.util;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.tool.consts.ToolConstants;
+import com.maxkb4j.tool.mcp.SseHttpMcpTransport;
 import com.maxkb4j.tool.vo.McpToolVO;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.mcp.McpToolExecutor;
@@ -71,12 +73,23 @@ public class McpToolUtil {
         if (serverConfig.containsKey("headers")) {
              headers = (Map<String, String>) serverConfig.get("headers");
         }
-        McpTransport transport=StreamableHttpMcpTransport.builder()
-                .url(url)
-                .customHeaders(headers)
-                .logRequests(true)
-                .logResponses(true)
-                .build();
+        McpTransport transport;
+        if (ToolConstants.McpType.SSE.equalsIgnoreCase(type)) {
+            // langchain4j-mcp 1.20.0-beta30 起移除了 SSE 传输，这里使用自定义实现
+            transport = SseHttpMcpTransport.builder()
+                    .url(url)
+                    .customHeaders(headers)
+                    .logRequests(true)
+                    .logResponses(true)
+                    .build();
+        } else {
+            transport = StreamableHttpMcpTransport.builder()
+                    .url(url)
+                    .customHeaders(headers)
+                    .logRequests(true)
+                    .logResponses(true)
+                    .build();
+        }
         return new DefaultMcpClient.Builder()
                 .key(key)
                 .transport(transport)
