@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.application.dto.AddChatImproveDTO;
 import com.maxkb4j.application.dto.ChatImproveDTO;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
+import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.knowledge.dto.ParagraphDTO;
 
@@ -26,4 +27,6 @@ public interface IApplicationChatRecordInternalService extends IApplicationChatR
     List<ApplicationChatRecordEntity> listByAppIdAndChatUserId(String applicationId, String chatUserId, int pageSize, int offset);
 
     long countByAppIdAndChatUserId(String applicationId, String chatUserId);
+
+    List<ApplicationChatRecordVO> listVOByIds(List<String> ids);
 }

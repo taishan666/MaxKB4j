@@ -12,8 +12,6 @@ public interface IApplicationChatRecordService  {
 
     IPage<ApplicationChatRecordVO> chatRecordPage(String chatId, int current, int size);
 
-    List<ApplicationChatRecordVO> listVOByIds(List<String> ids);
-
     void updateDtoById(ApplicationChatRecordDTO applicationChatDTO);
     List<ApplicationChatRecordDTO> listVoteStatusByChatId(String chatIds);
 }
