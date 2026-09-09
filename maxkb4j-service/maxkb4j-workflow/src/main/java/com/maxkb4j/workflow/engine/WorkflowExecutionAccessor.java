@@ -90,15 +90,13 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
         if (sourceEdges.isEmpty()) {
             return List.of();
         }
-
-        // 获取目标节点ID
-        List<String> targetNodeIds = sourceEdges.stream()
-                .map(LfEdge::getTargetNodeId)
-                .distinct()
-                .toList();
-
         // 处理断言结果分支
         if (currentNodeResult != null && NodeResultWriter.isAssertionResult(currentNodeResult)) {
+            // 获取目标节点ID
+            List<String> targetNodeIds = sourceEdges.stream()
+                    .map(LfEdge::getTargetNodeId)
+                    .distinct()
+                    .toList();
             List<INode> targetNodes = buildNextNodes(targetNodeIds, currentNode);
             targetNodes.forEach(node -> {
                 if (!isAssertionNode(node.getId(), currentNodeResult, sourceEdges)) {
@@ -106,6 +104,14 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
                 }
             });
             return targetNodes;
+        }
+        List<String> targetNodeIds = sourceEdges.stream()
+                .filter(edge->edge.getSourceAnchorId().equals(edge.getSourceNodeId()+"_right"))
+                .map(LfEdge::getTargetNodeId)
+                .distinct()
+                .toList();
+        if (targetNodeIds.isEmpty()) {
+            return List.of();
         }
         return buildNextNodes(targetNodeIds, currentNode);
     }
