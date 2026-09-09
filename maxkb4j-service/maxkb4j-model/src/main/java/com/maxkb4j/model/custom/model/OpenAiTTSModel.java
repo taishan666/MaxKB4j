@@ -2,7 +2,7 @@ package com.maxkb4j.model.custom.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.entity.ModelCredential;
-import com.maxkb4j.model.service.ITTSModel;
+import com.maxkb4j.model.base.TTSModel;
 import com.openai.client.OpenAIClient;
 import com.openai.core.http.HttpResponse;
 import com.openai.models.audio.speech.SpeechCreateParams;
@@ -13,7 +13,7 @@ import java.io.InputStream;
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
-public class OpenAiTTSModel implements ITTSModel {
+public class OpenAiTTSModel implements TTSModel {
 
     private OpenAIClient client;
     private String modelName;

@@ -8,7 +8,7 @@ import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.alibaba.dashscope.exception.UploadFileException;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.entity.ModelCredential;
-import com.maxkb4j.model.service.ITTSModel;
+import com.maxkb4j.model.base.TTSModel;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +20,7 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Slf4j
 @Data
-public class QWenTTS  implements ITTSModel {
+public class QWenTTS  implements TTSModel {
     private MultiModalConversationParam param;
 
     public QWenTTS(String modelName, ModelCredential modelCredential, JSONObject params) {

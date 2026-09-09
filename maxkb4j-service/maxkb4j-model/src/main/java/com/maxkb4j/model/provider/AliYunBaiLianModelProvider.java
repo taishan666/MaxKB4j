@@ -11,8 +11,8 @@ import com.maxkb4j.model.custom.model.BaiLianSTTModel;
 import com.maxkb4j.model.custom.model.BaiLianTTSModel;
 import com.maxkb4j.model.custom.params.*;
 import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.service.ISTTModel;
-import com.maxkb4j.model.service.ITTSModel;
+import com.maxkb4j.model.base.STTModel;
+import com.maxkb4j.model.base.TTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.community.model.dashscope.QwenModelName;
 import dev.langchain4j.community.model.dashscope.WanxModelName;
@@ -80,12 +80,12 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
     }
 
     @Override
-    public ISTTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
+    public STTModel buildSTTModel(String modelName, ModelCredential credential, JSONObject params) {
         return new BaiLianSTTModel(modelName, credential, params);
     }
 
     @Override
-    public ITTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
+    public TTSModel buildTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         return new BaiLianTTSModel(modelName, credential, params);
     }
 

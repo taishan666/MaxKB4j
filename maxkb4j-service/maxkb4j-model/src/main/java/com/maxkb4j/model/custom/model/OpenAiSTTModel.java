@@ -2,14 +2,14 @@ package com.maxkb4j.model.custom.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.entity.ModelCredential;
-import com.maxkb4j.model.service.ISTTModel;
+import com.maxkb4j.model.base.STTModel;
 import com.openai.client.OpenAIClient;
 import com.openai.models.audio.transcriptions.TranscriptionCreateParams;
 import com.openai.models.audio.transcriptions.TranscriptionCreateResponse;
 import lombok.Data;
 
 @Data
-public class OpenAiSTTModel implements ISTTModel {
+public class OpenAiSTTModel implements STTModel {
 
     private OpenAIClient client;
     private String modelName;

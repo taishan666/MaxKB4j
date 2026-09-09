@@ -5,8 +5,8 @@ import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.application.service.IApplicationSpeechService;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.model.service.IModelProviderService;
-import com.maxkb4j.model.service.ISTTModel;
-import com.maxkb4j.model.service.ITTSModel;
+import com.maxkb4j.model.base.STTModel;
+import com.maxkb4j.model.base.TTSModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,7 +31,7 @@ public class ApplicationSpeechServiceImpl implements IApplicationSpeechService {
      */
     public byte[] playDemoText(JSONObject modelParams) {
         String ttsModelId = modelParams.getString("ttsModelId");
-        ITTSModel ttsModel = modelFactory.buildTTSModel(ttsModelId, modelParams);
+        TTSModel ttsModel = modelFactory.buildTTSModel(ttsModelId, modelParams);
         return ttsModel.textToSpeech("你好，这里是语音播放测试");
     }
 
@@ -58,7 +58,7 @@ public class ApplicationSpeechServiceImpl implements IApplicationSpeechService {
         if (app.getTtsModelId() == null) {
             return new byte[0];
         }
-        ITTSModel ttsModel = modelFactory.buildTTSModel(app.getTtsModelId(), app.getTtsModelParamsSetting());
+        TTSModel ttsModel = modelFactory.buildTTSModel(app.getTtsModelId(), app.getTtsModelParamsSetting());
         return ttsModel.textToSpeech(text);
     }
 
@@ -66,7 +66,7 @@ public class ApplicationSpeechServiceImpl implements IApplicationSpeechService {
      * 语音转文本。
      */
     private String speechToText(String sttModelId, MultipartFile file) throws IOException {
-        ISTTModel sttModel = modelFactory.buildSTTModel(sttModelId, new JSONObject());
+        STTModel sttModel = modelFactory.buildSTTModel(sttModelId, new JSONObject());
         String suffix = Objects.requireNonNull(file.getContentType()).split("/")[1];
         return sttModel.speechToText(file.getBytes(), suffix);
     }

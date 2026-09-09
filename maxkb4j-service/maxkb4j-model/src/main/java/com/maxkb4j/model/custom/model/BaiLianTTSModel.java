@@ -2,18 +2,18 @@ package com.maxkb4j.model.custom.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.entity.ModelCredential;
-import com.maxkb4j.model.service.ITTSModel;
+import com.maxkb4j.model.base.TTSModel;
 import lombok.Data;
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
-public class BaiLianTTSModel implements ITTSModel {
+public class BaiLianTTSModel implements TTSModel {
 
 
     private String modelName;
     private ModelCredential credential;
     private JSONObject params;
-    private ITTSModel instance;
+    private TTSModel instance;
 
     public BaiLianTTSModel(String modelName, ModelCredential credential, JSONObject params) {
         this.modelName = modelName;
@@ -22,7 +22,7 @@ public class BaiLianTTSModel implements ITTSModel {
         this.instance = buildInstance(modelName);
     }
 
-    private ITTSModel buildInstance(String modelName) {
+    private TTSModel buildInstance(String modelName) {
        if (modelName.startsWith(ModelName.QWEN3_TTS_PREFIX)){
            return new QWenTTS(modelName, credential, params);
        }else {
