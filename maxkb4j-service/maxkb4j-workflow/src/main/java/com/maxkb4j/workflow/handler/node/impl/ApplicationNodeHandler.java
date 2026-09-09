@@ -13,6 +13,7 @@ import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.InputField;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import com.maxkb4j.workflow.node.impl.ApplicationNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -115,7 +116,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
 
 
     @Override
-    public boolean shouldInterrupt(AbsNode node) {
+    public boolean shouldInterrupt(INode node) {
         return getInterruptFlag(node);
     }
 

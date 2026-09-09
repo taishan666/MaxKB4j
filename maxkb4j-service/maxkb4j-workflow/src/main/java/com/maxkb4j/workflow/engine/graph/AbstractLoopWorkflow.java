@@ -7,6 +7,7 @@ import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import lombok.Getter;
 import reactor.core.publisher.Sinks;
 
@@ -60,7 +61,7 @@ public abstract class AbstractLoopWorkflow extends AbstractWorkflow {
 
 
     @Override
-    public List<AbsNode> startNodes() {
+    public List<INode> startNodes() {
         return List.of(getNode(NodeType.LOOP_START.getKey()));
     }
 }

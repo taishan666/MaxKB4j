@@ -3,6 +3,7 @@ package com.maxkb4j.workflow.engine;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.NodeReference;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +37,7 @@ class WorkflowContextTest {
         second.getContext().put("answer", "new");
         ctx.appendNode(second);
 
-        AbsNode resolved = ctx.getExecutedNode("n1");
+        INode resolved = ctx.getExecutedNode("n1");
         assertThat(resolved).isSameAs(second);
         assertThat(resolved.getContext().get("answer")).isEqualTo("new");
         assertThat(ctx.getNodeContext()).hasSize(1);

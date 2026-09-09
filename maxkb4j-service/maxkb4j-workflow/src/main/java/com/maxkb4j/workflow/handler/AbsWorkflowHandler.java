@@ -8,6 +8,7 @@ import com.maxkb4j.workflow.handler.node.INodeHandler;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import com.maxkb4j.workflow.service.IWorkflowHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -41,8 +42,8 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
 
     @Override
     public void execute(IWorkflow workflow) {
-        AbsNode currentNode = workflow.execution().currentNode();
-        List<AbsNode> startNodes = currentNode == null ? workflow.startNodes() : List.of(currentNode);
+        INode currentNode = workflow.execution().currentNode();
+        List<INode> startNodes = currentNode == null ? workflow.startNodes() : List.of(currentNode);
         log.info("{} workflow started", workflow.getWorkflowMode());
         onProcessStart(workflow);
         runChainNodes(workflow, startNodes);
@@ -50,29 +51,31 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         log.info("{} workflow completed", workflow.getWorkflowMode());
     }
 
-    protected void runChainNodes(IWorkflow workflow, List<AbsNode> nodeList) {
+    protected void runChainNodes(IWorkflow workflow, List<INode> nodeList) {
         if (nodeList == null || nodeList.isEmpty()) {
             return;
         }
         long timeoutMinutes = workflow.getNodeExecutionTimeoutMinutes();
-        List<CompletableFuture<List<AbsNode>>> futureList = new ArrayList<>();
+        List<CompletableFuture<List<INode>>> futureList = new ArrayList<>();
         List<AbsNode> scheduledNodes = new ArrayList<>();
-        for (AbsNode node : nodeList) {
+        for (INode entry : nodeList) {
+            // 契约节点在引擎内统一为 AbsNode（INode 的引擎实现）
+            AbsNode node = (AbsNode) entry;
             if (NodeStatus.READY.getStatus() == node.getStatus()) {
                 futureList.add(runAsyncChainNode(workflow, node));
                 scheduledNodes.add(node);
             } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
-                List<AbsNode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(Map.of()));
+                List<INode> nextNodeList = workflow.execution().nextNodes(node, new NodeResult(Map.of()));
                 nextNodeList.forEach(nextNode -> nextNode.setStatus(NodeStatus.SKIP.getStatus()));
                 futureList.add(CompletableFuture.completedFuture(nextNodeList));
                 scheduledNodes.add(node);
             }
         }
         for (int i = 0; i < futureList.size(); i++) {
-            CompletableFuture<List<AbsNode>> future = futureList.get(i);
+            CompletableFuture<List<INode>> future = futureList.get(i);
             AbsNode node = scheduledNodes.get(i);
             try {
-                List<AbsNode> nextNodeList = future.get(timeoutMinutes, TimeUnit.MINUTES);
+                List<INode> nextNodeList = future.get(timeoutMinutes, TimeUnit.MINUTES);
                 runChainNodes(workflow, nextNodeList);
             } catch (TimeoutException e) {
                 log.error("Node execution timeout after {} minutes", timeoutMinutes);
@@ -91,7 +94,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * Executes one asynchronous node on the future returned by its handler, so streaming
      * does not occupy a workflowTaskExecutor thread.
      */
-    protected CompletableFuture<List<AbsNode>> runAsyncChainNode(IWorkflow workflow, AbsNode node) {
+    protected CompletableFuture<List<INode>> runAsyncChainNode(IWorkflow workflow, AbsNode node) {
         if (workflow.execution().dependenciesNotExecuted(node)) {
             return CompletableFuture.completedFuture(List.of());
         }
@@ -112,7 +115,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * Completes an asynchronously executed node: converts failures into an empty node list
      * and delegates successful results to {@link #completeNode}.
      */
-    private List<AbsNode> completeAsyncNode(IWorkflow workflow, AbsNode node, long startTime, NodeResult result, Throwable ex) {
+    private List<INode> completeAsyncNode(IWorkflow workflow, AbsNode node, long startTime, NodeResult result, Throwable ex) {
         if (ex != null) {
             Boolean enableException = node.getProperties().getBoolean("enableException");
             if (Boolean.TRUE.equals(enableException)){
@@ -141,7 +144,7 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
      * Completes a successfully executed node: applies the SUCCESS status, fires the success
      * hook and resolves the next nodes.
      */
-    private List<AbsNode> completeNode(IWorkflow workflow, AbsNode node, NodeResult result) {
+    private List<INode> completeNode(IWorkflow workflow, AbsNode node, NodeResult result) {
         node.setStatus(NodeStatus.SUCCESS.getStatus());
         onNodeSuccess(workflow, node, result);
         return workflow.execution().nextNodes(node, result);

@@ -7,10 +7,11 @@ import com.maxkb4j.workflow.logic.LogicFlow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import com.maxkb4j.workflow.node.impl.LoopNode;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import com.maxkb4j.workflow.service.WorkflowFactory;
-import com.maxkb4j.workflow.service.WorkflowSpec;
+import com.maxkb4j.workflow.model.WorkflowSpec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -153,8 +154,8 @@ public class LoopIterationRunner {
                                         JSONObject loopBody, LoopExecutionContext ctx) {
         // 构建循环体子图
         LogicFlow logicFlow = LogicFlow.newInstance(loopBody);
-        List<AbsNode> nodes = logicFlow.getNodes().stream()
-                .map(nodeBuilder::getNode)
+        List<INode> nodes = logicFlow.getNodes().stream()
+                .map(lfNode -> (INode) nodeBuilder.getNode(lfNode))
                 .filter(Objects::nonNull)
                 .toList();
         LoopParams loopParams = new LoopParams(ctx.currentIndex, items.get(ctx.currentIndex));

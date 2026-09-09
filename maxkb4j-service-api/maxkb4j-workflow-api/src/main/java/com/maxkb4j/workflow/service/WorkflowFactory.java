@@ -1,10 +1,7 @@
 package com.maxkb4j.workflow.service;
 
-import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.IWorkflow;
-import com.maxkb4j.workflow.node.AbsNode;
-
-import java.util.List;
+import com.maxkb4j.workflow.model.WorkflowSpec;
 
 /**
  * 工作流工厂 SPI（契约层）。

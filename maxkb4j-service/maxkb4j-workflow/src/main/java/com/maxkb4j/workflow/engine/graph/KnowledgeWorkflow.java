@@ -9,9 +9,11 @@ import com.maxkb4j.workflow.model.DataSource;
 import com.maxkb4j.workflow.model.IKnowledgeWorkflow;
 import com.maxkb4j.workflow.model.KnowledgeParams;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,7 +55,7 @@ public class KnowledgeWorkflow extends AbstractWorkflow implements IKnowledgeWor
 
 
     @Override
-    public List<AbsNode> startNodes() {
+    public List<INode> startNodes() {
         List<AbsNode> dataSourceNodes = configuration.getNodes().stream()
                 .filter(node -> Objects.nonNull(node.getType())&&node.getType().startsWith(NodeType.DATA_SOURCE_PREFIX))
                 .toList();
@@ -64,7 +66,7 @@ public class KnowledgeWorkflow extends AbstractWorkflow implements IKnowledgeWor
             return List.of();
         }
         markNonDataSourceNodesAsSkip(dataSourceNodes,dataSourceNodeId);
-        return dataSourceNodes;
+        return new ArrayList<>(dataSourceNodes);
     }
 
     /**

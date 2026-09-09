@@ -34,7 +34,8 @@ public class NodeBuilder {
      * @return 节点实例
      */
     public AbsNode getNode(LfNode lfNode) {
-        return nodeCreator.createNode(lfNode);
+        // 节点经 INodeCreator 创建，实现模块内运行时必为 AbsNode
+        return (AbsNode) nodeCreator.createNode(lfNode);
     }
 
 }

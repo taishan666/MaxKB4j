@@ -24,7 +24,7 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
  */
 @Slf4j
 @Data
-public abstract class AbsNode {
+public abstract class AbsNode implements INode {
     private String id;
     private String type;
     private String viewType;
@@ -159,6 +159,3 @@ public abstract class AbsNode {
     }
 
 }
-
-
-

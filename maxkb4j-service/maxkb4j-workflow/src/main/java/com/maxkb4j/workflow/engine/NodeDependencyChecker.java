@@ -3,6 +3,7 @@ package com.maxkb4j.workflow.engine;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -38,7 +39,7 @@ public class NodeDependencyChecker {
      * @param node 待检查节点
      * @return 是否所有依赖节点都已执行
      */
-    public boolean dependenciesNotExecuted(AbsNode node) {
+    public boolean dependenciesNotExecuted(INode node) {
         List<String> upNodeIdList = navigator.findUpstreamNodeIds(node.getId());
         // 开始节点无上游依赖，直接通过
         if (CollectionUtils.isEmpty(upNodeIdList)) {

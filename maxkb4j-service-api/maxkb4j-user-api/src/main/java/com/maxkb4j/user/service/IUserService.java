@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 public interface IUserService {
-    Set<String> getRoleById(String id);
+    Set<String> getRoleById(String userId);
 
     Map<String, String> getNicknameMap();
 

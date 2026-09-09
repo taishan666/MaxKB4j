@@ -9,6 +9,7 @@ import com.maxkb4j.workflow.model.ModelAwareParams;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import dev.langchain4j.model.output.TokenUsage;
 import lombok.extern.slf4j.Slf4j;
 
@@ -99,7 +100,7 @@ public abstract class AbsNodeHandler implements INodeHandler {
     /**
      * Reads the interrupt flag written by loop control nodes.
      */
-    protected boolean getInterruptFlag(AbsNode node) {
+    protected boolean getInterruptFlag(INode node) {
         Object flag = node.getDetail().get(NodeField.IS_INTERRUPT_EXEC);
         return Boolean.TRUE.equals(flag);
     }

@@ -7,6 +7,7 @@ import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.DataSource;
 import com.maxkb4j.workflow.model.KnowledgeParams;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -51,7 +52,7 @@ class KnowledgeWorkflowTest {
                 List.of(edge("ds1", "n1")),
                 dataSourceOf("ds1"));
 
-        List<AbsNode> startNodes = workflow.startNodes();
+        List<INode> startNodes = workflow.startNodes();
 
         assertThat(startNodes).containsExactly(selectedNode, otherDataSourceNode);
         assertThat(selectedNode.getStatus()).isEqualTo(NodeStatus.READY.getStatus());

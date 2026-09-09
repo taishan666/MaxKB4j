@@ -8,6 +8,7 @@ import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.IWorkflowExecutionAccessor;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +80,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
      * @return 下一个节点列表
      */
     @Override
-    public List<AbsNode> nextNodes(AbsNode currentNode, NodeResult currentNodeResult) {
+    public List<INode> nextNodes(INode currentNode, NodeResult currentNodeResult) {
         // 检查是否需要中断执行
         if (currentNodeResult != null && NodeResultWriter.isInterruptExec(currentNodeResult, currentNode)) {
             return List.of();
@@ -98,7 +99,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
 
         // 处理断言结果分支
         if (currentNodeResult != null && NodeResultWriter.isAssertionResult(currentNodeResult)) {
-            List<AbsNode> targetNodes = buildNextNodes(targetNodeIds, currentNode);
+            List<INode> targetNodes = buildNextNodes(targetNodeIds, currentNode);
             targetNodes.forEach(node -> {
                 if (!isAssertionNode(node.getId(), currentNodeResult, sourceEdges)) {
                     node.setStatus(NodeStatus.SKIP.getStatus());
@@ -116,7 +117,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
      * @return 是否所有依赖节点都已执行
      */
     @Override
-    public boolean dependenciesNotExecuted(AbsNode node) {
+    public boolean dependenciesNotExecuted(INode node) {
         return dependencyChecker.dependenciesNotExecuted(node);
     }
 
@@ -139,7 +140,7 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
      * @param node 正在执行的节点
      */
     @Override
-    public void recordExecution(AbsNode node) {
+    public void recordExecution(INode node) {
         executionTracker.recordExecution(node);
     }
 
@@ -150,13 +151,17 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
      * @param currentNode   当前节点
      * @return 节点列表
      */
-    private List<AbsNode> buildNextNodes(List<String> targetNodeIds, AbsNode currentNode) {
+    private List<INode> buildNextNodes(List<String> targetNodeIds, INode currentNode) {
         List<String> upNodeIdList = new ArrayList<>(currentNode.getUpNodeIdList());
         upNodeIdList.add(currentNode.getId());
-        return targetNodeIds.stream()
-                .map(nodeId -> configuration.getNodeInstance(nodeId, upNodeIdList, null))
-                .filter(Objects::nonNull)
-                .toList();
+        List<INode> nextNodes = new ArrayList<>(targetNodeIds.size());
+        for (String nodeId : targetNodeIds) {
+            AbsNode node = configuration.getNodeInstance(nodeId, upNodeIdList, null);
+            if (Objects.nonNull(node)) {
+                nextNodes.add(node);
+            }
+        }
+        return nextNodes;
     }
 
     /**

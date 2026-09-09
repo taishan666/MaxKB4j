@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.service;
 
 import com.maxkb4j.workflow.logic.LfNode;
-import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.INode;
 
 /**
  * 节点创建器接口
@@ -15,6 +15,6 @@ public interface INodeCreator {
      * @param lfNode 前端节点数据
      * @return 节点实例
      */
-    AbsNode createNode(LfNode lfNode);
+    INode createNode(LfNode lfNode);
 
 }
