@@ -5,22 +5,23 @@ import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.domain.dto.MessageDTO;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.I18nUtil;
+import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.tool.consts.ToolConstants;
-import com.maxkb4j.tool.dto.ToolConnectionTestDTO;
-import com.maxkb4j.tool.dto.ToolDebugDTO;
-import com.maxkb4j.tool.dto.ToolQuery;
-import com.maxkb4j.tool.dto.ToolSaveDTO;
+import com.maxkb4j.tool.dto.*;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.tool.service.IToolInternalService;
-import com.maxkb4j.tool.vo.SkillFileVO;
-import com.maxkb4j.tool.vo.ToolCardVO;
-import com.maxkb4j.tool.vo.ToolItemVO;
-import com.maxkb4j.tool.vo.ToolListVO;
-import com.maxkb4j.tool.vo.ToolVO;
+import com.maxkb4j.tool.vo.*;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +29,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author tarzan
@@ -47,6 +47,7 @@ public class ToolController {
 
     private final IToolInternalService toolService;
     private final IToolExecuteService toolExecuteService;
+    private final IModelProviderService modelProviderService;
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool/{current}/{size}")
@@ -170,6 +171,49 @@ public class ToolController {
     @PutMapping("/tool/upload_skill_file")
     public R<SkillFileVO> uploadSkillFile(MultipartFile file) throws IOException {
         return R.data(toolService.uploadSkillFile(file));
+    }
+
+    @SaCheckPerm(PermissionEnum.TOOL_EDIT)
+    @PostMapping("/tool/generateCode")
+    public Flux<MessageDTO> generateCode(@RequestBody @Valid GenerateCodeDTO dto) {
+        StreamingChatModel chatModel= modelProviderService.buildStreamingChatModel(dto.getModelId(),dto.getModelParamsSetting());
+        List<ChatMessage> messages = new ArrayList<>(dto.getMessages().stream()
+                .map(message -> {
+                    if ("user".equals(message.getRole())) {
+                        return UserMessage.from(message.getContent());
+                    } else if ("ai".equals(message.getRole())) {
+                        return AiMessage.from(message.getContent());
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .toList());
+        if (messages.isEmpty()) {
+            return Flux.error(new IllegalArgumentException("No user message found to generate prompt"));
+        }
+        String prompt = dto.getPrompt();
+        prompt = prompt.replace("{userInput}", dto.getMessages().getLast().getContent())
+                .replace("{initFieldList}", dto.getInitFieldList().toJSONString())
+                .replace("{inputFieldList}", dto.getInputFieldList().toJSONString());
+        messages.set(messages.size() - 1, UserMessage.from(prompt));
+        Sinks.Many<MessageDTO> sink = Sinks.many().unicast().onBackpressureBuffer();
+        chatModel.chat(messages, new StreamingChatResponseHandler() {
+            @Override
+            public void onPartialResponse(String partialResponse) {
+                sink.tryEmitNext(new MessageDTO(partialResponse,"ai"));
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse chatResponse) {
+                sink.tryEmitComplete();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                sink.tryEmitError(throwable);
+            }
+        });
+        return sink.asFlux();
     }
 
 

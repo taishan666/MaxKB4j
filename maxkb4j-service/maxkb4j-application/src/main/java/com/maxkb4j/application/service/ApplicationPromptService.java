@@ -3,6 +3,7 @@ package com.maxkb4j.application.service;
 import com.maxkb4j.application.dto.PromptGenerateDTO;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.service.impl.ApplicationServiceImpl;
+import com.maxkb4j.common.domain.dto.MessageDTO;
 import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -18,7 +19,6 @@ import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -32,9 +32,9 @@ public class ApplicationPromptService {
 
     private final IModelProviderService modelFactory;
 
-    public Flux<Map<String, String>> promptGenerate(ApplicationEntity app, String modelId, PromptGenerateDTO dto) {
+    public Flux<MessageDTO> promptGenerate(ApplicationEntity app, String modelId, PromptGenerateDTO dto) {
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId);
-        List<ChatMessage> messages = dto.getMessages().stream()
+        List<ChatMessage> messages = new ArrayList<>(dto.getMessages().stream()
                 .map(message -> {
                     if ("user".equals(message.getRole())) {
                         return UserMessage.from(message.getContent());
@@ -44,7 +44,7 @@ public class ApplicationPromptService {
                     return null;
                 })
                 .filter(Objects::nonNull)
-                .toList();
+                .toList());
         if (messages.isEmpty()) {
             return Flux.error(new IllegalArgumentException("No user message found to generate prompt"));
         }
@@ -52,16 +52,13 @@ public class ApplicationPromptService {
         String detail = StringUtils.isBlank(app.getDesc()) ? app.getName() : app.getDesc();
         prompt = prompt.replace("{application_name}", app.getName())
                 .replace("{detail}", detail)
-                // 注意：messages 是过滤后的列表，取"最后一条输入"必须用原始列表自身的 size，
-                // 否则存在 system 等角色时 {userInput} 会被错误替换为中间某条消息
-                .replace("{userInput}", dto.getMessages().get(dto.getMessages().size() - 1).getContent());
-        List<ChatMessage> finalMessages = new ArrayList<>(messages);
-        finalMessages.set(finalMessages.size() - 1, UserMessage.from(prompt));
-        Sinks.Many<Map<String, String>> sink = Sinks.many().unicast().onBackpressureBuffer();
-        chatModel.chat(finalMessages, new StreamingChatResponseHandler() {
+                .replace("{userInput}", dto.getMessages().getLast().getContent());
+        messages.set(messages.size() - 1, UserMessage.from(prompt));
+        Sinks.Many<MessageDTO> sink = Sinks.many().unicast().onBackpressureBuffer();
+        chatModel.chat(messages, new StreamingChatResponseHandler() {
             @Override
             public void onPartialResponse(String partialResponse) {
-                sink.tryEmitNext(Map.of("content", partialResponse));
+                sink.tryEmitNext(new MessageDTO(partialResponse,"ai"));
             }
 
             @Override
