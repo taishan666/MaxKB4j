@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import javax.crypto.BadPaddingException;
 import java.io.IOException;
@@ -244,6 +245,19 @@ public class GlobalExceptionHandler {
     public R<String> handleException(ModelNotFoundException e) {
         log.error("模型不存在异常", e);
         return R.fail(500, I18nUtil.get("model.name.not.found"));
+    }
+
+    /**
+     * 处理静态资源不存在异常（NoResourceFoundException）
+     * 浏览器请求了不存在的静态资源（前端版本更新后的旧哈希资源、扫描器探测等），
+     * 属于正常 404，仅记录 warn 日志并返回 404，不应按未知异常打印堆栈、返回 500
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseBody
+    public R<String> handleNoResourceFoundException(NoResourceFoundException e, HttpServletResponse response) {
+        log.warn("静态资源不存在: {}", e.getResourcePath());
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        return R.fail(404, e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

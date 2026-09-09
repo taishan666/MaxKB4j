@@ -21,7 +21,10 @@ import java.io.IOException;
  * </ul>
  *
  * <p>仅当请求命中这两套前端应用的 history 路由（不带扩展名）时转发到对应 index.html；
- * 后端接口、文件下载与静态资源一律放行，交给 Spring MVC / 静态资源处理器。</p>
+ * 后端接口、文件下载与静态资源一律放行，交给 Spring MVC / 静态资源处理器。
+ * 另外，index.html 以相对路径（./assets/**）引用构建产物，当 SPA 在深层路由刷新时
+ * 浏览器会把相对路径解析到当前路由下（如 /admin/&lt;路由&gt;/assets/x.js），
+ * 这类请求会被重定向回规范地址 /admin/assets/x.js，避免静态资源 404 导致白屏。</p>
  *
  * @author tarzan
  */
@@ -52,7 +55,7 @@ public class SpaForwardFilter extends OncePerRequestFilter {
         String uri = stripContextPath(request);
         return isBackendRequest(uri)
                 || isApiDocRequest(uri)
-                || isStaticResource(uri);
+                || (isStaticResource(uri) && resolveRouteRelativeAsset(uri) == null);
     }
 
     /** 后端接口与文件下载直接放行，避免被 SPA 转发吞掉 */
@@ -80,12 +83,44 @@ public class SpaForwardFilter extends OncePerRequestFilter {
         return lastSegment.contains(".");
     }
 
+    /**
+     * 解析深层路由下错位的静态资源请求。
+     *
+     * <p>规范地址形如 {@code /admin/assets/x.js}；若 {@code /assets/} 之前还夹着
+     * 前端路由段（{@code /admin/application/workspace/{id}/WORK_FLOW/assets/x.js}），
+     * 说明是浏览器在深层路由下相对解析出来的错误地址，返回还原后的规范地址；
+     * 不是这类请求时返回 {@code null}。</p>
+     */
+    private String resolveRouteRelativeAsset(String uri) {
+        String prefix;
+        if (uri.startsWith(ADMIN_PREFIX + "/")) {
+            prefix = ADMIN_PREFIX;
+        } else if (uri.startsWith(CHAT_PREFIX + "/")) {
+            prefix = CHAT_PREFIX;
+        } else {
+            return null;
+        }
+        int assetsIndex = uri.indexOf("/assets/");
+        if (assetsIndex <= prefix.length()) {
+            return null;
+        }
+        return prefix + uri.substring(assetsIndex);
+    }
+
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request,
                                     @NotNull HttpServletResponse response,
                                     @NotNull FilterChain chain)
             throws ServletException, IOException {
         String uri = stripContextPath(request);
+
+        // 深层路由下相对引用的静态资源（./assets/**）重定向到规范地址，
+        // 让浏览器以正确路径为基准解析资源内部的相对引用（chunk、字体、图片等）
+        String assetUri = resolveRouteRelativeAsset(uri);
+        if (assetUri != null) {
+            response.sendRedirect(request.getContextPath() + assetUri);
+            return;
+        }
 
         // 聊天页的 API 文档入口（前端固定拼接 /chat-api-doc），需先于 /chat 前缀判断
         switch (uri) {
