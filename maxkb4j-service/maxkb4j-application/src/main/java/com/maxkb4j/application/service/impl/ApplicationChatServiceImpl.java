@@ -58,7 +58,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMapper, ApplicationChatEntity> implements IApplicationChatInternalService {
 
     private final IApplicationChatRecordInternalService chatRecordService;
-    private final IApplicationService applicationService;
+    private final IApplicationInternalService applicationService;
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final IApplicationAccessTokenInternalService accessTokenService;
     private final ApplicationVersionService applicationVersionService;

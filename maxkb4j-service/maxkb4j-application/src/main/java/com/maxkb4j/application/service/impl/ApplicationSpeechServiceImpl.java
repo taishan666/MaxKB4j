@@ -1,12 +1,12 @@
 package com.maxkb4j.application.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.application.service.IApplicationService;
+import com.maxkb4j.application.service.IApplicationInternalService;
 import com.maxkb4j.application.service.IApplicationSpeechService;
 import com.maxkb4j.application.vo.ApplicationVO;
-import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.model.base.STTModel;
 import com.maxkb4j.model.base.TTSModel;
+import com.maxkb4j.model.service.IModelProviderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,7 +24,7 @@ import java.util.Objects;
 public class ApplicationSpeechServiceImpl implements IApplicationSpeechService {
 
     private final IModelProviderService modelFactory;
-    private final IApplicationService applicationService;
+    private final IApplicationInternalService applicationService;
 
     /**
      * 语音播放测试：使用传入的模型参数直接合成固定测试文案。

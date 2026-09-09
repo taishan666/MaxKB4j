@@ -10,9 +10,8 @@ public interface IApplicationService {
 
     ApplicationVO appProfile(String appId);
 
-    ApplicationVO getAppDetail(String appId, boolean debug);
     ApplicationSimple getAppSimpleById(String appId);
-    List<ApplicationSimple> listAppSimpleByIds(List<String> applicationIds);
+
     ApplicationVO getDtoById(String id);
     List<ApplicationVO> listDtoByIds(List<String> ids);
     List<Map<String, Object>> listMapsByIds(List<String> ids);

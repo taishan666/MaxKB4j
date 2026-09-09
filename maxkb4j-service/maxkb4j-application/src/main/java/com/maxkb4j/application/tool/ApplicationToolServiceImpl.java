@@ -3,7 +3,7 @@ package com.maxkb4j.application.tool;
 import com.maxkb4j.application.dto.ApplicationSimple;
 import com.maxkb4j.application.executor.AgentExecutor;
 import com.maxkb4j.application.service.IApplicationChatService;
-import com.maxkb4j.application.service.IApplicationService;
+import com.maxkb4j.application.service.IApplicationInternalService;
 import com.maxkb4j.tool.service.IAgentToolService;
 import com.maxkb4j.tool.util.ToolNaming;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -30,7 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApplicationToolServiceImpl implements IAgentToolService {
 
-    private final IApplicationService applicationService;
+    private final IApplicationInternalService applicationService;
     private final IApplicationChatService chatService;
 
     /**
