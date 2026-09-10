@@ -1,8 +1,14 @@
-# 🧠 MaxKB4j — Enterprise Intelligent Q&A System: Out-of-the-Box RAG + LLM Workflow Engine
+<p align="center">
+  <img src="image/logo.png" width="130" alt="MaxKB4j Logo"/>
+</p>
 
-> **MaxKB4j = Max Knowledge Brain for Java**
-> An out-of-the-box, model-agnostic **RAG (Retrieval-Augmented Generation) + LLM workflow engine** built on **Java 21 + Spring Boot 3 (Virtual Threads)**, designed for enterprise-grade intelligent Q&A systems.
-> Use cases: intelligent customer service, enterprise knowledge bases, data analysis, academic research, and education.
+<h1 align="center">🧠 MaxKB4j</h1>
+
+<p align="center">
+  <b>Max Knowledge Brain for Java</b> — an enterprise-grade AI brain for Java teams, with zero friction<br/>
+  An out-of-the-box, model-agnostic <b>RAG + LLM workflow engine</b> built on <b>Java 21 + Spring Boot 3 (Virtual Threads)</b><br/>
+  <sub>Intelligent customer service · Enterprise knowledge bases · Data analysis · Research & education</sub>
+</p>
 
 <p align="center">
   <a href="https://www.gnu.org/licenses/gpl-3.0.html"><img src="https://img.shields.io/badge/License-GPLv3-blue" alt="GPLv3"></a>
@@ -105,12 +111,17 @@ Profiles: `maxkb4j-start/src/main/resources/application-{dev,prod,test}.yml`, sw
 ### Deploy to cloud platforms
 Supports one-click deployment to [Sealos](https://blog.csdn.net/weixin_40986713/article/details/156026021) (overseas servers, no proxy needed, auto-scaling).
 
+> 🎉 **Deployed successfully?**
+> If MaxKB4j saved your team development time, consider [buying the author a coffee ☕](#support--sponsorship) — a coffee unlocks the author's direct WeChat line and the core community group, where deployment questions get answered fast.
+
 ## 🌐 Live Demo & UI
 
 - Live demo: http://43.143.235.194:8080/ (account `demo` / password `demo@123456`, normal-user permissions)
 - Local default admin: `admin` / `tarzan@123456`
 
 <img src="image/maxkb4j.gif" alt="MaxKB4jUI" />
+
+> 💡 **Spend 3 minutes on the demo first, then decide** — seeing is believing.
 
 ## 🛠 Tech Stack & Project Structure
 
@@ -140,46 +151,60 @@ MaxKB4j/
 - 📐 [Coding Conventions](docs/编码约定.md)
 - 🗒️ [Changelog](CHANGELOG.md) — latest release: v2.9.0 (2026-06-17)
 
-## 🤝 Community & Contributing
+## 🤝 Contributing
 
 | Item | Details |
 | :--- | :--- |
 | Feedback & requests | Report bugs, suggestions, or feature requests via [Gitee Issues](https://gitee.com/taisan/MaxKB4j/issues) |
 | Contribution flow | Fork → create a branch → push to the DEV branch → open a Pull Request |
 | Coding standards | Follow Alibaba Java coding conventions; include unit tests and update docs |
-| Community chat | Add the author on WeChat (`vxhqqh`) to join the core community group |
 
 ## 💖 Support & Sponsorship
 
-> MaxKB4j is maintained by an individual developer and community members, with no commercial company backing.
-> Every contribution goes directly to: **cloud server costs, model token testing, bug fixes, and new feature development**, with usage reported regularly in the community group.
+> **MaxKB4j has no commercial backing and no funding** — it is built line by line by an independent developer in his spare time.
+> Every contribution goes directly to real costs:
+>
+> - 🖥 **Cloud servers for the live demo** — running 24/7, free for everyone to try
+> - 🤖 **Model token consumption** — every regression test costs real money
+> - 🧪 **Bug fixes & new feature development** — caffeine for late-night coding
+>
+> Usage is reported regularly in the community group, fully transparent.
+>
+> ⚠️ The author's time is limited: **direct WeChat access and the core community group are reserved for sponsors** (from ¥10) — this protects both the author's focus and the signal quality of the group.
+
+### Sponsorship Tiers
 
 | Tier | Amount | Benefits | Best for |
 | :---: | :---: | :--- | :--- |
-| ☕ Coffee | ¥10 | Author WeChat `vxhqqh`, core community group, priority update notifications | Individual developers who appreciate the project |
-| 📚 Learning Member | ¥99 | All Coffee benefits + free access to the [Knowledge Planet](https://wx.zsxq.com/group/28882525858841) + priority answers inside the planet | Developers who want to learn in depth |
-| 🏢 Enterprise Partner | ¥799 | All Learning Member benefits + frontend source code (one-time) + deployment / post-sales support | Enterprise users / production deployments |
-| 👑 Strategic Partner | ¥1399 | All Enterprise Partner benefits + 6-month frontend source upgrades + enterprise logo on the sponsor wall | Deep partners |
+| ☕ Coffee | ¥10 | Direct WeChat line to the author + core community group + priority update notifications | Anyone who appreciates the project |
+| 📚 Learning Member | ¥99 | All Coffee benefits + free access to the [Knowledge Planet](https://wx.zsxq.com/group/28882525858841) + priority answers inside the planet | Developers who want to master RAG / workflow in practice |
+| 🏢 Enterprise Partner | ¥799 | All Learning Member benefits + frontend source code (one-time) + deployment / post-sales support | Teams going to production |
+| 👑 Strategic Partner | ¥1399 | All Enterprise Partner benefits + 6-month frontend source upgrades + your logo on the sponsor wall | Long-term partners growing together |
 
-**How to sponsor**
-1. Pick a tier and scan the Alipay / WeChat QR codes below to pay (please note your nickname).
-2. Add the author on WeChat (`vxhqqh`) and send the payment screenshot to activate your benefits instantly.
+> 💡 **Every tier includes the author's direct WeChat line + the core community group** — unlocked from the ¥10 Coffee tier.
 
-> 💡 Please contact the author after payment so we can identify your sponsorship and grant benefits.
+### How to Sponsor (3 steps)
 
 <table>
   <tr>
-    <th align="center">Alipay QR</th>
-    <th align="center">WeChat QR</th>
+    <th align="center">Step 1 · Add the author on WeChat</th>
+    <th align="center">Step 2 · Pay via Alipay</th>
+    <th align="center">Step 2 · Pay via WeChat</th>
   </tr>
   <tr>
-    <td align="center"><img src="image/zfb_skm.png" alt="AlipayQR" /></td>
-    <td align="center"><img src="image/wx_zsm.png" alt="WeChatQR" /></td>
+    <td align="center"><img src="image/wx.jpg" width="200" alt="Author WeChat QR"/></td>
+    <td align="center"><img src="image/zfb_skm.png" width="200" alt="Alipay QR"/></td>
+    <td align="center"><img src="image/wx_zsm.png" width="200" alt="WeChat QR"/></td>
+  </tr>
+  <tr>
+    <td align="center">Note "MaxKB4j"</td>
+    <td align="center" colspan="2">Step 3 · Send the payment screenshot to the author (with your nickname) — benefits activate immediately</td>
   </tr>
 </table>
 
-**🏅 Sponsor Wall** (sorted by sponsorship time; enterprise logos / nicknames are displayed long-term)
-> 🎯 Join us — your enterprise logo / nickname will be showcased here with ongoing community exposure.
+### 🏅 Sponsor Wall
+
+> 🎯 Join us — your enterprise logo / nickname will be showcased here by sponsorship order, with ongoing community exposure.
 
 ## 🏢 Enterprise Services
 
@@ -190,6 +215,19 @@ Need **private deployment, custom development, team training, or SLA-backed supp
 - Technical support and SLA services
 
 Contact the author on WeChat (`vxhqqh`) for a tailored proposal and quote.
+
+## ✍️ A Note from the Author
+
+Hi, I'm **TARZAN (泰山)**, the author of MaxKB4j.
+
+This project started from a simple belief: **the Java world deserves a native, production-grade AI application platform**. With no company and no funding behind it, all the code, docs, tests, and deployment scripts were written in my evenings and weekends — and I personally answer questions in the community group whenever I can.
+
+If this project helps you, here are two ways to support it:
+
+- ⭐ **Give it a Star** — 10 seconds of your time helps more Java developers discover it
+- 💖 **[Buy me a coffee](#support--sponsorship)** (from ¥10) — unlocks the author's direct WeChat line and the core community group; your sponsorship becomes servers, tokens, and caffeine that keep this project moving forward
+
+Open source is hard; every bit of kindness counts. 🤝
 
 ## 📜 License
 

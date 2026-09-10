@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -51,7 +52,10 @@ import java.util.concurrent.atomic.AtomicReference;
  *   <li>when the channel dies the {@code onFailure} callback is triggered so
  *       that {@code DefaultMcpClient} re-invokes {@code start()} according to
  *       its {@code reconnectInterval}; reconnection resumes from
- *       {@code Last-Event-ID}.</li>
+ *       {@code Last-Event-ID}. A channel that accepts the GET but never
+ *       announces its endpoint within {@code endpointTimeout} is torn down
+ *       and reported the same way, so the client keeps retrying instead of
+ *       staying wedged on a half-dead channel.</li>
  * </ol>
  */
 public class SseHttpMcpTransport implements McpTransport {
@@ -138,6 +142,12 @@ public class SseHttpMcpTransport implements McpTransport {
             headers.forEach(requestBuilder::header);
         }
         SseChannelSubscriber subscriber = new SseChannelSubscriber();
+        // cancel the channel of a superseded attempt (if any) so its
+        // connection does not linger server-side
+        SseChannelSubscriber obsolete = this.activeSubscriber;
+        if (obsolete != null) {
+            obsolete.cancel();
+        }
         this.activeSubscriber = subscriber;
         httpClient.sendAsync(requestBuilder.build(), responseInfo -> {
             int statusCode = responseInfo.statusCode();
@@ -192,15 +202,60 @@ public class SseHttpMcpTransport implements McpTransport {
         if (url != null) {
             return CompletableFuture.completedFuture(url);
         }
+        CompletableFuture<String> source = postUrlFuture;
         CompletableFuture<String> result = new CompletableFuture<>();
-        postUrlFuture.whenComplete((u, t) -> {
+        source.whenComplete((u, t) -> {
             if (u != null) {
                 result.complete(u);
             } else {
                 result.completeExceptionally(t);
             }
         });
-        return result.orTimeout(endpointTimeout.toMillis(), TimeUnit.MILLISECONDS);
+        result.orTimeout(endpointTimeout.toMillis(), TimeUnit.MILLISECONDS);
+        result.whenComplete((u, t) -> {
+            if (t instanceof TimeoutException) {
+                handleEndpointTimeout(source);
+            }
+        });
+        return result;
+    }
+
+    /**
+     * The freshly opened channel did not deliver its "endpoint" event within
+     * {@code endpointTimeout} (a half-dead server or a stalled proxy that
+     * answered the SSE GET with 200 but never announces the POST URL).
+     * Failing the initialize request alone is not enough: the half-open
+     * channel would linger and no further failure would ever be reported,
+     * so with the client's health check disabled the transport would stay
+     * wedged on the dead channel forever. Tear the channel down and, once a
+     * channel was established before, let {@code DefaultMcpClient} retry at
+     * its own {@code reconnectInterval} — exactly like any other connection
+     * failure.
+     */
+    private void handleEndpointTimeout(CompletableFuture<String> awaitedFuture) {
+        if (closed.get()) {
+            return;
+        }
+        // act only while this attempt is still the current one: a newer
+        // (re)connection attempt may already have replaced the channel
+        if (awaitedFuture != postUrlFuture || postUrl != null) {
+            return;
+        }
+        LOG.warn("Timed out after {} waiting for the server's 'endpoint' event on {}",
+                endpointTimeout, sseUrl);
+        sseChannelEstablished = false;
+        mcpSessionId.set(null);
+        SseChannelSubscriber subscriber = this.activeSubscriber;
+        this.activeSubscriber = null;
+        if (subscriber != null) {
+            subscriber.cancel();
+        }
+        // fail concurrent waiters instead of letting each hit its own timeout
+        postUrlFuture.completeExceptionally(new TimeoutException(
+                "Timed out waiting for the server's 'endpoint' event"));
+        if (everConnected.get()) {
+            notifyFailure();
+        }
     }
 
     @Override
@@ -447,12 +502,20 @@ public class SseHttpMcpTransport implements McpTransport {
 
         @Override
         public void onError(Throwable throwable) {
+            // a channel superseded by a newer (re)connection attempt must not
+            // be reported as the current channel's failure
+            if (SseHttpMcpTransport.this.activeSubscriber != this) {
+                return;
+            }
             LOG.warn("SSE channel failure", throwable);
             handleChannelEnd();
         }
 
         @Override
         public void onComplete() {
+            if (SseHttpMcpTransport.this.activeSubscriber != this) {
+                return;
+            }
             LOG.debug("SSE channel closed by the server");
             handleChannelEnd();
         }

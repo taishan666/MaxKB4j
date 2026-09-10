@@ -120,6 +120,9 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         for (int attempt = 1; attempt <= retryTimes; attempt++) {
             try {
                 List<TextSegment> textSegments = batch.stream().map(this::toTextSegment).toList();
+/*                EmbeddingInput embeddingInput=EmbeddingInput.from(TextContent.from(""), ImageContent.from("", "image/png"));
+                model.embed(EmbeddingRequest.builder().input(embeddingInput).build());*/
+                //todo embedAll方法只能做文本向量化
                 Response<List<Embedding>> res = model.embedAll(textSegments);
                 store.addAll(res.content(), textSegments);
                 return;
