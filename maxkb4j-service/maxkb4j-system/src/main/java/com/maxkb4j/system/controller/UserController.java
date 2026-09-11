@@ -57,7 +57,7 @@ public class UserController {
         return R.status(userService.sendEmailCode(email, I18nUtil.get("email.subject.modify.password")));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = {RoleConst.ADMIN, RoleConst.USER},mode = SaMode.OR)
     @PostMapping("/user/current/reset_password")
     public R<Boolean> resetPassword(@Valid @RequestBody PasswordDTO dto) {
         return R.status(userService.resetPassword(dto));

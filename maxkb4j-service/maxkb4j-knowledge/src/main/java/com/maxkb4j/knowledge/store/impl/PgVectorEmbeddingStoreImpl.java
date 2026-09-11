@@ -8,9 +8,15 @@ import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.message.Content;
+import dev.langchain4j.data.message.ContentType;
+import dev.langchain4j.data.message.ImageContent;
+import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
+import dev.langchain4j.model.embedding.request.EmbeddingInput;
+import dev.langchain4j.model.embedding.request.EmbeddingRequest;
+import dev.langchain4j.model.embedding.response.EmbeddingResponse;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingStore;
@@ -26,11 +32,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.sql.DataSource;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metadataKey;
 
@@ -117,14 +123,31 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
      */
     private void processBatchWithRetry(EmbeddingModel model, EmbeddingStore<TextSegment> store, List<EmbeddingEntity> batch) {
         Exception lastException = null;
+        Set<ContentType> contentTypes= model.supportedContentTypes();
         for (int attempt = 1; attempt <= retryTimes; attempt++) {
             try {
                 List<TextSegment> textSegments = batch.stream().map(this::toTextSegment).toList();
-/*                EmbeddingInput embeddingInput=EmbeddingInput.from(TextContent.from(""), ImageContent.from("", "image/png"));
-                model.embed(EmbeddingRequest.builder().input(embeddingInput).build());*/
-                //todo embedAll方法只能做文本向量化
-                Response<List<Embedding>> res = model.embedAll(textSegments);
-                store.addAll(res.content(), textSegments);
+                List<EmbeddingInput> inputs=new ArrayList<>();
+                if (contentTypes.contains(ContentType.IMAGE)){
+                    textSegments.forEach(segment->{
+                        String text=segment.text();
+                        inputs.add(EmbeddingInput.from(TextContent.from(text)));
+                    });
+                }else {
+                    textSegments.forEach(segment->{
+                        String text=segment.text();
+                        List<Content> contents=new ArrayList<>();
+                        contents.add(TextContent.from(text));
+                        List<String> imageUrls = extractImageUrls(text);
+                        for (String imageUrl : imageUrls) {
+                            System.out.println(imageUrl);
+                            contents.add(ImageContent.from(imageUrl, "image/png"));
+                        }
+                        inputs.add(EmbeddingInput.from(contents));
+                    });
+                }
+                EmbeddingResponse res=model.embed(EmbeddingRequest.builder().inputs(inputs).build());
+                store.addAll(res.embeddings(), textSegments);
                 return;
             } catch (Exception e) {
                 lastException = e;
@@ -138,6 +161,27 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
             log.error("All {} retry attempts failed for batch of size {}", retryTimes, batch.size());
             throw new RuntimeException("Batch processing failed after retries", lastException);
         }
+    }
+
+    /**
+     * 从Markdown文本中提取所有图片URL
+     */
+    private static final Pattern MD_IMAGE_PATTERN = Pattern.compile("!\\[[^]]*]\\(([^)\\s]+)(?:\\s+\"[^\"]*\")?\\)");
+    private List<String> extractImageUrls(String markdownText) {
+        List<String> urls = new ArrayList<>();
+        if (markdownText == null || markdownText.isEmpty()) {
+            return urls;
+        }
+        Matcher matcher = MD_IMAGE_PATTERN.matcher(markdownText);
+        while (matcher.find()) {
+            String url = matcher.group(1).trim();
+            // 去除可能包裹的尖括号 <url>
+            if (url.startsWith("<") && url.endsWith(">")) {
+                url = url.substring(1, url.length() - 1);
+            }
+            urls.add(url);
+        }
+        return urls;
     }
 
     /**

@@ -197,7 +197,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             log.warn("==================================================================");
         }
         UserEntity user = new UserEntity();
-        user.setNickname(I18nUtil.get("user.admin.nickname"));
+        user.setNickname("系统管理员");
         user.setUsername(systemProperties.getDefaultUsername());
         user.setPassword(passwordService.encode(defaultPassword));
         user.setRole(RoleConst.ADMIN);
