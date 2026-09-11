@@ -35,6 +35,7 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
     private final String apiKey;
     private final String modelName;
     private final MultiModalEmbedding embedding;
+    private final QwenEmbeddingModel qwenEmbeddingModel;
     private final Consumer<MultiModalEmbeddingParam.MultiModalEmbeddingParamBuilder<?, ?>> multiModalEmbeddingParamCustomizer = (p) -> {};
 
     public QwenMultiModalEmbeddingModel(String baseUrl, String apiKey, String modelName, Integer dimension) {
@@ -46,6 +47,7 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
         this.apiKey = apiKey;
         this.dimension = ensureDimension(this.modelName, dimension);
         this.embedding = Utils.isNullOrBlank(baseUrl) ? new MultiModalEmbedding() : new MultiModalEmbedding(baseUrl);
+        this.qwenEmbeddingModel = new QwenEmbeddingModel(baseUrl, apiKey, modelName, dimension);
     }
 
     @Override
@@ -55,39 +57,38 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
 
     @Override
     public Set<ContentType> supportedContentTypes() {
-        return isEmbedding2(modelName) ? Set.of(ContentType.TEXT, ContentType.IMAGE) : Set.of(ContentType.TEXT);
+        return isMultimodal(modelName) ? Set.of(ContentType.TEXT, ContentType.IMAGE, ContentType.VIDEO) : Set.of(ContentType.TEXT);
     }
 
-    private static boolean isEmbedding2(String modelName) {
-        return modelName != null && modelName.contains("embedding-2");
+    private static boolean isMultimodal(String modelName) {
+        return modelName != null && (modelName.contains("-vl-") || modelName.contains("-version-") || modelName.endsWith("-version"));
     }
 
     @Override
     public EmbeddingResponse doEmbed(EmbeddingRequest request) {
-        boolean embedding2 = isEmbedding2(modelName);
-        boolean multimodal = request.inputs().stream()
-                .flatMap(input -> input.contentTypes().stream())
-                .anyMatch(type -> type != ContentType.TEXT);
-
-        List<Embedding> embeddings = new ArrayList<>();
-        int tokenCount = 0;
-        for (EmbeddingInput input : request.inputs()) {
-            List<MultiModalEmbeddingItemBase> contents = toContents(input);
-            MultiModalEmbeddingParam.MultiModalEmbeddingParamBuilder<?, ?> builder = MultiModalEmbeddingParam.builder()
-                    .apiKey(this.apiKey)
-                    .model(this.modelName)
-                    .contents(contents);
-            try {
-                this.multiModalEmbeddingParamCustomizer.accept(builder);
-                MultiModalEmbeddingResult generationResult = this.embedding.call(builder.build());
-                Embedding embedding = toEmbedding(generationResult.getOutput());
-                embeddings.add(embedding);
-                tokenCount = tokenCount + generationResult.getUsage().getTotalUsage();
-            } catch (NoApiKeyException | UploadFileException e) {
-                throw new IllegalArgumentException(e);
+        boolean multimodal = isMultimodal(modelName);
+        if (multimodal) {
+            List<Embedding> embeddings = new ArrayList<>();
+            int tokenCount = 0;
+            for (EmbeddingInput input : request.inputs()) {
+                List<MultiModalEmbeddingItemBase> contents = toContents(input);
+                MultiModalEmbeddingParam.MultiModalEmbeddingParamBuilder<?, ?> builder = MultiModalEmbeddingParam.builder()
+                        .apiKey(this.apiKey)
+                        .model(this.modelName)
+                        .contents(contents);
+                try {
+                    this.multiModalEmbeddingParamCustomizer.accept(builder);
+                    MultiModalEmbeddingResult generationResult = this.embedding.call(builder.build());
+                    Embedding embedding = toEmbedding(generationResult.getOutput());
+                    embeddings.add(embedding);
+                    tokenCount = tokenCount + generationResult.getUsage().getTotalUsage();
+                } catch (NoApiKeyException | UploadFileException e) {
+                    throw new IllegalArgumentException(e);
+                }
             }
+            return EmbeddingResponse.builder().modelName(this.modelName).embeddings(embeddings).tokenUsage(new TokenUsage(tokenCount)).build();
         }
-        return EmbeddingResponse.builder().modelName(this.modelName).embeddings(embeddings).tokenUsage(new TokenUsage(tokenCount)).build();
+        return qwenEmbeddingModel.doEmbed(request);
     }
 
     private static Embedding toEmbedding(MultiModalEmbeddingOutput output) {
