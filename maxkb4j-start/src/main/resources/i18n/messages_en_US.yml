@@ -60,8 +60,6 @@ user:
     empty: Password cannot be empty
     not:
       match: Passwords do not match
-  admin:
-    nickname: System Administrator
 
 email:
   subject:

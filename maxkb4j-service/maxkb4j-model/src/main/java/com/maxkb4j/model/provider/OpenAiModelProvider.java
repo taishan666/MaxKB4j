@@ -1,19 +1,18 @@
 package com.maxkb4j.model.provider;
-import com.maxkb4j.model.annotation.ModelProviderType;
-import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.maxkb4j.model.form.BaseField;
-import com.maxkb4j.model.entity.ModelCredential;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import com.maxkb4j.model.base.STTModel;
+import com.maxkb4j.model.base.TTSModel;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.model.OpenAiSTTModel;
 import com.maxkb4j.model.custom.model.OpenAiTTSModel;
 import com.maxkb4j.model.custom.params.OpenAiChatModelParams;
 import com.maxkb4j.model.custom.params.OpenAiImageModelParams;
+import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.base.STTModel;
-import com.maxkb4j.model.base.TTSModel;
+import com.maxkb4j.model.form.BaseField;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -23,9 +22,11 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiImageModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**

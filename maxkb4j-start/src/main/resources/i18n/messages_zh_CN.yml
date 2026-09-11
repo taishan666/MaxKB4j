@@ -60,8 +60,6 @@ user:
     empty: 密码不能为空
     not:
       match: 密码输入不一致
-  admin:
-    nickname: 系统管理员
 
 email:
   subject:

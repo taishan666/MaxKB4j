@@ -1,13 +1,10 @@
 package com.maxkb4j.knowledge.util;
 
 import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 
 
 /**

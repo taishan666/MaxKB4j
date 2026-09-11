@@ -60,8 +60,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotPermissionException.class)
     @ResponseBody
-    public R<String> handleException(NotPermissionException e) {
+    public R<String> handleException(NotPermissionException e, HttpServletResponse response) {
         log.error("无此权限异常: {}", e.getMessage(), e);
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 设置HTTP状态码为403
         return R.fail(403, e.getMessage());
     }
 
