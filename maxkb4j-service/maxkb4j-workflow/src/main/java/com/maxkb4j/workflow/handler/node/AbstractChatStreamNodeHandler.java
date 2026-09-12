@@ -33,8 +33,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.springframework.web.util.UriUtils.extractFileExtension;
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
+import static org.springframework.web.util.UriUtils.extractFileExtension;
 
 /**
  * 流式聊天节点处理器的抽象基类。
@@ -221,36 +221,40 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
     protected CompletableFuture<NodeResult> writeContextStreamAsync(StreamOptions options, TokenStream tokenStream, IWorkflow workflow, AbsNode node) {
         List<String> answerTexts = new ArrayList<>();
         AtomicReference<String> errorMessage = new AtomicReference<>("");
-        boolean isResult = options.isResult();
         CompletableFuture<NodeResult> resultFuture = new CompletableFuture<>();
         tokenStream.onPartialThinking(thinking -> {
-                    if (isResult && options.reasoningContentEnable()) {
+                    if (options.isResult() && options.reasoningContentEnable()) {
                         emitMessage(workflow, node, "", thinking.text());
                     }
                 }).beforeToolExecution(toolExecute -> {
-                    if (isResult && options.toolOutputEnable()) {
+                    if (options.isResult() && options.toolOutputEnable()) {
                         onBeforeToolExecution(toolExecute, workflow, node);
                     }
-                }).onToolExecuted(toolExecute -> {
-                    if (isResult && options.toolOutputEnable()) {
+                })
+                .onToolExecuted(toolExecute -> {
+                    if (options.isResult() && options.toolOutputEnable()) {
                         String toolMessage = onToolExecuted(toolExecute, workflow, node);
                         if (toolMessage != null && !toolMessage.isEmpty()) {
                             answerTexts.add(toolMessage);
                         }
                     }
-                }).onPartialResponse(content -> {
-                    if (isResult) {
+                })
+                .onPartialResponse(content -> {
+                    if (options.isResult()) {
                         emitMessage(workflow, node, content, "");
                         answerTexts.add(content);
                     }
-                }).onCompleteResponse(response -> {
+                })
+                .onIntermediateResponse((ChatResponse intermediateResponse) -> System.out.println("onIntermediateResponse:"+intermediateResponse))
+                .onUnmappedRawEvent((Object rawEvent) -> log.info("onUnmappedRawEvent:{}", rawEvent))
+                .onCompleteResponse(response -> {
                     String answer = String.join("", answerTexts);
-                    if (isResult) {
+                    if (options.isResult() ) {
                         setAnswerText(node, answer);
                     }
                     // 写入详情
                     putDetails(node, Map.of(
-                            NodeField.IS_RESULT, isResult,
+                            NodeField.IS_RESULT, options.isResult(),
                             NodeField.REASONING_CONTENT_ENABLE, options.reasoningContentEnable()
                     ));
                     resultFuture.complete(handleChatResponse(response, answer, node, errorMessage.get()));

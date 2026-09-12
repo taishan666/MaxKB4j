@@ -59,8 +59,6 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
                 params.getDialogueType(),
                 node.getRuntimeNodeId()
         );
-        List<String> toolIds = Optional.ofNullable(params.getToolIds()).orElse(List.of());
-        List<String> applicationIds = Optional.ofNullable(params.getApplicationIds()).orElse(List.of());
 
         // 构建多模态内容（如图片）
         List<Content> contents = buildImageContents(workflow, node, params.getImageList());
@@ -69,7 +67,9 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
         recordNodeDetails(node, systemPrompt, historyMessages, userPrompt, contents);
 
         ModelConfig modelConfig = resolveModelConfig(workflow, params);
-        List<ToolProvider> toolProviders = resolveToolProviders(toolIds, applicationIds);
+        List<String> toolIds = Optional.ofNullable(params.getToolIds()).orElse(List.of());
+        List<String> applicationIds = Optional.ofNullable(params.getApplicationIds()).orElse(List.of());
+        List<ToolProvider> toolProviders = toolProviderService.getToolProviders(toolIds, applicationIds);
         // 构建 AI 服务
         Assistant assistant = buildStreamingAssistant(workflow, modelConfig, systemPrompt, historyMessages, toolProviders);
 
@@ -99,10 +99,6 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
         String toolMessage = toolFormatterService.format(toolExecute);
         emitMessage(workflow, node, toolMessage, "");
         return toolMessage;
-    }
-
-    private List<ToolProvider> resolveToolProviders(List<String> toolIds, List<String> applicationIds) {
-        return toolProviderService.getToolProviders(toolIds, applicationIds);
     }
 
     private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,
