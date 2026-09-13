@@ -124,10 +124,13 @@ public class SpaForwardFilter extends OncePerRequestFilter {
             return null;
         }
 
-        // 构建产物：./assets/** 被解析到深层路由下，还原到 prefix + /assets/**
+        // 构建产物：./assets/** 在深层路由下被解析错位，统一还原到 prefix + /assets/**。
+        // 含 /assets/ 的请求全部在此处理：规范地址（/chat/assets/x.css）返回 null 不重定向，
+        // 错位地址（/chat/{route}/assets/x.css）才还原，避免落到下方根级文件分支被误剥 assets 段。
         int assetsIndex = uri.indexOf("/assets/");
-        if (assetsIndex > prefix.length()) {
-            return prefix + uri.substring(assetsIndex);
+        if (assetsIndex >= 0) {
+            String canonical = prefix + uri.substring(assetsIndex);
+            return canonical.equals(uri) ? null : canonical;
         }
 
         // 应用根级文件（如 favicon.ico）：深层路由下错位请求，还原到 prefix + /文件名
