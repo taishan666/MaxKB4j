@@ -128,18 +128,12 @@ servers, no proxy needed, auto-scaling).
 > If MaxKB4j saved your team development time, consider [buying the author a coffee ☕](#support--sponsorship) — a coffee
 > unlocks the author's direct WeChat line and the core community group, where deployment questions get answered fast.
 
-## 🌐 Live Demo & UI
+## 🌐 Live Demo
 
 - Live demo: http://43.143.235.194:8080/ (account `demo` / password `demo@123456`, normal-user permissions)
 - Local default admin: `admin` / `tarzan@123456`
 
 <img src="image/maxkb4j.gif" alt="MaxKB4jUI" />
-
-### 📺 Video Demo ([watch on Bilibili](https://www.bilibili.com/video/BV1c7Y96TEAm))
-
-<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=117257405536243&bvid=BV1c7Y96TEAm&cid=41844869624&p=1" width="100%" height="500" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
-
-> 💡 **Spend 3 minutes on the demo first, then decide** — seeing is believing.
 
 ## 🛠 Tech Stack & Project Structure
 

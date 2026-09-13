@@ -104,8 +104,15 @@ public class SpaForwardFilter extends OncePerRequestFilter {
      *
      * <p>规范地址形如 {@code /admin/assets/x.js}；若 {@code /assets/} 之前还夹着
      * 前端路由段（{@code /admin/application/workspace/{id}/WORK_FLOW/assets/x.js}），
-     * 说明是浏览器在深层路由下相对解析出来的错误地址，返回还原后的规范地址；
-     * 不是这类请求时返回 {@code null}。</p>
+     * 说明是浏览器在深层路由下相对解析出来的错误地址，返回还原后的规范地址。</p>
+     *
+     * <p>同理，浏览器在深层路由（如 {@code /chat/05938b627de7b0b3/}）下还会按当前
+     * 目录去请求应用根级文件（如 {@code favicon.ico}），得到
+     * {@code /chat/05938b627de7b0b3/favicon.ico} 这类错位地址，此时还原为
+     * {@code /chat/favicon.ico}。仅当末段带扩展名（确为静态文件）时才还原，
+     * 避免误伤末段无扩展名的正常 SPA 路由。</p>
+     *
+     * <p>不属于上述错位请求时返回 {@code null}。</p>
      */
     private String resolveRouteRelativeAsset(String uri) {
         String prefix;
@@ -116,11 +123,23 @@ public class SpaForwardFilter extends OncePerRequestFilter {
         } else {
             return null;
         }
+
+        // 构建产物：./assets/** 被解析到深层路由下，还原到 prefix + /assets/**
         int assetsIndex = uri.indexOf("/assets/");
-        if (assetsIndex <= prefix.length()) {
-            return null;
+        if (assetsIndex > prefix.length()) {
+            return prefix + uri.substring(assetsIndex);
         }
-        return prefix + uri.substring(assetsIndex);
+
+        // 应用根级文件（如 favicon.ico）：深层路由下错位请求，还原到 prefix + /文件名
+        String rest = uri.substring(prefix.length());
+        int lastSlash = rest.lastIndexOf('/');
+        if (lastSlash > 0) {
+            String fileName = rest.substring(lastSlash + 1);
+            if (fileName.contains(".")) {
+                return prefix + "/" + fileName;
+            }
+        }
+        return null;
     }
 
     @Override

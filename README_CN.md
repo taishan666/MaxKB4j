@@ -122,18 +122,10 @@ java -jar maxkb4j-start/target/maxkb4j-start.jar
 > 🎉 **部署成功了？**
 > 如果 MaxKB4j 为你节省了开发时间，欢迎 [请作者喝杯咖啡 ☕](#支持与赞助) —— 一杯咖啡即可解锁作者微信直连与核心交流群，部署问题群内实时答疑。
 
-## 🌐 在线 Demo 与 UI
+## 🌐 在线 Demo
 
 - 在线 Demo：http://43.143.235.194:8080/（账号 `demo` / 密码 `demo@123456`，普通用户权限）
 - 本地默认管理员：`admin` / `tarzan@123456`
-
-<img src="image/maxkb4j.gif" alt="MaxKB4jUI" />
-
-### 📺 视频演示（[B 站直达](https://www.bilibili.com/video/BV1c7Y96TEAm)）
-
-<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=117257405536243&bvid=BV1c7Y96TEAm&cid=41844869624&p=1" width="100%" height="500" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
-
-> 💡 **建议先花 3 分钟体验 Demo，再决定是否深入** —— 眼见为实。
 
 ## 🛠 技术栈与项目结构
 
