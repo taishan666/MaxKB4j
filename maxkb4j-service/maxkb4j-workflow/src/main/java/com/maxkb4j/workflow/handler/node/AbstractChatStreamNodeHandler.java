@@ -20,7 +20,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.model.chat.StreamingChatModel;
-import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.tool.BeforeToolExecution;
@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 import static org.springframework.web.util.UriUtils.extractFileExtension;
@@ -149,20 +149,21 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * 处理聊天响应：提取推理内容、记录 Token 使用情况、清理工具渲染标签，
      * 并构造 {@link NodeResult}。
      *
-     * @param response     聊天响应
-     * @param answer       累积的答案文本
+     * @param tokenUsage     token费用
+     * @param reasoningTexts    累积的思考文本
+     * @param answerTexts       累积的答案文本
      * @param node         节点实例
-     * @param errorMessage 错误信息（可为空）
      * @return 节点执行结果
      */
-    protected NodeResult handleChatResponse(ChatResponse response, String answer, AbsNode node, String errorMessage) {
-        String reasoning = Optional.ofNullable(response.aiMessage().thinking()).orElse("");
-        recordTokenUsage(node, response.tokenUsage());
+    protected NodeResult handleChatResponse(TokenUsage tokenUsage, List<String> reasoningTexts, List<String> answerTexts, AbsNode node) {
+        recordTokenUsage(node, tokenUsage);
+        String reasoning = String.join("", reasoningTexts);
+        String answer = String.join("", answerTexts);
         return new NodeResult(Map.of(
                 NodeField.ANSWER, answer,
                 NodeField.REASONING_CONTENT, reasoning,
-                RuntimeDetailField.EXCEPTION_MESSAGE, errorMessage
-        ), true);
+                RuntimeDetailField.EXCEPTION_MESSAGE, ""
+        ));
     }
 
     // ==================== 流式消息发送 ====================
@@ -219,12 +220,18 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * @return 节点执行结果的 CompletableFuture
      */
     protected CompletableFuture<NodeResult> writeContextStreamAsync(StreamOptions options, TokenStream tokenStream, IWorkflow workflow, AbsNode node) {
+        // 写入详情
+        putDetails(node, Map.of(
+                NodeField.IS_RESULT, options.isResult(),
+                NodeField.REASONING_CONTENT_ENABLE, options.reasoningContentEnable()
+        ));
         List<String> answerTexts = new ArrayList<>();
-        AtomicReference<String> errorMessage = new AtomicReference<>("");
+        List<String> reasoningTexts = new CopyOnWriteArrayList<>();
         CompletableFuture<NodeResult> resultFuture = new CompletableFuture<>();
         tokenStream.onPartialThinking(thinking -> {
                     if (options.isResult() && options.reasoningContentEnable()) {
                         emitMessage(workflow, node, "", thinking.text());
+                        reasoningTexts.add(thinking.text());
                     }
                 }).beforeToolExecution(toolExecute -> {
                     if (options.isResult() && options.toolOutputEnable()) {
@@ -245,23 +252,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
                         answerTexts.add(content);
                     }
                 })
-                .onIntermediateResponse((ChatResponse intermediateResponse) -> System.out.println("onIntermediateResponse:" + intermediateResponse))
-                .onUnmappedRawEvent((Object rawEvent) -> log.info("onUnmappedRawEvent:{}", rawEvent))
-                .onCompleteResponse(response -> {
-                    String answer = String.join("", answerTexts);
-                    if (options.isResult()) {
-                        setAnswerText(node, answer);
-                    }
-                    // 写入详情
-                    putDetails(node, Map.of(
-                            NodeField.IS_RESULT, options.isResult(),
-                            NodeField.REASONING_CONTENT_ENABLE, options.reasoningContentEnable()
-                    ));
-                    resultFuture.complete(handleChatResponse(response, answer, node, errorMessage.get()));
-                }).onError(error -> {
-                    errorMessage.set(error.getMessage());
-                    resultFuture.completeExceptionally(error);
-                })
+                .onCompleteResponse(response -> resultFuture.complete(handleChatResponse(response.tokenUsage(), reasoningTexts,answerTexts, node))).onError(resultFuture::completeExceptionally)
                 .start();
         return resultFuture;
     }

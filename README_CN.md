@@ -129,6 +129,10 @@ java -jar maxkb4j-start/target/maxkb4j-start.jar
 
 <img src="image/maxkb4j.gif" alt="MaxKB4jUI" />
 
+### 📺 视频演示（[B 站直达](https://www.bilibili.com/video/BV1c7Y96TEAm)）
+
+<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=117257405536243&bvid=BV1c7Y96TEAm&cid=41844869624&p=1" width="100%" height="500" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+
 > 💡 **建议先花 3 分钟体验 Demo，再决定是否深入** —— 眼见为实。
 
 ## 🛠 技术栈与项目结构

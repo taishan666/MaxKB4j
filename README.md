@@ -135,6 +135,10 @@ servers, no proxy needed, auto-scaling).
 
 <img src="image/maxkb4j.gif" alt="MaxKB4jUI" />
 
+### 📺 Video Demo ([watch on Bilibili](https://www.bilibili.com/video/BV1c7Y96TEAm))
+
+<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=117257405536243&bvid=BV1c7Y96TEAm&cid=41844869624&p=1" width="100%" height="500" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+
 > 💡 **Spend 3 minutes on the demo first, then decide** — seeing is believing.
 
 ## 🛠 Tech Stack & Project Structure

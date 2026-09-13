@@ -47,6 +47,6 @@ public class LoopNodeHandler extends AbsNodeHandler {
         node.getDetail().put(DETAIL_LOOP_TYPE, nodeParams.getLoopType());
         node.getDetail().put(DETAIL_NUMBER, nodeParams.getNumber());
         messageForwarder.emitIteration(workflow, node, true);
-        return new NodeResult(workflow.getLoopContext(), true, this::getInterruptFlag);
+        return new NodeResult(workflow.getLoopContext(), this::getInterruptFlag);
     }
 }

@@ -18,23 +18,14 @@ import java.util.Map;
 @Data
 public class NodeResult {
     private Map<String, Object> nodeVariable;
-    private boolean streamOutput;
     private IsInterruptFunction isInterrupt;
 
     public NodeResult(Map<String, Object> nodeVariable) {
         this.nodeVariable = nodeVariable != null ? nodeVariable : new HashMap<>();
-        this.streamOutput = false;
     }
 
-    public NodeResult(Map<String, Object> nodeVariable, boolean streamOutput) {
+    public NodeResult(Map<String, Object> nodeVariable, IsInterruptFunction isInterrupt) {
         this.nodeVariable = nodeVariable != null ? nodeVariable : new HashMap<>();
-        this.streamOutput = streamOutput;
-    }
-
-
-    public NodeResult(Map<String, Object> nodeVariable, boolean streamOutput, IsInterruptFunction isInterrupt) {
-        this.nodeVariable = nodeVariable != null ? nodeVariable : new HashMap<>();
-        this.streamOutput = streamOutput;
         this.isInterrupt = isInterrupt;
     }
 

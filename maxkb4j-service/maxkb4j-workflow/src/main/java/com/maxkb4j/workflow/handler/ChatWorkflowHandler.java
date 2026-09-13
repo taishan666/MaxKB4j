@@ -54,7 +54,7 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
             ChatMessageVO nodeEndVo = node.toChatMessageVO(
                     chatParams.getChatId(),
                     chatParams.getChatRecordId(),
-                    result.isStreamOutput() ? "" : node.getAnswerText(),
+                    node.getAnswerText(),
                     "",
                     null,
                     true);

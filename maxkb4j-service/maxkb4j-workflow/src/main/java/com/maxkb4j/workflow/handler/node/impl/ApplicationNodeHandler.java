@@ -109,7 +109,7 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
                     NodeField.ANSWER, chatResponse.getAnswer(),
                     NodeField.IS_INTERRUPT_EXEC, isInterruptExec.get()
             ));
-            return new NodeResult(Map.of(NodeField.RESULT, chatResponse.getAnswer()), true, this::shouldInterrupt);
+            return new NodeResult(Map.of(NodeField.RESULT, chatResponse.getAnswer()),this::shouldInterrupt);
         }
         return new NodeResult(Map.of(NodeField.RESULT, ""));
     }
