@@ -35,7 +35,7 @@ public class McpToolHandler extends AbsToolHandler {
         List<ToolProvider> toolProviders = new ArrayList<>();
         for (ToolEntity tool : tools) {
             JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
-            McpToolProvider mcpToolProvider = McpToolUtil.getMcpToolProvider(mcpConfig);
+            McpToolProvider mcpToolProvider = McpToolUtil.getMcpToolProvider(tool.getId(),mcpConfig);
             if (mcpToolProvider != null) {
                 toolProviders.add(mcpToolProvider);
             }

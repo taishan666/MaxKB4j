@@ -18,6 +18,9 @@ import dev.langchain4j.service.tool.ToolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -55,7 +58,7 @@ public class McpToolUtil {
         return tools;
     }
 
-    public static McpToolProvider getMcpToolProvider(JSONObject mcpServers) {
+    public static McpToolProvider getMcpToolProvider(String toolId,JSONObject mcpServers) {
         List<McpClient> mcpClients = new ArrayList<>();
         forEachServerClient(mcpServers, (serverName, mcpClient) -> mcpClients.add(mcpClient));
         if (mcpClients.isEmpty()) {
@@ -63,7 +66,74 @@ public class McpToolUtil {
         }
         return McpToolProvider.builder()
                 .mcpClients(mcpClients)
+                // 一个工具实体（toolId）可能对应服务端暴露的多个工具，若统一映射为
+                // tool_<id> 会触发 langchain4j "Duplicated definition for tool"。
+                // 这里在基础名后追加由「服务器 key + 原始工具名」派生的唯一后缀，
+                // 既保证名称唯一，又能被 ToolNaming.parse 还原回 toolId 用于展示。
+                .toolNameMapper((client, toolSpec) ->
+                        buildMcpToolName(toolId, client.key(), toolSpec.name()))
                 .build();
+    }
+
+    /**
+     * 模型侧函数名上限（OpenAI 兼容约定为 64，且仅允许 [a-zA-Z0-9_-]）。
+     */
+    private static final int MAX_TOOL_NAME_LENGTH = 64;
+
+    /**
+     * 构建 MCP 工具的唯一调用名：tool_&lt;id&gt;__&lt;suffix&gt;。
+     * suffix 由服务器 key 与原始工具名清洗拼接而成，超长时截断并追加短哈希避免碰撞。
+     */
+    static String buildMcpToolName(String toolId, String clientKey, String originalName) {
+        String key = clientKey == null ? "" : clientKey;
+        String name = originalName == null ? "" : originalName;
+        String base = ToolNaming.buildToolName(toolId);
+        int budget = MAX_TOOL_NAME_LENGTH - base.length() - ToolNaming.SUFFIX_SEPARATOR.length();
+        String suffix;
+        if (budget <= 0) {
+            // id 过长的极端情况，直接用短哈希保证唯一
+            suffix = shortHash(key + "/" + name);
+        } else {
+            suffix = sanitizeNameSuffix(key + "_" + name);
+            if (suffix.length() > budget) {
+                String hash = shortHash(key + "/" + name);
+                int keep = Math.max(0, budget - hash.length() - 1);
+                suffix = suffix.substring(0, keep) + "_" + hash;
+            }
+        }
+        return ToolNaming.buildToolName(toolId, suffix);
+    }
+
+    /**
+     * 将任意字符串清洗为合法的函数名后缀（仅保留 [a-zA-Z0-9_-]，其余替换为下划线）。
+     */
+    private static String sanitizeNameSuffix(String raw) {
+        StringBuilder sb = new StringBuilder(raw.length());
+        for (int i = 0; i < raw.length(); i++) {
+            char c = raw.charAt(i);
+            boolean valid = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+                    || (c >= '0' && c <= '9') || c == '_' || c == '-';
+            sb.append(valid ? c : '_');
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 取 MD5 前 12 位十六进制作为短哈希，用于超长名称截断后仍保证唯一性。
+     */
+    private static String shortHash(String raw) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] digest = md.digest(raw.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(digest.length * 2);
+            for (byte b : digest) {
+                hex.append(Character.forDigit((b >> 4) & 0xF, 16));
+                hex.append(Character.forDigit(b & 0xF, 16));
+            }
+            return hex.substring(0, 12);
+        } catch (NoSuchAlgorithmException e) {
+            return Integer.toHexString(raw.hashCode());
+        }
     }
 
     public static McpClient getMcpClient(JSONObject mcpServers) {

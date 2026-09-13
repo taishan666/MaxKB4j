@@ -17,6 +17,14 @@ public final class ToolNaming {
     public static final String AGENT_TYPE = "agent";
     public static final String KNOWLEDGE_TYPE = "knowledge";
 
+    /**
+     * MCP 等场景下，一个工具实体（tool_&lt;id&gt;）可能对应服务端暴露的多个工具，
+     * 需在基础名后追加唯一后缀避免重名（否则 langchain4j 会抛 Duplicated definition for tool）。
+     * 后缀与基础名之间使用双下划线分隔；由于 id 由 ASSIGN_UUID 生成（32 位十六进制，不含下划线），
+     * {@link #parse(String)} 可据首个 {@code __} 精确剥离后缀还原出 id。
+     */
+    public static final String SUFFIX_SEPARATOR = "__";
+
     private ToolNaming() {
     }
 
@@ -25,6 +33,21 @@ public final class ToolNaming {
      */
     public static String buildToolName(String id) {
         return TOOL_TYPE + SEPARATOR + id;
+    }
+
+    /**
+     * 构建带唯一后缀的工具调用名称：tool_<id>__<suffix>。
+     * 用于 MCP 一个工具实体对应多个服务端工具的场景，保证名称唯一且仍可解析回 id。
+     *
+     * @param id     工具实体 id
+     * @param suffix 唯一后缀（已清洗为合法字符）；为空时退化为 {@link #buildToolName(String)}
+     */
+    public static String buildToolName(String id, String suffix) {
+        String base = buildToolName(id);
+        if (suffix == null || suffix.isBlank()) {
+            return base;
+        }
+        return base + SUFFIX_SEPARATOR + suffix;
     }
 
     /**
@@ -42,7 +65,8 @@ public final class ToolNaming {
     }
 
     /**
-     * 解析工具调用名称。仅按第一个分隔符切分，id 中含分隔符也能正确往返。
+     * 解析工具调用名称。仅按第一个分隔符切分类型与 id；若 id 段含 {@link #SUFFIX_SEPARATOR}
+     * 后缀（MCP 多工具场景），则剥离后缀还原出真实 id。
      *
      * @return 解析结果；名称为 null 或不符合 "&lt;type&gt;_&lt;id&gt;" 格式时返回 null
      */
@@ -54,7 +78,12 @@ public final class ToolNaming {
         if (idx <= 0 || idx >= name.length() - 1) {
             return null;
         }
-        return new Ref(name.substring(0, idx), name.substring(idx + 1));
+        String id = name.substring(idx + 1);
+        int suffixIdx = id.indexOf(SUFFIX_SEPARATOR);
+        if (suffixIdx > 0) {
+            id = id.substring(0, suffixIdx);
+        }
+        return new Ref(name.substring(0, idx), id);
     }
 
     /**
