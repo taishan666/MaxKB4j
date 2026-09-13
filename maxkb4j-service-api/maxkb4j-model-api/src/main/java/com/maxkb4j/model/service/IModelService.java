@@ -5,7 +5,7 @@ import com.maxkb4j.model.enums.ModelType;
 /**
  * Model service interface
  */
-public interface IModelService  {
+public interface IModelService {
 
     String getSafeModelId(String modelId, ModelType modelType);
 }

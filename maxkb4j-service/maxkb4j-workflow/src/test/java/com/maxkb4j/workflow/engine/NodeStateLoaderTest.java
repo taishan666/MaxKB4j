@@ -19,7 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class NodeStateLoaderTest {
 
     private AbsNode node(String id) {
-        return new AbsNode(id, new JSONObject()) {};
+        return new AbsNode(id, new JSONObject()) {
+        };
     }
 
     private AbsNode nodeWithNodeData(String id) {
@@ -27,7 +28,8 @@ class NodeStateLoaderTest {
         nodeData.put("config", "value");
         JSONObject properties = new JSONObject();
         properties.put(RuntimeDetailField.NODE_DATA, nodeData);
-        return new AbsNode(id, properties) {};
+        return new AbsNode(id, properties) {
+        };
     }
 
     private Map<String, Object> detail(int index, String nodeId, List<String> upNodeIds,

@@ -36,9 +36,9 @@ public class ChatParams {
     @Schema(description = "运行节点id")
     private String runtimeNodeId;
     @Schema(description = "表单数据", example = "{ \"name\": \"张三\", \"age\": 25 }")
-    private Map<String,Object> formData;
+    private Map<String, Object> formData;
     @Schema(description = "节点数据", example = "{ \"name\": \"张三\", \"age\": 25 }")
-    private Map<String,Object> nodeData;
+    private Map<String, Object> nodeData;
     @Schema(description = "子节点对象", implementation = ChildNode.class)
     private ChildNode childNode;
     @Schema(description = "音频列表")

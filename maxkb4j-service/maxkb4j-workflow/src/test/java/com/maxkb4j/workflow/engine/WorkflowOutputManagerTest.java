@@ -22,13 +22,15 @@ import static org.mockito.Mockito.verify;
 class WorkflowOutputManagerTest {
 
     private AbsNode newNode(String id) {
-        return new AbsNode(id, new JSONObject()) {};
+        return new AbsNode(id, new JSONObject()) {
+        };
     }
 
     private AbsNode newNode(String id, String nodeName) {
         JSONObject props = new JSONObject();
         props.put("nodeName", nodeName);
-        AbsNode node = new AbsNode(id, props) {};
+        AbsNode node = new AbsNode(id, props) {
+        };
         node.setType("ai-chat");
         node.setStatus(NodeStatus.SUCCESS.getStatus());
         return node;
@@ -121,7 +123,8 @@ class WorkflowOutputManagerTest {
     @Test
     void runtimeDetails_nameFallsBackToTypeWhenPropertiesNull() {
         WorkflowContext ctx = new WorkflowContext();
-        AbsNode node = new AbsNode("n1", null) {};
+        AbsNode node = new AbsNode("n1", null) {
+        };
         node.setType("question-classifier");
         node.setStatus(NodeStatus.SUCCESS.getStatus());
         ctx.appendNode(node);

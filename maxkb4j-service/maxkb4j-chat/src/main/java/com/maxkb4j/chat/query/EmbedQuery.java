@@ -21,5 +21,5 @@ public class EmbedQuery {
     @NotBlank(message = "token 不能为空")
     private String token;
 
-    private Map<String, Object> params=Map.of();
+    private Map<String, Object> params = Map.of();
 }

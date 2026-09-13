@@ -31,56 +31,62 @@
 
 Enterprises face four common challenges when adopting LLM applications, and MaxKB4j answers each one:
 
-| Pain Point | MaxKB4j Answer |
-| :--- | :--- |
-| **Complex integration** — mainstream platforms rely on Python / TS ecosystems, making adoption costly for Java teams | **Pure Java native** — built on the Spring Boot 3 stack; existing Java engineers can extend it directly with zero cross-language cost |
-| **Serious hallucinations** — generic LLMs know nothing about internal enterprise data | **Production-grade RAG** — document parsing → chunking → vectorization → hybrid retrieval → Reranker re-ranking, with traceable answers |
-| **Concurrency bottlenecks** — traditional architectures cannot sustain high-concurrency Q&A | **Virtual Threads + reactive architecture** — thousands of concurrent requests per node with lower resource usage |
-| **Single-function Q&A** — no way to orchestrate complex business processes | **Visual workflow + Multi-Agent** — 30+ node types covering complex business scenarios |
+| Pain Point                                                                                                           | MaxKB4j Answer                                                                                                                          |
+|:---------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------|
+| **Complex integration** — mainstream platforms rely on Python / TS ecosystems, making adoption costly for Java teams | **Pure Java native** — built on the Spring Boot 3 stack; existing Java engineers can extend it directly with zero cross-language cost   |
+| **Serious hallucinations** — generic LLMs know nothing about internal enterprise data                                | **Production-grade RAG** — document parsing → chunking → vectorization → hybrid retrieval → Reranker re-ranking, with traceable answers |
+| **Concurrency bottlenecks** — traditional architectures cannot sustain high-concurrency Q&A                          | **Virtual Threads + reactive architecture** — thousands of concurrent requests per node with lower resource usage                       |
+| **Single-function Q&A** — no way to orchestrate complex business processes                                           | **Visual workflow + Multi-Agent** — 30+ node types covering complex business scenarios                                                  |
 
 ## ✨ Key Capabilities
 
-| Capability | Description |
-| :--- | :--- |
-| 🔍 Knowledge Base Q&A | Upload PDF / Word / TXT / Markdown files or crawl web pages; automatic chunking → vectorization → storage → RAG pipeline, significantly reducing hallucinations |
-| 🧠 Advanced RAG / AgenticRAG | Vector, full-text, and hybrid multi-route retrieval + Reranker re-ranking; agents dynamically decide retrieval paths with intent recognition and conditional branches, supporting multi-hop Q&A |
-| ⚙️ Visual Workflow | Low-code orchestration with 30+ node types: conditional branches, loops, variable aggregation, NL2SQL, forms, HTTP requests, MCP, etc.; multi-turn and long-term memory |
-| 🤝 Multi-Agent Collaboration | Multiple role-specific agents (data analyst, code reviewer, customer service agent…) work in parallel or sequence; tasks are decomposed, dispatched, and aggregated automatically via a shared memory bus |
-| ⏰ Triggers | Cron scheduled tasks + Webhook event callbacks for unattended automation (daily report generation, CRM-lead-triggered persona analysis, etc.) |
-| 🌐 Model-Agnostic | Private models via Ollama / Xorbits Inference / LocalAI; public models: Qwen, DeepSeek, Doubao, Hunyuan, GLM, Kimi, GPT, Claude, Gemini, and more |
-| 🧩 Seamless Integration | RESTful API, iframe / Web SDK embedding, OpenAI-compatible chat API, and stream_http MCP agent integration — connect within 5 minutes |
-| 🎙️ Multimodal | ASR speech recognition, TTS speech synthesis, OCR image recognition, Stable Diffusion image generation |
-| 🔒 Security & Permissions | Fine-grained permissions (application / knowledge base / tool / model) based on Sa-Token; audit logs; groovy-sandbox for safe script execution |
-| 🌱 Ecosystem Extensions | Dozens of pre-built agent templates (customer service assistant, data analyst, code mentor…); plugin marketplace: MySQL / PostgreSQL / MongoDB connectors, Feishu / DingTalk / WeCom integrations, web search tools |
+| Capability                   | Description                                                                                                                                                                                                         |
+|:-----------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 🔍 Knowledge Base Q&A        | Upload PDF / Word / TXT / Markdown files or crawl web pages; automatic chunking → vectorization → storage → RAG pipeline, significantly reducing hallucinations                                                     |
+| 🧠 Advanced RAG / AgenticRAG | Vector, full-text, and hybrid multi-route retrieval + Reranker re-ranking; agents dynamically decide retrieval paths with intent recognition and conditional branches, supporting multi-hop Q&A                     |
+| ⚙️ Visual Workflow           | Low-code orchestration with 30+ node types: conditional branches, loops, variable aggregation, NL2SQL, forms, HTTP requests, MCP, etc.; multi-turn and long-term memory                                             |
+| 🤝 Multi-Agent Collaboration | Multiple role-specific agents (data analyst, code reviewer, customer service agent…) work in parallel or sequence; tasks are decomposed, dispatched, and aggregated automatically via a shared memory bus           |
+| ⏰ Triggers                   | Cron scheduled tasks + Webhook event callbacks for unattended automation (daily report generation, CRM-lead-triggered persona analysis, etc.)                                                                       |
+| 🌐 Model-Agnostic            | Private models via Ollama / Xorbits Inference / LocalAI; public models: Qwen, DeepSeek, Doubao, Hunyuan, GLM, Kimi, GPT, Claude, Gemini, and more                                                                   |
+| 🧩 Seamless Integration      | RESTful API, iframe / Web SDK embedding, OpenAI-compatible chat API, and stream_http MCP agent integration — connect within 5 minutes                                                                               |
+| 🎙️ Multimodal               | ASR speech recognition, TTS speech synthesis, OCR image recognition, Stable Diffusion image generation                                                                                                              |
+| 🔒 Security & Permissions    | Fine-grained permissions (application / knowledge base / tool / model) based on Sa-Token; audit logs; groovy-sandbox for safe script execution                                                                      |
+| 🌱 Ecosystem Extensions      | Dozens of pre-built agent templates (customer service assistant, data analyst, code mentor…); plugin marketplace: MySQL / PostgreSQL / MongoDB connectors, Feishu / DingTalk / WeCom integrations, web search tools |
 
 ## 📊 How MaxKB4j Compares
 
-| Capability | **MaxKB4j** | Dify | MaxKB | FastGPT | RAGFlow |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| Backend stack | **Java 21 + Spring Boot 3** | Python + TS | Python | TypeScript | Python |
-| Zero language-switch for Java teams | ✅ Native | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
-| Virtual-Thread high concurrency | ✅ | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
-| Visual workflow + Multi-Agent | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
-| Triggers (Cron / Webhook) | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
-| Multimodal (ASR / TTS / OCR) | ✅ | ⚠️ | ✅ | ⚠️ | ✅ |
-| MCP protocol / OpenAI-compatible API | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Capability                           |         **MaxKB4j**         |    Dify     | MaxKB  |  FastGPT   | RAGFlow |
+|:-------------------------------------|:---------------------------:|:-----------:|:------:|:----------:|:-------:|
+| Backend stack                        | **Java 21 + Spring Boot 3** | Python + TS | Python | TypeScript | Python  |
+| Zero language-switch for Java teams  |          ✅ Native           |     ⚠️      |   ⚠️   |     ⚠️     |   ⚠️    |
+| Virtual-Thread high concurrency      |              ✅              |     ⚠️      |   ⚠️   |     ⚠️     |   ⚠️    |
+| Visual workflow + Multi-Agent        |              ✅              |      ✅      |   ⚠️   |     ⚠️     |   ⚠️    |
+| Triggers (Cron / Webhook)            |              ✅              |      ✅      |   ⚠️   |     ⚠️     |   ⚠️    |
+| Multimodal (ASR / TTS / OCR)         |              ✅              |     ⚠️      |   ✅    |     ⚠️     |    ✅    |
+| MCP protocol / OpenAI-compatible API |              ✅              |      ✅      |   ✅    |     ✅      |    ✅    |
 
-> Note: this table is a capability-orientation comparison for selection reference. Evaluate with your own scenarios via the live demo below.
+> Note: this table is a capability-orientation comparison for selection reference. Evaluate with your own scenarios via
+> the live demo below.
 
 ## 🚀 Quick Start
 
 ### Requirements
+
 - Java 21+
 - PostgreSQL 12+ (with pgvector extension enabled)
 - MongoDB 6.0+ (full-text search and file storage)
 
 ### Option 1: Docker Compose (recommended)
+
 ```bash
 docker-compose up -d
 ```
-Then open `http://localhost:8080/admin/login` (default `admin` / `tarzan@123456`). The database is initialized automatically on first startup.
+
+Then open `http://localhost:8080/admin/login` (default `admin` / `tarzan@123456`). The database is initialized
+automatically on first startup.
 
 ### Option 2: Docker single container
+
 ```bash
 docker run --name maxkb4j -d --restart always -p 8080:8080 \
   -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j \
@@ -91,7 +97,9 @@ docker run --name maxkb4j -d --restart always -p 8080:8080 \
 ```
 
 ### Option 3: One-click install script
-Interactive installers in `deploy/` handle environment checks, image pulling / building, and docker-compose orchestration (Linux / macOS / Windows):
+
+Interactive installers in `deploy/` handle environment checks, image pulling / building, and docker-compose
+orchestration (Linux / macOS / Windows):
 
 ```bash
 # Linux / macOS
@@ -102,17 +110,23 @@ deploy\install.bat
 ```
 
 ### Option 4: Build from source
+
 ```bash
 mvn clean package -DskipTests
 java -jar maxkb4j-start/target/maxkb4j-start.jar
 ```
-Profiles: `maxkb4j-start/src/main/resources/application-{dev,prod,test}.yml`, switch with `--spring.profiles.active=dev`.
+
+Profiles: `maxkb4j-start/src/main/resources/application-{dev,prod,test}.yml`, switch with
+`--spring.profiles.active=dev`.
 
 ### Deploy to cloud platforms
-Supports one-click deployment to [Sealos](https://blog.csdn.net/weixin_40986713/article/details/156026021) (overseas servers, no proxy needed, auto-scaling).
+
+Supports one-click deployment to [Sealos](https://blog.csdn.net/weixin_40986713/article/details/156026021) (overseas
+servers, no proxy needed, auto-scaling).
 
 > 🎉 **Deployed successfully?**
-> If MaxKB4j saved your team development time, consider [buying the author a coffee ☕](#support--sponsorship) — a coffee unlocks the author's direct WeChat line and the core community group, where deployment questions get answered fast.
+> If MaxKB4j saved your team development time, consider [buying the author a coffee ☕](#support--sponsorship) — a coffee
+> unlocks the author's direct WeChat line and the core community group, where deployment questions get answered fast.
 
 ## 🌐 Live Demo & UI
 
@@ -125,13 +139,13 @@ Supports one-click deployment to [Sealos](https://blog.csdn.net/weixin_40986713/
 
 ## 🛠 Tech Stack & Project Structure
 
-| Category | Tech |
-| :--- | :--- |
-| Backend | Java 21, Spring Boot 3, Virtual Threads, Sa-Token |
-| AI framework | LangChain4j 1.x, Docling document parsing |
-| Storage | PostgreSQL 15 + pgvector, MongoDB 6.0+, Caffeine cache |
-| Frontend | Vue 3, Node.js v20.16.0 |
-| Script sandbox | groovy-sandbox |
+| Category       | Tech                                                   |
+|:---------------|:-------------------------------------------------------|
+| Backend        | Java 21, Spring Boot 3, Virtual Threads, Sa-Token      |
+| AI framework   | LangChain4j 1.x, Docling document parsing              |
+| Storage        | PostgreSQL 15 + pgvector, MongoDB 6.0+, Caffeine cache |
+| Frontend       | Vue 3, Node.js v20.16.0                                |
+| Script sandbox | groovy-sandbox                                         |
 
 ```
 MaxKB4j/
@@ -142,26 +156,29 @@ MaxKB4j/
 └── deploy/                           # One-click install scripts (install.sh / install.bat)
 ```
 
-> Dependency direction: `start` → `service` → `service-api` → `core` → `common`. Public contracts live in `-api` modules; implementations live in `service`.
+> Dependency direction: `start` → `service` → `service-api` → `core` → `common`. Public contracts live in `-api`
+> modules; implementations live in `service`.
 
 ## 📄 Documentation & Resources
 
-- 📄 [Business Value Whitepaper](docs/MaxKB4j-商业价值白皮书.md) — value and selection analysis for enterprise decision makers
+- 📄 [Business Value Whitepaper](docs/MaxKB4j-商业价值白皮书.md) — value and selection analysis for enterprise decision
+  makers
 - 🧪 [Regression Test Report](docs/MaxKB4j-回归测试报告.md) — regression verification results of core features
 - 📐 [Coding Conventions](docs/编码约定.md)
 - 🗒️ [Changelog](CHANGELOG.md) — latest release: v2.9.0 (2026-06-17)
 
 ## 🤝 Contributing
 
-| Item | Details |
-| :--- | :--- |
+| Item                | Details                                                                                                   |
+|:--------------------|:----------------------------------------------------------------------------------------------------------|
 | Feedback & requests | Report bugs, suggestions, or feature requests via [Gitee Issues](https://gitee.com/taisan/MaxKB4j/issues) |
-| Contribution flow | Fork → create a branch → push to the DEV branch → open a Pull Request |
-| Coding standards | Follow Alibaba Java coding conventions; include unit tests and update docs |
+| Contribution flow   | Fork → create a branch → push to the DEV branch → open a Pull Request                                     |
+| Coding standards    | Follow Alibaba Java coding conventions; include unit tests and update docs                                |
 
 ## 💖 Support & Sponsorship
 
-> **MaxKB4j has no commercial backing and no funding** — it is built line by line by an independent developer in his spare time.
+> **MaxKB4j has no commercial backing and no funding** — it is built line by line by an independent developer in his
+> spare time.
 > Every contribution goes directly to real costs:
 >
 > - 🖥 **Cloud servers for the live demo** — running 24/7, free for everyone to try
@@ -170,18 +187,20 @@ MaxKB4j/
 >
 > Usage is reported regularly in the community group, fully transparent.
 >
-> ⚠️ The author's time is limited: **direct WeChat access and the core community group are reserved for sponsors** (from ¥10) — this protects both the author's focus and the signal quality of the group.
+> ⚠️ The author's time is limited: **direct WeChat access and the core community group are reserved for sponsors** (from
+> ¥10) — this protects both the author's focus and the signal quality of the group.
 
 ### Sponsorship Tiers
 
-| Tier | Amount | Benefits | Best for |
-| :---: | :---: | :--- | :--- |
-| ☕ Coffee | ¥10 | Direct WeChat line to the author + core community group + priority update notifications | Anyone who appreciates the project |
-| 📚 Learning Member | ¥99 | All Coffee benefits + free access to the [Knowledge Planet](https://wx.zsxq.com/group/28882525858841) + priority answers inside the planet | Developers who want to master RAG / workflow in practice |
-| 🏢 Enterprise Partner | ¥799 | All Learning Member benefits + frontend source code (one-time) + deployment / post-sales support | Teams going to production |
-| 👑 Strategic Partner | ¥1399 | All Enterprise Partner benefits + 6-month frontend source upgrades + your logo on the sponsor wall | Long-term partners growing together |
+|         Tier          | Amount | Benefits                                                                                                                                   | Best for                                                 |
+|:---------------------:|:------:|:-------------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------------------|
+|       ☕ Coffee        |  ¥10   | Direct WeChat line to the author + core community group + priority update notifications                                                    | Anyone who appreciates the project                       |
+|  📚 Learning Member   |  ¥99   | All Coffee benefits + free access to the [Knowledge Planet](https://wx.zsxq.com/group/28882525858841) + priority answers inside the planet | Developers who want to master RAG / workflow in practice |
+| 🏢 Enterprise Partner |  ¥799  | All Learning Member benefits + frontend source code (one-time) + deployment / post-sales support                                           | Teams going to production                                |
+| 👑 Strategic Partner  | ¥1399  | All Enterprise Partner benefits + 6-month frontend source upgrades + your logo on the sponsor wall                                         | Long-term partners growing together                      |
 
-> 💡 **Every tier includes the author's direct WeChat line + the core community group** — unlocked from the ¥10 Coffee tier.
+> 💡 **Every tier includes the author's direct WeChat line + the core community group** — unlocked from the ¥10 Coffee
+> tier.
 
 ### How to Sponsor (3 steps)
 
@@ -204,11 +223,14 @@ MaxKB4j/
 
 ### 🏅 Sponsor Wall
 
-> 🎯 Join us — your enterprise logo / nickname will be showcased here by sponsorship order, with ongoing community exposure.
+> 🎯 Join us — your enterprise logo / nickname will be showcased here by sponsorship order, with ongoing community
+> exposure.
 
 ## 🏢 Enterprise Services
 
-Need **private deployment, custom development, team training, or SLA-backed support**? Custom plans and quotes are available:
+Need **private deployment, custom development, team training, or SLA-backed support**? Custom plans and quotes are
+available:
+
 - Private / intranet deployment
 - Scenario-specific development and system integration
 - Team training and knowledge transfer
@@ -220,12 +242,15 @@ Contact the author on WeChat (`vxhqqh`) for a tailored proposal and quote.
 
 Hi, I'm **TARZAN (泰山)**, the author of MaxKB4j.
 
-This project started from a simple belief: **the Java world deserves a native, production-grade AI application platform**. With no company and no funding behind it, all the code, docs, tests, and deployment scripts were written in my evenings and weekends — and I personally answer questions in the community group whenever I can.
+This project started from a simple belief: **the Java world deserves a native, production-grade AI application platform
+**. With no company and no funding behind it, all the code, docs, tests, and deployment scripts were written in my
+evenings and weekends — and I personally answer questions in the community group whenever I can.
 
 If this project helps you, here are two ways to support it:
 
 - ⭐ **Give it a Star** — 10 seconds of your time helps more Java developers discover it
-- 💖 **[Buy me a coffee](#support--sponsorship)** (from ¥10) — unlocks the author's direct WeChat line and the core community group; your sponsorship becomes servers, tokens, and caffeine that keep this project moving forward
+- 💖 **[Buy me a coffee](#support--sponsorship)** (from ¥10) — unlocks the author's direct WeChat line and the core
+  community group; your sponsorship becomes servers, tokens, and caffeine that keep this project moving forward
 
 Open source is hard; every bit of kindness counts. 🤝
 
@@ -233,7 +258,9 @@ Open source is hard; every bit of kindness counts. 🤝
 
 Copyright © 2025–2035 洛阳泰山 TARZAN. All rights reserved.
 
-This project is licensed under the [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) (“License”). You may not use the files of this project except in compliance with the License. Software distributed under the License is distributed on an AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+This project is licensed under the [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) (“License”). You may not use
+the files of this project except in compliance with the License. Software distributed under the License is distributed
+on an AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
 ---
 

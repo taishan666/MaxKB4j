@@ -15,11 +15,11 @@ public interface IToolExecuteService {
 
     Map<String, Object> convertParamType(List<ToolInputField> inputFieldList);
 
-    Object httpOrCodeExecute(String toolType,String code, Map<String, Object> initParams, List<ToolInputField> inputFieldList) throws IOException;
+    Object httpOrCodeExecute(String toolType, String code, Map<String, Object> initParams, List<ToolInputField> inputFieldList) throws IOException;
 
-    Object httpOrCodeExecute(String toolType,String code, Map<String, Object> initParams, Map<String, Object> parameter) throws IOException;
+    Object httpOrCodeExecute(String toolType, String code, Map<String, Object> initParams, Map<String, Object> parameter) throws IOException;
 
-    HttpResponse httpExecute(String code, Map<String, Object> initParams,Map<String, Object> parameter) throws IOException;
+    HttpResponse httpExecute(String code, Map<String, Object> initParams, Map<String, Object> parameter) throws IOException;
 
     Object customExecute(String code, Map<String, Object> initParams, Map<String, Object> parameter) throws IOException;
 

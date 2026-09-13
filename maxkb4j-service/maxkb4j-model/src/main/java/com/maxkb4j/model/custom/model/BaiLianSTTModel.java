@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.model.base.STTModel;
 import lombok.Data;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
@@ -23,7 +24,7 @@ public class BaiLianSTTModel implements STTModel {
     }
 
     private STTModel buildInstance(String modelName) {
-        if (modelName.startsWith(ModelName.GUMMY_PREFIX)){
+        if (modelName.startsWith(ModelName.GUMMY_PREFIX)) {
             return new GummySTT(modelName, credential, params);
         }
         return new BaiLianASRRealtime(modelName, credential, params);

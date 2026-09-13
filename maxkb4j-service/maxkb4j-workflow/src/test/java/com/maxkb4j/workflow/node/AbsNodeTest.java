@@ -14,7 +14,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AbsNodeTest {
 
     private AbsNode newNode(String id) {
-        return new AbsNode(id, new JSONObject()) {};
+        return new AbsNode(id, new JSONObject()) {
+        };
     }
 
     @Test
@@ -23,7 +24,8 @@ class AbsNodeTest {
         JSONObject nodeData = new JSONObject();
         nodeData.put("config", "value");
         props.put("nodeData", nodeData);
-        AbsNode node = new AbsNode("n1", props) {};
+        AbsNode node = new AbsNode("n1", props) {
+        };
 
         assertThat(node.getNodeData().getString("config")).isEqualTo("value");
     }

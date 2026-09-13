@@ -26,7 +26,6 @@ import java.security.PublicKey;
 import java.util.List;
 
 /**
- *
  * @author tarzan
  * @date 2021-10-05
  */
@@ -40,27 +39,27 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationStartedEvent event) {
-        long userCount=userService.count();
-        if (userCount==0){
+        long userCount = userService.count();
+        if (userCount == 0) {
             userService.createDefaultAdminUser();
         }
-        List<SystemSettingEntity> systemSettings=systemSettingService.list();
-        if(CollectionUtils.isEmpty(systemSettings)){
+        List<SystemSettingEntity> systemSettings = systemSettingService.list();
+        if (CollectionUtils.isEmpty(systemSettings)) {
             try {
-                KeyPair keyPair= RSAUtil.generateRSAKeyPair();
+                KeyPair keyPair = RSAUtil.generateRSAKeyPair();
                 PublicKey publicKey = keyPair.getPublic();
                 String publicKeyPem = RSAUtil.publicKeyPem(publicKey);
                 PrivateKey privateKey = keyPair.getPrivate();
                 String encryptPrivateKeyPem = RSAUtil.encryptPrivateKeyPem(privateKey);
                 JSONObject meta = new SystemKeySetting(publicKeyPem, encryptPrivateKeyPem).toMetaJson();
                 systemSettingService.saveOrUpdate(meta, SettingType.KEY);
-                SystemCache.put(SettingType.KEY.getType(),meta);
+                SystemCache.put(SettingType.KEY.getType(), meta);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
         for (SystemSettingEntity systemSetting : systemSettings) {
-            SystemCache.put(systemSetting.getType(),systemSetting.getMeta());
+            SystemCache.put(systemSetting.getType(), systemSetting.getMeta());
         }
         printStartInfo(event);
     }
@@ -69,7 +68,7 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
      * 打印信息
      */
     private void printStartInfo(ApplicationStartedEvent event) {
-        ConfigurableApplicationContext context=event.getApplicationContext();
+        ConfigurableApplicationContext context = event.getApplicationContext();
         Environment env = context.getEnvironment();
         String ip = null;
         try {

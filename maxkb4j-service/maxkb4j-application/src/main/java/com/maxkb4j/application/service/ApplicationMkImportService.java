@@ -37,23 +37,15 @@ public class ApplicationMkImportService {
 
     private static final String TEMPLATE_LOCATION_PREFIX = "templates/app/";
 
-    /** 需要校验并替换 LLM 模型 ID 的工作流节点类型 */
+    /**
+     * 需要校验并替换 LLM 模型 ID 的工作流节点类型
+     */
     private static final Set<String> LLM_NODE_TYPES = Set.of(
             QUESTION.getKey(), NL2SQL.getKey(), INTENT_CLASSIFY.getKey(),
             IMAGE_UNDERSTAND.getKey(), AI_CHAT.getKey(), PARAMETER_EXTRACTION.getKey());
 
     private final UserContext userContext;
     private final IToolService toolService;
-
-    /**
-     * 从 classpath 的 templates/app 目录加载并解析 .mk 模板。
-     */
-    public MaxKb4J loadClasspathTemplate(String downloadUrl) {
-        String templatePath = normalizeTemplatePath(downloadUrl);
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        Resource resource = resolver.getResource(TEMPLATE_LOCATION_PREFIX + templatePath);
-        return ResourceUtil.parseMk(resource);
-    }
 
     /**
      * 校验并规范化模板路径，防止通过 ../ 等手段逃逸出 templates/app 目录读取任意 classpath 资源。
@@ -82,6 +74,16 @@ public class ApplicationMkImportService {
     }
 
     /**
+     * 从 classpath 的 templates/app 目录加载并解析 .mk 模板。
+     */
+    public MaxKb4J loadClasspathTemplate(String downloadUrl) {
+        String templatePath = normalizeTemplatePath(downloadUrl);
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        Resource resource = resolver.getResource(TEMPLATE_LOCATION_PREFIX + templatePath);
+        return ResourceUtil.parseMk(resource);
+    }
+
+    /**
      * 导入前标准化应用与工具数据：
      * <ul>
      *     <li>重置发布状态并记录归属用户</li>
@@ -97,7 +99,7 @@ public class ApplicationMkImportService {
         app.setCreateTime(null);
         app.setUpdateTime(null);
         if (!CollectionUtils.isEmpty(toolList)) {
-            toolService.saveOrUpdateBatch(toolList,userId);
+            toolService.saveOrUpdateBatch(toolList, userId);
         }
     }
 

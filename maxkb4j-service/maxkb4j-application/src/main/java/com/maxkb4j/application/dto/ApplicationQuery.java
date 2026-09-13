@@ -13,5 +13,5 @@ public class ApplicationQuery implements PermissionScopeAware {
     private String folderId;
     private String type;
     private List<String> targetIds;
-    private Boolean isAdmin=false;
+    private Boolean isAdmin = false;
 }

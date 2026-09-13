@@ -13,7 +13,7 @@ public class AssistantCompletedListener implements AiServiceCompletedListener {
     public void onEvent(AiServiceCompletedEvent event) {
         Optional<Object> optional = event.result();
         optional.ifPresent(e -> {
-           if (e instanceof ChatResponse chatResponse) {
+            if (e instanceof ChatResponse chatResponse) {
                 log.info(chatResponse.aiMessage().toString());
             } else {
                 log.info(e.toString());

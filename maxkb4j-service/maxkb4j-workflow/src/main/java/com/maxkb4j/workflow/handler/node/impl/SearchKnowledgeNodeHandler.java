@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 
@@ -28,8 +29,8 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 @Component
 public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
 
-    private final IRetrieveService retrieveService;
     public static final RagContentInjector contentInjector = new RagContentInjector();
+    private final IRetrieveService retrieveService;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -40,7 +41,7 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
             List<String> fields = params.getSearchScopeReference();
             Object value = workflow.getReferenceField(fields);
             if (value instanceof List) {
-                knowledgeIds= (List<String>) value;
+                knowledgeIds = (List<String>) value;
             }
         }
         KnowledgeSetting knowledgeSetting = params.getKnowledgeSetting();

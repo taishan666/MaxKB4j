@@ -26,12 +26,16 @@ import java.io.InputStream;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MongoFileService implements IOssService{
+public class MongoFileService implements IOssService {
 
-    /** 文件访问 URL 前缀。 */
+    /**
+     * 文件访问 URL 前缀。
+     */
     private static final String FILE_URL_PREFIX = "./oss/file/";
 
-    /** 文件类型解析器（线程安全，复用实例）。 */
+    /**
+     * 文件类型解析器（线程安全，复用实例）。
+     */
     private static final MimetypesFileTypeMap MIME_TYPES = new MimetypesFileTypeMap();
 
     private final GridFsTemplate gridFsTemplate;
@@ -48,7 +52,7 @@ public class MongoFileService implements IOssService{
         return buildFileUrl(fileId);
     }
 
-    public OssFile uploadFile(String fileName, byte[] fileBytes)  {
+    public OssFile uploadFile(String fileName, byte[] fileBytes) {
         OssFile fileVO = new OssFile();
         InputStream ins = new ByteArrayInputStream(fileBytes);
         fileVO.setName(fileName);
@@ -67,18 +71,18 @@ public class MongoFileService implements IOssService{
         String originalFilename = file.getOriginalFilename();
         // 获得文件类型
         String contentType = file.getContentType();
-        return storeFile(file.getBytes(),originalFilename,contentType);
+        return storeFile(file.getBytes(), originalFilename, contentType);
     }
 
-    public String storeFile(byte[] bytes,String fileName,String contentType) {
-        ObjectId objectId =  gridFsTemplate.store(new ByteArrayInputStream(bytes), fileName, contentType);
+    public String storeFile(byte[] bytes, String fileName, String contentType) {
+        ObjectId objectId = gridFsTemplate.store(new ByteArrayInputStream(bytes), fileName, contentType);
         return objectId.toString();
     }
 
 
     public OssFile getFile(String id) {
         GridFSFile file = this.getById(id);
-        if (file == null || file.getLength() <= 0){
+        if (file == null || file.getLength() <= 0) {
             return null;
         }
         OssFile fileVO = new OssFile();
@@ -137,7 +141,7 @@ public class MongoFileService implements IOssService{
     }
 
     public InputStream getStream(String fileId) throws IOException {
-        GridFSFile file=getById(fileId);
+        GridFSFile file = getById(fileId);
         return getStream(file);
     }
 

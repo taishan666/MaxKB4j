@@ -18,8 +18,8 @@ public final class FormRenderUtil {
     /**
      * 组装以渲染标签包裹的表单设置字符串。
      *
-     * @param nodeDetail    节点运行时详情
-     * @param renderTag     渲染标签（form_render / card_selection_render）
+     * @param nodeDetail 节点运行时详情
+     * @param renderTag  渲染标签（form_render / card_selection_render）
      * @return 形如 {@code <renderTag>{...}</renderTag>} 的字符串
      */
     public static String buildFormRender(JSONObject nodeDetail, String renderTag) {

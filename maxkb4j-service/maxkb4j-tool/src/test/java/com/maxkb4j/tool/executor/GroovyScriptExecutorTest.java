@@ -24,6 +24,577 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class GroovyScriptExecutorTest {
 
+    /**
+     * ECharts 图表工具脚本（修复版）：
+     * 业务方法保持 List 签名，入参在调用前经 toList 归一化，
+     * 同时兼容调试面板字符串与 AI 调用的真实集合。
+     */
+    private static final String ECHARTS_TOOL_SCRIPT = """
+            import com.alibaba.fastjson.JSON
+            import com.alibaba.fastjson.JSONArray
+            import com.alibaba.fastjson.JSONObject
+            
+            import java.util.List
+            
+            // 入参归一化：List/JSONArray 直接返回；字符串兼容 ["a","b"] 与 [a,b,c] 两种写法
+            static List<Object> toList(Object value) {
+                List<Object> result = new ArrayList<Object>()
+                if (value == null) {
+                    return result
+                }
+                if (value instanceof List) {
+                    result.addAll((List) value)
+                    return result
+                }
+                String text = value.toString().trim()
+                if (text.isEmpty()) {
+                    return result
+                }
+                String body = text
+                if (body.length() > 1 && '['.equals(body.substring(0, 1))
+                        && ']'.equals(body.substring(body.length() - 1))) {
+                    body = body.substring(1, body.length() - 1)
+                    try {
+                        result.addAll(JSON.parseArray(text))
+                        return result
+                    } catch (Exception ignored) {
+                        // 非严格 JSON（如 [a,b,c]），继续走下面的容错切分
+                    }
+                }
+                if (body.trim().isEmpty()) {
+                    return result
+                }
+                List<String> items = Arrays.asList(body.split(','))
+                for (int i = 0; i < items.size(); i++) {
+                    String item = items.get(i).trim()
+                    if (item.length() > 1 && '"'.equals(item.substring(0, 1))
+                            && '"'.equals(item.substring(item.length() - 1))) {
+                        item = item.substring(1, item.length() - 1)
+                    }
+                    result.add(toValue(item))
+                }
+                return result
+            }
+            
+            // 能转数字就转数字，ECharts 的 data 需要数值型
+            static Object toValue(String text) {
+                if (text == null || text.isEmpty()) {
+                    return text
+                }
+                try {
+                    return new BigDecimal(text)
+                } catch (Exception ignored) {
+                    return text
+                }
+            }
+            
+            public static String generateEChartsHtml(List<?> xAxisData, List<?> yAxisData, String chartTitle, String chartType) {
+                JSONObject style = new JSONObject()
+                style.put("height", "400px")
+                style.put("width", "100%")
+            
+                JSONObject title = new JSONObject()
+                title.put("text", chartTitle)
+                title.put("left", "center")
+            
+                JSONObject option = new JSONObject()
+                option.put("title", title)
+            
+                JSONObject series = new JSONObject()
+                series.put("type", chartType)
+            
+                JSONObject tooltip = new JSONObject()
+                if (!"pie".equals(chartType)) {
+                    JSONObject xAxis = new JSONObject()
+                    xAxis.put("type", "category")
+                    xAxis.put("boundaryGap", false)
+                    xAxis.put("data", xAxisData)
+            
+                    JSONObject yAxis = new JSONObject()
+                    yAxis.put("type", "value")
+            
+                    JSONObject markPointDataMax = new JSONObject()
+                    markPointDataMax.put("type", "max")
+                    markPointDataMax.put("name", "最大值")
+            
+                    JSONObject markPointDataMin = new JSONObject()
+                    markPointDataMin.put("type", "min")
+                    markPointDataMin.put("name", "最小值")
+            
+                    JSONArray markPointDataArray = new JSONArray()
+                    markPointDataArray.add(markPointDataMax)
+                    markPointDataArray.add(markPointDataMin)
+            
+                    JSONObject onlineMarkPoint = new JSONObject()
+                    onlineMarkPoint.put("data", markPointDataArray)
+            
+                    series.put("data", yAxisData)
+                    series.put("markPoint", onlineMarkPoint)
+            
+                    option.put("xAxis", xAxis)
+                    option.put("yAxis", yAxis)
+            
+                    tooltip.put("trigger", "axis")
+                } else {
+                    JSONArray seriesData = new JSONArray()
+                    for (int i = 0; i < xAxisData.size(); i++) {
+                        JSONObject dataItem = new JSONObject()
+                        dataItem.put("value", yAxisData.get(i))
+                        dataItem.put("name", xAxisData.get(i))
+                        seriesData.add(dataItem)
+                    }
+                    series.put("data", seriesData)
+                    tooltip.put("trigger", "item")
+                }
+            
+                option.put("tooltip", tooltip)
+                JSONArray seriesArray = new JSONArray()
+                seriesArray.add(series)
+                option.put("series", seriesArray)
+            
+                JSONObject formSetting = new JSONObject()
+                formSetting.put("actionType", "JSON")
+                formSetting.put("style", style)
+                formSetting.put("option", option)
+            
+                return "<echarts_render>" + JSONObject.toJSONString(formSetting) + "</echarts_render>"
+            }
+            
+            return generateEChartsHtml(toList(xAxis), toList(yAxis), chartTitle, chartType)
+            """;
+    /**
+     * 内置「MongoDB 查询」工具的 query 归一化逻辑（与模板脚本保持一致，不连库）。
+     * 大模型常把 query 填成 mongo shell 语句，直接交给 Document.parse 会抛
+     * "JSON reader was expecting a value but found 'db'"。
+     */
+    private static final String MONGO_QUERY_NORMALIZE_CODE = """
+            import org.bson.Document
+            import groovy.json.JsonOutput
+            
+            def extractJsonBlocks = { String text ->
+                def blocks = []
+                int depth = 0
+                int start = -1
+                boolean inString = false
+                boolean escaped = false
+                int len = text.length()
+                for (int i = 0; i < len; i++) {
+                    String ch = text.substring(i, i + 1)
+                    if (inString) {
+                        if (escaped) {
+                            escaped = false
+                        } else if ('\\\\'.equals(ch)) {
+                            escaped = true
+                        } else if ('"'.equals(ch)) {
+                            inString = false
+                        }
+                        continue
+                    }
+                    if ('"'.equals(ch)) {
+                        inString = true
+                    } else if ('{'.equals(ch) || '['.equals(ch)) {
+                        if (depth == 0) {
+                            start = i
+                        }
+                        depth = depth + 1
+                    } else if ('}'.equals(ch) || ']'.equals(ch)) {
+                        depth = depth - 1
+                        if (depth == 0 && start >= 0) {
+                            def block = new LinkedHashMap()
+                            block.put("start", start)
+                            block.put("json", text.substring(start, i + 1))
+                            blocks << block
+                            start = -1
+                        }
+                    }
+                }
+                return blocks
+            }
+            
+            def blockAfter = { String text, List blocks, String keyword ->
+                int idx = text.indexOf(keyword)
+                if (idx < 0) {
+                    return null
+                }
+                for (int i = 0; i < blocks.size(); i++) {
+                    def block = blocks.get(i)
+                    if (block.get("start") > idx) {
+                        return block.get("json").toString()
+                    }
+                }
+                return null
+            }
+            
+            def numberAfter = { String text, String keyword ->
+                int idx = text.indexOf(keyword)
+                if (idx < 0) {
+                    return null
+                }
+                String tail = text.substring(idx + keyword.length())
+                String digits = ""
+                int tailLen = tail.length()
+                for (int i = 0; i < tailLen; i++) {
+                    String ch = tail.substring(i, i + 1)
+                    if ('0123456789'.contains(ch)) {
+                        digits = "${digits}${ch}"
+                    } else {
+                        break
+                    }
+                }
+                if (digits.isEmpty()) {
+                    return null
+                }
+                return Integer.valueOf(digits)
+            }
+            
+            Document queryDoc
+            Document projectionDoc = null
+            Document sortDoc = null
+            Integer limitNum = null
+            Integer skipNum = null
+            
+            if (query instanceof Map) {
+                queryDoc = new Document(query)
+            } else {
+                String qStr = query == null ? "" : query.toString().trim()
+                if (qStr.isEmpty()) {
+                    qStr = "{}"
+                }
+                if (qStr.startsWith("{")) {
+                    queryDoc = Document.parse(qStr)
+                } else if (qStr.startsWith("[")) {
+                    throw new IllegalArgumentException('query 不支持聚合管道写法')
+                } else {
+                    def blocks = extractJsonBlocks(qStr)
+                    if (blocks.size() == 0) {
+                        throw new IllegalArgumentException('query 必须是 MongoDB JSON 过滤条件')
+                    }
+                    String filterJson = blockAfter(qStr, blocks, "find(")
+                    if (filterJson == null) {
+                        filterJson = blockAfter(qStr, blocks, "findOne(")
+                    }
+                    if (filterJson == null) {
+                        filterJson = blocks.get(0).get("json").toString()
+                    }
+                    if (filterJson.startsWith("[")) {
+                        throw new IllegalArgumentException('query 不支持聚合管道写法')
+                    }
+                    queryDoc = Document.parse(filterJson)
+            
+                    int filterIdx = qStr.indexOf(filterJson)
+                    int filterEnd = filterIdx + filterJson.length()
+                    for (int i = 0; i < blocks.size(); i++) {
+                        def block = blocks.get(i)
+                        def blockStart = block.get("start")
+                        if (blockStart >= filterEnd) {
+                            String between = qStr.substring(filterEnd, blockStart)
+                            if (!between.contains(")")) {
+                                projectionDoc = Document.parse(block.get("json").toString())
+                            }
+                            break
+                        }
+                    }
+            
+                    String sortJson = blockAfter(qStr, blocks, ".sort(")
+                    if (sortJson != null) {
+                        sortDoc = Document.parse(sortJson)
+                    }
+                    limitNum = numberAfter(qStr, ".limit(")
+                    skipNum = numberAfter(qStr, ".skip(")
+                }
+            }
+            
+            def out = new LinkedHashMap()
+            out.put("filter", queryDoc.toJson())
+            out.put("projection", projectionDoc == null ? null : projectionDoc.toJson())
+            out.put("sort", sortDoc == null ? null : sortDoc.toJson())
+            out.put("limit", limitNum)
+            out.put("skip", skipNum)
+            return JsonOutput.toJson(out)
+            """;
+    /**
+     * 用户提供的钉钉机器人推送脚本（含 @Grab 依赖声明）。
+     */
+    private static final String DINGTALK_ROBOT_SCRIPT = """
+            @Grab('org.apache.httpcomponents:httpclient:4.5.14')
+            @Grab('org.apache.httpcomponents:httpcore:4.4.16')
+            @Grab('com.fasterxml.jackson.core:jackson-databind:2.15.3')
+            
+            import org.apache.http.client.methods.HttpPost
+            import org.apache.http.entity.StringEntity
+            import org.apache.http.impl.client.HttpClients
+            import org.apache.http.util.EntityUtils
+            import com.fasterxml.jackson.databind.ObjectMapper
+            
+            /**
+             * 钉钉机器人推送消息
+             */
+            def dingtalkrobot(push_message, accessToken, is_at_all, at_mobiles, at_user_ids) {
+                def at = [
+                    "atMobiles": [],
+                    "atUserIds": [],
+                    "isAtAll": is_at_all
+                ]
+            
+                if (at_mobiles) {
+                    def mobile_numbers = at_mobiles.split(",").collect { it.trim() }
+                    at.atMobiles.addAll(mobile_numbers)
+                }
+            
+                if (at_user_ids) {
+                    def user_ids = at_user_ids.split(",").collect { it.trim() }
+                    at.atUserIds.addAll(user_ids)
+                }
+            
+                def url = "https://oapi.dingtalk.com/robot/send?access_token=${accessToken}"
+            
+                HttpClients.createDefault().withCloseable { httpClient ->
+                    def httpPost = new HttpPost(url)
+            
+                    def objectMapper = new ObjectMapper()
+                    def requestBody = [
+                        "msgtype": "text",
+                        "text": [
+                            "content": push_message
+                        ],
+                        "at": at
+                    ]
+                    def jsonBody = objectMapper.writeValueAsString(requestBody)
+                    httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
+            
+                    try {
+                        def response = httpClient.execute(httpPost)
+                        def statusCode = response.getStatusLine().getStatusCode()
+                        def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
+            
+                        if (statusCode == 200) {
+                            def responseJson = objectMapper.readValue(responseBody, Map)
+                            def errcode = responseJson.errcode
+                            if (errcode == 0) {
+                                return "信息：钉钉机器人推送成功。"
+                            } else {
+                                return "错误：钉钉机器人推送失败 - ${responseJson.errmsg}"
+                            }
+                        } else {
+                            return "错误：钉钉机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
+                        }
+                    } catch (Exception e) {
+                        return "错误：钉钉机器人推送异常 - ${e.getMessage()}"
+                    }
+                }
+            }
+            
+            /**
+             * 发送Markdown格式消息
+             */
+            def dingtalkrobotMarkdown(title, text, accessToken, is_at_all, at_mobiles, at_user_ids) {
+                def at = [
+                    "atMobiles": [],
+                    "atUserIds": [],
+                    "isAtAll": is_at_all
+                ]
+            
+                if (at_mobiles) {
+                    def mobile_numbers = at_mobiles.split(",").collect { it.trim() }
+                    at.atMobiles.addAll(mobile_numbers)
+                }
+            
+                if (at_user_ids) {
+                    def user_ids = at_user_ids.split(",").collect { it.trim() }
+                    at.atUserIds.addAll(user_ids)
+                }
+            
+                def url = "https://oapi.dingtalk.com/robot/send?access_token=${accessToken}"
+            
+                HttpClients.createDefault().withCloseable { httpClient ->
+                    def httpPost = new HttpPost(url)
+            
+                    def objectMapper = new ObjectMapper()
+                    def requestBody = [
+                        "msgtype": "markdown",
+                        "markdown": [
+                            "title": title,
+                            "text": text
+                        ],
+                        "at": at
+                    ]
+                    def jsonBody = objectMapper.writeValueAsString(requestBody)
+                    httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
+            
+                    try {
+                        def response = httpClient.execute(httpPost)
+                        def statusCode = response.getStatusLine().getStatusCode()
+                        def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
+            
+                        if (statusCode == 200) {
+                            def responseJson = objectMapper.readValue(responseBody, Map)
+                            def errcode = responseJson.errcode
+                            if (errcode == 0) {
+                                return "信息：钉钉机器人推送成功。"
+                            } else {
+                                return "错误：钉钉机器人推送失败 - ${responseJson.errmsg}"
+                            }
+                        } else {
+                            return "错误：钉钉机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
+                        }
+                    } catch (Exception e) {
+                        return "错误：钉钉机器人推送异常 - ${e.getMessage()}"
+                    }
+                }
+            }
+            
+            // 示例用法
+            // def result1 = dingtalkrobot("测试消息", "your_access_token", false, "13800138000,13900139000", "")
+            // println result1
+            
+            // def markdownText = "# 测试标题\\n## 测试副标题\\n- 测试内容1\\n- 测试内容2"
+            // def result2 = dingtalkrobotMarkdown("测试通知", markdownText, "your_access_token", false, "13800138000", "")
+            // println result2
+            """;
+    /**
+     * 用户提供的飞书机器人推送脚本（含 @Grab 依赖声明与 <at> 提及拼接）。
+     */
+    private static final String FEISHU_ROBOT_SCRIPT = """
+            @Grab('org.apache.httpcomponents:httpclient:4.5.14')
+            @Grab('org.apache.httpcomponents:httpcore:4.4.16')
+            @Grab('com.fasterxml.jackson.core:jackson-databind:2.15.3')
+            
+            import org.apache.http.client.methods.HttpPost
+            import org.apache.http.entity.StringEntity
+            import org.apache.http.impl.client.HttpClients
+            import org.apache.http.util.EntityUtils
+            import com.fasterxml.jackson.databind.ObjectMapper
+            
+            /**
+             * 飞书机器人推送消息
+             */
+            def feishurobot(push_message, webhook, at_users, at_all) {
+                def content_text = push_message
+            
+                if (at_users) {
+                    def user_mentions = at_users.split(",").collect { it.trim() }
+                    user_mentions.each { mention ->
+                        if (mention.startsWith("user_id:")) {
+                            def user_id = mention.substring(7)
+                            content_text += " <at user_id=\\"${user_id}\\"></at>"
+                        } else if (mention.startsWith("email:")) {
+                            def email = mention.substring(6)
+                            content_text += " <at email=\\"${email}\\"></at>"
+                        }
+                    }
+                }
+            
+                if (at_all) {
+                    content_text += " <at user_id=\\"all\\"></at>"
+                }
+            
+                HttpClients.createDefault().withCloseable { httpClient ->
+                    def httpPost = new HttpPost(webhook)
+                    def objectMapper = new ObjectMapper()
+                    def requestBody = [
+                        "msg_type": "text",
+                        "content": [
+                            "text": content_text
+                        ]
+                    ]
+                    def jsonBody = objectMapper.writeValueAsString(requestBody)
+                    httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
+                    try {
+                        def response = httpClient.execute(httpPost)
+                        def statusCode = response.getStatusLine().getStatusCode()
+                        def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
+                        if (statusCode == 200) {
+                            def responseJson = objectMapper.readValue(responseBody, Map)
+                            def code = responseJson.code
+                            if (code == 0) {
+                                return "信息：飞书机器人推送成功。"
+                            } else {
+                                return "错误：飞书机器人推送失败 - ${responseJson.msg}"
+                            }
+                        } else {
+                            return "错误：飞书机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
+                        }
+                    } catch (Exception e) {
+                        return "错误：飞书机器人推送异常 - ${e.getMessage()}"
+                    }
+                }
+            }
+            
+            /**
+             * 飞书机器人推送富文本消息
+             */
+            def feishurobotRichText(title, content, webhook, at_users, at_all) {
+                def content_text = content
+            
+                if (at_users) {
+                    def user_mentions = at_users.split(",").collect { it.trim() }
+                    user_mentions.each { mention ->
+                        if (mention.startsWith("user_id:")) {
+                            def user_id = mention.substring(7)
+                            content_text += " <at user_id=\\"${user_id}\\"></at>"
+                        } else if (mention.startsWith("email:")) {
+                            def email = mention.substring(6)
+                            content_text += " <at email=\\"${email}\\"></at>"
+                        }
+                    }
+                }
+            
+                if (at_all) {
+                    content_text += " <at user_id=\\"all\\"></at>"
+                }
+            
+                HttpClients.createDefault().withCloseable { httpClient ->
+                    def httpPost = new HttpPost(webhook)
+                    def objectMapper = new ObjectMapper()
+                    def requestBody = [
+                        "msg_type": "post",
+                        "content": [
+                            "post": [
+                                "zh_cn": [
+                                    "title": title,
+                                    "content": [
+                                        [
+                                            [
+                                                "tag": "text",
+                                                "text": content_text
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                    def jsonBody = objectMapper.writeValueAsString(requestBody)
+                    httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
+                    try {
+                        def response = httpClient.execute(httpPost)
+                        def statusCode = response.getStatusLine().getStatusCode()
+                        def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
+                        if (statusCode == 200) {
+                            def responseJson = objectMapper.readValue(responseBody, Map)
+                            def code = responseJson.code
+                            if (code == 0) {
+                                return "信息：飞书机器人推送成功。"
+                            } else {
+                                return "错误：飞书机器人推送失败 - ${responseJson.msg}"
+                            }
+                        } else {
+                            return "错误：飞书机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
+                        }
+                    } catch (Exception e) {
+                        return "错误：飞书机器人推送异常 - ${e.getMessage()}"
+                    }
+                }
+            }
+            
+            // 示例用法
+            // def result1 = feishurobot("测试消息", "https://open.feishu.cn/open-apis/bot/v2/hook/your_webhook", "user_id:ou_xxxxxx,email:user@example.com", false)
+            // println result1
+            
+            // def result2 = feishurobotRichText("测试通知", "# 测试标题\\n- 测试内容1\\n- 测试内容2", "https://open.feishu.cn/open-apis/bot/v2/hook/your_webhook", "", false)
+            // println result2
+            """;
+
     private static Map<String, Object> params(Object... keyValues) {
         Map<String, Object> map = new HashMap<>();
         for (int i = 0; i < keyValues.length; i += 2) {
@@ -47,7 +618,7 @@ class GroovyScriptExecutorTest {
             String code = """
                     import java.nio.file.Files
                     import java.nio.file.Path
-
+                    
                     def p = Path.of("%s")
                     def content = Files.readString(p)
                     Files.writeString(p, content + "!")
@@ -106,7 +677,7 @@ class GroovyScriptExecutorTest {
         String code = """
                 import java.time.LocalDateTime
                 import java.time.format.DateTimeFormatter
-
+                
                 def now = LocalDateTime.now()
                 def formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                 return now.format(formatter)
@@ -159,10 +730,10 @@ class GroovyScriptExecutorTest {
         String code = """
                 import java.time.*
                 import java.time.format.*
-
+                
                 final ZoneId UTC8 = ZoneId.of("Asia/Shanghai")
                 final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-
+                
                 if (inputData instanceof Long) {
                     Instant instant = Instant.ofEpochMilli(inputData)
                     ZonedDateTime utc8Time = instant.atZone(UTC8)
@@ -180,10 +751,10 @@ class GroovyScriptExecutorTest {
         String code = """
                 import java.time.*
                 import java.time.format.*
-
+                
                 final ZoneId UTC8 = ZoneId.of("Asia/Shanghai")
                 final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-
+                
                 String str = inputData.trim()
                 LocalDateTime localDateTime = LocalDateTime.parse(str, DATE_TIME_FORMATTER)
                 ZonedDateTime utc8Zoned = localDateTime.atZone(UTC8)
@@ -204,7 +775,7 @@ class GroovyScriptExecutorTest {
                 import java.time.LocalDate
                 import java.time.format.DateTimeFormatter
                 import java.time.format.DateTimeParseException
-
+                
                 try {
                     return LocalDate.parse(inputData, DateTimeFormatter.ISO_LOCAL_DATE).toString()
                 } catch (DateTimeParseException e) {
@@ -344,7 +915,7 @@ class GroovyScriptExecutorTest {
                 @Grab('net.objecthunter:exp4j:0.4.8')
                 import net.objecthunter.exp4j.Expression;
                 import net.objecthunter.exp4j.ExpressionBuilder;
-
+                
                 Expression engine = new ExpressionBuilder(expression)
                                 .build();
                 double result = engine.evaluate();
@@ -359,7 +930,7 @@ class GroovyScriptExecutorTest {
         // exp4j 变量声明与赋值（自定义数学工具的常见用法）同样应放行
         String code = """
                 import net.objecthunter.exp4j.ExpressionBuilder
-
+                
                 def engine = new ExpressionBuilder("x + y * 2")
                         .variables("x", "y")
                         .build()
@@ -380,6 +951,8 @@ class GroovyScriptExecutorTest {
                 null, groovy.grape.Grape.class, "grab", Map.of("group", "net.objecthunter")));
     }
 
+    // ========== 调试面板字符串入参 vs AI 调用 List 入参 ==========
+
     @Test
     void execute_fastjsonJsonObjectAndArray_allowed() {
         // fastjson 用于内置工具 JSON 处理（如 web_search 结果解析）：
@@ -393,7 +966,7 @@ class GroovyScriptExecutorTest {
                 import com.alibaba.fastjson.JSON
                 import com.alibaba.fastjson.JSONArray
                 import com.alibaba.fastjson.JSONObject
-
+                
                 JSONObject user = JSON.parseObject(inputData)
                 JSONArray tags = user.getJSONArray("tags")
                 def joined = ""
@@ -449,7 +1022,7 @@ class GroovyScriptExecutorTest {
         String code = """
                 import com.alibaba.fastjson.JSONArray
                 import com.alibaba.fastjson.JSONObject
-
+                
                 JSONArray arr = JSONObject.parseArray(inputData)
                 JSONObject obj = new JSONObject()
                 obj.put("size", arr.size())
@@ -459,8 +1032,6 @@ class GroovyScriptExecutorTest {
         Object result = executor.execute(params("inputData", "[1,2,3]"));
         assertEquals("{\"size\":3}", result.toString());
     }
-
-    // ========== 调试面板字符串入参 vs AI 调用 List 入参 ==========
 
     /**
      * 复现线上报错：/tool/debug 的入参来自前端 el-input 文本框，无论字段声明为
@@ -508,7 +1079,9 @@ class GroovyScriptExecutorTest {
         assertTrue(html.contains("\"type\":\"max\""), html);
     }
 
-    /** 调试面板传严格 JSON 数组字符串时，走 JSON.parseArray 分支。 */
+    /**
+     * 调试面板传严格 JSON 数组字符串时，走 JSON.parseArray 分支。
+     */
     @Test
     void execute_echartsScript_withStrictJsonStringParams_returnsEchartsHtml() {
         GroovyScriptExecutor executor = new GroovyScriptExecutor(ECHARTS_TOOL_SCRIPT, null);
@@ -523,7 +1096,9 @@ class GroovyScriptExecutorTest {
         assertTrue(html.contains("\"data\":[1,2,3]"), html);
     }
 
-    /** AI 调用路径：langchain4j 已把 arguments 解析成真实 List，脚本同样可用。 */
+    /**
+     * AI 调用路径：langchain4j 已把 arguments 解析成真实 List，脚本同样可用。
+     */
     @Test
     void execute_echartsScript_withListParams_returnsEchartsHtml() {
         GroovyScriptExecutor executor = new GroovyScriptExecutor(ECHARTS_TOOL_SCRIPT, null);
@@ -538,7 +1113,9 @@ class GroovyScriptExecutorTest {
         assertTrue(html.contains("\"data\":[1,2,3]"), html);
     }
 
-    /** 饼图分支：xAxis 作为 name、yAxis 作为 value 组装 [{value,name}]。 */
+    /**
+     * 饼图分支：xAxis 作为 name、yAxis 作为 value 组装 [{value,name}]。
+     */
     @Test
     void execute_echartsScript_withPieType_buildsNameValuePairs() {
         GroovyScriptExecutor executor = new GroovyScriptExecutor(ECHARTS_TOOL_SCRIPT, null);
@@ -577,145 +1154,6 @@ class GroovyScriptExecutorTest {
         assertEquals("3/3/a/1", result);
     }
 
-    /**
-     * ECharts 图表工具脚本（修复版）：
-     * 业务方法保持 List 签名，入参在调用前经 toList 归一化，
-     * 同时兼容调试面板字符串与 AI 调用的真实集合。
-     */
-    private static final String ECHARTS_TOOL_SCRIPT = """
-            import com.alibaba.fastjson.JSON
-            import com.alibaba.fastjson.JSONArray
-            import com.alibaba.fastjson.JSONObject
-
-            import java.util.List
-
-            // 入参归一化：List/JSONArray 直接返回；字符串兼容 ["a","b"] 与 [a,b,c] 两种写法
-            static List<Object> toList(Object value) {
-                List<Object> result = new ArrayList<Object>()
-                if (value == null) {
-                    return result
-                }
-                if (value instanceof List) {
-                    result.addAll((List) value)
-                    return result
-                }
-                String text = value.toString().trim()
-                if (text.isEmpty()) {
-                    return result
-                }
-                String body = text
-                if (body.length() > 1 && '['.equals(body.substring(0, 1))
-                        && ']'.equals(body.substring(body.length() - 1))) {
-                    body = body.substring(1, body.length() - 1)
-                    try {
-                        result.addAll(JSON.parseArray(text))
-                        return result
-                    } catch (Exception ignored) {
-                        // 非严格 JSON（如 [a,b,c]），继续走下面的容错切分
-                    }
-                }
-                if (body.trim().isEmpty()) {
-                    return result
-                }
-                List<String> items = Arrays.asList(body.split(','))
-                for (int i = 0; i < items.size(); i++) {
-                    String item = items.get(i).trim()
-                    if (item.length() > 1 && '"'.equals(item.substring(0, 1))
-                            && '"'.equals(item.substring(item.length() - 1))) {
-                        item = item.substring(1, item.length() - 1)
-                    }
-                    result.add(toValue(item))
-                }
-                return result
-            }
-
-            // 能转数字就转数字，ECharts 的 data 需要数值型
-            static Object toValue(String text) {
-                if (text == null || text.isEmpty()) {
-                    return text
-                }
-                try {
-                    return new BigDecimal(text)
-                } catch (Exception ignored) {
-                    return text
-                }
-            }
-
-            public static String generateEChartsHtml(List<?> xAxisData, List<?> yAxisData, String chartTitle, String chartType) {
-                JSONObject style = new JSONObject()
-                style.put("height", "400px")
-                style.put("width", "100%")
-
-                JSONObject title = new JSONObject()
-                title.put("text", chartTitle)
-                title.put("left", "center")
-
-                JSONObject option = new JSONObject()
-                option.put("title", title)
-
-                JSONObject series = new JSONObject()
-                series.put("type", chartType)
-
-                JSONObject tooltip = new JSONObject()
-                if (!"pie".equals(chartType)) {
-                    JSONObject xAxis = new JSONObject()
-                    xAxis.put("type", "category")
-                    xAxis.put("boundaryGap", false)
-                    xAxis.put("data", xAxisData)
-
-                    JSONObject yAxis = new JSONObject()
-                    yAxis.put("type", "value")
-
-                    JSONObject markPointDataMax = new JSONObject()
-                    markPointDataMax.put("type", "max")
-                    markPointDataMax.put("name", "最大值")
-
-                    JSONObject markPointDataMin = new JSONObject()
-                    markPointDataMin.put("type", "min")
-                    markPointDataMin.put("name", "最小值")
-
-                    JSONArray markPointDataArray = new JSONArray()
-                    markPointDataArray.add(markPointDataMax)
-                    markPointDataArray.add(markPointDataMin)
-
-                    JSONObject onlineMarkPoint = new JSONObject()
-                    onlineMarkPoint.put("data", markPointDataArray)
-
-                    series.put("data", yAxisData)
-                    series.put("markPoint", onlineMarkPoint)
-
-                    option.put("xAxis", xAxis)
-                    option.put("yAxis", yAxis)
-
-                    tooltip.put("trigger", "axis")
-                } else {
-                    JSONArray seriesData = new JSONArray()
-                    for (int i = 0; i < xAxisData.size(); i++) {
-                        JSONObject dataItem = new JSONObject()
-                        dataItem.put("value", yAxisData.get(i))
-                        dataItem.put("name", xAxisData.get(i))
-                        seriesData.add(dataItem)
-                    }
-                    series.put("data", seriesData)
-                    tooltip.put("trigger", "item")
-                }
-
-                option.put("tooltip", tooltip)
-                JSONArray seriesArray = new JSONArray()
-                seriesArray.add(series)
-                option.put("series", seriesArray)
-
-                JSONObject formSetting = new JSONObject()
-                formSetting.put("actionType", "JSON")
-                formSetting.put("style", style)
-                formSetting.put("option", option)
-
-                return "<echarts_render>" + JSONObject.toJSONString(formSetting) + "</echarts_render>"
-            }
-
-            return generateEChartsHtml(toList(xAxis), toList(yAxis), chartTitle, chartType)
-            """;
-
     @Test
     void sandboxPolicy_ocrRelatedWhitelistEntriesPresent() {
         // 以类名断言白名单条目（不加载 Class，避免本地环境差异），
@@ -753,7 +1191,7 @@ class GroovyScriptExecutorTest {
                 import java.sql.Timestamp
                 import java.sql.Date
                 import java.math.BigDecimal
-
+                
                 def processedRows = rows.collect { row ->
                     row.collectEntries { key, value ->
                         def processedValue = value
@@ -837,15 +1275,15 @@ class GroovyScriptExecutorTest {
                 import groovy.json.JsonBuilder
                 import java.sql.Timestamp
                 import java.math.BigDecimal
-
+                
                 def url = "jdbc:postgresql://${host}:${port}/${database}"
                 def driver = 'org.postgresql.Driver'
-
+                
                 Sql sql = null
                 try {
                     sql = Sql.newInstance(url, user, password, driver)
                     println "连接成功！"
-
+                
                     def result = sql.rows(query).collect { row ->
                         def map = [:]
                         row.each { columnName, value ->
@@ -859,7 +1297,7 @@ class GroovyScriptExecutorTest {
                         }
                         map
                     }
-
+                
                     return new JsonBuilder(result).toString()
                 } catch (Exception e) {
                     println "发生错误：${e.message}"
@@ -915,7 +1353,7 @@ class GroovyScriptExecutorTest {
                 import org.bson.Document
                 import org.bson.types.ObjectId
                 import groovy.json.JsonOutput
-
+                
                 Document doc = new Document(row)
                 if (doc.get("_id") instanceof ObjectId) {
                     doc.put("_id", doc.get("_id").toString())
@@ -958,19 +1396,19 @@ class GroovyScriptExecutorTest {
                 import org.bson.types.ObjectId
                 import groovy.json.JsonBuilder
                 import groovy.json.JsonOutput
-
+                
                 import java.time.format.DateTimeFormatter
                 import java.time.Instant
                 import java.time.ZoneId
-
+                
                 MongoClient client = null
                 try {
                     String connectionString = "mongodb://${user}:${password}@${host}:${port}/?authSource=admin"
                     client = MongoClients.create(connectionString)
-
+                
                     MongoDatabase db = client.getDatabase(database)
                     MongoCollection<Document> col = db.getCollection(collection)
-
+                
                     Document queryDoc
                     if (query instanceof String) {
                         String qStr = query.trim()
@@ -983,7 +1421,7 @@ class GroovyScriptExecutorTest {
                     } else {
                         throw new IllegalArgumentException("Query must be a JSON string or a Map")
                     }
-
+                
                     def results = []
                     col.find(queryDoc).forEach { doc ->
                         if (doc.containsKey("_id") && doc.get("_id") instanceof ObjectId) {
@@ -996,7 +1434,7 @@ class GroovyScriptExecutorTest {
                         }
                         results << doc
                     }
-
+                
                     def serialize = { obj ->
                         if (obj == null) return null
                         if (obj instanceof Date) {
@@ -1008,14 +1446,14 @@ class GroovyScriptExecutorTest {
                         }
                         return obj
                     }
-
+                
                     def jsonBuilder = new JsonBuilder()
                     jsonBuilder.call(results.collect { doc ->
                         doc.collectEntries { k, v ->
                             [(k): serialize(v)]
                         }
                     })
-
+                
                     return JsonOutput.prettyPrint(jsonBuilder.toString())
                 } catch (Exception e) {
                     println("Error while connecting to MongoDB: ${e.message}")
@@ -1031,157 +1469,6 @@ class GroovyScriptExecutorTest {
         GroovyScriptCache.get(code);
         assertTrue(GroovyScriptExecutor.isScriptCached(code));
     }
-
-    /**
-     * 内置「MongoDB 查询」工具的 query 归一化逻辑（与模板脚本保持一致，不连库）。
-     * 大模型常把 query 填成 mongo shell 语句，直接交给 Document.parse 会抛
-     * "JSON reader was expecting a value but found 'db'"。
-     */
-    private static final String MONGO_QUERY_NORMALIZE_CODE = """
-            import org.bson.Document
-            import groovy.json.JsonOutput
-
-            def extractJsonBlocks = { String text ->
-                def blocks = []
-                int depth = 0
-                int start = -1
-                boolean inString = false
-                boolean escaped = false
-                int len = text.length()
-                for (int i = 0; i < len; i++) {
-                    String ch = text.substring(i, i + 1)
-                    if (inString) {
-                        if (escaped) {
-                            escaped = false
-                        } else if ('\\\\'.equals(ch)) {
-                            escaped = true
-                        } else if ('"'.equals(ch)) {
-                            inString = false
-                        }
-                        continue
-                    }
-                    if ('"'.equals(ch)) {
-                        inString = true
-                    } else if ('{'.equals(ch) || '['.equals(ch)) {
-                        if (depth == 0) {
-                            start = i
-                        }
-                        depth = depth + 1
-                    } else if ('}'.equals(ch) || ']'.equals(ch)) {
-                        depth = depth - 1
-                        if (depth == 0 && start >= 0) {
-                            def block = new LinkedHashMap()
-                            block.put("start", start)
-                            block.put("json", text.substring(start, i + 1))
-                            blocks << block
-                            start = -1
-                        }
-                    }
-                }
-                return blocks
-            }
-
-            def blockAfter = { String text, List blocks, String keyword ->
-                int idx = text.indexOf(keyword)
-                if (idx < 0) {
-                    return null
-                }
-                for (int i = 0; i < blocks.size(); i++) {
-                    def block = blocks.get(i)
-                    if (block.get("start") > idx) {
-                        return block.get("json").toString()
-                    }
-                }
-                return null
-            }
-
-            def numberAfter = { String text, String keyword ->
-                int idx = text.indexOf(keyword)
-                if (idx < 0) {
-                    return null
-                }
-                String tail = text.substring(idx + keyword.length())
-                String digits = ""
-                int tailLen = tail.length()
-                for (int i = 0; i < tailLen; i++) {
-                    String ch = tail.substring(i, i + 1)
-                    if ('0123456789'.contains(ch)) {
-                        digits = "${digits}${ch}"
-                    } else {
-                        break
-                    }
-                }
-                if (digits.isEmpty()) {
-                    return null
-                }
-                return Integer.valueOf(digits)
-            }
-
-            Document queryDoc
-            Document projectionDoc = null
-            Document sortDoc = null
-            Integer limitNum = null
-            Integer skipNum = null
-
-            if (query instanceof Map) {
-                queryDoc = new Document(query)
-            } else {
-                String qStr = query == null ? "" : query.toString().trim()
-                if (qStr.isEmpty()) {
-                    qStr = "{}"
-                }
-                if (qStr.startsWith("{")) {
-                    queryDoc = Document.parse(qStr)
-                } else if (qStr.startsWith("[")) {
-                    throw new IllegalArgumentException('query 不支持聚合管道写法')
-                } else {
-                    def blocks = extractJsonBlocks(qStr)
-                    if (blocks.size() == 0) {
-                        throw new IllegalArgumentException('query 必须是 MongoDB JSON 过滤条件')
-                    }
-                    String filterJson = blockAfter(qStr, blocks, "find(")
-                    if (filterJson == null) {
-                        filterJson = blockAfter(qStr, blocks, "findOne(")
-                    }
-                    if (filterJson == null) {
-                        filterJson = blocks.get(0).get("json").toString()
-                    }
-                    if (filterJson.startsWith("[")) {
-                        throw new IllegalArgumentException('query 不支持聚合管道写法')
-                    }
-                    queryDoc = Document.parse(filterJson)
-
-                    int filterIdx = qStr.indexOf(filterJson)
-                    int filterEnd = filterIdx + filterJson.length()
-                    for (int i = 0; i < blocks.size(); i++) {
-                        def block = blocks.get(i)
-                        def blockStart = block.get("start")
-                        if (blockStart >= filterEnd) {
-                            String between = qStr.substring(filterEnd, blockStart)
-                            if (!between.contains(")")) {
-                                projectionDoc = Document.parse(block.get("json").toString())
-                            }
-                            break
-                        }
-                    }
-
-                    String sortJson = blockAfter(qStr, blocks, ".sort(")
-                    if (sortJson != null) {
-                        sortDoc = Document.parse(sortJson)
-                    }
-                    limitNum = numberAfter(qStr, ".limit(")
-                    skipNum = numberAfter(qStr, ".skip(")
-                }
-            }
-
-            def out = new LinkedHashMap()
-            out.put("filter", queryDoc.toJson())
-            out.put("projection", projectionDoc == null ? null : projectionDoc.toJson())
-            out.put("sort", sortDoc == null ? null : sortDoc.toJson())
-            out.put("limit", limitNum)
-            out.put("skip", skipNum)
-            return JsonOutput.toJson(out)
-            """;
 
     @Test
     void execute_mongoQueryNormalization_parsesShellStyleQuery() {
@@ -1262,6 +1549,8 @@ class GroovyScriptExecutorTest {
         }
     }
 
+    // ==================== 受控 HTTP 客户端（脚本内发起 http/https 请求） ====================
+
     /**
      * 回归测试：内置「邮箱消息推送」脚本的字符串字面量 "mail.smtp.starttls.enable" 中的
      * ".starttls" 曾因裸 token ".start" 的纯子串匹配被文本预检误判为危险调用
@@ -1294,8 +1583,6 @@ class GroovyScriptExecutorTest {
         assertTrue(GroovyScriptExecutor.isScriptCached(script));
     }
 
-    // ==================== 受控 HTTP 客户端（脚本内发起 http/https 请求） ====================
-
     /**
      * 用户原始脚本（new URL + HttpURLConnection POST + JsonBuilder 请求体 + 读取响应）：
      * 针对本地 HTTP 服务器验证完整链路——构造 URL、openConnection、设置请求方法/头、
@@ -1327,7 +1614,7 @@ class GroovyScriptExecutorTest {
             String code = """
                     import groovy.json.JsonBuilder
                     import groovy.json.JsonSlurper
-
+                    
                     def url = new URL("http://127.0.0.1:%d/api/v1/search")
                     def connection = url.openConnection() as HttpURLConnection
                     connection.requestMethod = "POST"
@@ -1335,7 +1622,7 @@ class GroovyScriptExecutorTest {
                     connection.setRequestProperty("Authorization", "Bearer ${apiKey}")
                     connection.setRequestProperty("Accept", "application/json")
                     connection.setRequestProperty("Content-Type", "application/json")
-
+                    
                     def payload = new JsonBuilder([
                         q: query,
                         scope: "webpage",
@@ -1344,14 +1631,14 @@ class GroovyScriptExecutorTest {
                         includeRawContent: false,
                         conciseSnippet: false
                     ]).toString()
-
+                    
                     connection.outputStream.withWriter { writer ->
                         writer << payload
                     }
-
+                    
                     def responseText = connection.inputStream.text
                     connection.disconnect()
-
+                    
                     return responseText
                     """.formatted(port);
             GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
@@ -1377,7 +1664,7 @@ class GroovyScriptExecutorTest {
         String code = """
                 import groovy.json.JsonBuilder
                 import groovy.json.JsonSlurper
-
+                
                 def url = new URL("https://metaso.cn/api/v1/search")
                 def connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "POST"
@@ -1385,7 +1672,7 @@ class GroovyScriptExecutorTest {
                 connection.setRequestProperty("Authorization", "Bearer ${apiKey}")
                 connection.setRequestProperty("Accept", "application/json")
                 connection.setRequestProperty("Content-Type", "application/json")
-
+                
                 def payload = new JsonBuilder([
                     q: query,
                     scope: "webpage",
@@ -1394,21 +1681,23 @@ class GroovyScriptExecutorTest {
                     includeRawContent: false,
                     conciseSnippet: false
                 ]).toString()
-
+                
                 connection.outputStream.withWriter { writer ->
                     writer << payload
                 }
-
+                
                 def responseText = connection.inputStream.text
                 connection.disconnect()
-
+                
                 return responseText
                 """;
         GroovyScriptCache.get(code);
         assertTrue(GroovyScriptExecutor.isScriptCached(code));
     }
 
-    /** new URL("file:///...") 被协议白名单拒绝：防止借 URL 读取本地文件（LFI）。 */
+    /**
+     * new URL("file:///...") 被协议白名单拒绝：防止借 URL 读取本地文件（LFI）。
+     */
     @Test
     void execute_urlWithFileProtocol_rejected() {
         String code = "return new URL('file:///etc/passwd').text";
@@ -1416,7 +1705,9 @@ class GroovyScriptExecutorTest {
         assertThrows(SecurityException.class, () -> executor.execute(params()));
     }
 
-    /** new URL("jar:...") 等非 http/https 协议同样被拒绝。 */
+    /**
+     * new URL("jar:...") 等非 http/https 协议同样被拒绝。
+     */
     @Test
     void execute_urlWithJarProtocol_rejected() {
         String code = "return new URL('jar:file:///tmp/a.jar!/b').text";
@@ -1424,7 +1715,9 @@ class GroovyScriptExecutorTest {
         assertThrows(SecurityException.class, () -> executor.execute(params()));
     }
 
-    /** Socket 仍被拦截：受控 HTTP 客户端只放行 URL/连接/流，不放开原始套接字。 */
+    /**
+     * Socket 仍被拦截：受控 HTTP 客户端只放行 URL/连接/流，不放开原始套接字。
+     */
     @Test
     void execute_socketConstruction_rejected() {
         String code = "return new Socket('127.0.0.1', 80)";
@@ -1432,7 +1725,11 @@ class GroovyScriptExecutorTest {
         assertThrows(SecurityException.class, () -> executor.execute(params()));
     }
 
-    /** 受控 HTTP 客户端白名单条目齐全：类名/构造器/方法/类型指派均放行，Socket/File 仍拦截。 */
+    // ==================== Apache HttpClient + Jackson（HTTP 推送工具，如钉钉机器人） ====================
+
+    /**
+     * 受控 HTTP 客户端白名单条目齐全：类名/构造器/方法/类型指派均放行，Socket/File 仍拦截。
+     */
     @Test
     void sandboxPolicy_httpClientWhitelistEntriesPresent() {
         // 类名白名单（编译期 ClassExpression 校验依赖）
@@ -1463,7 +1760,9 @@ class GroovyScriptExecutorTest {
         assertFalse(GroovySandboxPolicy.isAllowedType(java.io.File.class));
     }
 
-    /** URL 协议校验：http/https 放行，file/jar/ftp 及无法识别的协议拒绝。 */
+    /**
+     * URL 协议校验：http/https 放行，file/jar/ftp 及无法识别的协议拒绝。
+     */
     @Test
     void validateUrlConstruction_protocolWhitelist() {
         // http/https 放行（不抛异常）
@@ -1483,8 +1782,6 @@ class GroovyScriptExecutorTest {
         assertThrows(SecurityException.class,
                 () -> GroovySandboxPolicy.validateUrlConstruction());
     }
-
-    // ==================== Apache HttpClient + Jackson（HTTP 推送工具，如钉钉机器人） ====================
 
     /**
      * Apache HttpClient / Jackson 白名单必须完整覆盖钉钉机器人等 HTTP 推送脚本：
@@ -1523,6 +1820,7 @@ class GroovyScriptExecutorTest {
 
     /**
      * 钉钉机器人脚本核心链路（针对本地 HTTP 服务器离线验证完整执行）：
+     *
      * @Grab 注解按空操作忽略、HttpClients.createDefault().withCloseable { httpClient ->
      * httpClient.execute(httpPost) }、ObjectMapper 序列化请求体/解析响应体、
      * EntityUtils.toString 读取响应，全部应通过沙箱。
@@ -1552,7 +1850,7 @@ class GroovyScriptExecutorTest {
                     import org.apache.http.impl.client.HttpClients
                     import org.apache.http.util.EntityUtils
                     import com.fasterxml.jackson.databind.ObjectMapper
-
+                    
                     def dingtalkrobot(pushMessage, accessToken) {
                         def at = ["atMobiles": [], "atUserIds": [], "isAtAll": false]
                         def url = "http://127.0.0.1:%d/robot/send?access_token=${accessToken}"
@@ -1606,144 +1904,6 @@ class GroovyScriptExecutorTest {
         assertTrue(GroovyScriptExecutor.isScriptCached(DINGTALK_ROBOT_SCRIPT));
     }
 
-    /** 用户提供的钉钉机器人推送脚本（含 @Grab 依赖声明）。 */
-    private static final String DINGTALK_ROBOT_SCRIPT = """
-            @Grab('org.apache.httpcomponents:httpclient:4.5.14')
-            @Grab('org.apache.httpcomponents:httpcore:4.4.16')
-            @Grab('com.fasterxml.jackson.core:jackson-databind:2.15.3')
-
-            import org.apache.http.client.methods.HttpPost
-            import org.apache.http.entity.StringEntity
-            import org.apache.http.impl.client.HttpClients
-            import org.apache.http.util.EntityUtils
-            import com.fasterxml.jackson.databind.ObjectMapper
-
-            /**
-             * 钉钉机器人推送消息
-             */
-            def dingtalkrobot(push_message, accessToken, is_at_all, at_mobiles, at_user_ids) {
-                def at = [
-                    "atMobiles": [],
-                    "atUserIds": [],
-                    "isAtAll": is_at_all
-                ]
-
-                if (at_mobiles) {
-                    def mobile_numbers = at_mobiles.split(",").collect { it.trim() }
-                    at.atMobiles.addAll(mobile_numbers)
-                }
-
-                if (at_user_ids) {
-                    def user_ids = at_user_ids.split(",").collect { it.trim() }
-                    at.atUserIds.addAll(user_ids)
-                }
-
-                def url = "https://oapi.dingtalk.com/robot/send?access_token=${accessToken}"
-
-                HttpClients.createDefault().withCloseable { httpClient ->
-                    def httpPost = new HttpPost(url)
-
-                    def objectMapper = new ObjectMapper()
-                    def requestBody = [
-                        "msgtype": "text",
-                        "text": [
-                            "content": push_message
-                        ],
-                        "at": at
-                    ]
-                    def jsonBody = objectMapper.writeValueAsString(requestBody)
-                    httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
-
-                    try {
-                        def response = httpClient.execute(httpPost)
-                        def statusCode = response.getStatusLine().getStatusCode()
-                        def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
-
-                        if (statusCode == 200) {
-                            def responseJson = objectMapper.readValue(responseBody, Map)
-                            def errcode = responseJson.errcode
-                            if (errcode == 0) {
-                                return "信息：钉钉机器人推送成功。"
-                            } else {
-                                return "错误：钉钉机器人推送失败 - ${responseJson.errmsg}"
-                            }
-                        } else {
-                            return "错误：钉钉机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
-                        }
-                    } catch (Exception e) {
-                        return "错误：钉钉机器人推送异常 - ${e.getMessage()}"
-                    }
-                }
-            }
-
-            /**
-             * 发送Markdown格式消息
-             */
-            def dingtalkrobotMarkdown(title, text, accessToken, is_at_all, at_mobiles, at_user_ids) {
-                def at = [
-                    "atMobiles": [],
-                    "atUserIds": [],
-                    "isAtAll": is_at_all
-                ]
-
-                if (at_mobiles) {
-                    def mobile_numbers = at_mobiles.split(",").collect { it.trim() }
-                    at.atMobiles.addAll(mobile_numbers)
-                }
-
-                if (at_user_ids) {
-                    def user_ids = at_user_ids.split(",").collect { it.trim() }
-                    at.atUserIds.addAll(user_ids)
-                }
-
-                def url = "https://oapi.dingtalk.com/robot/send?access_token=${accessToken}"
-
-                HttpClients.createDefault().withCloseable { httpClient ->
-                    def httpPost = new HttpPost(url)
-
-                    def objectMapper = new ObjectMapper()
-                    def requestBody = [
-                        "msgtype": "markdown",
-                        "markdown": [
-                            "title": title,
-                            "text": text
-                        ],
-                        "at": at
-                    ]
-                    def jsonBody = objectMapper.writeValueAsString(requestBody)
-                    httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
-
-                    try {
-                        def response = httpClient.execute(httpPost)
-                        def statusCode = response.getStatusLine().getStatusCode()
-                        def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
-
-                        if (statusCode == 200) {
-                            def responseJson = objectMapper.readValue(responseBody, Map)
-                            def errcode = responseJson.errcode
-                            if (errcode == 0) {
-                                return "信息：钉钉机器人推送成功。"
-                            } else {
-                                return "错误：钉钉机器人推送失败 - ${responseJson.errmsg}"
-                            }
-                        } else {
-                            return "错误：钉钉机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
-                        }
-                    } catch (Exception e) {
-                        return "错误：钉钉机器人推送异常 - ${e.getMessage()}"
-                    }
-                }
-            }
-
-            // 示例用法
-            // def result1 = dingtalkrobot("测试消息", "your_access_token", false, "13800138000,13900139000", "")
-            // println result1
-
-            // def markdownText = "# 测试标题\\n## 测试副标题\\n- 测试内容1\\n- 测试内容2"
-            // def result2 = dingtalkrobotMarkdown("测试通知", markdownText, "your_access_token", false, "13800138000", "")
-            // println result2
-            """;
-
     /**
      * 用户提供的飞书机器人推送脚本（文本 + 富文本两个推送函数）：仅验证编译期放行
      * （文本预检 + SecureASTCustomizer），不发起真实网络请求。
@@ -1756,148 +1916,6 @@ class GroovyScriptExecutorTest {
         GroovyScriptCache.get(FEISHU_ROBOT_SCRIPT);
         assertTrue(GroovyScriptExecutor.isScriptCached(FEISHU_ROBOT_SCRIPT));
     }
-
-    /** 用户提供的飞书机器人推送脚本（含 @Grab 依赖声明与 <at> 提及拼接）。 */
-    private static final String FEISHU_ROBOT_SCRIPT = """
-            @Grab('org.apache.httpcomponents:httpclient:4.5.14')
-            @Grab('org.apache.httpcomponents:httpcore:4.4.16')
-            @Grab('com.fasterxml.jackson.core:jackson-databind:2.15.3')
-
-            import org.apache.http.client.methods.HttpPost
-            import org.apache.http.entity.StringEntity
-            import org.apache.http.impl.client.HttpClients
-            import org.apache.http.util.EntityUtils
-            import com.fasterxml.jackson.databind.ObjectMapper
-
-            /**
-             * 飞书机器人推送消息
-             */
-            def feishurobot(push_message, webhook, at_users, at_all) {
-                def content_text = push_message
-
-                if (at_users) {
-                    def user_mentions = at_users.split(",").collect { it.trim() }
-                    user_mentions.each { mention ->
-                        if (mention.startsWith("user_id:")) {
-                            def user_id = mention.substring(7)
-                            content_text += " <at user_id=\\"${user_id}\\"></at>"
-                        } else if (mention.startsWith("email:")) {
-                            def email = mention.substring(6)
-                            content_text += " <at email=\\"${email}\\"></at>"
-                        }
-                    }
-                }
-
-                if (at_all) {
-                    content_text += " <at user_id=\\"all\\"></at>"
-                }
-
-                HttpClients.createDefault().withCloseable { httpClient ->
-                    def httpPost = new HttpPost(webhook)
-                    def objectMapper = new ObjectMapper()
-                    def requestBody = [
-                        "msg_type": "text",
-                        "content": [
-                            "text": content_text
-                        ]
-                    ]
-                    def jsonBody = objectMapper.writeValueAsString(requestBody)
-                    httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
-                    try {
-                        def response = httpClient.execute(httpPost)
-                        def statusCode = response.getStatusLine().getStatusCode()
-                        def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
-                        if (statusCode == 200) {
-                            def responseJson = objectMapper.readValue(responseBody, Map)
-                            def code = responseJson.code
-                            if (code == 0) {
-                                return "信息：飞书机器人推送成功。"
-                            } else {
-                                return "错误：飞书机器人推送失败 - ${responseJson.msg}"
-                            }
-                        } else {
-                            return "错误：飞书机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
-                        }
-                    } catch (Exception e) {
-                        return "错误：飞书机器人推送异常 - ${e.getMessage()}"
-                    }
-                }
-            }
-
-            /**
-             * 飞书机器人推送富文本消息
-             */
-            def feishurobotRichText(title, content, webhook, at_users, at_all) {
-                def content_text = content
-
-                if (at_users) {
-                    def user_mentions = at_users.split(",").collect { it.trim() }
-                    user_mentions.each { mention ->
-                        if (mention.startsWith("user_id:")) {
-                            def user_id = mention.substring(7)
-                            content_text += " <at user_id=\\"${user_id}\\"></at>"
-                        } else if (mention.startsWith("email:")) {
-                            def email = mention.substring(6)
-                            content_text += " <at email=\\"${email}\\"></at>"
-                        }
-                    }
-                }
-
-                if (at_all) {
-                    content_text += " <at user_id=\\"all\\"></at>"
-                }
-
-                HttpClients.createDefault().withCloseable { httpClient ->
-                    def httpPost = new HttpPost(webhook)
-                    def objectMapper = new ObjectMapper()
-                    def requestBody = [
-                        "msg_type": "post",
-                        "content": [
-                            "post": [
-                                "zh_cn": [
-                                    "title": title,
-                                    "content": [
-                                        [
-                                            [
-                                                "tag": "text",
-                                                "text": content_text
-                                            ]
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                    def jsonBody = objectMapper.writeValueAsString(requestBody)
-                    httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
-                    try {
-                        def response = httpClient.execute(httpPost)
-                        def statusCode = response.getStatusLine().getStatusCode()
-                        def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
-                        if (statusCode == 200) {
-                            def responseJson = objectMapper.readValue(responseBody, Map)
-                            def code = responseJson.code
-                            if (code == 0) {
-                                return "信息：飞书机器人推送成功。"
-                            } else {
-                                return "错误：飞书机器人推送失败 - ${responseJson.msg}"
-                            }
-                        } else {
-                            return "错误：飞书机器人推送失败，状态码：${statusCode}，响应：${responseBody}"
-                        }
-                    } catch (Exception e) {
-                        return "错误：飞书机器人推送异常 - ${e.getMessage()}"
-                    }
-                }
-            }
-
-            // 示例用法
-            // def result1 = feishurobot("测试消息", "https://open.feishu.cn/open-apis/bot/v2/hook/your_webhook", "user_id:ou_xxxxxx,email:user@example.com", false)
-            // println result1
-
-            // def result2 = feishurobotRichText("测试通知", "# 测试标题\\n- 测试内容1\\n- 测试内容2", "https://open.feishu.cn/open-apis/bot/v2/hook/your_webhook", "", false)
-            // println result2
-            """;
 
     // ==================== langchain4j Web Search（web_search 工具族） ====================
 
@@ -1931,7 +1949,7 @@ class GroovyScriptExecutorTest {
     void execute_webSearchResultsMapping_allowed() {
         String code = """
                 import com.alibaba.fastjson.JSONObject
-
+                
                 return results.results().stream().map(e->{
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("title",e.title());
@@ -1971,11 +1989,11 @@ class GroovyScriptExecutorTest {
                 import dev.langchain4j.web.search.WebSearchResults;
                 import dev.langchain4j.web.search.google.customsearch.GoogleCustomWebSearchEngine;
                 import com.alibaba.fastjson.JSONObject;
-
+                
                 import java.time.Duration;
                 import java.util.List;
-
-
+                
+                
                 GoogleCustomWebSearchEngine searchEngine = GoogleCustomWebSearchEngine.builder()
                                 .apiKey(apiKey)
                                 .csi(csi)
@@ -2009,11 +2027,11 @@ class GroovyScriptExecutorTest {
                 import dev.langchain4j.web.search.WebSearchResults;
                 import dev.langchain4j.web.search.tavily.TavilyWebSearchEngine;
                 import com.alibaba.fastjson.JSONObject;
-
+                
                 import java.time.Duration;
                 import java.util.List;
-
-
+                
+                
                 TavilyWebSearchEngine searchEngine = TavilyWebSearchEngine.builder()
                         .apiKey(apiKey)
                         .timeout(Duration.ofSeconds(timeout))
@@ -2044,12 +2062,12 @@ class GroovyScriptExecutorTest {
                 import dev.langchain4j.web.search.WebSearchResults;
                 import dev.langchain4j.web.search.searchapi.SearchApiWebSearchEngine;
                 import com.alibaba.fastjson.JSONObject;
-
+                
                 import java.time.Duration;
                 import java.util.HashMap;
                 import java.util.List;
                 import java.util.Map;
-
+                
                 Map<String, Object> optionalParameters = new HashMap<>();
                 optionalParameters.put("gl", "us");
                 optionalParameters.put("hl", "en");
@@ -2088,13 +2106,13 @@ class GroovyScriptExecutorTest {
                 @Grab('org.apache.httpcomponents:httpclient:4.5.14')
                 @Grab('org.apache.httpcomponents:httpcore:4.4.16')
                 @Grab('com.fasterxml.jackson.core:jackson-databind:2.15.3')
-
+                
                 import org.apache.http.client.methods.HttpPost
                 import org.apache.http.entity.StringEntity
                 import org.apache.http.impl.client.HttpClients
                 import org.apache.http.util.EntityUtils
                 import com.fasterxml.jackson.databind.ObjectMapper
-
+                
                 def wecomrobot(push_message, accessKey, is_at_all, at_mobiles) {
                     def mentioned_mobile_list = []
                     if (is_at_all) {
@@ -2104,12 +2122,12 @@ class GroovyScriptExecutorTest {
                         def mobile_numbers = at_mobiles.split(",").collect { it.trim() }
                         mentioned_mobile_list.addAll(mobile_numbers)
                     }
-
+                
                     def url = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=${accessKey}"
-
+                
                     HttpClients.createDefault().withCloseable { httpClient ->
                         def httpPost = new HttpPost(url)
-
+                
                         def objectMapper = new ObjectMapper()
                         def requestBody = [
                             "msgtype": "text",
@@ -2120,12 +2138,12 @@ class GroovyScriptExecutorTest {
                         ]
                         def jsonBody = objectMapper.writeValueAsString(requestBody)
                         httpPost.setEntity(new StringEntity(jsonBody, "UTF-8"))
-
+                
                         try {
                             def response = httpClient.execute(httpPost)
                             def statusCode = response.getStatusLine().getStatusCode()
                             def responseBody = EntityUtils.toString(response.getEntity(), "UTF-8")
-
+                
                             if (statusCode == 200) {
                                 return "信息：企业微信机器人推送成功。"
                             } else {
@@ -2165,13 +2183,13 @@ class GroovyScriptExecutorTest {
             String code = """
                     @Grab('org.apache.httpcomponents:httpclient:4.5.14')
                     @Grab('com.fasterxml.jackson.core:jackson-databind:2.15.3')
-
+                    
                     import org.apache.http.client.methods.HttpPost
                     import org.apache.http.entity.StringEntity
                     import org.apache.http.impl.client.HttpClients
                     import org.apache.http.util.EntityUtils
                     import com.fasterxml.jackson.databind.ObjectMapper
-
+                    
                     def wecomrobot(push_message, accessKey, is_at_all, at_mobiles) {
                         def mentioned_mobile_list = []
                         if (is_at_all) {
@@ -2208,7 +2226,7 @@ class GroovyScriptExecutorTest {
                             }
                         }
                     }
-
+                    
                     return wecomrobot("测试消息", "test-key", false, "13800138000,13900139000")
                     """;
             GroovyScriptExecutor executor = new GroovyScriptExecutor(code, Map.of("port", port));

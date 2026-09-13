@@ -10,5 +10,5 @@ import org.apache.ibatis.annotations.Mapper;
  * @date 2024-12-25 18:05:58
  */
 @Mapper
-public interface ApplicationAccessTokenMapper extends BaseMapper<ApplicationAccessTokenEntity>{
+public interface ApplicationAccessTokenMapper extends BaseMapper<ApplicationAccessTokenEntity> {
 }

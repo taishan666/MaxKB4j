@@ -21,6 +21,20 @@ public class AiChatMemory implements ChatMemory {
         this.messages = builder.messages != null ? builder.messages : new ArrayList<>();
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static AiChatMemory withMessages(Object chatId, List<ChatMessage> messages) {
+        List<ChatMessage> historyMessages = new ArrayList<>(messages.size());
+        historyMessages.addAll(messages);
+        if (Objects.nonNull(chatId)) {
+            return builder().id(chatId).messages(historyMessages).build();
+        }
+        // 不能使用 List.of()：不可变列表会导致后续 add() 抛 UnsupportedOperationException
+        return builder().messages(new ArrayList<>()).build();
+    }
+
     @Override
     public Object id() {
         return id;
@@ -28,9 +42,9 @@ public class AiChatMemory implements ChatMemory {
 
     @Override
     public void add(ChatMessage message) {
-        if (message instanceof SystemMessage){
+        if (message instanceof SystemMessage) {
             messages.addFirst(message);
-        } else{
+        } else {
             messages.add(message);
         }
     }
@@ -40,13 +54,8 @@ public class AiChatMemory implements ChatMemory {
         return messages;
     }
 
-
     @Override
     public void clear() {
-    }
-
-    public static Builder builder() {
-        return new Builder();
     }
 
     public static class Builder {
@@ -73,16 +82,5 @@ public class AiChatMemory implements ChatMemory {
         public AiChatMemory build() {
             return new AiChatMemory(this);
         }
-    }
-
-
-    public static AiChatMemory withMessages(Object chatId,List<ChatMessage> messages) {
-        List<ChatMessage> historyMessages = new ArrayList<>(messages.size());
-        historyMessages.addAll(messages);
-        if (Objects.nonNull(chatId)){
-            return builder().id(chatId).messages(historyMessages).build();
-        }
-        // 不能使用 List.of()：不可变列表会导致后续 add() 抛 UnsupportedOperationException
-        return builder().messages(new ArrayList<>()).build();
     }
 }

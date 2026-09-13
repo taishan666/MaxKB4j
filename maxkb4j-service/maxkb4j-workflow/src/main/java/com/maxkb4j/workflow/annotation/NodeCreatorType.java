@@ -18,6 +18,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface NodeCreatorType {
-    /** The single node type this implementation creates. */
+    /**
+     * The single node type this implementation creates.
+     */
     NodeType value();
 }

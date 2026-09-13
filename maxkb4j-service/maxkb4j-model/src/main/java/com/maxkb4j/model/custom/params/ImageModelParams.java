@@ -8,27 +8,28 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
 public class ImageModelParams implements IModelParams {
     @Override
     public List<BaseField> toForm() {
-        List<BaseField> fields=new ArrayList<>(1);
-        Map<String,Object> options=getSizeOptions();
-        if (!options.isEmpty()){
-            Object defaultValue=options.values().stream().findFirst().get();
-            BaseField size=new SingleSelectField("图片尺寸",ParamKey.SIZE,"生成图片的尺寸",getSizeOptions(),defaultValue);
+        List<BaseField> fields = new ArrayList<>(1);
+        Map<String, Object> options = getSizeOptions();
+        if (!options.isEmpty()) {
+            Object defaultValue = options.values().stream().findFirst().get();
+            BaseField size = new SingleSelectField("图片尺寸", ParamKey.SIZE, "生成图片的尺寸", getSizeOptions(), defaultValue);
             fields.add(size);
         }
         return fields;
     }
 
-    public Map<String,Object> getSizeOptions(){
+    public Map<String, Object> getSizeOptions() {
         return Map.of(
-                "1024*1024","1024*1024",
-                "720*1280","720*1280",
-                "1280*720","1280*720"
+                "1024*1024", "1024*1024",
+                "720*1280", "720*1280",
+                "1280*720", "1280*720"
         );
     }
 }

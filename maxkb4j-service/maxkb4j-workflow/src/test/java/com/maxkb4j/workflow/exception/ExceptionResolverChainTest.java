@@ -18,36 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ExceptionResolverChainTest {
 
     private AbsNode newNode() {
-        return new AbsNode("n1", new JSONObject()) {};
-    }
-
-    /** 记录执行顺序并可控制返回值 / 是否抛异常的测试解析器 */
-    private static class RecordingResolver implements NodeExceptionResolver {
-        private final int order;
-        private final boolean shouldContinue;
-        private final RuntimeException failure;
-        private final List<String> sink;
-
-        RecordingResolver(int order, boolean shouldContinue, RuntimeException failure, List<String> sink) {
-            this.order = order;
-            this.shouldContinue = shouldContinue;
-            this.failure = failure;
-            this.sink = sink;
-        }
-
-        @Override
-        public boolean resolve(IWorkflow workflow, AbsNode node, Exception ex) {
-            sink.add("R" + order);
-            if (failure != null) {
-                throw failure;
-            }
-            return shouldContinue;
-        }
-
-        @Override
-        public int getOrder() {
-            return order;
-        }
+        return new AbsNode("n1", new JSONObject()) {
+        };
     }
 
     @Test
@@ -143,5 +115,36 @@ class ExceptionResolverChainTest {
 
         assertThat(chain.size()).isZero();
         assertThat(node.getErrMessage()).isEqualTo("");
+    }
+
+    /**
+     * 记录执行顺序并可控制返回值 / 是否抛异常的测试解析器
+     */
+    private static class RecordingResolver implements NodeExceptionResolver {
+        private final int order;
+        private final boolean shouldContinue;
+        private final RuntimeException failure;
+        private final List<String> sink;
+
+        RecordingResolver(int order, boolean shouldContinue, RuntimeException failure, List<String> sink) {
+            this.order = order;
+            this.shouldContinue = shouldContinue;
+            this.failure = failure;
+            this.sink = sink;
+        }
+
+        @Override
+        public boolean resolve(IWorkflow workflow, AbsNode node, Exception ex) {
+            sink.add("R" + order);
+            if (failure != null) {
+                throw failure;
+            }
+            return shouldContinue;
+        }
+
+        @Override
+        public int getOrder() {
+            return order;
+        }
     }
 }

@@ -6,24 +6,25 @@ import com.maxkb4j.model.service.IModelParams;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 public class GummySTTParams implements IModelParams {
     @Override
     public List<BaseField> toForm() {
-        Map<String,Object> options=Map.of(
-                "无","none",
-                "英文","en",
-                "中文","zh",
-                "日语","ja",
-                "粤语","yue",
-                "韩语","ko",
-                "德语","de",
-                "法语","fr",
-                "俄语","ru",
-                "意大利语","it"
+        Map<String, Object> options = Map.of(
+                "无", "none",
+                "英文", "en",
+                "中文", "zh",
+                "日语", "ja",
+                "粤语", "yue",
+                "韩语", "ko",
+                "德语", "de",
+                "法语", "fr",
+                "俄语", "ru",
+                "意大利语", "it"
         );
-        BaseField voiceSelectFiled=new SingleSelectField("目标语言",ParamKey.TARGET_LANGUAGE,"翻译语言",options,"none");
+        BaseField voiceSelectFiled = new SingleSelectField("目标语言", ParamKey.TARGET_LANGUAGE, "翻译语言", options, "none");
         return List.of(voiceSelectFiled);
     }
 }

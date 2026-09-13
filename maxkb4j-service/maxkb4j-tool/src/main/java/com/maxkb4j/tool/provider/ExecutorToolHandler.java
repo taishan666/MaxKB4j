@@ -24,7 +24,9 @@ public abstract class ExecutorToolHandler extends AbsToolHandler {
         this.toolSpecificationBuilder = toolSpecificationBuilder;
     }
 
-    /** Provide the executor for a single tool. */
+    /**
+     * Provide the executor for a single tool.
+     */
     protected abstract ToolExecutor createExecutor(ToolEntity tool);
 
     protected AiServiceTool buildTool(ToolEntity tool) {
@@ -43,7 +45,7 @@ public abstract class ExecutorToolHandler extends AbsToolHandler {
     }
 
     protected ToolProvider wrapAsToolProvider(List<ToolEntity> tools) {
-        return ToolProviderRequest ->{
+        return ToolProviderRequest -> {
             List<AiServiceTool> aiServiceTools = new ArrayList<>();
             for (ToolEntity tool : tools) {
                 aiServiceTools.add(buildTool(tool));

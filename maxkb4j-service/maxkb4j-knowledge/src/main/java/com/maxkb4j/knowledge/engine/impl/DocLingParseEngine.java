@@ -60,7 +60,7 @@ public class DocLingParseEngine implements DocumentParseEngine {
                 .connectTimeout(Duration.of(properties.getTimeout(), TimeUnit.SECONDS.toChronoUnit()))
                 .build();
         ConvertDocumentOptions options = ConvertDocumentOptions.builder()
-                .fromFormats(List.of(InputFormat.PDF, InputFormat.DOCX, InputFormat.CSV, InputFormat.PPTX,InputFormat.XLSX, InputFormat.HTML))
+                .fromFormats(List.of(InputFormat.PDF, InputFormat.DOCX, InputFormat.CSV, InputFormat.PPTX, InputFormat.XLSX, InputFormat.HTML))
                 .toFormat(OutputFormat.MARKDOWN)
                 .pdfBackend(PdfBackend.PYPDFIUM2)
                 .pipeline(ProcessingPipeline.STANDARD)

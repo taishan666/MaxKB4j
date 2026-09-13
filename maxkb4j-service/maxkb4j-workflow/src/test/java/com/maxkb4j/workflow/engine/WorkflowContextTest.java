@@ -14,7 +14,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class WorkflowContextTest {
 
     private AbsNode newNode(String id) {
-        return new AbsNode(id, new JSONObject()) {};
+        return new AbsNode(id, new JSONObject()) {
+        };
     }
 
     @Test
@@ -51,6 +52,7 @@ class WorkflowContextTest {
         assertThat(ctx.getPromptVariables().get("global.name")).isEqualTo("world");
         assertThat(ctx.getReferenceField("global", "name")).isEqualTo("world");
     }
+
     @Test
     void getReferenceField_typedReference_resolvesGlobalScope() {
         WorkflowContext ctx = new WorkflowContext();

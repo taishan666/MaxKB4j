@@ -16,18 +16,18 @@ public class BaseField {
     private Boolean required;
     private Boolean show_default_value;
 
-    public BaseField(String inputType,String labelName,String field,String tooltip,boolean required,Object defaultValue) {
+    public BaseField(String inputType, String labelName, String field, String tooltip, boolean required, Object defaultValue) {
         this.setInput_type(inputType);
-        if (StringUtils.isNotBlank(tooltip)){
-            JSONObject label=new JSONObject();
-            JSONObject labelAttrs=new JSONObject();
-            labelAttrs.put("tooltip",tooltip);
-            label.put("attrs",labelAttrs);
-            label.put("input_type","TooltipLabel");
-            label.put("label",labelName);
-            label.put("props_info",new JSONObject());
+        if (StringUtils.isNotBlank(tooltip)) {
+            JSONObject label = new JSONObject();
+            JSONObject labelAttrs = new JSONObject();
+            labelAttrs.put("tooltip", tooltip);
+            label.put("attrs", labelAttrs);
+            label.put("input_type", "TooltipLabel");
+            label.put("label", labelName);
+            label.put("props_info", new JSONObject());
             this.setLabel(label);
-        }else {
+        } else {
             this.setLabel(labelName);
         }
         this.setAttrs(new JSONObject());

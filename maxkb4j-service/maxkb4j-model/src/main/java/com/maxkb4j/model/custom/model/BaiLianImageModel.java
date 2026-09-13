@@ -10,6 +10,7 @@ import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.output.Response;
 
 import java.util.List;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 public class BaiLianImageModel implements ImageModel {
@@ -25,7 +26,7 @@ public class BaiLianImageModel implements ImageModel {
     }
 
     private ImageModel buildInstance(String modelName) {
-        if (modelName.startsWith(ModelName.WANX_PREFIX)||modelName.startsWith(ModelName.WAN2_PREFIX)){
+        if (modelName.startsWith(ModelName.WANX_PREFIX) || modelName.startsWith(ModelName.WAN2_PREFIX)) {
             return WanxImageModel.builder()
                     .modelName(modelName)
                     .apiKey(credential.getApiKey())
@@ -36,7 +37,7 @@ public class BaiLianImageModel implements ImageModel {
                     .watermark(params.getBoolean(ParamKey.WATERMARK))
                     .seed(params.getInteger(ParamKey.SEED))
                     .build();
-        }else {
+        } else {
             return new QwenImageModel(modelName, credential, params);
         }
 

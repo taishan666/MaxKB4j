@@ -9,5 +9,5 @@ import com.maxkb4j.common.interceptor.UserIdentityInterceptor;
  *
  * @author tarzan
  */
-public record UserIdentity(String userId,String tokenValue, String loginType) {
+public record UserIdentity(String userId, String tokenValue, String loginType) {
 }

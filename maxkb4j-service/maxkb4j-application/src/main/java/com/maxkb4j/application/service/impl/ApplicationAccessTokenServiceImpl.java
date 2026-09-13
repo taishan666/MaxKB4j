@@ -18,7 +18,7 @@ import java.util.UUID;
 @Service
 public class ApplicationAccessTokenServiceImpl extends ServiceImpl<ApplicationAccessTokenMapper, ApplicationAccessTokenEntity> implements IApplicationAccessTokenInternalService {
     public ApplicationAccessTokenEntity accessToken(String appId) {
-        return  this.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
+        return this.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
     }
 
     public ApplicationAccessTokenEntity updateAccessToken(String appId, ApplicationAccessTokenDTO dto) {
@@ -37,7 +37,7 @@ public class ApplicationAccessTokenServiceImpl extends ServiceImpl<ApplicationAc
 
     @Override
     public ApplicationAccessTokenDTO getByAppId(String appId) {
-        ApplicationAccessTokenEntity entity =this.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
+        ApplicationAccessTokenEntity entity = this.lambdaQuery().eq(ApplicationAccessTokenEntity::getApplicationId, appId).one();
         return BeanUtil.copy(entity, ApplicationAccessTokenDTO.class);
     }
 }

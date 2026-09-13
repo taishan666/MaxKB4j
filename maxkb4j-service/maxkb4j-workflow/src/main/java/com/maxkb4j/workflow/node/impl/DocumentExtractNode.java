@@ -1,4 +1,5 @@
 package com.maxkb4j.workflow.node.impl;
+
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
@@ -9,16 +10,17 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.DOCUMENT_EXTRACT)
 public class DocumentExtractNode extends AbsNode {
 
+    public static final String SPLITTER = "\n-----------------------------------\n";
+
     public DocumentExtractNode(String id, JSONObject properties) {
         super(id, properties);
     }
-
-    public static final String SPLITTER = "\n-----------------------------------\n";
 
     @Override
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {

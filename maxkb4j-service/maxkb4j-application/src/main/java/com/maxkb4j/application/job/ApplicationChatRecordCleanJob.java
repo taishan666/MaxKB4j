@@ -32,8 +32,8 @@ public class ApplicationChatRecordCleanJob {
     @Scheduled(cron = "0 0 22 * * *")
     public void execute() {
         log.info("开始清理应用聊天记录");
-        LambdaQueryWrapper<ApplicationEntity> appWrapper= Wrappers.lambdaQuery();
-        appWrapper.select(ApplicationEntity::getId,ApplicationEntity::getCleanTime);
+        LambdaQueryWrapper<ApplicationEntity> appWrapper = Wrappers.lambdaQuery();
+        appWrapper.select(ApplicationEntity::getId, ApplicationEntity::getCleanTime);
         List<ApplicationEntity> applications = applicationService.list(appWrapper);
         for (ApplicationEntity application : applications) {
             // 单个应用清理失败不应中断其余应用的清理

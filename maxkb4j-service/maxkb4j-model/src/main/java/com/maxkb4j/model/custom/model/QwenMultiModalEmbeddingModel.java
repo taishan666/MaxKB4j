@@ -36,7 +36,8 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
     private final String modelName;
     private final MultiModalEmbedding embedding;
     private final QwenEmbeddingModel qwenEmbeddingModel;
-    private final Consumer<MultiModalEmbeddingParam.MultiModalEmbeddingParamBuilder<?, ?>> multiModalEmbeddingParamCustomizer = (p) -> {};
+    private final Consumer<MultiModalEmbeddingParam.MultiModalEmbeddingParamBuilder<?, ?>> multiModalEmbeddingParamCustomizer = (p) -> {
+    };
 
     public QwenMultiModalEmbeddingModel(String baseUrl, String apiKey, String modelName, Integer dimension) {
         if (Utils.isNullOrBlank(apiKey)) {
@@ -50,6 +51,40 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
         this.qwenEmbeddingModel = new QwenEmbeddingModel(baseUrl, apiKey, modelName, dimension);
     }
 
+    private static boolean isMultimodal(String modelName) {
+        return modelName != null && (modelName.contains("-vl-") || modelName.contains("-version-") || modelName.endsWith("-version"));
+    }
+
+    private static Embedding toEmbedding(MultiModalEmbeddingOutput output) {
+        List<Float> vector = Optional.ofNullable(output)
+                .map(MultiModalEmbeddingOutput::getEmbedding)
+                .orElse(List.of())
+                .stream()
+                .map(Double::floatValue)
+                .collect(Collectors.toList());
+        if (vector.isEmpty()) {
+            throw new IllegalArgumentException("Multi-modal embedding response contains no embedding vector");
+        }
+        return Embedding.from(vector);
+    }
+
+    private static Integer ensureDimension(String modelName, Integer dimension) {
+        if (dimension == null) {
+            return null;
+        }
+        if (TEXT_EMBEDDING_V1.equals(modelName) || TEXT_EMBEDDING_V2.equals(modelName)) {
+            throw new IllegalArgumentException("dimension '" + dimension + "' is not supported by " + modelName);
+        }
+        return dimension;
+    }
+
+    public static QwenEmbeddingModel.QwenEmbeddingModelBuilder builder() {
+        for (QwenEmbeddingModelBuilderFactory factory : loadFactories(QwenEmbeddingModelBuilderFactory.class)) {
+            return factory.get();
+        }
+        return new QwenEmbeddingModel.QwenEmbeddingModelBuilder();
+    }
+
     @Override
     public Set<EmbeddingParameter<?>> supportedParameters() {
         return Set.of(EmbeddingRequestParameters.INPUT_TYPE, EmbeddingRequestParameters.DIMENSIONS);
@@ -58,10 +93,6 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
     @Override
     public Set<ContentType> supportedContentTypes() {
         return isMultimodal(modelName) ? Set.of(ContentType.TEXT, ContentType.IMAGE, ContentType.VIDEO) : Set.of(ContentType.TEXT);
-    }
-
-    private static boolean isMultimodal(String modelName) {
-        return modelName != null && (modelName.contains("-vl-") || modelName.contains("-version-") || modelName.endsWith("-version"));
     }
 
     @Override
@@ -91,19 +122,6 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
         return qwenEmbeddingModel.doEmbed(request);
     }
 
-    private static Embedding toEmbedding(MultiModalEmbeddingOutput output) {
-        List<Float> vector = Optional.ofNullable(output)
-                .map(MultiModalEmbeddingOutput::getEmbedding)
-                .orElse(List.of())
-                .stream()
-                .map(Double::floatValue)
-                .collect(Collectors.toList());
-        if (vector.isEmpty()) {
-            throw new IllegalArgumentException("Multi-modal embedding response contains no embedding vector");
-        }
-        return Embedding.from(vector);
-    }
-
     private List<MultiModalEmbeddingItemBase> toContents(EmbeddingInput input) {
         List<MultiModalEmbeddingItemBase> contents = new ArrayList<>();
         List<Content> inputContents = input.contents();
@@ -120,24 +138,6 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
         }
         return contents;
 
-    }
-
-
-    private static Integer ensureDimension(String modelName, Integer dimension) {
-        if (dimension == null) {
-            return null;
-        }
-        if (TEXT_EMBEDDING_V1.equals(modelName) || TEXT_EMBEDDING_V2.equals(modelName)) {
-            throw new IllegalArgumentException("dimension '" + dimension + "' is not supported by " + modelName);
-        }
-        return dimension;
-    }
-
-    public static QwenEmbeddingModel.QwenEmbeddingModelBuilder builder() {
-        for (QwenEmbeddingModelBuilderFactory factory : loadFactories(QwenEmbeddingModelBuilderFactory.class)) {
-            return factory.get();
-        }
-        return new QwenEmbeddingModel.QwenEmbeddingModelBuilder();
     }
 
     public static class Builder {

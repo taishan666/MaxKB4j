@@ -13,10 +13,15 @@ import java.util.List;
 
 public interface IProblemService extends IService<ProblemEntity> {
     void generateRelated(ChatModel chatModel, EmbeddingModel embeddingModel, String knowledgeId, String docId, ParagraphEntity paragraph, List<ProblemEntity> existingProblems, int problemNumber);
+
     IPage<ProblemVO> pageByDatasetId(String knowledgeId, int page, int size, String content);
+
     boolean createProblemsByDatasetId(String knowledgeId, List<String> problems);
+
     boolean createProblemsByParagraphId(String knowledgeId, String docId, String paragraphId, ProblemDTO dto);
+
     boolean deleteProblemByIds(String knowledgeId, List<String> problemIds);
+
     boolean updateProblemById(ProblemEntity problem);
 
     void reIndexBatch(String knowledgeId, List<String> problemIds);

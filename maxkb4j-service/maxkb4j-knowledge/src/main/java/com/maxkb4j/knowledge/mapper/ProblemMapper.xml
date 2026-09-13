@@ -4,28 +4,28 @@
 
     <select id="pageByDatasetId" resultType="com.maxkb4j.knowledge.vo.ProblemVO">
         SELECT
-            p.id,
-            p.content,
-            p.hit_num,
-            p.knowledge_id,
-            p.create_time,
-            p.update_time,
-            COUNT(pp.id) AS paragraph_count,
-            MAX(pp.document_id) AS document_id,
-            MAX(pp.paragraph_id) AS paragraph_id
+        p.id,
+        p.content,
+        p.hit_num,
+        p.knowledge_id,
+        p.create_time,
+        p.update_time,
+        COUNT(pp.id) AS paragraph_count,
+        MAX(pp.document_id) AS document_id,
+        MAX(pp.paragraph_id) AS paragraph_id
         FROM
-            problem p
+        problem p
         LEFT JOIN
-            problem_paragraph_mapping pp ON p.id = pp.problem_id
+        problem_paragraph_mapping pp ON p.id = pp.problem_id
         WHERE
-            p.knowledge_id = #{knowledgeId}
+        p.knowledge_id = #{knowledgeId}
         <if test="content != null and content != ''">
             AND p.content LIKE CONCAT('%', #{content}, '%')
         </if>
         GROUP BY
-            p.id, p.content, p.hit_num, p.knowledge_id, p.create_time, p.update_time
+        p.id, p.content, p.hit_num, p.knowledge_id, p.create_time, p.update_time
         ORDER BY
-            p.create_time DESC
+        p.create_time DESC
     </select>
 
 </mapper>

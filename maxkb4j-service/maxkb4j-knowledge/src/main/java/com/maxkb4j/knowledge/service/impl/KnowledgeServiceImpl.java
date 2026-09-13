@@ -56,6 +56,11 @@ import java.util.*;
 @RequiredArgsConstructor
 public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, KnowledgeEntity> implements IKnowledgeInternalService {
 
+    /**
+     * 批量删除分块大小：每个分块一个独立短事务并独立清理向量库，避免大批量删除时
+     * 长事务持有连接/锁、或单条超大 IN/DELETE 触发数据库超时。
+     */
+    private static final int DELETE_CHUNK_SIZE = 200;
     private final ProblemMapper problemMapper;
     private final ParagraphMapper paragraphMapper;
     private final ProblemParagraphMapper problemParagraphMapper;
@@ -71,12 +76,6 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
     private final UserContext userContext;
     private final PlatformTransactionManager transactionManager;
     private TransactionTemplate transactionTemplate;
-
-    /**
-     * 批量删除分块大小：每个分块一个独立短事务并独立清理向量库，避免大批量删除时
-     * 长事务持有连接/锁、或单条超大 IN/DELETE 触发数据库超时。
-     */
-    private static final int DELETE_CHUNK_SIZE = 200;
 
     @PostConstruct
     private void initTransactionTemplate() {
@@ -164,7 +163,7 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
     @Transactional(rollbackFor = Exception.class)
     public KnowledgeEntity createKnowledge(KnowledgeEntity knowledge) {
         knowledge.setUserId(userContext.getUserId());
-        if (knowledge.getMeta() == null){
+        if (knowledge.getMeta() == null) {
             knowledge.setMeta(new JSONObject());
         }
         if (knowledge.getWorkFlow() == null) {
@@ -182,10 +181,10 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
         createKnowledge(knowledge);
         // 使用事件驱动异步处理，确保事务提交后再执行
         eventPublisher.publishEvent(new CreateWebDocsEvent(
-            this,
-            knowledge.getId(),
-            knowledge.getSourceUrl(),
-            knowledge.getSelector()
+                this,
+                knowledge.getId(),
+                knowledge.getSourceUrl(),
+                knowledge.getSelector()
         ));
         return knowledge;
     }

@@ -30,22 +30,30 @@ public final class DataPermissionScope {
         this.targetIds = targetIds == null ? List.of() : List.copyOf(targetIds);
     }
 
-    /** 管理员：可见全部，不附加过滤。 */
+    /**
+     * 管理员：可见全部，不附加过滤。
+     */
     public static DataPermissionScope admin() {
         return new DataPermissionScope(true, List.of());
     }
 
-    /** 普通用户：仅可见 {@code targetIds} 指定的资源；为空表示无任何授权。 */
+    /**
+     * 普通用户：仅可见 {@code targetIds} 指定的资源；为空表示无任何授权。
+     */
     public static DataPermissionScope limited(List<String> targetIds) {
         return new DataPermissionScope(false, targetIds);
     }
 
-    /** 无可见资源。 */
+    /**
+     * 无可见资源。
+     */
     public static DataPermissionScope empty() {
         return new DataPermissionScope(false, List.of());
     }
 
-    /** 非管理员且无可授权资源时，查询应返回空结果。 */
+    /**
+     * 非管理员且无可授权资源时，查询应返回空结果。
+     */
     public boolean isEmptyResult() {
         return !admin && targetIds.isEmpty();
     }

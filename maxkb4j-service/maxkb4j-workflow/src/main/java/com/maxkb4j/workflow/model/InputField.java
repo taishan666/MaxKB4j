@@ -8,6 +8,6 @@ import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class InputField  extends BaseField {
+public class InputField extends BaseField {
     private List<String> value;
 }

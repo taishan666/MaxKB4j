@@ -59,25 +59,25 @@ public class ChatStep extends AbsChatStep {
         String chatUserId = manage.chatState.getChatUserId();
         LlmModelSetting modelSetting = application.getModelSetting();
         String systemText = modelSetting == null ? null : modelSetting.getSystem();
-        if (StringUtils.isNotBlank(systemText)){
+        if (StringUtils.isNotBlank(systemText)) {
             aiServicesBuilder.systemMessage(systemText);
         }
         Boolean longTermEnable = application.getLongTermEnable();
-        if (Boolean.TRUE.equals(longTermEnable)){
+        if (Boolean.TRUE.equals(longTermEnable)) {
             String memory = longTermMemoryService.getMemory(appId, chatUserId);
-            if (StringUtils.isNotBlank(memory)){
-                aiServicesBuilder.systemMessageTransformer(systemMessage -> systemMessage==null?memory:systemMessage+"\n" + memory);
+            if (StringUtils.isNotBlank(memory)) {
+                aiServicesBuilder.systemMessageTransformer(systemMessage -> systemMessage == null ? memory : systemMessage + "\n" + memory);
             }
         }
         KnowledgeSetting datasetSetting = Optional.ofNullable(application.getKnowledgeSetting()).orElse(new KnowledgeSetting());
         // 工具装配失败时异常向上传播，由 chatMessageAsync 统一收尾，
         // 避免 emit 错误后继续执行并写入空答案记录
         aiServicesBuilder.toolProviders(toolProvider.getToolProviders(toolIds, applicationIds));
-        if(Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
+        if (Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())) {
             List<String> knowledgeIds = Optional.ofNullable(application.getKnowledgeIds()).orElse(List.of());
             aiServicesBuilder.tools(toolProvider.getKnowledgeTools(knowledgeIds, datasetSetting));
         }
-        aiServicesBuilder.chatMemory(AiChatMemory.withMessages(chatId,historyMessages));
+        aiServicesBuilder.chatMemory(AiChatMemory.withMessages(chatId, historyMessages));
         Assistant assistant = aiServicesBuilder.streamingChatModel(chatModel).build();
         boolean reasoningEnable = modelSetting != null && Boolean.TRUE.equals(modelSetting.getReasoningContentEnable());
         TokenStream tokenStream = assistant.chatStream(userPrompt);

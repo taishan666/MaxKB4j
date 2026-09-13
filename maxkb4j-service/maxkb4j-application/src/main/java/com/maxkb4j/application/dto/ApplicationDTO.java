@@ -9,5 +9,5 @@ import lombok.EqualsAndHashCode;
 @Data
 public class ApplicationDTO extends ApplicationEntity {
 
-    private JSONObject  workFlowTemplate;
+    private JSONObject workFlowTemplate;
 }

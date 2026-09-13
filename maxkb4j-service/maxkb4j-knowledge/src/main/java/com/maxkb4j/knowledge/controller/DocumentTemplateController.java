@@ -26,6 +26,7 @@ public class DocumentTemplateController {
     public void tableTemplateExport(String type, HttpServletResponse response) throws Exception {
         templateService.tableTemplateExport(type, response);
     }
+
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
     @GetMapping("/workspace/knowledge/document/template/export")
     public void templateExport(String type, HttpServletResponse response) throws Exception {

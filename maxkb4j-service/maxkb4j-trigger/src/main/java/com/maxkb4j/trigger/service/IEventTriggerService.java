@@ -23,6 +23,6 @@ public interface IEventTriggerService extends IService<EventTriggerEntity> {
 
     List<EventTriggerEntity> listBySource(String sourceType, String sourceId);
 
-    SourceEventTriggerVO getDetailBySourceId(String id,String sourceType,String sourceId);
+    SourceEventTriggerVO getDetailBySourceId(String id, String sourceType, String sourceId);
 
 }

@@ -16,7 +16,7 @@ public class LlmModelSettingTypeHandler extends BaseTypeHandler<LlmModelSetting>
 
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, LlmModelSetting parameter, JdbcType jdbcType) throws SQLException {
-        if(null != parameter){
+        if (null != parameter) {
             PGobject pGobject = new PGobject();
             pGobject.setType("jsonb");
             pGobject.setValue(toJson(parameter));
@@ -42,14 +42,14 @@ public class LlmModelSettingTypeHandler extends BaseTypeHandler<LlmModelSetting>
         return convert(value);
     }
 
-    private LlmModelSetting convert(String value){
-        if(notNull(value)){
-            return  JSON.parseObject(value,LlmModelSetting.class);
+    private LlmModelSetting convert(String value) {
+        if (notNull(value)) {
+            return JSON.parseObject(value, LlmModelSetting.class);
         }
         return null;
     }
 
-    private boolean notNull(String value){
+    private boolean notNull(String value) {
         return (null != value && !value.isEmpty());
     }
 

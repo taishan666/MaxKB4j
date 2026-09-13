@@ -23,13 +23,6 @@ import java.util.Set;
  */
 public final class GroovySandboxPolicy {
 
-    private GroovySandboxPolicy() {
-    }
-
-    // ==================================================================
-    // 白名单数据
-    // ==================================================================
-
     /**
      * 允许作为方法接收者的安全类（白名单）。
      * 不在白名单中的类，任何方法调用都会被拒绝。
@@ -220,6 +213,9 @@ public final class GroovySandboxPolicy {
             "dev.langchain4j.community.web.search.searxng.SearXNGWebSearchEngine$Builder"
     );
 
+    // ==================================================================
+    // 白名单数据
+    // ==================================================================
     /**
      * 允许调用的方法名。
      * 即使接收者在 ALLOWED_CLASSES 中，也只有白名单中的方法名可以被调用。
@@ -371,8 +367,9 @@ public final class GroovySandboxPolicy {
             "maxRetries", "searchDepth", "includeAnswer", "includeRawContent",
             "includeDomains", "excludeDomains", "logRequests", "logResponses"
     );
-
-    /** 允许通过 new 实例化的类。 */
+    /**
+     * 允许通过 new 实例化的类。
+     */
     private static final Set<String> ALLOWED_CONSTRUCTOR_CLASSES = Set.of(
             "java.util.ArrayList",
             "java.util.LinkedList",
@@ -422,8 +419,9 @@ public final class GroovySandboxPolicy {
             // Jackson：new ObjectMapper() 构造 JSON 序列化器
             "com.fasterxml.jackson.databind.ObjectMapper"
     );
-
-    /** 允许静态调用的类及其方法白名单。 */
+    /**
+     * 允许静态调用的类及其方法白名单。
+     */
     private static final Map<String, Set<String>> ALLOWED_STATIC_METHODS = Map.ofEntries(
             Map.entry("java.lang.Math", Set.of(
                     "abs", "acos", "asin", "atan", "atan2", "ceil", "cos", "cosh", "exp", "floor",
@@ -501,7 +499,6 @@ public final class GroovySandboxPolicy {
             Map.entry("dev.langchain4j.web.search.searchapi.SearchApiWebSearchEngine", Set.of("builder")),
             Map.entry("dev.langchain4j.web.search.google.customsearch.GoogleCustomWebSearchEngine", Set.of("builder"))
     );
-
     /**
      * java.nio.file 包内的白名单类：Files / Path 作为文件操作入口，
      * 不受 java.nio.file.* 危险类前缀限制；同包其它类仍被禁止。
@@ -510,16 +507,19 @@ public final class GroovySandboxPolicy {
             "java.nio.file.Files",
             "java.nio.file.Path"
     );
-
-    /** 基本类型名（编译期 ClassExpression 白名单校验用）。 */
+    /**
+     * 基本类型名（编译期 ClassExpression 白名单校验用）。
+     */
     private static final Set<String> PRIMITIVE_TYPE_NAMES = Set.of(
             "int", "long", "double", "float", "boolean", "char", "byte", "short", "void"
     );
-
-    /** 闭包接收者仅允许调用转发相关方法。 */
+    /**
+     * 闭包接收者仅允许调用转发相关方法。
+     */
     private static final Set<String> CLOSURE_METHODS = Set.of("call", "doCall", "isCase");
-
-    /** 允许作为接收者的异常类白名单（脚本可 catch 并读取其消息）。 */
+    /**
+     * 允许作为接收者的异常类白名单（脚本可 catch 并读取其消息）。
+     */
     private static final Set<String> ALLOWED_EXCEPTION_CLASSES = Set.of(
             "java.lang.Throwable",
             "java.lang.Exception",
@@ -530,7 +530,6 @@ public final class GroovySandboxPolicy {
             "java.time.DateTimeException",
             "java.time.format.DateTimeParseException"
     );
-
     /**
      * 平台数据类（DTO/VO/实体/领域对象）的包名特征。
      * 工作流/工具引擎会把这类对象作为绑定参数传入脚本（如 imageList 中的 OssFile），
@@ -539,12 +538,9 @@ public final class GroovySandboxPolicy {
     private static final List<String> DATA_CLASS_PACKAGE_TOKENS = List.of(
             ".domain.", ".dto.", ".vo.", ".entity."
     );
-
-    // ==================================================================
-    // 黑名单数据
-    // ==================================================================
-
-    /** 危险方法名：任何情况下都不允许调用。 */
+    /**
+     * 危险方法名：任何情况下都不允许调用。
+     */
     private static final Set<String> DANGEROUS_METHODS = Set.of(
             "exec", "execute", "start", "getRuntime",
             "forName", "loadClass", "newInstance",
@@ -555,6 +551,9 @@ public final class GroovySandboxPolicy {
             "parseClass", "evaluate"
     );
 
+    // ==================================================================
+    // 黑名单数据
+    // ==================================================================
     /**
      * 危险方法名的受信例外：方法名命中危险名单，但接收者属于白名单安全类时放行。
      * 例如 exp4j Expression#evaluate 是纯数学表达式求值，
@@ -570,7 +569,6 @@ public final class GroovySandboxPolicy {
                     "org.apache.http.client.HttpClient",
                     "org.apache.http.impl.client.CloseableHttpClient")
     );
-
     /**
      * 禁止访问/设置的属性名。
      * 这些属性可用于操控 Groovy 运行时行为，即使在 ALLOWED_CLASSES 中的类上也不允许操作。
@@ -580,7 +578,6 @@ public final class GroovySandboxPolicy {
             "methods", "declaredMethods", "fields", "declaredFields",
             "constructors", "declaredConstructors", "this", "super"
     );
-
     /**
      * 脚本文本预检的危险标记（按匹配优先级排序，全部小写）。
      * 在编译前对脚本内容做粗粒度拦截，命中即拒绝。
@@ -606,10 +603,17 @@ public final class GroovySandboxPolicy {
             "java.net.",
             "groovyshell", "groovyclassloader"
     );
+    /**
+     * 受控 HTTP 客户端允许的 URL 协议：仅 http/https，禁止 file:/jar:/ftp: 等读取本地资源。
+     */
+    private static final Set<String> ALLOWED_URL_PROTOCOLS = Set.of("http", "https");
 
     // ==================================================================
     // 编译期 / 运行期共用的判定方法
     // ==================================================================
+
+    private GroovySandboxPolicy() {
+    }
 
     /**
      * 编译期 ClassExpression 白名单校验：脚本中允许引用（类名）的类。
@@ -625,12 +629,16 @@ public final class GroovySandboxPolicy {
                 || ALLOWED_EXCEPTION_CLASSES.contains(className);
     }
 
-    /** 方法名是否在实例方法白名单中。 */
+    /**
+     * 方法名是否在实例方法白名单中。
+     */
     public static boolean isMethodAllowed(String method) {
         return ALLOWED_METHODS.contains(method);
     }
 
-    /** 静态调用是否在白名单中（类 + 方法双重校验）。 */
+    /**
+     * 静态调用是否在白名单中（类 + 方法双重校验）。
+     */
     public static boolean isStaticCallAllowed(String className, String method) {
         Set<String> methods = ALLOWED_STATIC_METHODS.get(className);
         return methods != null && methods.contains(method);
@@ -670,7 +678,9 @@ public final class GroovySandboxPolicy {
                 && "grab".equals(method);
     }
 
-    /** 类是否允许通过 new 实例化。 */
+    /**
+     * 类是否允许通过 new 实例化。
+     */
     public static boolean isConstructorAllowed(String className) {
         return ALLOWED_CONSTRUCTOR_CLASSES.contains(className);
     }
@@ -749,6 +759,10 @@ public final class GroovySandboxPolicy {
         return false;
     }
 
+    // ==================================================================
+    // 运行期类型判定
+    // ==================================================================
+
     /**
      * 脚本文本预检：返回脚本内容中命中的第一个危险标记，未命中返回 null。
      */
@@ -762,11 +776,9 @@ public final class GroovySandboxPolicy {
         return null;
     }
 
-    // ==================================================================
-    // 运行期类型判定
-    // ==================================================================
-
-    /** 接收者类型 + 方法名的组合是否允许（闭包仅放行转发方法）。 */
+    /**
+     * 接收者类型 + 方法名的组合是否允许（闭包仅放行转发方法）。
+     */
     public static boolean isAllowedReceiver(Class<?> receiverClass, String method) {
         if (Closure.class.isAssignableFrom(receiverClass)) {
             return CLOSURE_METHODS.contains(method);
@@ -774,7 +786,9 @@ public final class GroovySandboxPolicy {
         return isAllowedType(receiverClass);
     }
 
-    /** 类型是否在白名单中（沿接口与父类链查找；Object 本身不放行）。 */
+    /**
+     * 类型是否在白名单中（沿接口与父类链查找；Object 本身不放行）。
+     */
     public static boolean isAllowedType(Class<?> type) {
         if (type == null) {
             return false;
@@ -806,7 +820,9 @@ public final class GroovySandboxPolicy {
         return isAllowedType(superclass);
     }
 
-    /** 类型是否属于危险类（反射 / 进程 / 类加载 / IO / 网络 / Groovy 运行时入口等）。 */
+    /**
+     * 类型是否属于危险类（反射 / 进程 / 类加载 / IO / 网络 / Groovy 运行时入口等）。
+     */
     public static boolean isDangerousClass(Class<?> type) {
         if (type == null) {
             return false;
@@ -837,9 +853,9 @@ public final class GroovySandboxPolicy {
                 || className.startsWith("java.io.")
                 || (className.startsWith("java.nio.file.") && !ALLOWED_NIO_CLASSES.contains(className))
                 || (className.startsWith("java.net.")
-                        // URLEncoder.encode 仅做 URL 参数转义（纯字符串处理），
-                        // 是受控 HTTP 客户端构造查询串的组成部分，精确豁免
-                        && !"java.net.URLEncoder".equals(className))
+                // URLEncoder.encode 仅做 URL 参数转义（纯字符串处理），
+                // 是受控 HTTP 客户端构造查询串的组成部分，精确豁免
+                && !"java.net.URLEncoder".equals(className))
                 || className.equals("java.lang.System")
                 || className.equals("groovy.lang.GroovyShell")
                 || className.equals("groovy.lang.GroovyClassLoader")
@@ -871,9 +887,6 @@ public final class GroovySandboxPolicy {
                 || java.io.Writer.class.isAssignableFrom(type);
     }
 
-    /** 受控 HTTP 客户端允许的 URL 协议：仅 http/https，禁止 file:/jar:/ftp: 等读取本地资源。 */
-    private static final Set<String> ALLOWED_URL_PROTOCOLS = Set.of("http", "https");
-
     /**
      * 校验 {@code new URL(...)} 构造参数：仅放行 http/https 协议。
      * <p>
@@ -896,7 +909,9 @@ public final class GroovySandboxPolicy {
         }
     }
 
-    /** 从 URL 构造参数中解析协议名，无法识别时返回 null。 */
+    /**
+     * 从 URL 构造参数中解析协议名，无法识别时返回 null。
+     */
     private static String extractUrlProtocol(Object... args) {
         if (args == null || args.length == 0 || !(args[0] instanceof String first)) {
             return null;
@@ -908,7 +923,9 @@ public final class GroovySandboxPolicy {
         return first;
     }
 
-    /** 数组类型是否安全：最终组件类型为基本类型、字符串、数字、布尔、字符或枚举。 */
+    /**
+     * 数组类型是否安全：最终组件类型为基本类型、字符串、数字、布尔、字符或枚举。
+     */
     public static boolean isSafeArrayType(Class<?> type) {
         Class<?> componentType = type.getComponentType();
         while (componentType != null && componentType.isArray()) {
@@ -925,7 +942,9 @@ public final class GroovySandboxPolicy {
                 || componentType.isEnum();
     }
 
-    /** Groovy 生成的内部类名归一化（去掉 $$ 之后的部分）。 */
+    /**
+     * Groovy 生成的内部类名归一化（去掉 $$ 之后的部分）。
+     */
     public static String normalizeClassName(Class<?> type) {
         String className = type.getName();
         if (className.contains("$$")) {
@@ -938,7 +957,9 @@ public final class GroovySandboxPolicy {
     // 运行期取值校验
     // ==================================================================
 
-    /** 数组/下标访问校验：接收者与下标取值都必须安全。 */
+    /**
+     * 数组/下标访问校验：接收者与下标取值都必须安全。
+     */
     public static void validateArrayAccess(Object receiver, Object index) {
         if (receiver == null) {
             throw new SecurityException("不允许访问空对象数组");
@@ -971,7 +992,9 @@ public final class GroovySandboxPolicy {
         return value;
     }
 
-    /** 递归校验取值类型：拒绝危险类型与不安全数组，深入集合与 Map 逐项校验。 */
+    /**
+     * 递归校验取值类型：拒绝危险类型与不安全数组，深入集合与 Map 逐项校验。
+     */
     public static void validateValue(Object value) {
         if (value == null) {
             return;
@@ -1010,7 +1033,9 @@ public final class GroovySandboxPolicy {
     // 安全异常提取
     // ==================================================================
 
-    /** 沿异常 cause 链查找 SecurityException（沙箱拒绝语义），未找到返回 null。 */
+    /**
+     * 沿异常 cause 链查找 SecurityException（沙箱拒绝语义），未找到返回 null。
+     */
     public static SecurityException findSecurityException(Throwable throwable) {
         while (throwable != null) {
             if (throwable instanceof SecurityException securityException) {

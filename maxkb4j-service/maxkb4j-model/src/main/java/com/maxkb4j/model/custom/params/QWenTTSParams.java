@@ -12,19 +12,19 @@ import java.util.Map;
 public class QWenTTSParams implements IModelParams {
     @Override
     public List<BaseField> toForm() {
-        Map<String,Object> options=Map.of(
-                "Cherry","CHERRY",
-                "Serena","SERENA",
-                "Ethan","ETHAN",
-                "Chelsie","CHELSIE",
-                "Dylan","DYLAN",
-                "Jada","JADA",
-                "Sunny","SUNNY",
-                "Nofish","NOFISH",
-                "Jennifer","JENNIFER",
-                "Li","LI"
+        Map<String, Object> options = Map.of(
+                "Cherry", "CHERRY",
+                "Serena", "SERENA",
+                "Ethan", "ETHAN",
+                "Chelsie", "CHELSIE",
+                "Dylan", "DYLAN",
+                "Jada", "JADA",
+                "Sunny", "SUNNY",
+                "Nofish", "NOFISH",
+                "Jennifer", "JENNIFER",
+                "Li", "LI"
         );
-        BaseField voiceSelectFiled=new SingleSelectField("音色","voice","指定音色名称",options,"CHERRY");
+        BaseField voiceSelectFiled = new SingleSelectField("音色", "voice", "指定音色名称", options, "CHERRY");
         return List.of(voiceSelectFiled);
     }
 }

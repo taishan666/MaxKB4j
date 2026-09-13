@@ -14,7 +14,7 @@ import java.util.List;
  * @date 2024-12-29 10:34:03
  */
 @Mapper
-public interface ApplicationChatUserStatsMapper extends BaseMapper<ApplicationChatUserStatsEntity>{
+public interface ApplicationChatUserStatsMapper extends BaseMapper<ApplicationChatUserStatsEntity> {
 
     List<ApplicationStatisticsVO> getCustomerCountTrend(String appId, @Param("query") ChatQueryDTO query);
 

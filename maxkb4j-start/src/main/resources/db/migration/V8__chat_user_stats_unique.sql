@@ -7,23 +7,19 @@
 -- ----------------------------
 
 -- 1) 将重复行的计数累加到创建时间最早的保留行（create_time 相同则按 id 排序）
-WITH ranked AS (
-    SELECT id,
-           chat_user_id,
-           application_id,
-           ROW_NUMBER() OVER (
+WITH ranked AS (SELECT id,
+                       chat_user_id,
+                       application_id,
+                       ROW_NUMBER() OVER (
                PARTITION BY chat_user_id, application_id
                ORDER BY create_time, id
-           ) AS rn,
-           access_num,
-           intra_day_access_num
-    FROM application_chat_user_stats
-    WHERE chat_user_id IS NOT NULL
-)
+           ) AS rn, access_num,
+                       intra_day_access_num
+                FROM application_chat_user_stats
+                WHERE chat_user_id IS NOT NULL)
 UPDATE application_chat_user_stats keeper
 SET access_num           = keeper.access_num + dup.extra_access_num,
-    intra_day_access_num = keeper.intra_day_access_num + dup.extra_intra_day_access_num
-FROM (
+    intra_day_access_num = keeper.intra_day_access_num + dup.extra_intra_day_access_num FROM (
     SELECT MAX(CASE WHEN rn = 1 THEN id END)                          AS keeper_id,
            chat_user_id,
            application_id,
@@ -36,21 +32,20 @@ FROM (
 WHERE keeper.id = dup.keeper_id;
 
 -- 2) 删除已合并的重复行
-WITH ranked AS (
-    SELECT id,
-           ROW_NUMBER() OVER (
+WITH ranked AS (SELECT id,
+                       ROW_NUMBER() OVER (
                PARTITION BY chat_user_id, application_id
                ORDER BY create_time, id
            ) AS rn
-    FROM application_chat_user_stats
-    WHERE chat_user_id IS NOT NULL
-)
-DELETE FROM application_chat_user_stats
+                FROM application_chat_user_stats
+                WHERE chat_user_id IS NOT NULL)
+DELETE
+FROM application_chat_user_stats
 WHERE id IN (SELECT id FROM ranked WHERE rn > 1);
 
 -- 3) 添加唯一索引
 CREATE UNIQUE INDEX "application_chat_user_stats_user_app_uk"
     ON "public"."application_chat_user_stats" USING btree (
-        "chat_user_id" COLLATE "pg_catalog"."default",
-        "application_id" COLLATE "pg_catalog"."default"
+    "chat_user_id" COLLATE "pg_catalog"."default",
+    "application_id" COLLATE "pg_catalog"."default"
     );

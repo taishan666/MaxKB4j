@@ -35,7 +35,7 @@ public class ChatMessageVO {
         this.isEnd = isEnd;
     }
 
-    public ChatMessageVO(String chatId, String chatRecordId, String nodeId,String nodeName, String content, String reasoningContent, List<String> upNodeIdList,String runtimeNodeId,String realNodeId, String nodeType, String viewType,ChildNode childNode, Boolean nodeIsEnd, Boolean isEnd) {
+    public ChatMessageVO(String chatId, String chatRecordId, String nodeId, String nodeName, String content, String reasoningContent, List<String> upNodeIdList, String runtimeNodeId, String realNodeId, String nodeType, String viewType, ChildNode childNode, Boolean nodeIsEnd, Boolean isEnd) {
         this.chatId = chatId;
         this.chatRecordId = chatRecordId;
         this.nodeId = nodeId;

@@ -16,7 +16,7 @@ public class GenerateProblemEvent extends ApplicationEvent {
     private final Integer number;
     private final List<String> stateList;
 
-    public GenerateProblemEvent(Object source, String knowledgeId,List<String> documentIdList, String modelId,JSONObject modelParamsSetting,Integer number, List<String> stateList) {
+    public GenerateProblemEvent(Object source, String knowledgeId, List<String> documentIdList, String modelId, JSONObject modelParamsSetting, Integer number, List<String> stateList) {
         super(source);
         this.knowledgeId = knowledgeId;
         this.documentIdList = documentIdList;

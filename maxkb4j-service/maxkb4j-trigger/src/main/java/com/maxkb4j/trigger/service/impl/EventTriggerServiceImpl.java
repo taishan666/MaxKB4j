@@ -66,7 +66,7 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
         }
         LambdaQueryWrapper<EventTriggerTaskEntity> taskWrapper = Wrappers.lambdaQuery();
         taskWrapper.in(EventTriggerTaskEntity::getTriggerId, triggerIds);
-        List<EventTriggerTaskVO> allTasks = BeanUtil.copyList(eventTriggerTaskService.list(taskWrapper),EventTriggerTaskVO.class);
+        List<EventTriggerTaskVO> allTasks = BeanUtil.copyList(eventTriggerTaskService.list(taskWrapper), EventTriggerTaskVO.class);
         // 分组整理tasks
         Map<String, List<EventTriggerTaskVO>> taskMap = allTasks.stream().collect(Collectors.groupingBy(EventTriggerTaskVO::getTriggerId));
         // 处理数据
@@ -222,10 +222,10 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
         Optional<EventTriggerTaskEntity> sourceTask = allTasks.stream().filter(task -> sourceType.equals(task.getSourceType()) && sourceId.equals(task.getSourceId())).findFirst();
         if (sourceTask.isPresent()) {
             if (ResourceType.APPLICATION.equals(sourceType)) {
-                ApplicationVO app =applicationService.getDtoById(sourceTask.get().getSourceId());
+                ApplicationVO app = applicationService.getDtoById(sourceTask.get().getSourceId());
                 vo.setApplicationTask(BeanUtil.copy(app, ApplicationTaskVO.class));
             } else if (ResourceType.TOOL.equals(sourceType)) {
-                ToolDTO tool =toolService.getDtoById(sourceTask.get().getSourceId());
+                ToolDTO tool = toolService.getDtoById(sourceTask.get().getSourceId());
                 vo.setToolTask(BeanUtil.copy(tool, ToolTaskVO.class));
             }
             vo.setTriggerTask(sourceTask.get());

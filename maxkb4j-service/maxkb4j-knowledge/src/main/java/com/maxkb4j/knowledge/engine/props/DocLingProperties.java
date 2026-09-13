@@ -22,7 +22,7 @@ public class DocLingProperties {
     /**
      * DocLing 后端服务地址（self-hosted 模式使用），如 http://localhost:5001
      */
-    private String baseUrl="http://localhost:5001";
+    private String baseUrl = "http://localhost:5001";
 
     /**
      * MinerU API 鉴权 token（precision 模式必填）
@@ -57,6 +57,6 @@ public class DocLingProperties {
      * MinerU 支持解析的文件扩展名（小写，含点号）
      */
     private List<String> supportedExtensions = List.of(
-            ".pdf",  ".docx", ".pptx", ".xlsx", ".csv", ".html"
+            ".pdf", ".docx", ".pptx", ".xlsx", ".csv", ".html"
     );
 }

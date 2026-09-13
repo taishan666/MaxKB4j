@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.HTTP_CLIENT)
@@ -30,8 +31,8 @@ public class HttpNodeHandler extends AbsNodeHandler {
         HttpNode.NodeParams params = parseParams(node, HttpNode.NodeParams.class);
         Map<String, Object> variables = workflow.getPromptVariables();
         String code = JSON.toJSONString(params);
-        ToolHttpRequest  request = JSONObject.parseObject(code, ToolHttpRequest.class);
-        try (HttpResponse response = toolExecuteService.httpExecute(JSON.toJSONString(params),Map.of(), variables)) {
+        ToolHttpRequest request = JSONObject.parseObject(code, ToolHttpRequest.class);
+        try (HttpResponse response = toolExecuteService.httpExecute(JSON.toJSONString(params), Map.of(), variables)) {
             int resStatus = response.getStatus();
             String resBody = response.body();
             // 使用辅助方法写入详情

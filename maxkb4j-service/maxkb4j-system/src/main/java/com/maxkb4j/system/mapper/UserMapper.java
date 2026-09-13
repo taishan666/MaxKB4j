@@ -13,6 +13,6 @@ import java.util.List;
  * @date 2024-12-25 11:27:27
  */
 @Mapper
-public interface UserMapper extends BaseMapper<UserEntity>{
+public interface UserMapper extends BaseMapper<UserEntity> {
     List<PermissionVO> getUserPermissionById(String userId);
 }

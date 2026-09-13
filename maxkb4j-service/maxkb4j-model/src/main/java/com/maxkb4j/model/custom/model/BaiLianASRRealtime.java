@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @EqualsAndHashCode(callSuper = true)
@@ -23,11 +24,10 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 public class BaiLianASRRealtime extends AbsSTTModel {
 
 
+    private static final List<String> SUPPORT_MODELS = List.of(ModelName.FUN_ASR_REALTIME, ModelName.PARAFORMER_REALTIME_V2, ModelName.GUMMY_REALTIME_V1);
     private RecognitionParam param;
     private String modelName;
     private ModelCredential credential;
-
-    private static final List<String> SUPPORT_MODELS = List.of(ModelName.FUN_ASR_REALTIME, ModelName.PARAFORMER_REALTIME_V2, ModelName.GUMMY_REALTIME_V1);
 
     public BaiLianASRRealtime(String modelName, ModelCredential credential, JSONObject params) {
         this.modelName = modelName;
@@ -60,7 +60,7 @@ public class BaiLianASRRealtime extends AbsSTTModel {
         log.info("使用模型: {}", modelName);
         log.info("音频数据大小: {} bytes", audioBytes.length);
         log.info("文件后缀: {}", suffix);
-        int sampleRate=getSampleRate(audioBytes, FileToken.DOT+suffix);
+        int sampleRate = getSampleRate(audioBytes, FileToken.DOT + suffix);
         this.param.setSampleRate(sampleRate);
         String format = suffix != null ? suffix.toLowerCase() : Value.MP3;
         this.param.setFormat(format);
@@ -88,7 +88,7 @@ public class BaiLianASRRealtime extends AbsSTTModel {
         try {
             recognizer.call(param, callback);
             int sendFrameLength = 3200;
-            for (int i = 0; i * sendFrameLength < audioBytes.length; i ++) {
+            for (int i = 0; i * sendFrameLength < audioBytes.length; i++) {
                 int start = i * sendFrameLength;
                 int end = Math.min(start + sendFrameLength, audioBytes.length);
                 ByteBuffer byteBuffer = ByteBuffer.wrap(audioBytes, start, end - start);

@@ -22,11 +22,13 @@ public class SpringUtil implements ApplicationContextAware {
 
     public SpringUtil() {
     }
+
     public static <T> Map<String, T> getBeansOfType(Class<T> type) {
         return getBeanFactory().getBeansOfType(type);
     }
+
     public static DefaultListableBeanFactory getBeanFactory() {
-        return (DefaultListableBeanFactory)context.getBeanFactory();
+        return (DefaultListableBeanFactory) context.getBeanFactory();
     }
 
     public static <T> T getBean(Class<T> clazz) {
@@ -67,6 +69,6 @@ public class SpringUtil implements ApplicationContextAware {
 
     @Override
     public void setApplicationContext(@Nullable ApplicationContext context) throws BeansException {
-        SpringUtil.context = (ConfigurableApplicationContext)context;
+        SpringUtil.context = (ConfigurableApplicationContext) context;
     }
 }

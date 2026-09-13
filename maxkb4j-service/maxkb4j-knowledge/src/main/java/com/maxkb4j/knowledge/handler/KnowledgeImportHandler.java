@@ -55,7 +55,7 @@ public class KnowledgeImportHandler {
     public KnowledgeEntity importKnowledgeFromZip(MultipartFile file) throws IOException {
         JSONObject knowledgeJson = null;
         List<KnowledgeExcel> excelDataList = new ArrayList<>();
-        
+
         // 解析ZIP文件
         try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
             ZipEntry entry;
@@ -63,7 +63,7 @@ public class KnowledgeImportHandler {
                 if (entry.isDirectory()) {
                     continue;
                 }
-                
+
                 String entryName = entry.getName();
                 if ("knowledge.json".equals(entryName)) {
                     // 读取知识库配置
@@ -76,31 +76,31 @@ public class KnowledgeImportHandler {
                 }
             }
         }
-        
+
         if (knowledgeJson == null) {
             throw new IllegalArgumentException("ZIP文件中未找到knowledge.json");
         }
-        
+
         // 创建知识库
         KnowledgeEntity knowledge = createKnowledge(knowledgeJson);
-        
+
         // 创建文档和段落
         if (!excelDataList.isEmpty()) {
             createDocuments(knowledge.getId(), excelDataList);
         }
-        
+
         return knowledge;
     }
 
     /**
      * 从ZIP文件导入知识库（提供知识库ID）
      *
-     * @param file     ZIP文件
+     * @param file        ZIP文件
      * @param knowledgeId 知识库ID
      */
     public void importKnowledgeFromZip(MultipartFile file, String knowledgeId) throws IOException {
         List<KnowledgeExcel> excelDataList = new ArrayList<>();
-        
+
         // 解析ZIP文件
         try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
             ZipEntry entry;
@@ -108,7 +108,7 @@ public class KnowledgeImportHandler {
                 if (entry.isDirectory()) {
                     continue;
                 }
-                
+
                 String entryName = entry.getName();
                 if ("knowledge.xlsx".equals(entryName)) {
                     // 读取Excel数据
@@ -117,7 +117,7 @@ public class KnowledgeImportHandler {
                 }
             }
         }
-        
+
         // 创建文档和段落
         if (!excelDataList.isEmpty()) {
             createDocuments(knowledgeId, excelDataList);
@@ -141,22 +141,22 @@ public class KnowledgeImportHandler {
         knowledge.setName(knowledgeJson.getString("name"));
         knowledge.setDesc(knowledgeJson.getString("desc"));
         knowledge.setType(knowledgeJson.getInteger("type"));
-        
+
         JSONObject meta = knowledgeJson.getJSONObject("meta");
         knowledge.setMeta(Objects.requireNonNullElseGet(meta, JSONObject::new));
-        
+
         Integer fileSizeLimit = knowledgeJson.getInteger("fileSizeLimit");
         knowledge.setFileSizeLimit(Objects.requireNonNullElse(fileSizeLimit, 100));
-        
+
         Integer fileCountLimit = knowledgeJson.getInteger("fileCountLimit");
         knowledge.setFileCountLimit(Objects.requireNonNullElse(fileCountLimit, 50));
-        
+
 
         String embeddingModelId = knowledgeJson.getString("embeddingModelId");
         // 设置embedding_model_id，默认为向量模型的第一个
-        knowledge.setEmbeddingModelId(modelService.getSafeModelId(embeddingModelId,ModelType.EMBEDDING));
+        knowledge.setEmbeddingModelId(modelService.getSafeModelId(embeddingModelId, ModelType.EMBEDDING));
         knowledge.setFolderId("default");
-        
+
         return knowledgeService.createKnowledge(knowledge);
     }
 
@@ -167,19 +167,19 @@ public class KnowledgeImportHandler {
         if (excelDataList.isEmpty()) {
             return;
         }
-        
+
         // 按sheet名分组（这里简化处理，只创建一个文档）
         List<DocumentSimple> docs = new ArrayList<>();
         DocumentSimple doc = new DocumentSimple();
         doc.setName("knowledge.xlsx");
-        
+
         List<ParagraphSimple> paragraphs = new ArrayList<>();
         for (KnowledgeExcel excel : excelDataList) {
             ParagraphSimple paragraph = ParagraphSimple.builder()
                     .title(excel.getTitle())
                     .content(excel.getContent())
                     .build();
-            
+
             // 处理问题列表（多个问题用换行分隔）
             if (excel.getProblems() != null && !excel.getProblems().isEmpty()) {
                 String[] problems = excel.getProblems().split("\n");
@@ -192,12 +192,12 @@ public class KnowledgeImportHandler {
                 }
                 paragraph.setProblemList(problemList);
             }
-            
+
             paragraphs.add(paragraph);
         }
         doc.setParagraphs(paragraphs);
         docs.add(doc);
-        
+
         documentWriteService.batchCreateDocs(knowledgeId, 0, docs);
     }
 

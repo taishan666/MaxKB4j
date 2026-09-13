@@ -6,8 +6,8 @@
 
     <select id="applicationAggregation" resultType="java.util.LinkedHashMap">
         SELECT COUNT(*) AS total,
-               COUNT(*) FILTER (WHERE is_publish = true) AS publish_count,
-               COUNT(*) FILTER (WHERE is_publish IS DISTINCT FROM true) AS un_publish_count
+        COUNT(*) FILTER (WHERE is_publish = true) AS publish_count,
+        COUNT(*) FILTER (WHERE is_publish IS DISTINCT FROM true) AS un_publish_count
         FROM application
         <where>
             <if test="isAdmin == null or !isAdmin">
@@ -28,68 +28,68 @@
 
     <select id="knowledgeAggregation" resultType="java.util.LinkedHashMap">
         SELECT (SELECT COUNT(*) FROM knowledge
-                <where>
-                    <if test="isAdmin == null or !isAdmin">
-                        <choose>
-                            <when test="targetIds != null and !targetIds.isEmpty()">
-                                AND id IN
-                                <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
-                                    #{targetId}
-                                </foreach>
-                            </when>
-                            <otherwise>
-                                AND id = ''
-                            </otherwise>
-                        </choose>
-                    </if>
-                </where>
-               ) AS total,
-               (SELECT COUNT(*) FROM document
-                <where>
-                    <if test="isAdmin == null or !isAdmin">
-                        <choose>
-                            <when test="targetIds != null and !targetIds.isEmpty()">
-                                AND knowledge_id IN
-                                <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
-                                    #{targetId}
-                                </foreach>
-                            </when>
-                            <otherwise>
-                                AND knowledge_id = ''
-                            </otherwise>
-                        </choose>
-                    </if>
-                </where>
-               ) AS document_count,
-               (
-                   SELECT COUNT(*) FROM document
-                   WHERE (
-                       SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 1 FOR 1) = '1'
-                          OR SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 2 FOR 1) = '1'
-                   )
-                   <if test="isAdmin == null or !isAdmin">
-                       <choose>
-                           <when test="targetIds != null and !targetIds.isEmpty()">
-                               AND knowledge_id IN
-                               <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
-                                   #{targetId}
-                               </foreach>
-                           </when>
-                           <otherwise>
-                               AND knowledge_id = ''
-                           </otherwise>
-                       </choose>
-                   </if>
-               ) AS failure_count
+        <where>
+            <if test="isAdmin == null or !isAdmin">
+                <choose>
+                    <when test="targetIds != null and !targetIds.isEmpty()">
+                        AND id IN
+                        <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
+                            #{targetId}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        AND id = ''
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+        ) AS total,
+        (SELECT COUNT(*) FROM document
+        <where>
+            <if test="isAdmin == null or !isAdmin">
+                <choose>
+                    <when test="targetIds != null and !targetIds.isEmpty()">
+                        AND knowledge_id IN
+                        <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
+                            #{targetId}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        AND knowledge_id = ''
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+        ) AS document_count,
+        (
+        SELECT COUNT(*) FROM document
+        WHERE (
+        SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 1 FOR 1) = '1'
+        OR SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 2 FOR 1) = '1'
+        )
+        <if test="isAdmin == null or !isAdmin">
+            <choose>
+                <when test="targetIds != null and !targetIds.isEmpty()">
+                    AND knowledge_id IN
+                    <foreach collection="targetIds" item="targetId" open="(" separator="," close=")">
+                        #{targetId}
+                    </foreach>
+                </when>
+                <otherwise>
+                    AND knowledge_id = ''
+                </otherwise>
+            </choose>
+        </if>
+        ) AS failure_count
     </select>
 
     <select id="toolAggregation" resultType="java.util.LinkedHashMap">
         SELECT COUNT(*) AS total,
-               COUNT(*) FILTER (WHERE tool_type = 'CUSTOM')      AS custom_count,
-               COUNT(*) FILTER (WHERE tool_type = 'DATA_SOURCE') AS data_source_count,
-               COUNT(*) FILTER (WHERE tool_type = 'MCP')         AS mcp_count,
-               COUNT(*) FILTER (WHERE tool_type = 'SKILL')       AS skill_count,
-               COUNT(*) FILTER (WHERE tool_type = 'WORKFLOW')    AS workflow_count
+        COUNT(*) FILTER (WHERE tool_type = 'CUSTOM') AS custom_count,
+        COUNT(*) FILTER (WHERE tool_type = 'DATA_SOURCE') AS data_source_count,
+        COUNT(*) FILTER (WHERE tool_type = 'MCP') AS mcp_count,
+        COUNT(*) FILTER (WHERE tool_type = 'SKILL') AS skill_count,
+        COUNT(*) FILTER (WHERE tool_type = 'WORKFLOW') AS workflow_count
         FROM tool
         <where>
             <if test="isAdmin == null or !isAdmin">
@@ -110,8 +110,8 @@
 
     <select id="modelAggregation" resultType="java.util.LinkedHashMap">
         SELECT COUNT(*) AS total,
-               COUNT(*) FILTER (WHERE model_type = 'EMBEDDING') AS embedding_count,
-               COUNT(*) FILTER (WHERE model_type = 'LLM')       AS llm_count
+        COUNT(*) FILTER (WHERE model_type = 'EMBEDDING') AS embedding_count,
+        COUNT(*) FILTER (WHERE model_type = 'LLM') AS llm_count
         FROM model
         <where>
             <if test="isAdmin == null or !isAdmin">
@@ -165,17 +165,17 @@
     <!-- 全局按天聚合（与 ApplicationChatMapper.statistics 同构，去掉 appId 过滤）。
          tokens 经聚合子查询按 chat_id 汇总，避免 record 级 join 造成行膨胀。 -->
     <select id="dailyStats" resultType="com.maxkb4j.system.dto.DailyStatDTO">
-        SELECT COALESCE(SUM(chat.star_num), 0)           AS star_num,
-               COALESCE(SUM(chat.trample_num), 0)        AS trample_num,
-               COALESCE(SUM(chat.chat_record_count), 0)  AS chat_record_count,
-               COALESCE(SUM(chat_record.tokens_num), 0)  AS tokens_num,
-               COUNT(DISTINCT chat.chat_user_id)         AS customer_num,
-               chat.create_time :: DATE                   AS "day"
+        SELECT COALESCE(SUM(chat.star_num), 0) AS star_num,
+        COALESCE(SUM(chat.trample_num), 0) AS trample_num,
+        COALESCE(SUM(chat.chat_record_count), 0) AS chat_record_count,
+        COALESCE(SUM(chat_record.tokens_num), 0) AS tokens_num,
+        COUNT(DISTINCT chat.chat_user_id) AS customer_num,
+        chat.create_time :: DATE AS "day"
         FROM application_chat chat
         LEFT JOIN (
-            SELECT chat_id, SUM(message_tokens) + SUM(answer_tokens) AS tokens_num
-            FROM application_chat_record
-            GROUP BY chat_id
+        SELECT chat_id, SUM(message_tokens) + SUM(answer_tokens) AS tokens_num
+        FROM application_chat_record
+        GROUP BY chat_id
         ) chat_record ON chat."id" = chat_record.chat_id
         <include refid="dailyStatsWhere"/>
         GROUP BY "day"
@@ -183,8 +183,8 @@
 
     <!-- 每日新增客户数（沿用 application_chat_user_stats 语义，去掉 appId 过滤）。 -->
     <select id="dailyNewCustomers" resultType="com.maxkb4j.system.dto.DailyStatDTO">
-        SELECT COUNT("id")                          AS customer_added_count,
-               create_time :: DATE                  AS "day"
+        SELECT COUNT("id") AS customer_added_count,
+        create_time :: DATE AS "day"
         FROM application_chat_user_stats
         <where>
             <if test="query.startTime != null and query.startTime != ''">
@@ -235,10 +235,10 @@
                 <choose>
                     <when test="query.targetIds != null and !query.targetIds.isEmpty()">
                         AND chat_id IN (
-                            SELECT id FROM application_chat WHERE application_id IN
-                            <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
-                                #{targetId}
-                            </foreach>
+                        SELECT id FROM application_chat WHERE application_id IN
+                        <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                            #{targetId}
+                        </foreach>
                         )
                     </when>
                     <otherwise>
@@ -266,10 +266,10 @@
                 <choose>
                     <when test="query.targetIds != null and !query.targetIds.isEmpty()">
                         AND chat_id IN (
-                            SELECT id FROM application_chat WHERE application_id IN
-                            <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
-                                #{targetId}
-                            </foreach>
+                        SELECT id FROM application_chat WHERE application_id IN
+                        <foreach collection="query.targetIds" item="targetId" open="(" separator="," close=")">
+                            #{targetId}
+                        </foreach>
                         )
                     </when>
                     <otherwise>
@@ -287,9 +287,9 @@
         FROM application a
         LEFT JOIN application_chat c ON c.application_id = a."id"
         LEFT JOIN (
-            SELECT chat_id, SUM(message_tokens) + SUM(answer_tokens) AS total_tokens
-            FROM application_chat_record
-            GROUP BY chat_id
+        SELECT chat_id, SUM(message_tokens) + SUM(answer_tokens) AS total_tokens
+        FROM application_chat_record
+        GROUP BY chat_id
         ) r ON r.chat_id = c."id"
         <where>
             <if test="query.name != null and query.name != ''">
@@ -319,10 +319,10 @@
 
     <select id="tokensRanking" resultType="com.maxkb4j.system.dto.AgentStatDTO">
         SELECT a."id",
-               a.name,
-               COALESCE(SUM(r.total_tokens), 0)        AS total_tokens,
-               COALESCE(SUM(c.chat_record_count), 0)  AS chat_record_count,
-               COUNT(DISTINCT c.chat_user_id)         AS chat_user_count
+        a.name,
+        COALESCE(SUM(r.total_tokens), 0) AS total_tokens,
+        COALESCE(SUM(c.chat_record_count), 0) AS chat_record_count,
+        COUNT(DISTINCT c.chat_user_id) AS chat_user_count
         <include refid="appRankingFrom"/>
         GROUP BY a."id", a.name
         ORDER BY total_tokens DESC
@@ -330,10 +330,10 @@
 
     <select id="tokensRankingExport" resultType="com.maxkb4j.system.dto.AgentStatDTO">
         SELECT a."id",
-               a.name,
-               COALESCE(SUM(r.total_tokens), 0)        AS total_tokens,
-               COALESCE(SUM(c.chat_record_count), 0)  AS chat_record_count,
-               COUNT(DISTINCT c.chat_user_id)         AS chat_user_count
+        a.name,
+        COALESCE(SUM(r.total_tokens), 0) AS total_tokens,
+        COALESCE(SUM(c.chat_record_count), 0) AS chat_record_count,
+        COUNT(DISTINCT c.chat_user_id) AS chat_user_count
         <include refid="appRankingFrom"/>
         GROUP BY a."id", a.name
         ORDER BY total_tokens DESC
@@ -341,10 +341,10 @@
 
     <select id="questionRanking" resultType="com.maxkb4j.system.dto.AgentStatDTO">
         SELECT a."id",
-               a.name,
-               COALESCE(SUM(r.total_tokens), 0)        AS total_tokens,
-               COALESCE(SUM(c.chat_record_count), 0)  AS chat_record_count,
-               COUNT(DISTINCT c.chat_user_id)         AS chat_user_count
+        a.name,
+        COALESCE(SUM(r.total_tokens), 0) AS total_tokens,
+        COALESCE(SUM(c.chat_record_count), 0) AS chat_record_count,
+        COUNT(DISTINCT c.chat_user_id) AS chat_user_count
         <include refid="appRankingFrom"/>
         GROUP BY a."id", a.name
         ORDER BY chat_record_count DESC
@@ -352,10 +352,10 @@
 
     <select id="questionRankingExport" resultType="com.maxkb4j.system.dto.AgentStatDTO">
         SELECT a."id",
-               a.name,
-               COALESCE(SUM(r.total_tokens), 0)        AS total_tokens,
-               COALESCE(SUM(c.chat_record_count), 0)  AS chat_record_count,
-               COUNT(DISTINCT c.chat_user_id)         AS chat_user_count
+        a.name,
+        COALESCE(SUM(r.total_tokens), 0) AS total_tokens,
+        COALESCE(SUM(c.chat_record_count), 0) AS chat_record_count,
+        COUNT(DISTINCT c.chat_user_id) AS chat_user_count
         <include refid="appRankingFrom"/>
         GROUP BY a."id", a.name
         ORDER BY chat_record_count DESC
@@ -369,10 +369,10 @@
 
     <select id="userTokensRanking" resultMap="chatUserStatResultMap">
         SELECT c.chat_user_id,
-               c.chat_user_type,
-               c.asker,
-               COALESCE(SUM(r.message_tokens) + SUM(r.answer_tokens), 0) AS total_tokens,
-               COUNT(r."id")                                              AS chat_record_count
+        c.chat_user_type,
+        c.asker,
+        COALESCE(SUM(r.message_tokens) + SUM(r.answer_tokens), 0) AS total_tokens,
+        COUNT(r."id") AS chat_record_count
         FROM application_chat c
         LEFT JOIN application_chat_record r ON r.chat_id = c."id"
         <where>
@@ -406,12 +406,12 @@
         ORDER BY total_tokens DESC
     </select>
 
-<select id="userTokensRankingExport" resultMap="chatUserStatResultMap">
+    <select id="userTokensRankingExport" resultMap="chatUserStatResultMap">
         SELECT c.chat_user_id,
-               c.chat_user_type,
-               c.asker,
-               COALESCE(SUM(r.message_tokens) + SUM(r.answer_tokens), 0) AS total_tokens,
-               COUNT(r."id")                                              AS chat_record_count
+        c.chat_user_type,
+        c.asker,
+        COALESCE(SUM(r.message_tokens) + SUM(r.answer_tokens), 0) AS total_tokens,
+        COUNT(r."id") AS chat_record_count
         FROM application_chat c
         LEFT JOIN application_chat_record r ON r.chat_id = c."id"
         <where>

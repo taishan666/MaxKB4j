@@ -15,5 +15,5 @@ public class ToolQuery implements PermissionScopeAware {
     private List<String> toolTypeList;
     private Boolean isActive;
     private List<String> targetIds;
-    private Boolean isAdmin=false;
+    private Boolean isAdmin = false;
 }

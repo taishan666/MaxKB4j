@@ -8,7 +8,7 @@ public interface IResourceMappingService {
 
     void relation(String sourceType, String sourceId, List<TargetResource> targets);
 
-    default void deleteBySourceId(String sourceType, String sourceId){
+    default void deleteBySourceId(String sourceType, String sourceId) {
         deleteBySourceIds(sourceType, List.of(sourceId));
     }
 

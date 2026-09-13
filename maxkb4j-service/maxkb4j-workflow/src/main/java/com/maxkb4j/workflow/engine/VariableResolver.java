@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
@@ -44,7 +45,7 @@ public class VariableResolver {
         }
 
         // Loop variables: loop.xxx
-        if (context.getLoopContext()  != null) {
+        if (context.getLoopContext() != null) {
             for (Map.Entry<String, Object> entry : context.getLoopContext().entrySet()) {
                 result.put(Scope.LOOP_PREFIX + entry.getKey(), entry.getValue());
             }

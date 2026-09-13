@@ -52,7 +52,7 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
         // 危险类仍无条件拦截
         if (GroovySandboxPolicy.isDangerousClass(sender)
                 || (GroovySandboxPolicy.isDangerousMethod(method)
-                        && !GroovySandboxPolicy.isStaticCallAllowed(sender, method))) {
+                && !GroovySandboxPolicy.isStaticCallAllowed(sender, method))) {
             throw new SecurityException("不允许调用静态方法: " + sender.getName() + "." + method);
         }
         GroovySandboxPolicy.validateArguments(args);

@@ -213,7 +213,7 @@ public class ChatApiController {
             @RequestParam Map<String, Object> params) {
         return ResponseEntity.ok()
                 .header("Content-Type", "text/javascript; charset=utf-8")
-                .body(chatEmbedService.embed(protocol,host,token,params));
+                .body(chatEmbedService.embed(protocol, host, token, params));
     }
 
     @Hidden

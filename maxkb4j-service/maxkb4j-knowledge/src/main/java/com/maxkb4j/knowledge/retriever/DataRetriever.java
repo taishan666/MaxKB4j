@@ -21,6 +21,11 @@ import java.util.Map;
 @Component
 public class DataRetriever {
 
+    private static final Map<String, SearchMode> SEARCH_MODE_MAP = Map.of(
+            SearchType.EMBEDDING, SearchMode.VECTOR,
+            SearchType.FULL_TEXT, SearchMode.FULL_TEXT,
+            SearchType.HYBRID, SearchMode.HYBRID
+    );
     private final IDataStore vectorStore;
     private final IDataStore fullTextStore;
     private final IDataStore compositeStore;
@@ -39,15 +44,8 @@ public class DataRetriever {
         this.searchOrchestrator = searchOrchestrator;
     }
 
-    private static final Map<String, SearchMode> SEARCH_MODE_MAP = Map.of(
-        SearchType.EMBEDDING, SearchMode.VECTOR,
-        SearchType.FULL_TEXT, SearchMode.FULL_TEXT,
-        SearchType.HYBRID, SearchMode.HYBRID
-    );
-
-
     public List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds,
-                                     String keyword, int maxResults, float minScore, String searchMode) {
+                                    String keyword, int maxResults, float minScore, String searchMode) {
         SearchRequest request = new SearchRequest();
         request.setKnowledgeIds(knowledgeIds);
         request.setExcludeParagraphIds(excludeParagraphIds);
@@ -56,7 +54,7 @@ public class DataRetriever {
         request.setMinScore(minScore);
         request.setMode(SEARCH_MODE_MAP.get(searchMode));
         List<String> excludeDocIds = documentService.getNoActiveDocIds(knowledgeIds);
-        if (CollectionUtils.isNotEmpty(excludeDocIds)){
+        if (CollectionUtils.isNotEmpty(excludeDocIds)) {
             request.setExcludeDocumentIds(excludeDocIds);
         }
         return searchOrchestrator.search(getStore(searchMode), request);

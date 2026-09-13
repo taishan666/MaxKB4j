@@ -16,7 +16,7 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.LoopField;
 @NodeCreatorType(NodeType.LOOP_BREAK)
 public class LoopBreakNode extends AbsNode {
     public LoopBreakNode(String id, JSONObject properties) {
-        super(id,properties);
+        super(id, properties);
     }
 
     @Override

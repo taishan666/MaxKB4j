@@ -38,20 +38,6 @@ public abstract class AbsToolExecutor implements ToolExecutor {
         }
     };
 
-
-    protected Map<String, Object> argumentsAsMap(String arguments) {
-        if (Utils.isNullOrBlank(arguments)) {
-            return Map.of();
-        } else {
-            try {
-                return  Json.fromJson(arguments, MAP_TYPE);
-            } catch (Exception var3) {
-                String normalizedArguments = removeTrailingComma(normalizeJsonString(arguments));
-                return Json.fromJson(normalizedArguments, MAP_TYPE);
-            }
-        }
-    }
-
     static String removeTrailingComma(String json) {
         if (json != null && !json.isEmpty()) {
             Matcher matcher = TRAILING_COMMA_PATTERN.matcher(json);
@@ -69,6 +55,19 @@ public abstract class AbsToolExecutor implements ToolExecutor {
             return escapedQuoteMatcher.replaceAll("\"");
         } else {
             return arguments;
+        }
+    }
+
+    protected Map<String, Object> argumentsAsMap(String arguments) {
+        if (Utils.isNullOrBlank(arguments)) {
+            return Map.of();
+        } else {
+            try {
+                return Json.fromJson(arguments, MAP_TYPE);
+            } catch (Exception var3) {
+                String normalizedArguments = removeTrailingComma(normalizeJsonString(arguments));
+                return Json.fromJson(normalizedArguments, MAP_TYPE);
+            }
         }
     }
 }

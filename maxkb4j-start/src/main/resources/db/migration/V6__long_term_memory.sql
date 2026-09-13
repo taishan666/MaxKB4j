@@ -6,13 +6,14 @@ ALTER TABLE application_version
 -- Table structure for application_long_term_memory
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."application_long_term_memory";
-CREATE TABLE "public"."application_long_term_memory" (
-                                                         "create_time" timestamptz(6) NOT NULL,
-                                                         "update_time" timestamptz(6) NOT NULL,
-                                                         "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                         "chat_user_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-                                                         "memory" text COLLATE "pg_catalog"."default" NOT NULL,
-                                                         "application_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL
+CREATE TABLE "public"."application_long_term_memory"
+(
+    "create_time"    timestamptz(6) NOT NULL,
+    "update_time"    timestamptz(6) NOT NULL,
+    "id"             varchar(50) COLLATE "pg_catalog"."default"  NOT NULL,
+    "chat_user_id"   varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "memory"         text COLLATE "pg_catalog"."default"         NOT NULL,
+    "application_id" varchar(50) COLLATE "pg_catalog"."default"  NOT NULL
 )
 ;
 
@@ -42,12 +43,14 @@ CREATE INDEX "application_long_term_memory_update_time" ON "public"."application
 -- ----------------------------
 -- Uniques structure for table application_long_term_memory
 -- ----------------------------
-ALTER TABLE "public"."application_long_term_memory" ADD CONSTRAINT "application_long_term_me_application_id_chat_user_uniq" UNIQUE ("application_id", "chat_user_id");
+ALTER TABLE "public"."application_long_term_memory"
+    ADD CONSTRAINT "application_long_term_me_application_id_chat_user_uniq" UNIQUE ("application_id", "chat_user_id");
 
 -- ----------------------------
 -- Primary Key structure for table application_long_term_memory
 -- ----------------------------
-ALTER TABLE "public"."application_long_term_memory" ADD CONSTRAINT "application_long_term_memory_pkey" PRIMARY KEY ("id");
+ALTER TABLE "public"."application_long_term_memory"
+    ADD CONSTRAINT "application_long_term_memory_pkey" PRIMARY KEY ("id");
 
 
 

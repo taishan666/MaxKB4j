@@ -29,41 +29,41 @@ public class UserResourcePermissionController {
     private final IUserResourcePermissionInternalService userResourcePermissionService;
     private final IUserInternalService userService;
 
-   // @SaCheckRole(type= LoginType.ADMIN,value = {RoleType.ADMIN, RoleType.USER},mode = SaMode.OR)
+    // @SaCheckRole(type= LoginType.ADMIN,value = {RoleType.ADMIN, RoleType.USER},mode = SaMode.OR)
     @GetMapping("/user_list")
-    public R<List<UserNameVO>> userList(){
+    public R<List<UserNameVO>> userList() {
         return R.data(userService.listActiveUserNames());
     }
 
-    @SaCheckRole(type= LoginType.ADMIN,value = RoleConst.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @GetMapping("/user_member")
-    public R<List<UserVO>> userMembers(){
-        List<UserVO> users=BeanUtil.copyList(userService.listActiveMembers(), UserVO.class);
+    public R<List<UserVO>> userMembers() {
+        List<UserVO> users = BeanUtil.copyList(userService.listActiveMembers(), UserVO.class);
         users.forEach(user -> user.setRoles(Set.of(user.getRole())));
         return R.data(users);
     }
 
-    @SaCheckRole(type=LoginType.ADMIN,value = RoleConst.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @GetMapping("/user_resource_permission/user/{userId}/resource/{type}/{current}/{size}")
-    public R<IPage<UserResourcePermissionVO>> userResourcePage(@PathVariable String userId, @PathVariable String type, @PathVariable int current, @PathVariable int size, String name, String[] permission){
-        return R.data(userResourcePermissionService.userResourcePermissionPage(userId,type,current,size,name, permission));
+    public R<IPage<UserResourcePermissionVO>> userResourcePage(@PathVariable String userId, @PathVariable String type, @PathVariable int current, @PathVariable int size, String name, String[] permission) {
+        return R.data(userResourcePermissionService.userResourcePermissionPage(userId, type, current, size, name, permission));
     }
 
-    @SaCheckRole(type=LoginType.ADMIN,value = RoleConst.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @GetMapping("/resource_user_permission/resource/{resourceId}/resource/{type}/{current}/{size}")
-    public R<IPage<ResourceUserPermissionVO>> resourceUserPage(@PathVariable String resourceId, @PathVariable String type, @PathVariable int current, @PathVariable int size, String nickname, String username, String[] permission){
-        return R.data(userResourcePermissionService.resourceUserPermissionPage(resourceId,type,current,size,nickname,username,permission));
+    public R<IPage<ResourceUserPermissionVO>> resourceUserPage(@PathVariable String resourceId, @PathVariable String type, @PathVariable int current, @PathVariable int size, String nickname, String username, String[] permission) {
+        return R.data(userResourcePermissionService.resourceUserPermissionPage(resourceId, type, current, size, nickname, username, permission));
     }
 
-    @SaCheckRole(type=LoginType.ADMIN,value = RoleConst.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @PutMapping("/resource_user_permission/resource/{resourceId}/resource/{resourceType}")
-    public R<Boolean> resourcePermissionUpdate(@PathVariable String resourceId, @PathVariable String resourceType, @RequestBody List<ResourcePermissionUpdateVO> list){
-        return R.status(userResourcePermissionService.resourcePermissionUpdate(resourceId,resourceType,list));
+    public R<Boolean> resourcePermissionUpdate(@PathVariable String resourceId, @PathVariable String resourceType, @RequestBody List<ResourcePermissionUpdateVO> list) {
+        return R.status(userResourcePermissionService.resourcePermissionUpdate(resourceId, resourceType, list));
     }
 
-    @SaCheckRole(type=LoginType.ADMIN,value = RoleConst.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @PutMapping("/user_resource_permission/user/{userId}/resource/{resourceType}")
-    public R<Boolean> userPermissionUpdate(@PathVariable String userId, @PathVariable String resourceType, @RequestBody List<UserPermissionUpdateVO> list){
-        return R.status(userResourcePermissionService.userPermissionUpdate(userId,resourceType,list));
+    public R<Boolean> userPermissionUpdate(@PathVariable String userId, @PathVariable String resourceType, @RequestBody List<UserPermissionUpdateVO> list) {
+        return R.status(userResourcePermissionService.userPermissionUpdate(userId, resourceType, list));
     }
 }

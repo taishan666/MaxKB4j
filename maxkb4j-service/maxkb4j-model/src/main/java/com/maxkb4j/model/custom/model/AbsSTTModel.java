@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Slf4j
@@ -23,7 +24,7 @@ public abstract class AbsSTTModel implements STTModel {
 
     protected int getSampleRate(byte[] audioBytes, String extension) {
         int sampleRate;
-        Path tempFile=null;
+        Path tempFile = null;
         try {
             tempFile = Files.createTempFile(FileToken.AUDIO_TEMP_PREFIX, extension);
             // 2. 将 byte[] 写入临时文件
@@ -35,13 +36,14 @@ public abstract class AbsSTTModel implements STTModel {
             AudioFile audioFile = AudioFileIO.read(fileObj);
             sampleRate = audioFile.getAudioHeader().getSampleRateAsNumber();
 
-        } catch (ReadOnlyFileException | IOException | CannotReadException | TagException | InvalidAudioFrameException e) {
+        } catch (ReadOnlyFileException | IOException | CannotReadException | TagException |
+                 InvalidAudioFrameException e) {
             throw new RuntimeException(e);
         } finally {
             // 4. 删除临时文件
             // 无论成功还是失败，都在 finally 块中尝试删除文件，防止磁盘垃圾堆积
             try {
-                if (tempFile!=null&&Files.exists(tempFile)) {
+                if (tempFile != null && Files.exists(tempFile)) {
                     Files.delete(tempFile);
                 }
             } catch (IOException e) {

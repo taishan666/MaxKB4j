@@ -34,6 +34,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @RequiredArgsConstructor
 public class UserIdentityInterceptor implements HandlerInterceptor {
 
+    private static final String CHAT_PATH_PREFIX = "/chat";
     private final ThreadLocalUserContext userContext;
 
     @Override
@@ -61,13 +62,11 @@ public class UserIdentityInterceptor implements HandlerInterceptor {
         userContext.clear();
     }
 
-    private static final String CHAT_PATH_PREFIX = "/chat";
-
     private UserIdentity resolve(HttpServletRequest request) {
         boolean isChatPath = request.getRequestURI().startsWith(CHAT_PATH_PREFIX);
         if (isChatPath) {
             // chat 路径:优先解析 USER,避免同浏览器双登录时误取 ADMIN 身份
-            return  resolveUser();
+            return resolveUser();
         }
         // 其他路径:优先解析 ADMIN,未命中再回退 USER
         UserIdentity identity = resolveAdmin();

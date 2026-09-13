@@ -44,8 +44,8 @@ public class FormNodeHandler extends AbsNodeHandler {
             nodeVariable.put(FormField.FORM_CONTENT_FORMAT, formContentFormat);
             nodeVariable.put(FormField.IS_SUBMIT, false);
         }
-        if (workflow instanceof IChatWorkflow chatWorkflow){
-            String chatRecordId=chatWorkflow.getChatParams().getChatRecordId();
+        if (workflow instanceof IChatWorkflow chatWorkflow) {
+            String chatRecordId = chatWorkflow.getChatParams().getChatRecordId();
             putDetail(node, ChatField.CHAT_RECORD_ID, chatRecordId);
         }
         return new NodeResult(nodeVariable, false, this::shouldInterrupt);

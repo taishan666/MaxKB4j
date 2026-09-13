@@ -40,6 +40,17 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         this.exceptionResolverChain = exceptionResolverChain;
     }
 
+    /**
+     * Unwraps the real exception cause from a {@link CompletionException} chain, converting
+     * non-{@link Exception} throwables into a {@link RuntimeException}.
+     */
+    private static Exception unwrapException(Throwable cause) {
+        while (cause instanceof CompletionException && cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        return cause instanceof Exception ? (Exception) cause : new RuntimeException(cause);
+    }
+
     @Override
     public void execute(IWorkflow workflow) {
         INode currentNode = workflow.execution().currentNode();
@@ -118,8 +129,8 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
     private List<INode> completeAsyncNode(IWorkflow workflow, AbsNode node, long startTime, NodeResult result, Throwable ex) {
         if (ex != null) {
             Boolean enableException = node.getProperties().getBoolean("enableException");
-            if (Boolean.TRUE.equals(enableException)){
-                result= new NodeResult(Map.of(WorkflowConstants.NodeField.BRANCH_ID,"exception","exception",ex.getMessage()));
+            if (Boolean.TRUE.equals(enableException)) {
+                result = new NodeResult(Map.of(WorkflowConstants.NodeField.BRANCH_ID, "exception", "exception", ex.getMessage()));
                 return workflow.execution().nextNodes(node, result);
             }
             handleNodeError(workflow, node, unwrapException(ex));
@@ -149,7 +160,6 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
         onNodeSuccess(workflow, node, result);
         return workflow.execution().nextNodes(node, result);
     }
-
 
     /**
      * Hook called before node execution; subclasses may override for scheduling logic.
@@ -195,17 +205,6 @@ public abstract class AbsWorkflowHandler implements IWorkflowHandler {
                 ? node.getProperties().getString(RuntimeDetailField.NODE_NAME)
                 : node.getType();
         log.info("node: {}, runTime: {} s", nodeName, runTime);
-    }
-
-    /**
-     * Unwraps the real exception cause from a {@link CompletionException} chain, converting
-     * non-{@link Exception} throwables into a {@link RuntimeException}.
-     */
-    private static Exception unwrapException(Throwable cause) {
-        while (cause instanceof CompletionException && cause.getCause() != null) {
-            cause = cause.getCause();
-        }
-        return cause instanceof Exception ? (Exception) cause : new RuntimeException(cause);
     }
 
 }

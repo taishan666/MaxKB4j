@@ -19,23 +19,23 @@ import java.util.UUID;
  */
 @NoArgsConstructor
 @Data
-@TableName(value = "application_access_token",autoResultMap = true)
+@TableName(value = "application_access_token", autoResultMap = true)
 public class ApplicationAccessTokenEntity {
 
     @TableId
     private String applicationId;
-    
+
     private String accessToken;
-    
+
     private Boolean isActive;
-    
+
     private Integer accessNum;
-    
+
     private Boolean whiteActive;
-    
+
     @TableField(typeHandler = StringListTypeHandler.class)
     private List<String> whiteList;
-    
+
     private Boolean showSource;
 
     private Boolean showExec;
@@ -52,8 +52,7 @@ public class ApplicationAccessTokenEntity {
     private Date updateTime;
 
 
-
-    public ApplicationAccessTokenEntity(Boolean isActive, Integer accessNum, Boolean whiteActive, List<String> whiteList, Boolean showSource,Boolean showExec,String language) {
+    public ApplicationAccessTokenEntity(Boolean isActive, Integer accessNum, Boolean whiteActive, List<String> whiteList, Boolean showSource, Boolean showExec, String language) {
         this.isActive = isActive;
         this.accessNum = accessNum;
         this.whiteActive = whiteActive;
@@ -61,10 +60,10 @@ public class ApplicationAccessTokenEntity {
         this.showSource = showSource;
         this.showExec = showExec;
         this.language = language;
-        this.accessToken= MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24);
+        this.accessToken = MD5Util.encrypt(UUID.randomUUID().toString(), 8, 24);
     }
 
     public static ApplicationAccessTokenEntity createDefault() {
-        return new ApplicationAccessTokenEntity(true,100,false,List.of(),false,false,null);
+        return new ApplicationAccessTokenEntity(true, 100, false, List.of(), false, false, null);
     }
 }

@@ -37,7 +37,7 @@ public class KnowledgeToolServiceImpl implements IKnowledgeToolService {
 
 
     @Override
-    public List<AiServiceTool> buildTools(List<String> KnowledgeIds,KnowledgeSetting knowledgeSetting) {
+    public List<AiServiceTool> buildTools(List<String> KnowledgeIds, KnowledgeSetting knowledgeSetting) {
         if (KnowledgeIds == null || KnowledgeIds.isEmpty()) {
             return Collections.emptyList();
         }
@@ -46,14 +46,14 @@ public class KnowledgeToolServiceImpl implements IKnowledgeToolService {
             return Collections.emptyList();
         }
         return knowledgeList.stream()
-                .map(e->toAiServiceTool(e,knowledgeSetting))
+                .map(e -> toAiServiceTool(e, knowledgeSetting))
                 .toList();
     }
 
     @Override
     public ToolProvider buildToolProvider(List<String> KnowledgeIds, KnowledgeSetting knowledgeSetting) {
         return toolProviderRequest -> {
-            List<AiServiceTool> tools = buildTools(KnowledgeIds,knowledgeSetting);
+            List<AiServiceTool> tools = buildTools(KnowledgeIds, knowledgeSetting);
             if (tools.isEmpty()) {
                 return null;
             }
@@ -66,7 +66,7 @@ public class KnowledgeToolServiceImpl implements IKnowledgeToolService {
      */
     private AiServiceTool toAiServiceTool(KnowledgeSimple knowledge, KnowledgeSetting knowledgeSetting) {
         ToolSpecification spec = buildKnowledgeSpecification(knowledge);
-        KnowledgeExecutor executor = new KnowledgeExecutor(knowledge.getId(),knowledgeSetting, retrieveService);
+        KnowledgeExecutor executor = new KnowledgeExecutor(knowledge.getId(), knowledgeSetting, retrieveService);
         return AiServiceTool.builder()
                 .toolSpecification(spec)
                 .toolExecutor(executor)

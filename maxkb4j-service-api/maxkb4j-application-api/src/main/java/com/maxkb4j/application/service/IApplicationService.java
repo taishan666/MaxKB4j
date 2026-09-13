@@ -13,6 +13,8 @@ public interface IApplicationService {
     ApplicationSimple getAppSimpleById(String appId);
 
     ApplicationVO getDtoById(String id);
+
     List<ApplicationVO> listDtoByIds(List<String> ids);
+
     List<Map<String, Object>> listMapsByIds(List<String> ids);
 }

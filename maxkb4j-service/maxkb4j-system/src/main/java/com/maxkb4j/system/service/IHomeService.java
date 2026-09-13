@@ -13,19 +13,31 @@ import java.util.List;
 
 public interface IHomeService {
     JSONObject aggregation(String type);
+
     List<DailyStatDTO> monitoring(HomeQuery query);
+
     int chatRecordCount(HomeQuery query);
+
     int tokensCount(HomeQuery query);
+
     IPage<AgentStatDTO> tokensRanking(int current, int size, HomeQuery query);
 
-    /** 应用 Token 排行全量数据导出为 Excel。 */
+    /**
+     * 应用 Token 排行全量数据导出为 Excel。
+     */
     void exportTokensRanking(HomeQuery query, HttpServletResponse response) throws IOException;
+
     IPage<AgentStatDTO> questionRanking(int current, int size, HomeQuery query);
 
-    /** 应用问题数排行全量数据导出为 Excel。 */
+    /**
+     * 应用问题数排行全量数据导出为 Excel。
+     */
     void exportQuestionRanking(HomeQuery query, HttpServletResponse response) throws IOException;
+
     IPage<ChatUserStatDTO> userTokensRanking(int current, int size, HomeQuery query);
 
-    /** 用户 Token 排行全量数据导出为 Excel。 */
+    /**
+     * 用户 Token 排行全量数据导出为 Excel。
+     */
     void exportUserTokensRanking(HomeQuery query, HttpServletResponse response) throws IOException;
 }

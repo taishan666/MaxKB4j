@@ -1,4 +1,5 @@
 package com.maxkb4j.workflow.node.impl;
+
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
@@ -9,6 +10,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.KNOWLEDGE_WRITE)
@@ -25,7 +27,7 @@ public class KnowledgeWriteNode extends AbsNode {
     }
 
     @Data
-    public static class NodeParams  {
+    public static class NodeParams {
         private List<String> documentList;
     }
 }

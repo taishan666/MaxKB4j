@@ -35,15 +35,15 @@ public class WebDocsListener {
         log.info("收到Web文档创建事件: knowledgeId={}, sourceUrl={}", event.getKnowledgeId(), event.getSourceUrl());
         try {
             List<DocumentSimple> docs = documentWebService.getWebDocuments(
-                event.getSourceUrl(),
-                event.getSelector(),
-                true
+                    event.getSourceUrl(),
+                    event.getSelector(),
+                    true
             );
             documentWriteService.batchCreateDocs(event.getKnowledgeId(), KnowledgeType.WEB, docs);
             log.info("Web文档创建完成: knowledgeId={}, 文档数量={}", event.getKnowledgeId(), docs.size());
         } catch (Exception e) {
             log.error("Web文档创建失败: knowledgeId={}, sourceUrl={}, 错误: {}",
-                event.getKnowledgeId(), event.getSourceUrl(), e.getMessage(), e);
+                    event.getKnowledgeId(), event.getSourceUrl(), e.getMessage(), e);
         }
     }
 

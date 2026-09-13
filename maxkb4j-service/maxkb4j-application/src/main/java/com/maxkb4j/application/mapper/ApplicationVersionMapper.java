@@ -9,6 +9,6 @@ import org.apache.ibatis.annotations.Mapper;
  * @date 2024-12-28 18:47:27
  */
 @Mapper
-public interface ApplicationVersionMapper extends BaseMapper<ApplicationVersionEntity>{
- 
+public interface ApplicationVersionMapper extends BaseMapper<ApplicationVersionEntity> {
+
 }

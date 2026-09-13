@@ -22,6 +22,9 @@ import java.util.regex.Pattern;
 public class ApplicationLongTermMemoryServiceImpl extends ServiceImpl<ApplicationLongTermMemoryMapper, ApplicationLongTermMemoryEntity> implements IApplicationLongTermMemoryService {
 
 
+    private static final Pattern THINK_TAG_PATTERN = Pattern.compile("<think>.*?</think>", Pattern.DOTALL);
+    private final IApplicationChatRecordInternalService chatRecordService;
+    private final IModelProviderService modelProviderService;
     String LONG_TERM_PROMPT = """
                     你是一个专业的用户长期记忆提炼引擎。你的唯一职责是：从对话中精确识别具有持久价值的用户信息，并与已有记忆进行结构化融合，输出供 AI 助手长期使用的用户画像记忆。
                     ## 输入
@@ -97,11 +100,6 @@ public class ApplicationLongTermMemoryServiceImpl extends ServiceImpl<Applicatio
                     （暂无则写：暂无）
             """;
 
-
-    private final IApplicationChatRecordInternalService chatRecordService;
-    private final IModelProviderService modelProviderService;
-    private static final Pattern THINK_TAG_PATTERN = Pattern.compile("<think>.*?</think>", Pattern.DOTALL);
-
     @Async
     @Override
     public void saveMemory(String applicationId, String chatUserId, String modelId, int pageSize) {
@@ -109,10 +107,10 @@ public class ApplicationLongTermMemoryServiceImpl extends ServiceImpl<Applicatio
         if (count <= 0 || pageSize <= 0) {
             return;
         }
-        if (count % pageSize==0){
-            int page= (int) ((count-1)/pageSize);
+        if (count % pageSize == 0) {
+            int page = (int) ((count - 1) / pageSize);
             int offset = page * pageSize;
-            List<ApplicationChatRecordEntity> chatRecords = chatRecordService.listByAppIdAndChatUserId(applicationId, chatUserId,pageSize,offset);
+            List<ApplicationChatRecordEntity> chatRecords = chatRecordService.listByAppIdAndChatUserId(applicationId, chatUserId, pageSize, offset);
             List<String> lines = new ArrayList<>();
             for (ApplicationChatRecordEntity chatRecord : chatRecords) {
                 lines.add("User：" + chatRecord.getProblemText() + "\n" + "AI：" + chatRecord.getAnswerText());
@@ -122,7 +120,7 @@ public class ApplicationLongTermMemoryServiceImpl extends ServiceImpl<Applicatio
             String existingMemory = longTermMemory == null ? "" : longTermMemory.getMemory();
             String userMessage = LONG_TERM_PROMPT.replace("{{existingMemory}}", existingMemory).replace("{{newConversation}}", newConversation);
             ChatModel chatModel = modelProviderService.buildChatModel(modelId);
-            if (chatModel == null){
+            if (chatModel == null) {
                 return;
             }
             String content = chatModel.chat(userMessage);
@@ -149,7 +147,7 @@ public class ApplicationLongTermMemoryServiceImpl extends ServiceImpl<Applicatio
     @Async
     @Override
     public void deleteMemory(String applicationId) {
-         this.lambdaUpdate().eq(ApplicationLongTermMemoryEntity::getApplicationId, applicationId).remove();
+        this.lambdaUpdate().eq(ApplicationLongTermMemoryEntity::getApplicationId, applicationId).remove();
     }
 
     private ApplicationLongTermMemoryEntity getLongTermMemory(String applicationId, String chatUserId) {

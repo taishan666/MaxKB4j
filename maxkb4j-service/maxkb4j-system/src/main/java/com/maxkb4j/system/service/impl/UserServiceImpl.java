@@ -85,9 +85,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             wrapper.eq(UserEntity::getIsActive, dto.getIsActive());
         }
         wrapper.orderByDesc(UserEntity::getCreateTime);
-        return BeanUtil.copyPage(this.page(userPage, wrapper),user -> {
+        return BeanUtil.copyPage(this.page(userPage, wrapper), user -> {
             UserVO userVO = BeanUtil.copy(user, UserVO.class);
-            Map<String,List<String>>roleWorkspace = new HashMap<>();
+            Map<String, List<String>> roleWorkspace = new HashMap<>();
             roleWorkspace.put(user.getRole(), List.of("DEFAULT"));
             userVO.setRoleWorkspace(roleWorkspace);
             userVO.setRoleName(Set.of("USER"));
@@ -102,7 +102,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
 
     public String login(UserLoginDTO dto, HttpServletRequest request) {
-        if (StringUtils.isNotBlank(dto.getEncryptedData())){
+        if (StringUtils.isNotBlank(dto.getEncryptedData())) {
             try {
                 String encryptedData = dto.getEncryptedData();
                 String text = RSAUtil.rsaLongDecrypt(encryptedData, SystemCache.getPrivateKey());
@@ -111,7 +111,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
                 throw new LoginException("login.password.decrypt.error");
             }
         }
-        if (StringUtils.isBlank(dto.getPassword())){
+        if (StringUtils.isBlank(dto.getPassword())) {
             throw new LoginException("user.password.empty");
         }
         HttpSession session = request.getSession();
@@ -245,12 +245,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         UserProfileVO user = BeanUtil.copy(userEntity, UserProfileVO.class);
         user.setPermissions(stpInterface.getPermissionList(userId, null));
         user.setRoleName(Set.of(userEntity.getRole()));
-        Set<String> role=new HashSet<>();
+        Set<String> role = new HashSet<>();
         role.add(userEntity.getRole());
         if (RoleConst.ADMIN.equals(userEntity.getRole())) {
-            role.add(RoleConst.WORKSPACE_MANAGE+":/WORKSPACE/default");
+            role.add(RoleConst.WORKSPACE_MANAGE + ":/WORKSPACE/default");
         } else {
-            role.add(RoleConst.USER+":/WORKSPACE/default");
+            role.add(RoleConst.USER + ":/WORKSPACE/default");
         }
         user.setRole(role);
         List<Map<String, String>> workspaceList = new ArrayList<>();
@@ -277,7 +277,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
     public boolean checkCode(String email, String code) {
         String codeCache = authCodeCache.getIfPresent(email);
-        return  Objects.equals(codeCache, code);
+        return Objects.equals(codeCache, code);
     }
 
     private String generateCode() {
@@ -396,8 +396,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         wrapper.like(StringUtils.isNotBlank(query.getNickname()), UserEntity::getNickname, query.getNickname());
         wrapper.like(StringUtils.isNotBlank(query.getUsername()), UserEntity::getUsername, query.getUsername());
         wrapper.orderByDesc(UserEntity::getCreateTime);
-        return BeanUtil.copyPage(this.page(userPage,wrapper),user->{
-            UserDTO dto= BeanUtil.copy(user, UserDTO.class);
+        return BeanUtil.copyPage(this.page(userPage, wrapper), user -> {
+            UserDTO dto = BeanUtil.copy(user, UserDTO.class);
             dto.setWorkspaceName("默认空间");
             return dto;
         });

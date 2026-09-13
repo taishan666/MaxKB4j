@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ts">
-  <head>
+<html lang="ts" xmlns:th="http://www.thymeleaf.org">
+<head>
     <title></title>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="description" content="email code" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-  </head>
-  <!--邮箱验证码模板-->
-  <body>
-    <div style="background-color: #ececec; padding: 35px">
-      <table
-        cellpadding="0"
-        style="
+    <meta charset="utf-8"/>
+    <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+    <meta content="email code" name="description"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+</head>
+<!--邮箱验证码模板-->
+<body>
+<div style="background-color: #ececec; padding: 35px">
+    <table
+            cellpadding="0"
+            style="
           width: 800px;
           height: 100%;
           margin: 0px auto;
@@ -30,12 +30,11 @@
           background-repeat: initial initial;
           background: #fff;
         "
-      >
+    >
         <tbody>
-          <tr>
+        <tr>
             <th
-              valign="middle"
-              style="
+                    style="
                 background: linear-gradient(
                   90deg,
                   #ebf1ff 24.34%,
@@ -52,9 +51,10 @@
                 border-bottom-right-radius: 0px;
                 border-bottom-left-radius: 0px;
               "
+                    valign="middle"
             >
-              <div
-                style="
+                <div
+                        style="
                   width: 230px;
                   background: linear-gradient(180deg, #3370FF 0%, #7f3bf5 100%);
                   -webkit-background-clip: text;
@@ -64,37 +64,37 @@
                   font-weight: 900;
                   color: #1f2329;
                 "
-              >
-                智能知识库问答系统
-              </div>
+                >
+                    智能知识库问答系统
+                </div>
             </th>
-          </tr>
-          <tr>
+        </tr>
+        <tr>
             <td style="word-break: break-all">
-              <div
-                style="
+                <div
+                        style="
                   padding: 25px 35px 40px;
                   background-color: #fff;
                   opacity: 0.8;
                 "
-              >
-                <h2 style="margin: 5px 0px">
-                  <font color="#333333" style="line-height: 20px">
-                    <font style="line-height: 22px" size="4">
-                      尊敬的用户：</font
-                    >
-                  </font>
-                </h2>
-                <!-- 中文 -->
-                <p>
-                  <font color="#ff8c00" style="font-weight: 900" th:text="${code}"></font
-                  >&nbsp;&nbsp;为您的动态验证码，请于30分钟内填写，为保障帐户安全，请勿向任何人提供此验证码。
-                </p>
-                <br />
+                >
+                    <h2 style="margin: 5px 0px">
+                        <font color="#333333" style="line-height: 20px">
+                            <font size="4" style="line-height: 22px">
+                                尊敬的用户：</font
+                            >
+                        </font>
+                    </h2>
+                    <!-- 中文 -->
+                    <p>
+                        <font color="#ff8c00" style="font-weight: 900" th:text="${code}"></font
+                        >&nbsp;&nbsp;为您的动态验证码，请于30分钟内填写，为保障帐户安全，请勿向任何人提供此验证码。
+                    </p>
+                    <br/>
 
-                <div style="width: 100%; margin: 0 auto">
-                  <div
-                    style="
+                    <div style="width: 100%; margin: 0 auto">
+                        <div
+                                style="
                       padding: 10px 10px 0;
                       border-top: 1px solid #ccc;
                       color: #747474;
@@ -103,21 +103,21 @@
                       font-size: 12px;
                       text-align: right;
                     "
-                  >
-                    <p>智能知识库项目组</p>
-                    <br />
-                    <p>
-                      此为系统邮件，请勿回复<br />
-                      Please do not reply to this system email
-                    </p>
-                    <!--<p>©***</p>-->
-                  </div>
+                        >
+                            <p>智能知识库项目组</p>
+                            <br/>
+                            <p>
+                                此为系统邮件，请勿回复<br/>
+                                Please do not reply to this system email
+                            </p>
+                            <!--<p>©***</p>-->
+                        </div>
+                    </div>
                 </div>
-              </div>
             </td>
-          </tr>
+        </tr>
         </tbody>
-      </table>
-    </div>
-  </body>
+    </table>
+</div>
+</body>
 </html>

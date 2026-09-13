@@ -80,24 +80,19 @@ public enum NodeType {
 
     KNOWLEDGE_WRITE("knowledge-write-node", "知识库写入节点"),
 
-    LOOP("loop-node","循环节点"),
+    LOOP("loop-node", "循环节点"),
 
-    LOOP_START("loop-start-node","循环开始"),
+    LOOP_START("loop-start-node", "循环开始"),
 
-    LOOP_CONTINUE("loop-continue-node","循环继续"),
+    LOOP_CONTINUE("loop-continue-node", "循环继续"),
 
-    LOOP_BREAK("loop-break-node","循环跳出"),
+    LOOP_BREAK("loop-break-node", "循环跳出"),
     ;
 
     /**
      * 数据源节点类型 key 前缀
      */
     public static final String DATA_SOURCE_PREFIX = "data-source-";
-
-    private final String key;
-
-    private final String name;
-
     /**
      * Static map for O(1) key-based lookup
      */
@@ -107,6 +102,9 @@ public enum NodeType {
         KEY_MAP = Arrays.stream(values())
                 .collect(Collectors.toUnmodifiableMap(NodeType::getKey, Function.identity()));
     }
+
+    private final String key;
+    private final String name;
 
     /**
      * Get NodeType by key with O(1) lookup

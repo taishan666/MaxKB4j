@@ -28,16 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class NodeCenter implements INodeCreator {
 
-    /** Functional contract for instantiating a node from its id and properties. */
-    @FunctionalInterface
-    public interface NodeCreator {
-        Object create(String id, JSONObject properties);
-    }
-
     private final Map<String, NodeCreator> creators = new ConcurrentHashMap<>();
     private final Map<String, INodeHandler> handlers = new ConcurrentHashMap<>();
-
-    // ---- node creators -----------------------------------------------------
 
     public void registerCreator(String nodeType, NodeCreator creator) {
         if (nodeType == null || nodeType.isBlank()) {
@@ -50,6 +42,8 @@ public class NodeCenter implements INodeCreator {
         log.debug("Registered node creator: {}", nodeType);
     }
 
+    // ---- node creators -----------------------------------------------------
+
     public NodeCreator getCreator(String nodeType) {
         if (nodeType == null) {
             return null;
@@ -60,8 +54,6 @@ public class NodeCenter implements INodeCreator {
     public int creatorCount() {
         return creators.size();
     }
-
-    // ---- node handlers -----------------------------------------------------
 
     public boolean registerHandler(String nodeType, INodeHandler handler) {
         if (nodeType == null || nodeType.isBlank()) {
@@ -79,6 +71,8 @@ public class NodeCenter implements INodeCreator {
         return replaced;
     }
 
+    // ---- node handlers -----------------------------------------------------
+
     public INodeHandler getHandler(String nodeType) {
         INodeHandler handler = handlers.get(nodeType);
         if (handler == null) {
@@ -95,8 +89,6 @@ public class NodeCenter implements INodeCreator {
         return handlers.size();
     }
 
-    // ---- INodeCreator ------------------------------------------------------
-
     @Override
     public AbsNode createNode(LfNode lfNode) {
         if (lfNode == null) {
@@ -110,5 +102,15 @@ public class NodeCenter implements INodeCreator {
             return null;
         }
         return (AbsNode) creator.create(lfNode.getId(), lfNode.getProperties());
+    }
+
+    // ---- INodeCreator ------------------------------------------------------
+
+    /**
+     * Functional contract for instantiating a node from its id and properties.
+     */
+    @FunctionalInterface
+    public interface NodeCreator {
+        Object create(String id, JSONObject properties);
     }
 }

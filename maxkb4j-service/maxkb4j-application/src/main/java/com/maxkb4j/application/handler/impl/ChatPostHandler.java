@@ -30,9 +30,13 @@ import java.util.Map;
 @Component
 public class ChatPostHandler implements PostResponseHandler {
 
-    /** 未投票状态 */
+    /**
+     * 未投票状态
+     */
     private static final String VOTE_STATUS_NONE = "-1";
-    /** 会话摘要最大长度 */
+    /**
+     * 会话摘要最大长度
+     */
     private static final int SUMMARY_MAX_LENGTH = 50;
 
     private final ApplicationChatUserStatsService chatUserStatsService;
@@ -68,8 +72,8 @@ public class ChatPostHandler implements PostResponseHandler {
      * 构建本轮对话记录实体：区分"补充上轮记录"与"新记录"两种场景
      */
     private ApplicationChatRecordEntity buildChatRecordEntity(ChatParams chatParams,
-                                                             ChatResponse chatResponse, float runTime,
-                                                             ChatInfo chatInfo, ChatRecordDTO chatRecord) {
+                                                              ChatResponse chatResponse, float runTime,
+                                                              ChatInfo chatInfo, ChatRecordDTO chatRecord) {
         int messageTokens = chatResponse.getMessageTokens();
         int answerTokens = chatResponse.getAnswerTokens();
         ApplicationChatRecordEntity chatRecordEntity = new ApplicationChatRecordEntity();

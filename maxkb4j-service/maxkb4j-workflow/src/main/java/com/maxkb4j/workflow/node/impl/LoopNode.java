@@ -19,7 +19,9 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.LOOP)
 public class LoopNode extends AbsNode {
-    /** 循环体子节点 nodeData 中标记"输出结果"的键名 */
+    /**
+     * 循环体子节点 nodeData 中标记"输出结果"的键名
+     */
     private static final String KEY_IS_RESULT = NodeField.IS_RESULT;
 
     public LoopNode(String id, JSONObject properties) {
@@ -49,7 +51,7 @@ public class LoopNode extends AbsNode {
         List<Answer> answerList = new ArrayList<>();
         for (Object iteration : iterations) {
             if (iteration instanceof JSONObject iterationDetails) {
-                answerList.addAll(buildIterationAnswers(chatRecordId,iterationDetails, resultNodeIds));
+                answerList.addAll(buildIterationAnswers(chatRecordId, iterationDetails, resultNodeIds));
             }
         }
         return answerList;
@@ -58,10 +60,10 @@ public class LoopNode extends AbsNode {
     /**
      * 将单次迭代的运行时详情转换为答案列表（按节点执行顺序）。
      */
-    private List<Answer> buildIterationAnswers(String chatRecordId,JSONObject iterationDetails, Set<String> resultNodeIds) {
+    private List<Answer> buildIterationAnswers(String chatRecordId, JSONObject iterationDetails, Set<String> resultNodeIds) {
         List<Answer> answers = new ArrayList<>();
         for (JSONObject nodeDetail : extractSortedNodeDetails(iterationDetails)) {
-            answers.addAll(buildNodeAnswers(chatRecordId,nodeDetail, resultNodeIds));
+            answers.addAll(buildNodeAnswers(chatRecordId, nodeDetail, resultNodeIds));
         }
         return answers;
     }
@@ -88,30 +90,30 @@ public class LoopNode extends AbsNode {
      * 按子节点类型分发答案构建：表单/用户选择节点渲染交互组件，
      * 其余节点按输出节点规则提取文本答案。
      */
-    private List<Answer> buildNodeAnswers(String chatRecordId,JSONObject nodeDetail, Set<String> resultNodeIds) {
+    private List<Answer> buildNodeAnswers(String chatRecordId, JSONObject nodeDetail, Set<String> resultNodeIds) {
         String nodeType = nodeDetail.getString(RuntimeDetailField.TYPE);
-        String runtimeNodeId=super.getRuntimeNodeId();
+        String runtimeNodeId = super.getRuntimeNodeId();
         if (NodeType.FORM.getKey().equals(nodeType)) {
-            return buildInteractiveAnswers(runtimeNodeId,nodeDetail, FormField.FORM_RENDER_TAG, true);
+            return buildInteractiveAnswers(runtimeNodeId, nodeDetail, FormField.FORM_RENDER_TAG, true);
         }
         if (NodeType.USER_SELECT.getKey().equals(nodeType)) {
-            return buildInteractiveAnswers(runtimeNodeId,nodeDetail, FormField.CARD_SELECTION_RENDER_TAG, false);
+            return buildInteractiveAnswers(runtimeNodeId, nodeDetail, FormField.CARD_SELECTION_RENDER_TAG, false);
         }
         if (!isResultNode(nodeDetail, resultNodeIds)) {
             return Collections.emptyList();
         }
-        return buildTextAnswer(chatRecordId,runtimeNodeId,nodeDetail);
+        return buildTextAnswer(chatRecordId, runtimeNodeId, nodeDetail);
     }
 
     /**
      * 构建输出节点的文本答案。
      */
-    private List<Answer> buildTextAnswer(String chatRecordId,String runtimeNodeId,JSONObject nodeDetail) {
+    private List<Answer> buildTextAnswer(String chatRecordId, String runtimeNodeId, JSONObject nodeDetail) {
         Object content = nodeDetail.get(NodeField.ANSWER);
         if (content == null) {
             return Collections.emptyList();
         }
-        Object reasoningContent = reasoningContentEnable()?nodeDetail.get(NodeField.REASONING_CONTENT):"";
+        Object reasoningContent = reasoningContentEnable() ? nodeDetail.get(NodeField.REASONING_CONTENT) : "";
         return List.of(Answer.builder()
                 .content(String.valueOf(content))
                 .reasoningContent(reasoningContent != null ? String.valueOf(reasoningContent) : "")
@@ -127,7 +129,7 @@ public class LoopNode extends AbsNode {
      * @param renderTag          渲染标签（form_render / card_selection_render）
      * @param applyContentFormat 是否套用 form_content_format 模板
      */
-    private List<Answer> buildInteractiveAnswers(String runtimeNodeId,JSONObject nodeDetail,
+    private List<Answer> buildInteractiveAnswers(String runtimeNodeId, JSONObject nodeDetail,
                                                  String renderTag, boolean applyContentFormat) {
         String chatRecordId = nodeDetail.getString(ChatField.CHAT_RECORD_ID);
         String childRuntimeNodeId = nodeDetail.getString(RuntimeDetailField.RUNTIME_NODE_ID);
@@ -144,7 +146,7 @@ public class LoopNode extends AbsNode {
                 .reasoningContent("")
                 .chatRecordId(chatRecordId)
                 .runtimeNodeId(runtimeNodeId)
-                .childNode(new ChildNode(chatRecordId,childRuntimeNodeId))
+                .childNode(new ChildNode(chatRecordId, childRuntimeNodeId))
                 .viewType(ViewType.SINGLE_VIEW)
                 .build());
     }

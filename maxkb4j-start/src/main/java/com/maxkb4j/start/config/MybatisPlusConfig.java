@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Configuration;
  * spring事务、MybatisPlus分页插件、mybatis包扫描等配置
  *
  * @author tarzan liu
- * @since JDK17
  * @date 2025年1月11日
+ * @since JDK17
  */
 @Configuration
 @MapperScan("com.maxkb4j.**.mapper")

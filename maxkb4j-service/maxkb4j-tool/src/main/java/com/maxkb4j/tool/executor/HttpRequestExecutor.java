@@ -19,9 +19,9 @@ public class HttpRequestExecutor extends AbsToolExecutor {
     private final Map<String, Object> initParams;
 
     public HttpRequestExecutor(String code, Map<String, Object> initParams) {
-        ToolHttpRequest  tempData = JSONObject.parseObject(code, ToolHttpRequest.class);
-        List<KeyAndValue>  headers =tempData.getHeaders();
-        List<KeyAndValue>  params =tempData.getParams();
+        ToolHttpRequest tempData = JSONObject.parseObject(code, ToolHttpRequest.class);
+        List<KeyAndValue> headers = tempData.getHeaders();
+        List<KeyAndValue> params = tempData.getParams();
         // 过滤 Headers，为 null 时初始化为空列表以避免后续遍历 NPE
         if (headers != null) {
             headers.removeIf(this::isEmptyKeyAndValue);
@@ -36,7 +36,7 @@ public class HttpRequestExecutor extends AbsToolExecutor {
             tempData.setParams(new ArrayList<>());
         }
         this.data = tempData;
-        this.initParams=initParams;
+        this.initParams = initParams;
     }
 
     private boolean isEmptyKeyAndValue(KeyAndValue kav) {
@@ -52,7 +52,7 @@ public class HttpRequestExecutor extends AbsToolExecutor {
     @Override
     public String execute(ToolExecutionRequest toolExecutionRequest, Object memoryId) {
         Map<String, Object> variables = argumentsAsMap(toolExecutionRequest.arguments());
-        HttpResponse response= execute(variables);
+        HttpResponse response = execute(variables);
         return response.body();
     }
 
@@ -65,33 +65,33 @@ public class HttpRequestExecutor extends AbsToolExecutor {
         if (initParams != null) {
             variables.putAll(initParams);
         }
-        HttpRequest request= HttpUtil.createRequest(data.getMethod(), data.getUrl());
-        List<KeyAndValue> headers=data.getHeaders();
+        HttpRequest request = HttpUtil.createRequest(data.getMethod(), data.getUrl());
+        List<KeyAndValue> headers = data.getHeaders();
         for (KeyAndValue header : headers) {
-            if (StringUtils.isNotBlank(header.getKey())&& Objects.nonNull(header.getValue())){
+            if (StringUtils.isNotBlank(header.getKey()) && Objects.nonNull(header.getValue())) {
                 header.setKey(renderPrompt(header.getKey(), variables));
                 header.setValue(renderPrompt(String.valueOf(header.getValue()), variables));
-                request.header(header.getKey(),String.valueOf(header.getValue()));
+                request.header(header.getKey(), String.valueOf(header.getValue()));
             }
         }
-        if(StringUtils.isNotBlank(data.getBody())){
+        if (StringUtils.isNotBlank(data.getBody())) {
             data.setBody(renderPrompt(data.getBody(), variables));
             request.body(data.getBody());
         }
-        List<KeyAndValue> params=data.getParams();
+        List<KeyAndValue> params = data.getParams();
         for (KeyAndValue param : params) {
-            if (StringUtils.isNotBlank(param.getKey())&& Objects.nonNull(param.getValue())){
+            if (StringUtils.isNotBlank(param.getKey()) && Objects.nonNull(param.getValue())) {
                 param.setKey(renderPrompt(param.getKey(), variables));
                 param.setValue(renderPrompt(String.valueOf(param.getValue()), variables));
-                request.form(param.getKey(),param.getValue());
+                request.form(param.getKey(), param.getValue());
             }
         }
-        if (StringUtils.isNotBlank(data.getAuthType())){
-            switch (data.getAuthType()){
+        if (StringUtils.isNotBlank(data.getAuthType())) {
+            switch (data.getAuthType()) {
                 case "basic":
                     data.setUsername(renderPrompt(data.getUsername(), variables));
                     data.setPassword(renderPrompt(data.getPassword(), variables));
-                    request.basicAuth(data.getUsername(),data.getPassword());
+                    request.basicAuth(data.getUsername(), data.getPassword());
                     break;
                 case "bearer":
                     data.setToken(renderPrompt(data.getToken(), variables));
@@ -99,18 +99,18 @@ public class HttpRequestExecutor extends AbsToolExecutor {
                     break;
             }
         }
-        data.setTimeout(data.getTimeout()==null?30:data.getTimeout());
+        data.setTimeout(data.getTimeout() == null ? 30 : data.getTimeout());
         // 用 long 计算避免 int 溢出（timeout 秒值来自用户工具配置，无上限校验）
         long timeoutMillis = data.getTimeout() * 1000L;
         request.timeout((int) Math.min(timeoutMillis, Integer.MAX_VALUE));
         return request.execute();
     }
 
-    private String renderPrompt(String prompt,Map<String, Object> variables){
-        if (StringUtils.isNotBlank(prompt)){
+    private String renderPrompt(String prompt, Map<String, Object> variables) {
+        if (StringUtils.isNotBlank(prompt)) {
             PromptTemplate promptTemplate = PromptTemplate.from(prompt);
             return promptTemplate.apply(variables).text();
         }
-        return  "";
+        return "";
     }
 }

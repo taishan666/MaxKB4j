@@ -44,9 +44,9 @@ public abstract class AbsModelProvider {
     protected synchronized HttpClientBuilder getHttpClientBuilder() {
         if (springRestClientBuilder == null) {
             HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-             requestFactory.setConnectTimeout(60_000);
-             requestFactory.setReadTimeout(600_000);
-             RestClient.Builder restClientBuilder = RestClient.builder()
+            requestFactory.setConnectTimeout(60_000);
+            requestFactory.setReadTimeout(600_000);
+            RestClient.Builder restClientBuilder = RestClient.builder()
                     .requestFactory(requestFactory);
             this.springRestClientBuilder = SpringRestClient.builder()
                     .restClientBuilder(restClientBuilder)
@@ -144,18 +144,18 @@ public abstract class AbsModelProvider {
     public abstract List<ModelInfo> getModelList();
 
 
-    public void modelIsValid(String modelType,String modelName, ModelCredential credential, JSONObject params) {
+    public void modelIsValid(String modelType, String modelName, ModelCredential credential, JSONObject params) {
         if (modelType != null) {
-            if (ModelType.LLM.getKey().equals(modelType)||ModelType.VISION.getKey().equals(modelType)) {
+            if (ModelType.LLM.getKey().equals(modelType) || ModelType.VISION.getKey().equals(modelType)) {
                 StreamingChatModel model = buildStreamingChatModel(modelName, credential, params);
-                Assistant assistant = AiServices.create(Assistant.class,model);
+                Assistant assistant = AiServices.create(Assistant.class, model);
                 Flux<String> flux = assistant.chatFlux("only say ok");
                 // 同步阻塞，异常才能在当前请求线程冒泡，被 GlobalExceptionHandler 捕获
                 flux.blockLast();
             } else if (ModelType.EMBEDDING.getKey().equals(modelType)) {
                 EmbeddingModel model = buildEmbeddingModel(modelName, credential, params);
                 model.embed("ok");
-            }else if (ModelType.RERANKER.getKey().equals(modelType)) {
+            } else if (ModelType.RERANKER.getKey().equals(modelType)) {
                 ScoringModel model = buildScoringModel(modelName, credential, params);
                 model.score("ok", "ok");
             }
@@ -249,11 +249,11 @@ public abstract class AbsModelProvider {
 
     public List<BaseField> getModelParamsForm(String modelType) {
         if (modelType != null) {
-            if (ModelType.LLM.getKey().equals(modelType)||ModelType.VISION.getKey().equals(modelType)) {
+            if (ModelType.LLM.getKey().equals(modelType) || ModelType.VISION.getKey().equals(modelType)) {
                 return getChatModelParamsForm();
-            }else if (ModelType.EMBEDDING.getKey().equals(modelType)) {
+            } else if (ModelType.EMBEDDING.getKey().equals(modelType)) {
                 return getEmbeddingModelParamsForm();
-            }else if (ModelType.TTI.getKey().equals(modelType)) {
+            } else if (ModelType.TTI.getKey().equals(modelType)) {
                 return getImageModelParamsForm();
             }
         }

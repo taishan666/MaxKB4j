@@ -12,6 +12,7 @@ import dev.langchain4j.model.scoring.ScoringModel;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
@@ -49,7 +50,7 @@ public class SiliconFlowModelProvider extends OpenAiModelProvider {
     }
 
     @Override
-    public String getDefaultBaseUrl(){
+    public String getDefaultBaseUrl() {
         return BASE_URL;
     }
 

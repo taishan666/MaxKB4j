@@ -12,20 +12,20 @@ public class McpClientExecutor {
     private final JSONObject mcpServers;
 
     public McpClientExecutor(String code) {
-        this.mcpServers=JSONObject.parseObject(code);
+        this.mcpServers = JSONObject.parseObject(code);
     }
 
-    public String execute(String toolName,JSONObject params) {
+    public String execute(String toolName, JSONObject params) {
         McpClient mcpClient = McpToolUtil.getMcpClient(mcpServers);
-        if (mcpClient==null){
+        if (mcpClient == null) {
             throw new ApiException("tool.not.found");
         }
-        ToolExecutionRequest toolExecutionRequest=ToolExecutionRequest.builder()
+        ToolExecutionRequest toolExecutionRequest = ToolExecutionRequest.builder()
                 .name(toolName)
                 .arguments(params.toJSONString())
                 .build();
 
-        ToolExecutionResult toolExecutionResult=mcpClient.executeTool(toolExecutionRequest);
+        ToolExecutionResult toolExecutionResult = mcpClient.executeTool(toolExecutionRequest);
         try {
             mcpClient.close();
         } catch (Exception e) {

@@ -69,23 +69,25 @@ public class SseHttpMcpTransport implements McpTransport {
     private final Logger trafficLog;
     private final Duration endpointTimeout;
     private final HttpClient httpClient;
-
+    private final AtomicBoolean closed = new AtomicBoolean(false);
+    private final AtomicReference<String> mcpSessionId = new AtomicReference<>();
+    private final AtomicReference<String> lastEventId = new AtomicReference<>();
+    /**
+     * whether an SSE channel was ever established (distinguishes first-connect from reconnect failures)
+     */
+    private final AtomicBoolean everConnected = new AtomicBoolean(false);
     private volatile McpOperationHandler operationHandler;
     private volatile Runnable onFailureCallback;
-    private final AtomicBoolean closed = new AtomicBoolean(false);
     private volatile boolean sseChannelEstablished;
-
     /**
      * POST endpoint delivered by the server's "endpoint" event; no request may
      * be sent before it is known.
      */
     private volatile String postUrl;
     private volatile CompletableFuture<String> postUrlFuture = new CompletableFuture<>();
-    private final AtomicReference<String> mcpSessionId = new AtomicReference<>();
-    private final AtomicReference<String> lastEventId = new AtomicReference<>();
-    /** whether an SSE channel was ever established (distinguishes first-connect from reconnect failures) */
-    private final AtomicBoolean everConnected = new AtomicBoolean(false);
-    /** subscriber of the currently active SSE channel */
+    /**
+     * subscriber of the currently active SSE channel
+     */
     private volatile SseChannelSubscriber activeSubscriber;
 
     public SseHttpMcpTransport(Builder builder) {
@@ -180,7 +182,9 @@ public class SseHttpMcpTransport implements McpTransport {
         }
     }
 
-    /** channel died: reset session state and let DefaultMcpClient drive the reconnection */
+    /**
+     * channel died: reset session state and let DefaultMcpClient drive the reconnection
+     */
     private void handleChannelEnd() {
         sseChannelEstablished = false;
         mcpSessionId.set(null);
@@ -377,148 +381,48 @@ public class SseHttpMcpTransport implements McpTransport {
     }
 
     /**
-     * Line subscriber of the SSE channel: parses SSE event frames line by
-     * line. The {@code endpoint} event yields the POST URL; every other event
-     * (default {@code message}) has its data handed to
-     * {@link McpOperationHandler#onMessage(String)}.
+     * @deprecated use {@link #sendInitializeRequest(McpInitializeRequest)}
      */
-    private class SseChannelSubscriber implements Flow.Subscriber<String> {
+    @Deprecated(since = "1.20.0", forRemoval = true)
+    @Override
+    public CompletableFuture<JsonNode> initialize(McpInitializeRequest request) {
+        return McpJson.map(sendInitializeRequest(request), McpJson::parse);
+    }
 
-        private Flow.Subscription subscription;
-        private final StringBuilder dataBuffer = new StringBuilder();
-        private String eventType;
-        private boolean hasData;
+    /**
+     * @deprecated use {@link #sendRequest(McpClientMessage)}
+     */
+    @Deprecated(since = "1.20.0", forRemoval = true)
+    @Override
+    public CompletableFuture<JsonNode> executeOperationWithResponse(McpClientMessage request) {
+        return McpJson.map(sendRequest(request), McpJson::parse);
+    }
 
-        @Override
-        public void onSubscribe(Flow.Subscription subscription) {
-            this.subscription = subscription;
-            subscription.request(1);
-        }
+    /**
+     * @deprecated use {@link #sendRequest(McpCallContext)}
+     */
+    @Deprecated(since = "1.20.0", forRemoval = true)
+    @Override
+    public CompletableFuture<JsonNode> executeOperationWithResponse(McpCallContext context) {
+        return McpJson.map(sendRequest(context), McpJson::parse);
+    }
 
-        void cancel() {
-            Flow.Subscription s = this.subscription;
-            if (s != null) {
-                s.cancel();
-            }
-        }
+    /**
+     * @deprecated use {@link #sendMessage(McpClientMessage)}
+     */
+    @Deprecated(since = "1.20.0", forRemoval = true)
+    @Override
+    public void executeOperationWithoutResponse(McpClientMessage request) {
+        sendMessage(request);
+    }
 
-        @Override
-        public void onNext(String line) {
-            subscription.request(1);
-            processLine(line);
-        }
-
-        private void processLine(String line) {
-            if (line == null) {
-                return;
-            }
-            // tolerate \r\n line endings
-            if (line.endsWith("\r")) {
-                line = line.substring(0, line.length() - 1);
-            }
-            // empty line: end of the event frame, dispatch it
-            if (line.isEmpty()) {
-                dispatchEvent();
-                return;
-            }
-            // lines starting with a colon are comments
-            if (line.startsWith(":")) {
-                return;
-            }
-            int colonIndex = line.indexOf(':');
-            String field = colonIndex < 0 ? line : line.substring(0, colonIndex);
-            // SSE spec: strip at most one leading space after the colon
-            String value = colonIndex < 0 ? "" : line.substring(colonIndex + 1);
-            if (value.startsWith(" ")) {
-                value = value.substring(1);
-            }
-            switch (field) {
-                case "data" -> {
-                    if (hasData) {
-                        dataBuffer.append('\n');
-                    }
-                    dataBuffer.append(value);
-                    hasData = true;
-                }
-                case "event" -> eventType = value;
-                case "id" -> lastEventId.set(value);
-                default -> {
-                }
-            }
-        }
-
-        private void dispatchEvent() {
-            if (!hasData) {
-                eventType = null;
-                return;
-            }
-            String data = dataBuffer.toString();
-            String event = eventType == null ? "message" : eventType;
-            dataBuffer.setLength(0);
-            hasData = false;
-            eventType = null;
-
-            if ("endpoint".equals(event)) {
-                String absoluteUrl = buildAbsolutePostUrl(data.trim());
-                LOG.debug("Received the server's POST URL: {}", absoluteUrl);
-                postUrl = absoluteUrl;
-                postUrlFuture.complete(absoluteUrl);
-            } else if ("message".equals(event)) {
-                if (logResponses) {
-                    trafficLog.info("SSE message received: {}", data);
-                }
-                try {
-                    operationHandler.onMessage(data);
-                } catch (RuntimeException e) {
-                    LOG.warn("Failed to handle SSE event: {}", data, e);
-                }
-            } else {
-                LOG.debug("Ignoring SSE event of type '{}'", event);
-            }
-        }
-
-        /** resolves the endpoint URL (absolute or relative) against the sseUrl */
-        private String buildAbsolutePostUrl(String endpointUrl) {
-            try {
-                URI endpoint = URI.create(endpointUrl);
-                if (endpoint.isAbsolute()) {
-                    return endpoint.toString();
-                }
-                URI base = URI.create(sseUrl);
-                String basePath = base.getRawPath();
-                // relative paths resolve against the parent path: /mcp/sse + messages -> /mcp/messages
-                if (basePath != null && !basePath.endsWith("/")) {
-                    int lastSlash = basePath.lastIndexOf('/');
-                    String parent = lastSlash >= 0 ? basePath.substring(0, lastSlash + 1) : "/";
-                    base = new URI(base.getScheme(), base.getRawAuthority(), parent,
-                            base.getRawQuery(), base.getRawFragment());
-                }
-                return base.resolve(endpoint).toString();
-            } catch (Exception e) {
-                throw new IllegalArgumentException(
-                        "Failed to resolve the POST URL received in the 'endpoint' event: " + endpointUrl, e);
-            }
-        }
-
-        @Override
-        public void onError(Throwable throwable) {
-            // a channel superseded by a newer (re)connection attempt must not
-            // be reported as the current channel's failure
-            if (SseHttpMcpTransport.this.activeSubscriber != this) {
-                return;
-            }
-            LOG.warn("SSE channel failure", throwable);
-            handleChannelEnd();
-        }
-
-        @Override
-        public void onComplete() {
-            if (SseHttpMcpTransport.this.activeSubscriber != this) {
-                return;
-            }
-            LOG.debug("SSE channel closed by the server");
-            handleChannelEnd();
-        }
+    /**
+     * @deprecated use {@link #sendMessage(McpCallContext)}
+     */
+    @Deprecated(since = "1.20.0", forRemoval = true)
+    @Override
+    public void executeOperationWithoutResponse(McpCallContext context) {
+        sendMessage(context);
     }
 
     public static class Builder {
@@ -611,47 +515,149 @@ public class SseHttpMcpTransport implements McpTransport {
     }
 
     /**
-     * @deprecated use {@link #sendInitializeRequest(McpInitializeRequest)}
+     * Line subscriber of the SSE channel: parses SSE event frames line by
+     * line. The {@code endpoint} event yields the POST URL; every other event
+     * (default {@code message}) has its data handed to
+     * {@link McpOperationHandler#onMessage(String)}.
      */
-    @Deprecated(since = "1.20.0", forRemoval = true)
-    @Override
-    public CompletableFuture<JsonNode> initialize(McpInitializeRequest request) {
-        return McpJson.map(sendInitializeRequest(request), McpJson::parse);
-    }
+    private class SseChannelSubscriber implements Flow.Subscriber<String> {
 
-    /**
-     * @deprecated use {@link #sendRequest(McpClientMessage)}
-     */
-    @Deprecated(since = "1.20.0", forRemoval = true)
-    @Override
-    public CompletableFuture<JsonNode> executeOperationWithResponse(McpClientMessage request) {
-        return McpJson.map(sendRequest(request), McpJson::parse);
-    }
+        private final StringBuilder dataBuffer = new StringBuilder();
+        private Flow.Subscription subscription;
+        private String eventType;
+        private boolean hasData;
 
-    /**
-     * @deprecated use {@link #sendRequest(McpCallContext)}
-     */
-    @Deprecated(since = "1.20.0", forRemoval = true)
-    @Override
-    public CompletableFuture<JsonNode> executeOperationWithResponse(McpCallContext context) {
-        return McpJson.map(sendRequest(context), McpJson::parse);
-    }
+        @Override
+        public void onSubscribe(Flow.Subscription subscription) {
+            this.subscription = subscription;
+            subscription.request(1);
+        }
 
-    /**
-     * @deprecated use {@link #sendMessage(McpClientMessage)}
-     */
-    @Deprecated(since = "1.20.0", forRemoval = true)
-    @Override
-    public void executeOperationWithoutResponse(McpClientMessage request) {
-        sendMessage(request);
-    }
+        void cancel() {
+            Flow.Subscription s = this.subscription;
+            if (s != null) {
+                s.cancel();
+            }
+        }
 
-    /**
-     * @deprecated use {@link #sendMessage(McpCallContext)}
-     */
-    @Deprecated(since = "1.20.0", forRemoval = true)
-    @Override
-    public void executeOperationWithoutResponse(McpCallContext context) {
-        sendMessage(context);
+        @Override
+        public void onNext(String line) {
+            subscription.request(1);
+            processLine(line);
+        }
+
+        private void processLine(String line) {
+            if (line == null) {
+                return;
+            }
+            // tolerate \r\n line endings
+            if (line.endsWith("\r")) {
+                line = line.substring(0, line.length() - 1);
+            }
+            // empty line: end of the event frame, dispatch it
+            if (line.isEmpty()) {
+                dispatchEvent();
+                return;
+            }
+            // lines starting with a colon are comments
+            if (line.startsWith(":")) {
+                return;
+            }
+            int colonIndex = line.indexOf(':');
+            String field = colonIndex < 0 ? line : line.substring(0, colonIndex);
+            // SSE spec: strip at most one leading space after the colon
+            String value = colonIndex < 0 ? "" : line.substring(colonIndex + 1);
+            if (value.startsWith(" ")) {
+                value = value.substring(1);
+            }
+            switch (field) {
+                case "data" -> {
+                    if (hasData) {
+                        dataBuffer.append('\n');
+                    }
+                    dataBuffer.append(value);
+                    hasData = true;
+                }
+                case "event" -> eventType = value;
+                case "id" -> lastEventId.set(value);
+                default -> {
+                }
+            }
+        }
+
+        private void dispatchEvent() {
+            if (!hasData) {
+                eventType = null;
+                return;
+            }
+            String data = dataBuffer.toString();
+            String event = eventType == null ? "message" : eventType;
+            dataBuffer.setLength(0);
+            hasData = false;
+            eventType = null;
+
+            if ("endpoint".equals(event)) {
+                String absoluteUrl = buildAbsolutePostUrl(data.trim());
+                LOG.debug("Received the server's POST URL: {}", absoluteUrl);
+                postUrl = absoluteUrl;
+                postUrlFuture.complete(absoluteUrl);
+            } else if ("message".equals(event)) {
+                if (logResponses) {
+                    trafficLog.info("SSE message received: {}", data);
+                }
+                try {
+                    operationHandler.onMessage(data);
+                } catch (RuntimeException e) {
+                    LOG.warn("Failed to handle SSE event: {}", data, e);
+                }
+            } else {
+                LOG.debug("Ignoring SSE event of type '{}'", event);
+            }
+        }
+
+        /**
+         * resolves the endpoint URL (absolute or relative) against the sseUrl
+         */
+        private String buildAbsolutePostUrl(String endpointUrl) {
+            try {
+                URI endpoint = URI.create(endpointUrl);
+                if (endpoint.isAbsolute()) {
+                    return endpoint.toString();
+                }
+                URI base = URI.create(sseUrl);
+                String basePath = base.getRawPath();
+                // relative paths resolve against the parent path: /mcp/sse + messages -> /mcp/messages
+                if (basePath != null && !basePath.endsWith("/")) {
+                    int lastSlash = basePath.lastIndexOf('/');
+                    String parent = lastSlash >= 0 ? basePath.substring(0, lastSlash + 1) : "/";
+                    base = new URI(base.getScheme(), base.getRawAuthority(), parent,
+                            base.getRawQuery(), base.getRawFragment());
+                }
+                return base.resolve(endpoint).toString();
+            } catch (Exception e) {
+                throw new IllegalArgumentException(
+                        "Failed to resolve the POST URL received in the 'endpoint' event: " + endpointUrl, e);
+            }
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+            // a channel superseded by a newer (re)connection attempt must not
+            // be reported as the current channel's failure
+            if (SseHttpMcpTransport.this.activeSubscriber != this) {
+                return;
+            }
+            LOG.warn("SSE channel failure", throwable);
+            handleChannelEnd();
+        }
+
+        @Override
+        public void onComplete() {
+            if (SseHttpMcpTransport.this.activeSubscriber != this) {
+                return;
+            }
+            LOG.debug("SSE channel closed by the server");
+            handleChannelEnd();
+        }
     }
 }

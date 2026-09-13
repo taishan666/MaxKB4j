@@ -6,14 +6,14 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
-  * @author tarzan
-  * @date 2024-12-25 17:18:42
-  */
+ * @author tarzan
+ * @date 2024-12-25 17:18:42
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 @TableName("application_knowledge_mapping")
 public class ApplicationKnowledgeMappingEntity extends BaseEntity {
 
-	private String applicationId;
-	private String knowledgeId;
+    private String applicationId;
+    private String knowledgeId;
 } 

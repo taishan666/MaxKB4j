@@ -34,12 +34,15 @@ public class McpToolUtil {
      * 可能直接以 4xx 拒绝导致握手失败。
      */
     private static final String LEGACY_PROTOCOL_VERSION = "2025-11-25";
+    /**
+     * 模型侧函数名上限（OpenAI 兼容约定为 64，且仅允许 [a-zA-Z0-9_-]）。
+     */
+    private static final int MAX_TOOL_NAME_LENGTH = 64;
 
     static {
         // 必须在首个 MCP 客户端使用 McpJson 反序列化之前应用
         McpErrorCodePatch.apply();
     }
-
 
     public static Map<ToolSpecification, ToolExecutor> getToolMap(JSONObject mcpServers) {
         Map<ToolSpecification, ToolExecutor> toolMap = new HashMap<>();
@@ -58,7 +61,7 @@ public class McpToolUtil {
         return tools;
     }
 
-    public static McpToolProvider getMcpToolProvider(String toolId,JSONObject mcpServers) {
+    public static McpToolProvider getMcpToolProvider(String toolId, JSONObject mcpServers) {
         List<McpClient> mcpClients = new ArrayList<>();
         forEachServerClient(mcpServers, (serverName, mcpClient) -> mcpClients.add(mcpClient));
         if (mcpClients.isEmpty()) {
@@ -74,11 +77,6 @@ public class McpToolUtil {
                         buildMcpToolName(toolId, client.key(), toolSpec.name()))
                 .build();
     }
-
-    /**
-     * 模型侧函数名上限（OpenAI 兼容约定为 64，且仅允许 [a-zA-Z0-9_-]）。
-     */
-    private static final int MAX_TOOL_NAME_LENGTH = 64;
 
     /**
      * 构建 MCP 工具的唯一调用名：tool_&lt;id&gt;__&lt;suffix&gt;。
@@ -138,21 +136,21 @@ public class McpToolUtil {
 
     public static McpClient getMcpClient(JSONObject mcpServers) {
         Optional<String> keyOpt = mcpServers.keySet().stream().findFirst();
-        if (keyOpt.isPresent()){
+        if (keyOpt.isPresent()) {
             String key = keyOpt.get();
             JSONObject serverConfig = mcpServers.getJSONObject(key);
-            return getMcpClient(key,serverConfig);
+            return getMcpClient(key, serverConfig);
         }
         return null;
     }
 
     @SuppressWarnings("unchecked")
-    private static McpClient getMcpClient(String key,JSONObject serverConfig) {
+    private static McpClient getMcpClient(String key, JSONObject serverConfig) {
         String url = serverConfig.getString("url");
         String type = serverConfig.getString("type");
-        Map<String, String> headers =new HashMap<>();
+        Map<String, String> headers = new HashMap<>();
         if (serverConfig.containsKey("headers")) {
-             headers = (Map<String, String>) serverConfig.get("headers");
+            headers = (Map<String, String>) serverConfig.get("headers");
         }
         // 可在服务器配置中显式指定协议版本（如 "2025-11-25"），跳过 server/discover 版本探测
         String protocolVersion = serverConfig.getString("protocolVersion");
@@ -210,11 +208,6 @@ public class McpToolUtil {
         forEachServerClient(mcpServers, (serverName, mcpClient) ->
                 toolVos.addAll(convert(serverName, mcpClient.listTools())));
         return toolVos;
-    }
-
-    private interface ServerClientConsumer {
-
-        void accept(String serverName, McpClient mcpClient) throws Exception;
     }
 
     /**
@@ -315,5 +308,10 @@ public class McpToolUtil {
             vo.setArgs_schema(json);
             return vo;
         }).collect(Collectors.toList());
+    }
+
+    private interface ServerClientConsumer {
+
+        void accept(String serverName, McpClient mcpClient) throws Exception;
     }
 }

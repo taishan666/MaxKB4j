@@ -16,11 +16,11 @@ public abstract class AbsResetProblemStep extends AbsStep {
         String modelId = application.getModelId();
         JSONObject modelParams = application.getModelParamsSetting();
         String question = manage.chatParams.getMessage();
-        List<ChatMessage> chatMemory= manage.getHistoryMessages(application.getDialogueNumber());
-        String paddingProblemText = execute(modelId,modelParams, question,chatMemory);
+        List<ChatMessage> chatMemory = manage.getHistoryMessages(application.getDialogueNumber());
+        String paddingProblemText = execute(modelId, modelParams, question, chatMemory);
         manage.context.put("paddingProblemText", paddingProblemText);
     }
 
 
-    protected abstract String execute(String modelId,JSONObject modelParams, String question, List<ChatMessage> chatMemory);
+    protected abstract String execute(String modelId, JSONObject modelParams, String question, List<ChatMessage> chatMemory);
 }

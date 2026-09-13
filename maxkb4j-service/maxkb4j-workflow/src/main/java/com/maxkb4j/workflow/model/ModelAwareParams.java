@@ -3,6 +3,7 @@ package com.maxkb4j.workflow.model;
 import com.alibaba.fastjson.JSONObject;
 
 import java.util.List;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**

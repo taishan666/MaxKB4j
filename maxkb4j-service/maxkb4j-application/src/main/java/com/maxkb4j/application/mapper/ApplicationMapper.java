@@ -17,7 +17,7 @@ import java.util.List;
  * @date 2024-12-25 13:09:54
  */
 @Mapper
-public interface ApplicationMapper extends BaseMapper<ApplicationEntity>{
+public interface ApplicationMapper extends BaseMapper<ApplicationEntity> {
 
     IPage<ApplicationListVO> pageList(Page<ApplicationVO> page, @Param("query") ApplicationQuery query);
 

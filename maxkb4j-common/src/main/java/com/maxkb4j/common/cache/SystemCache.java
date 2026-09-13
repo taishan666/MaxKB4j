@@ -19,12 +19,16 @@ public final class SystemCache {
     private SystemCache() {
     }
 
-    /** 注册存储实现（由 Spring Bean 构造时调用），后注册者生效。 */
+    /**
+     * 注册存储实现（由 Spring Bean 构造时调用），后注册者生效。
+     */
     public static void init(SystemSettingStore newStore) {
         store = newStore;
     }
 
-    /** 恢复默认进程内实现，供测试隔离使用。 */
+    /**
+     * 恢复默认进程内实现，供测试隔离使用。
+     */
     public static void reset() {
         store = new InMemoryStore();
     }

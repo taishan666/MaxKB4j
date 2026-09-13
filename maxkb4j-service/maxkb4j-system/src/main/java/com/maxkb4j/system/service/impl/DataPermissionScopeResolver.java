@@ -43,7 +43,9 @@ public class DataPermissionScopeResolver implements IDataPermissionScopeResolver
         return resolve(authTargetType, Permission.MANAGE);
     }
 
-    /** 按权限级别解析数据权限范围：VIEW 用于可见性过滤，MANAGE 用于删除等写操作校验。 */
+    /**
+     * 按权限级别解析数据权限范围：VIEW 用于可见性过滤，MANAGE 用于删除等写操作校验。
+     */
     private DataPermissionScope resolve(String authTargetType, String permission) {
         String loginId = userContext.getUserId();
         Set<String> roles = userService.getRoleById(loginId);

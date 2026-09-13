@@ -10,22 +10,22 @@
 
     <select id="chatLogs" resultMap="applicationChatResultMap">
         SELECT
-            id,
-            summary,
-            application_id,
-            chat_user_id,
-            chat_user_type,
-            asker,
-            meta,
-            star_num,
-            trample_num,
-            chat_record_count,
-            mark_sum,
-            is_deleted,
-            ip_address,
-            source,
-            create_time,
-            update_time
+        id,
+        summary,
+        application_id,
+        chat_user_id,
+        chat_user_type,
+        asker,
+        meta,
+        star_num,
+        trample_num,
+        chat_record_count,
+        mark_sum,
+        is_deleted,
+        ip_address,
+        source,
+        create_time,
+        update_time
         FROM application_chat
         <where>
             application_id = #{appId}
@@ -62,10 +62,10 @@
         FROM
         application_chat chat
         LEFT JOIN (
-         select chat_id, ( SUM (message_tokens)+ SUM (answer_tokens)) as tokens_num
+        select chat_id, ( SUM (message_tokens)+ SUM (answer_tokens)) as tokens_num
         FROM
         application_chat_record
-         GROUP BY chat_id
+        GROUP BY chat_id
         ) chat_record ON chat."id" = chat_record.chat_id
         <where>
             APPLICATION_ID = #{appId}
@@ -104,7 +104,7 @@
     </select>
     <select id="topQuestions" resultType="com.maxkb4j.application.vo.ApplicationStatisticsVO">
         SELECT
-            SUM(chat.chat_record_count) as chat_record_count,
+        SUM(chat.chat_record_count) as chat_record_count,
         "user".nickname as userName
         FROM
         application_chat chat
@@ -127,7 +127,8 @@
         GROUP BY "user"."id";
     </select>
     <select id="chatRecordDetail" resultType="com.maxkb4j.application.vo.ChatRecordDetailVO">
-        SELECT record.chat_id,chat.summary,record.vote_status,record.problem_text,record.answer_text, record.cost,record."index", record.run_time, record.create_time
+        SELECT record.chat_id,chat.summary,record.vote_status,record.problem_text,record.answer_text,
+        record.cost,record."index", record.run_time, record.create_time
         FROM application_chat chat
         LEFT JOIN application_chat_record record
         ON chat.id=record.chat_id

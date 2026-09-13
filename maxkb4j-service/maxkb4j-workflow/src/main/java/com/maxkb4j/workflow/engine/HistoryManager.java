@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
@@ -67,21 +68,21 @@ public record HistoryManager(List<ChatRecordDTO> historyChatRecords) {
             if (nodeDetails != null) {
                 Object question = nodeDetails.get(NodeField.QUESTION);
                 List<Content> contents = new ArrayList<>();
-                if (question instanceof List<?> list){
+                if (question instanceof List<?> list) {
                     for (Object object : list) {
                         JSONObject content = (JSONObject) object;
                         String type = content.getString(ChatField.TYPE);
                         if (ChatField.TEXT.equals(type)) {
                             contents.add(TextContent.from(content.getString(ChatField.TEXT)));
-                        }else if (ChatField.IMAGE_URL.equals(type)) {
+                        } else if (ChatField.IMAGE_URL.equals(type)) {
                             String url = content.getString(ChatField.URL);
-                            if (url!=null) {
+                            if (url != null) {
                                 contents.add(ImageContent.from(content.getString(ChatField.URL)));
                             }
                         }
                     }
                     messages.add(new UserMessage(contents));
-                }else if (question instanceof String){
+                } else if (question instanceof String) {
                     contents.add(TextContent.from(String.valueOf(question)));
                     messages.add(new UserMessage(contents));
                 }

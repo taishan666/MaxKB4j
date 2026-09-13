@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * 节点ID生成器
  * 负责生成工作流节点的运行时唯一ID
- *
+ * <p>
  * 使用 SHA-1 算法基于节点ID和上游节点ID列表生成哈希值
  */
 @Slf4j
@@ -26,11 +26,11 @@ public class NodeIdGenerator {
 
     /**
      * 生成运行时节点ID
-     *
+     * <p>
      * 基于节点ID和上游节点ID列表生成 SHA-1 哈希值作为运行时ID
      *
-     * @param nodeId         节点ID
-     * @param upNodeIdList   上游节点ID列表，为 null 时按空列表处理
+     * @param nodeId       节点ID
+     * @param upNodeIdList 上游节点ID列表，为 null 时按空列表处理
      * @return 运行时节点ID（SHA-1哈希值的十六进制字符串）
      * @throws RuntimeException 如果 SHA-1 算法不可用
      */

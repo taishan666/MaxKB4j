@@ -82,7 +82,7 @@ public class ModelProviderServiceImpl implements IModelProviderService {
     public STTModel buildSTTModel(String modelId, JSONObject modelParams) {
         ModelEntity model = getModelOrThrow(modelId);
         AbsModelProvider modelProvider = getModelProviderOrThrow(model);
-        return modelProvider.buildSTTModel(model.getModelName(), model.getCredential(),modelParams);
+        return modelProvider.buildSTTModel(model.getModelName(), model.getCredential(), modelParams);
     }
 
     private ModelEntity getModelOrThrow(String modelId) {

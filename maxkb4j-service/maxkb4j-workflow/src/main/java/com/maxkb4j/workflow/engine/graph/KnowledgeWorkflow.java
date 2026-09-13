@@ -53,11 +53,10 @@ public class KnowledgeWorkflow extends AbstractWorkflow implements IKnowledgeWor
     }
 
 
-
     @Override
     public List<INode> startNodes() {
         List<AbsNode> dataSourceNodes = configuration.getNodes().stream()
-                .filter(node -> Objects.nonNull(node.getType())&&node.getType().startsWith(NodeType.DATA_SOURCE_PREFIX))
+                .filter(node -> Objects.nonNull(node.getType()) && node.getType().startsWith(NodeType.DATA_SOURCE_PREFIX))
                 .toList();
         DataSource dataSource = knowledgeParams.getDataSource();
         String dataSourceNodeId = dataSource != null ? dataSource.getNodeId() : null;
@@ -65,7 +64,7 @@ public class KnowledgeWorkflow extends AbstractWorkflow implements IKnowledgeWor
             log.warn("dataSource or its nodeId is null, skip marking non-data-source start nodes as SKIP");
             return List.of();
         }
-        markNonDataSourceNodesAsSkip(dataSourceNodes,dataSourceNodeId);
+        markNonDataSourceNodesAsSkip(dataSourceNodes, dataSourceNodeId);
         return new ArrayList<>(dataSourceNodes);
     }
 
@@ -73,7 +72,7 @@ public class KnowledgeWorkflow extends AbstractWorkflow implements IKnowledgeWor
      * 将非数据源的起始节点标记为 SKIP
      * dataSource 或其 nodeId 为空时不标记（防御 NPE）
      */
-    private void markNonDataSourceNodesAsSkip(List<AbsNode> startNodes,String dataSourceNodeId) {
+    private void markNonDataSourceNodesAsSkip(List<AbsNode> startNodes, String dataSourceNodeId) {
         for (AbsNode startNode : startNodes) {
             if (!startNode.getId().equals(dataSourceNodeId)) {
                 startNode.setStatus(NodeStatus.SKIP.getStatus());

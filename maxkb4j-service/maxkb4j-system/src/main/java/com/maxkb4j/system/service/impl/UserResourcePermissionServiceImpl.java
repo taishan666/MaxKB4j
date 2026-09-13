@@ -141,7 +141,7 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
      */
     private Map<String, String> resolvePermissionMap(LambdaQueryWrapper<UserResourcePermissionEntity> wrapper, SFunction<UserResourcePermissionEntity, String> keyGetter) {
         return baseMapper.selectList(wrapper).stream()
-                .collect(Collectors.toMap(keyGetter, e -> PermissionDefUtil.findKey(e.getAuthType(),e.getPermissionList()), (a, b) -> a));
+                .collect(Collectors.toMap(keyGetter, e -> PermissionDefUtil.findKey(e.getAuthType(), e.getPermissionList()), (a, b) -> a));
     }
 
     private Set<String> toPermissionSet(String[] permissions) {

@@ -17,9 +17,9 @@ public class ToolException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    public ToolException(String errorCode,String message, Throwable cause) {
+    public ToolException(String errorCode, String message, Throwable cause) {
         super(message, cause);
-        this.errorCode =errorCode;
+        this.errorCode = errorCode;
     }
 
 }

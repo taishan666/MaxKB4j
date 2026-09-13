@@ -28,7 +28,7 @@ import java.util.concurrent.TimeoutException;
  * 采用多层防护，各层由独立组件承担：
  * 1. 文本预检（{@link GroovySandboxPolicy#findDangerousToken}）：编译前粗粒度拦截脚本中的危险标记；
  * 2. 编译期防护（{@link GroovySandboxCompilerConfigurer}）：AST 限制（类引用仅限白名单、限制常量类型）
- *    与沙箱转换（注入运行期拦截点）；
+ * 与沙箱转换（注入运行期拦截点）；
  * 3. 运行期沙箱（{@link GroovySandboxInterceptor}）：只允许白名单中的类和方法调用；
  * 4. 超时控制：通过线程池限制脚本执行时间，防止无限循环/资源耗尽。
  * 编译缓存由 {@link GroovyScriptCache} 负责，本类只关注执行编排。
@@ -37,10 +37,14 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 public class GroovyScriptExecutor extends AbsToolExecutor {
 
-    /** 脚本执行超时时间（秒） */
+    /**
+     * 脚本执行超时时间（秒）
+     */
     private static final int EXECUTION_TIMEOUT_SECONDS = 60;
 
-    /** 重建共享执行器时的同步锁，保证超时替换时只有一个新池被创建 */
+    /**
+     * 重建共享执行器时的同步锁，保证超时替换时只有一个新池被创建
+     */
     private static final Object EXECUTOR_LOCK = new Object();
 
     /**
@@ -51,6 +55,13 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
      * </p>
      */
     private static volatile ExecutorService SCRIPT_EXECUTOR = newScriptExecutor();
+    private final String code;
+    private final Map<String, Object> initParams;
+
+    public GroovyScriptExecutor(String code, Map<String, Object> initParams) {
+        this.code = code;
+        this.initParams = initParams;
+    }
 
     private static ExecutorService scriptExecutor() {
         ExecutorService executor = SCRIPT_EXECUTOR;
@@ -74,15 +85,9 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         });
     }
 
-    private final String code;
-    private final Map<String, Object> initParams;
-
-    public GroovyScriptExecutor(String code, Map<String, Object> initParams) {
-        this.code = code;
-        this.initParams = initParams;
-    }
-
-    /** 供测试检查编译缓存命中情况 */
+    /**
+     * 供测试检查编译缓存命中情况
+     */
     static boolean isScriptCached(String code) {
         return GroovyScriptCache.contains(code);
     }

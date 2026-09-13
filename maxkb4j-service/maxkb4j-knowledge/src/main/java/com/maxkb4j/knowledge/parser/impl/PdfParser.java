@@ -54,88 +54,21 @@ import java.util.regex.Pattern;
 @Component
 public class PdfParser implements DocumentParser {
 
-    private final IOssService ossService;
-
-    /** 单个 PDF 允许的最大尺寸（MB），超限拒绝解析，防止超大文件耗尽内存。 */
-    @Value("${knowledge.pdf.max-size-mb:100}")
-    private int maxPdfSizeMb;
-
     private static final String IMAGE_STYLE = "IMAGE";
     private static final InferenceEngine engine = InferenceEngine.getInstance(Model.ONNX_PPOCR_V4);
     private static final Pattern PAGE_NUM_DASH = Pattern.compile("^—\\d+—$");
     private static final Pattern PAGE_NUM_PURE = Pattern.compile("^\\d+$");
-    private static final int MAX_TITLE_SIZE=100;
-
-    @Override
-    public List<String> getExtensions() {
-        return List.of(".pdf");
-    }
-
-    @Override
-    public String handle(InputStream inputStream) {
-        try {
-            byte[] bytes = inputStream.readAllBytes();
-            if (bytes.length > maxPdfSizeMb * 1024L * 1024L) {
-                throw new FileLimitExceededException("common.file.size.exceeded", maxPdfSizeMb);
-            }
-            TextLineStripper stripper;
-            try (PDDocument document = Loader.loadPDF(bytes)) {
-                if (isScannedPDF(document)) {
-                    return extractTextFromScannedPDF(document);
-                }
-                stripper = new TextLineStripper();
-                stripper.setSortByPosition(true);
-                stripper.setStartPage(1);
-                stripper.setEndPage(document.getNumberOfPages());
-                stripper.getText(document);
-            }
-            List<TextLine> lines = stripper.lines;
-            uploadImagesInParallel(lines, stripper.pendingImages);
-            HeadingContext ctx = buildFontSizeHeadingMap(lines);
-            return toMarkdown(lines, ctx);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to parse PDF from input stream", e);
-        }
-    }
-
-    /** 图片上传最大并发数，避免对对象存储产生过大并行压力 */
-    private static final int MAX_PARALLEL_UPLOADS = 8;
-
+    private static final int MAX_TITLE_SIZE = 100;
     /**
-     * 并发上传 PDF 内图片。
-     * <p>
-     * 使用虚拟线程承载 IO 密集型的上传任务，并以信号量限制并发度；
-     * 执行器通过 try-with-resources 关闭，解析失败或上传异常时也不会泄漏线程。
-     * </p>
+     * 图片上传最大并发数，避免对对象存储产生过大并行压力
      */
-    private void uploadImagesInParallel(List<TextLine> lines, List<ImageData> pendingImages) {
-        if (pendingImages.isEmpty()) return;
-        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            Semaphore permits = new Semaphore(MAX_PARALLEL_UPLOADS);
-            Map<String, String> urlMap = new ConcurrentHashMap<>();
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
-            for (ImageData img : pendingImages) {
-                futures.add(CompletableFuture.runAsync(() -> {
-                    permits.acquireUninterruptibly();
-                    try {
-                        String imageUrl = ossService.uploadAndGetFileUrl(img.fileName(), img.bytes());
-                        urlMap.put(img.fileName(), imageUrl);
-                    } finally {
-                        permits.release();
-                    }
-                }, executor));
-            }
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-            for (int i = 0; i < lines.size(); i++) {
-                TextLine line = lines.get(i);
-                if (IMAGE_STYLE.equals(line.fontStyle()) && urlMap.containsKey(line.text())) {
-                    lines.set(i, new TextLine(IMAGE_STYLE, urlMap.get(line.text()), 0, 0, line.xPos(), line.yPos()));
-                }
-            }
-        } finally {
-            pendingImages.clear();
-        }
-    }
+    private static final int MAX_PARALLEL_UPLOADS = 8;
+    private final IOssService ossService;
+    /**
+     * 单个 PDF 允许的最大尺寸（MB），超限拒绝解析，防止超大文件耗尽内存。
+     */
+    @Value("${knowledge.pdf.max-size-mb:100}")
+    private int maxPdfSizeMb;
 
     private static boolean isScannedPDF(PDDocument document) {
         int checkPages = Math.min(3, document.getNumberOfPages());
@@ -187,118 +120,6 @@ public class PdfParser implements DocumentParser {
         g.drawImage(image, 0, 0, null);
         g.dispose();
         return rgbImage;
-    }
-
-    /**
-     * 单次解析的工作器：持有解析过程的全部可变状态。
-     * 每次解析新建实例，避免单例共享状态导致的并发问题。
-     */
-    private static final class TextLineStripper extends PDFTextStripper {
-
-        private final List<TextLine> lines = new ArrayList<>();
-        private final List<ImageData> pendingImages = new ArrayList<>();
-        private float currentPageHeight;
-        private List<TextLine> currentPageLines = new ArrayList<>();
-        private List<TextLine> currentPageImages = new ArrayList<>();
-
-        private TextLineStripper() throws IOException {
-            super();
-        }
-
-        @Override
-        public void processPage(PDPage page) throws IOException {
-            currentPageHeight = page.getCropBox().getHeight();
-            currentPageImages = new ArrayList<>();
-            currentPageLines = new ArrayList<>();
-            super.processPage(page);
-        }
-
-        @Override
-        protected void processOperator(Operator operator, List<COSBase> operands) throws IOException {
-            if ("Do".equals(operator.getName()) && !operands.isEmpty() && operands.getFirst() instanceof COSName cosName) {
-                PDResources res = getResources();
-                if (res != null && res.isImageXObject(cosName)) {
-                    PDImageXObject image = (PDImageXObject) res.getXObject(cosName);
-                    handleImageInStream(image);
-                    return;
-                }
-            }
-            super.processOperator(operator, operands);
-        }
-
-        @Override
-        protected void endPage(PDPage page) throws IOException {
-            List<TextLine> mergedLines = mergeConsecutiveLines(currentPageLines);
-            if (CollectionUtils.isNotEmpty(mergedLines)) {
-                clearPageNumber(mergedLines, PAGE_NUM_DASH);
-                clearPageNumber(mergedLines, PAGE_NUM_PURE);
-            }
-            for (TextLine currentPageImage : currentPageImages) {
-                float imgYPos = currentPageImage.yPos();
-                for (int i = 0; i < mergedLines.size(); i++) {
-                    TextLine textLine = mergedLines.get(i);
-                    float yPos = textLine.yPos();
-                    if (yPos > imgYPos) {
-                        mergedLines.set(i, currentPageImage);
-                        break;
-                    }
-                }
-            }
-            lines.addAll(mergedLines);
-        }
-
-        @Override
-        protected void writeString(String text, List<TextPosition> textPositions) {
-            if (text == null || text.isEmpty() || textPositions == null || textPositions.isEmpty()) {
-                return;
-            }
-            TextPosition first = textPositions.getFirst();
-            String fontName = getFontName(first.getFont());
-            float fontSize = first.getFontSizeInPt();
-            float xPos = first.getXDirAdj();
-            float yPos = first.getYDirAdj();
-            float maxHeight = first.getHeight();
-            TextLine textLine = new TextLine(fontName, text, fontSize, maxHeight, xPos, yPos);
-            currentPageLines.add(textLine);
-        }
-
-        private void handleImageInStream(PDImageXObject image) throws IOException {
-            float translateX = getGraphicsState().getCurrentTransformationMatrix().getTranslateX();
-            float translateY = getGraphicsState().getCurrentTransformationMatrix().getTranslateY();
-            float yPos = currentPageHeight - translateY;
-            BufferedImage bufferedImage = image.getImage();
-            byte[] imageBytes = bufferedImageToBytes(bufferedImage);
-            int pageNo = getCurrentPageNo();
-            int imgIndex = currentPageImages.size();
-            String fileName = "pdf_p" + pageNo + "_img" + imgIndex + ".png";
-            currentPageImages.add(new TextLine(IMAGE_STYLE, fileName, 0, 0, translateX, yPos));
-            pendingImages.add(new ImageData(fileName, imageBytes));
-        }
-
-        private static void clearPageNumber(List<TextLine> lines, Pattern pattern) {
-            if (CollectionUtils.isNotEmpty(lines)) {
-                TextLine first = lines.getFirst();
-                TextLine last = lines.getLast();
-                if (pattern.matcher(first.text()).matches()) {
-                    lines.removeFirst();
-                }
-                if (lines.isEmpty()) return;
-                if (pattern.matcher(last.text()).matches()) {
-                    lines.removeLast();
-                }
-            }
-        }
-
-        private static String getFontName(PDFont font) {
-            if (font == null) {
-                return "unknown";
-            }
-            try {
-                return font.getName();
-            } catch (Exception e) {
-                return "unknown";
-            }
-        }
     }
 
     /**
@@ -426,6 +247,186 @@ public class PdfParser implements DocumentParser {
         return lower.contains("simhei") || lower.contains("heiti") || lower.contains("bold") || fontName.contains("黑体");
     }
 
+    @Override
+    public List<String> getExtensions() {
+        return List.of(".pdf");
+    }
+
+    @Override
+    public String handle(InputStream inputStream) {
+        try {
+            byte[] bytes = inputStream.readAllBytes();
+            if (bytes.length > maxPdfSizeMb * 1024L * 1024L) {
+                throw new FileLimitExceededException("common.file.size.exceeded", maxPdfSizeMb);
+            }
+            TextLineStripper stripper;
+            try (PDDocument document = Loader.loadPDF(bytes)) {
+                if (isScannedPDF(document)) {
+                    return extractTextFromScannedPDF(document);
+                }
+                stripper = new TextLineStripper();
+                stripper.setSortByPosition(true);
+                stripper.setStartPage(1);
+                stripper.setEndPage(document.getNumberOfPages());
+                stripper.getText(document);
+            }
+            List<TextLine> lines = stripper.lines;
+            uploadImagesInParallel(lines, stripper.pendingImages);
+            HeadingContext ctx = buildFontSizeHeadingMap(lines);
+            return toMarkdown(lines, ctx);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to parse PDF from input stream", e);
+        }
+    }
+
+    /**
+     * 并发上传 PDF 内图片。
+     * <p>
+     * 使用虚拟线程承载 IO 密集型的上传任务，并以信号量限制并发度；
+     * 执行器通过 try-with-resources 关闭，解析失败或上传异常时也不会泄漏线程。
+     * </p>
+     */
+    private void uploadImagesInParallel(List<TextLine> lines, List<ImageData> pendingImages) {
+        if (pendingImages.isEmpty()) return;
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            Semaphore permits = new Semaphore(MAX_PARALLEL_UPLOADS);
+            Map<String, String> urlMap = new ConcurrentHashMap<>();
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            for (ImageData img : pendingImages) {
+                futures.add(CompletableFuture.runAsync(() -> {
+                    permits.acquireUninterruptibly();
+                    try {
+                        String imageUrl = ossService.uploadAndGetFileUrl(img.fileName(), img.bytes());
+                        urlMap.put(img.fileName(), imageUrl);
+                    } finally {
+                        permits.release();
+                    }
+                }, executor));
+            }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            for (int i = 0; i < lines.size(); i++) {
+                TextLine line = lines.get(i);
+                if (IMAGE_STYLE.equals(line.fontStyle()) && urlMap.containsKey(line.text())) {
+                    lines.set(i, new TextLine(IMAGE_STYLE, urlMap.get(line.text()), 0, 0, line.xPos(), line.yPos()));
+                }
+            }
+        } finally {
+            pendingImages.clear();
+        }
+    }
+
+    /**
+     * 单次解析的工作器：持有解析过程的全部可变状态。
+     * 每次解析新建实例，避免单例共享状态导致的并发问题。
+     */
+    private static final class TextLineStripper extends PDFTextStripper {
+
+        private final List<TextLine> lines = new ArrayList<>();
+        private final List<ImageData> pendingImages = new ArrayList<>();
+        private float currentPageHeight;
+        private List<TextLine> currentPageLines = new ArrayList<>();
+        private List<TextLine> currentPageImages = new ArrayList<>();
+
+        private TextLineStripper() throws IOException {
+            super();
+        }
+
+        private static void clearPageNumber(List<TextLine> lines, Pattern pattern) {
+            if (CollectionUtils.isNotEmpty(lines)) {
+                TextLine first = lines.getFirst();
+                TextLine last = lines.getLast();
+                if (pattern.matcher(first.text()).matches()) {
+                    lines.removeFirst();
+                }
+                if (lines.isEmpty()) return;
+                if (pattern.matcher(last.text()).matches()) {
+                    lines.removeLast();
+                }
+            }
+        }
+
+        private static String getFontName(PDFont font) {
+            if (font == null) {
+                return "unknown";
+            }
+            try {
+                return font.getName();
+            } catch (Exception e) {
+                return "unknown";
+            }
+        }
+
+        @Override
+        public void processPage(PDPage page) throws IOException {
+            currentPageHeight = page.getCropBox().getHeight();
+            currentPageImages = new ArrayList<>();
+            currentPageLines = new ArrayList<>();
+            super.processPage(page);
+        }
+
+        @Override
+        protected void processOperator(Operator operator, List<COSBase> operands) throws IOException {
+            if ("Do".equals(operator.getName()) && !operands.isEmpty() && operands.getFirst() instanceof COSName cosName) {
+                PDResources res = getResources();
+                if (res != null && res.isImageXObject(cosName)) {
+                    PDImageXObject image = (PDImageXObject) res.getXObject(cosName);
+                    handleImageInStream(image);
+                    return;
+                }
+            }
+            super.processOperator(operator, operands);
+        }
+
+        @Override
+        protected void endPage(PDPage page) throws IOException {
+            List<TextLine> mergedLines = mergeConsecutiveLines(currentPageLines);
+            if (CollectionUtils.isNotEmpty(mergedLines)) {
+                clearPageNumber(mergedLines, PAGE_NUM_DASH);
+                clearPageNumber(mergedLines, PAGE_NUM_PURE);
+            }
+            for (TextLine currentPageImage : currentPageImages) {
+                float imgYPos = currentPageImage.yPos();
+                for (int i = 0; i < mergedLines.size(); i++) {
+                    TextLine textLine = mergedLines.get(i);
+                    float yPos = textLine.yPos();
+                    if (yPos > imgYPos) {
+                        mergedLines.set(i, currentPageImage);
+                        break;
+                    }
+                }
+            }
+            lines.addAll(mergedLines);
+        }
+
+        @Override
+        protected void writeString(String text, List<TextPosition> textPositions) {
+            if (text == null || text.isEmpty() || textPositions == null || textPositions.isEmpty()) {
+                return;
+            }
+            TextPosition first = textPositions.getFirst();
+            String fontName = getFontName(first.getFont());
+            float fontSize = first.getFontSizeInPt();
+            float xPos = first.getXDirAdj();
+            float yPos = first.getYDirAdj();
+            float maxHeight = first.getHeight();
+            TextLine textLine = new TextLine(fontName, text, fontSize, maxHeight, xPos, yPos);
+            currentPageLines.add(textLine);
+        }
+
+        private void handleImageInStream(PDImageXObject image) throws IOException {
+            float translateX = getGraphicsState().getCurrentTransformationMatrix().getTranslateX();
+            float translateY = getGraphicsState().getCurrentTransformationMatrix().getTranslateY();
+            float yPos = currentPageHeight - translateY;
+            BufferedImage bufferedImage = image.getImage();
+            byte[] imageBytes = bufferedImageToBytes(bufferedImage);
+            int pageNo = getCurrentPageNo();
+            int imgIndex = currentPageImages.size();
+            String fileName = "pdf_p" + pageNo + "_img" + imgIndex + ".png";
+            currentPageImages.add(new TextLine(IMAGE_STYLE, fileName, 0, 0, translateX, yPos));
+            pendingImages.add(new ImageData(fileName, imageBytes));
+        }
+    }
+
     private record HeadingContext(
             Map<Float, Integer> fontSizeToLevel,
             float bodyFontSize,
@@ -445,5 +446,6 @@ public class PdfParser implements DocumentParser {
         }
     }
 
-    private record ImageData(String fileName, byte[] bytes) {}
+    private record ImageData(String fileName, byte[] bytes) {
+    }
 }

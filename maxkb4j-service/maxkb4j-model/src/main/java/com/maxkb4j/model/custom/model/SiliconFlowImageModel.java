@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Optional;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
@@ -52,6 +53,25 @@ public class SiliconFlowImageModel implements ImageModel {
         request.bearerAuth(credential.getApiKey());
         request.header(Http.CONTENT_TYPE, Http.APPLICATION_JSON);
         return request;
+    }
+
+    /**
+     * 从响应体解析图像 URL 列表（纯函数，便于单元测试）
+     */
+    static List<Image> parseImages(String responseBody) {
+        JSONObject body = JSONObject.parseObject(responseBody);
+        if (body == null) {
+            return List.of();
+        }
+        JSONArray results = body.getJSONArray(RequestField.IMAGES);
+        return Optional.ofNullable(results)
+                .orElse(new JSONArray())
+                .stream()
+                .filter(item -> item instanceof JSONObject) // 防御性类型过滤
+                .map(item -> Image.builder()
+                        .url(((JSONObject) item).getString(RequestField.URL))
+                        .build())
+                .toList();
     }
 
     @Override
@@ -122,24 +142,5 @@ public class SiliconFlowImageModel implements ImageModel {
                     modelName, response.getStatus(), response.body());
         }
         return List.of();
-    }
-
-    /**
-     * 从响应体解析图像 URL 列表（纯函数，便于单元测试）
-     */
-    static List<Image> parseImages(String responseBody) {
-        JSONObject body = JSONObject.parseObject(responseBody);
-        if (body == null) {
-            return List.of();
-        }
-        JSONArray results = body.getJSONArray(RequestField.IMAGES);
-        return Optional.ofNullable(results)
-                .orElse(new JSONArray())
-                .stream()
-                .filter(item -> item instanceof JSONObject) // 防御性类型过滤
-                .map(item -> Image.builder()
-                        .url(((JSONObject) item).getString(RequestField.URL))
-                        .build())
-                .toList();
     }
 }

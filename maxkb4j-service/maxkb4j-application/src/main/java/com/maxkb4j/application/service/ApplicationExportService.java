@@ -31,55 +31,6 @@ public class ApplicationExportService {
     private final IApplicationInternalService applicationService;
     private final IToolService toolService;
 
-    /**
-     * 从上传文件导入应用。
-     *
-     * @param folderId 导入目标文件夹ID
-     * @param file     上传的 .mk 文件
-     * @return 是否导入成功
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public boolean appImport(String folderId, MultipartFile file) {
-        String filename = file.getOriginalFilename();
-        if (filename == null || !filename.endsWith(".mk")) {
-            throw new ApiException(I18nUtil.get("application.file.format.error"));
-        }
-        try {
-            MaxKb4J maxKb4j = ResourceUtil.parseMk(file.getInputStream());
-            ApplicationEntity app = maxKb4j.getApplication();
-            app.setId(null);
-            app.setFolderId(folderId);
-            return applicationService.upsertMk(app, maxKb4j.getToolList());
-        } catch (IOException e) {
-            throw new ApiException(e.getMessage());
-        }
-    }
-
-
-
-    public void appExport(String id, HttpServletResponse response) throws IOException {
-        ApplicationEntity app = applicationService.getById(id);
-        List<String> toolIds = new ArrayList<>();
-        if (app.getToolIds()!= null){
-            toolIds.addAll(app.getToolIds());
-        }
-        toolIds.addAll(getToolIdList(app.getWorkFlow()));
-        List<ToolDTO> toolList=new ArrayList<>();
-        if (!toolIds.isEmpty()){
-            toolList=toolService.listDtoByIds(toolIds);
-            // SKILL 工具的 code 为 OSS 文件 ID，导出时替换为文件字节的 Base64 编码，使导出文件自包含
-            toolService.embedSkillFileContents(toolList);
-        }
-        MaxKb4J maxKb4J = new MaxKb4J(app, toolList, "v2");
-        byte[] bytes = Objects.requireNonNull(JSONUtil.toJsonStr(maxKb4J)).getBytes(StandardCharsets.UTF_8);
-        response.setContentType("text/plain");
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String fileName = URLEncoder.encode(app.getName(), StandardCharsets.UTF_8);
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".mk");
-        OutputStream outputStream = response.getOutputStream();
-        outputStream.write(bytes);
-    }
-
     private static List<String> getToolIdList(JSONObject workflow) {
         List<String> result = new ArrayList<>();
         if (workflow == null) {
@@ -90,7 +41,7 @@ public class ApplicationExportService {
             return result;
         }
         for (int i = 0; i < nodes.size(); i++) {
-            JSONObject node= nodes.getJSONObject(i);
+            JSONObject node = nodes.getJSONObject(i);
             if (node == null) continue;
             String type = node.getString("type");
             if (NodeType.TOOL_LIB.getKey().equals(type)) {
@@ -120,7 +71,7 @@ public class ApplicationExportService {
                 if (properties != null) {
                     JSONObject nodeData = properties.getJSONObject("nodeData");
                     if (nodeData != null) {
-                        JSONArray toolIds =  nodeData.getJSONArray("toolIds");
+                        JSONArray toolIds = nodeData.getJSONArray("toolIds");
                         if (toolIds == null) continue;
                         for (Object toolId : toolIds) {
                             result.add(toolId.toString());
@@ -141,6 +92,53 @@ public class ApplicationExportService {
             }
         }
         return result;
+    }
+
+    /**
+     * 从上传文件导入应用。
+     *
+     * @param folderId 导入目标文件夹ID
+     * @param file     上传的 .mk 文件
+     * @return 是否导入成功
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public boolean appImport(String folderId, MultipartFile file) {
+        String filename = file.getOriginalFilename();
+        if (filename == null || !filename.endsWith(".mk")) {
+            throw new ApiException(I18nUtil.get("application.file.format.error"));
+        }
+        try {
+            MaxKb4J maxKb4j = ResourceUtil.parseMk(file.getInputStream());
+            ApplicationEntity app = maxKb4j.getApplication();
+            app.setId(null);
+            app.setFolderId(folderId);
+            return applicationService.upsertMk(app, maxKb4j.getToolList());
+        } catch (IOException e) {
+            throw new ApiException(e.getMessage());
+        }
+    }
+
+    public void appExport(String id, HttpServletResponse response) throws IOException {
+        ApplicationEntity app = applicationService.getById(id);
+        List<String> toolIds = new ArrayList<>();
+        if (app.getToolIds() != null) {
+            toolIds.addAll(app.getToolIds());
+        }
+        toolIds.addAll(getToolIdList(app.getWorkFlow()));
+        List<ToolDTO> toolList = new ArrayList<>();
+        if (!toolIds.isEmpty()) {
+            toolList = toolService.listDtoByIds(toolIds);
+            // SKILL 工具的 code 为 OSS 文件 ID，导出时替换为文件字节的 Base64 编码，使导出文件自包含
+            toolService.embedSkillFileContents(toolList);
+        }
+        MaxKb4J maxKb4J = new MaxKb4J(app, toolList, "v2");
+        byte[] bytes = Objects.requireNonNull(JSONUtil.toJsonStr(maxKb4J)).getBytes(StandardCharsets.UTF_8);
+        response.setContentType("text/plain");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String fileName = URLEncoder.encode(app.getName(), StandardCharsets.UTF_8);
+        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".mk");
+        OutputStream outputStream = response.getOutputStream();
+        outputStream.write(bytes);
     }
 
 }

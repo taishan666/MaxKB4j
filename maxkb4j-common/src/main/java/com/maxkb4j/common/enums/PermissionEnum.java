@@ -87,10 +87,16 @@ public enum PermissionEnum {
     MODEL_READ(ResourceType.MODEL, "MODEL", Operate.READ, Permission.VIEW),
     ;
 
+    /**
+     * 按资源类型分组的权限枚举索引，类加载时构建一次，避免每次权限解析都遍历全部枚举。
+     */
+    private static final Map<String, List<PermissionEnum>> PERMISSIONS_BY_RESOURCE_TYPE =
+            Arrays.stream(values()).collect(Collectors.groupingBy(PermissionEnum::getResourceType));
     private final String resourceType;
     private final String resource;
     private final String operate;
     private final String permission;
+
 
     PermissionEnum(String resourceType, String resource, String operate, String permission) {
         this.resourceType = resourceType;
@@ -98,13 +104,6 @@ public enum PermissionEnum {
         this.operate = operate;
         this.permission = permission;
     }
-
-
-    /**
-     * 按资源类型分组的权限枚举索引，类加载时构建一次，避免每次权限解析都遍历全部枚举。
-     */
-    private static final Map<String, List<PermissionEnum>> PERMISSIONS_BY_RESOURCE_TYPE =
-            Arrays.stream(values()).collect(Collectors.groupingBy(PermissionEnum::getResourceType));
 
     private static List<PermissionEnum> getPermissions(String resourceType) {
         return PERMISSIONS_BY_RESOURCE_TYPE.getOrDefault(resourceType, List.of());
@@ -121,7 +120,7 @@ public enum PermissionEnum {
     }
 
     public String getResourcePerm() {
-        return getResourcePerm("default","default");
+        return getResourcePerm("default", "default");
     }
 
     public String getResourcePerm(String workspaceId, String targetId) {

@@ -40,7 +40,7 @@ public class FormNode extends AbsNode {
 
     @Override
     public List<Answer> getAnswerList(String chatRecordId) {
-        String runtimeNodeId=super.getRuntimeNodeId();
+        String runtimeNodeId = super.getRuntimeNodeId();
         String formRender = FormRenderUtil.buildFormRender(new JSONObject(detail), FormField.FORM_RENDER_TAG);
         JSONObject nodeData = this.getNodeData();
         if (nodeData != null) {

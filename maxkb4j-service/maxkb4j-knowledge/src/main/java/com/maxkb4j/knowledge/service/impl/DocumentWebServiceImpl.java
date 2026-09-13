@@ -41,12 +41,13 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class DocumentWebServiceImpl implements IDocumentWebService {
 
-    private final IDocumentSplitService documentSpiltService;
-    private final IDocumentParseService documentParseService;
-
-    /** MD文件输出目录 */
+    /**
+     * MD文件输出目录
+     */
     private static final String MD_OUTPUT_DIR = "logs/web_md";
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+    private final IDocumentSplitService documentSpiltService;
+    private final IDocumentParseService documentParseService;
 
     public List<DocumentSimple> getDocumentList(String sourceUrl, String selector, boolean isRecursive) {
         List<DocumentSimple> documentList = new ArrayList<>();

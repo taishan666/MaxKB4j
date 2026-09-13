@@ -1,11 +1,12 @@
-CREATE TABLE "public"."resource_mapping" (
-                                             "create_time" timestamp(6) NOT NULL,
-                                             "update_time" timestamp(6) NOT NULL,
-                                             "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                             "source_type" varchar COLLATE "pg_catalog"."default" NOT NULL,
-                                             "target_type" varchar COLLATE "pg_catalog"."default" NOT NULL,
-                                             "source_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-                                             "target_id" varchar(128) COLLATE "pg_catalog"."default" NOT NULL
+CREATE TABLE "public"."resource_mapping"
+(
+    "create_time" timestamp(6)                                NOT NULL,
+    "update_time" timestamp(6)                                NOT NULL,
+    "id"          varchar(50) COLLATE "pg_catalog"."default"  NOT NULL,
+    "source_type" varchar COLLATE "pg_catalog"."default"      NOT NULL,
+    "target_type" varchar COLLATE "pg_catalog"."default"      NOT NULL,
+    "source_id"   varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "target_id"   varchar(128) COLLATE "pg_catalog"."default" NOT NULL
 )
 ;
 
@@ -46,25 +47,28 @@ CREATE INDEX "resource_mapping_update_time" ON "public"."resource_mapping" USING
 -- ----------------------------
 -- Primary Key structure for table resource_mapping
 -- ----------------------------
-ALTER TABLE "public"."resource_mapping" ADD CONSTRAINT "resource_mapping_pkey" PRIMARY KEY ("id");
+ALTER TABLE "public"."resource_mapping"
+    ADD CONSTRAINT "resource_mapping_pkey" PRIMARY KEY ("id");
 
 
 -- ----------------------------
 -- Table structure for application_chat_share_link
 -- ----------------------------
-CREATE TABLE "public"."application_chat_share_link" (
-                                                        "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                                        "share_type" varchar(25) COLLATE "pg_catalog"."default",
-                                                        "chat_record_ids" varchar[] COLLATE "pg_catalog"."default",
-                                                        "application_id" varchar(50) COLLATE "pg_catalog"."default",
-                                                        "chat_id" varchar(50) COLLATE "pg_catalog"."default",
-                                                        "user_id" varchar(50) COLLATE "pg_catalog"."default",
-                                                        "create_time" timestamptz(6) NOT NULL,
-                                                        "update_time" timestamptz(6) NOT NULL
+CREATE TABLE "public"."application_chat_share_link"
+(
+    "id"              varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+    "share_type"      varchar(25) COLLATE "pg_catalog"."default",
+    "chat_record_ids" varchar[] COLLATE "pg_catalog"."default",
+    "application_id"  varchar(50) COLLATE "pg_catalog"."default",
+    "chat_id"         varchar(50) COLLATE "pg_catalog"."default",
+    "user_id"         varchar(50) COLLATE "pg_catalog"."default",
+    "create_time"     timestamptz(6) NOT NULL,
+    "update_time"     timestamptz(6) NOT NULL
 )
 ;
 
 -- ----------------------------
 -- Primary Key structure for table application_chat_share_link
 -- ----------------------------
-ALTER TABLE "public"."application_chat_share_link" ADD CONSTRAINT "application_chat_share_link_pkey" PRIMARY KEY ("id");
+ALTER TABLE "public"."application_chat_share_link"
+    ADD CONSTRAINT "application_chat_share_link_pkey" PRIMARY KEY ("id");

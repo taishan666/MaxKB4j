@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
@@ -39,7 +40,7 @@ public class McpNodeHandler extends AbsNodeHandler {
             }
             execParams.put(key, value);
         }
-        String resultText =toolExecuteService.mcpToolExecute(params.getMcpServers(),params.getMcpTool(), execParams);
+        String resultText = toolExecuteService.mcpToolExecute(params.getMcpServers(), params.getMcpTool(), execParams);
         putDetails(node, Map.of(
                 ToolField.TOOL_PARAMS, execParams,
                 ToolField.MCP_TOOL, params.getMcpTool()

@@ -10,14 +10,15 @@ import java.util.List;
  * @author tarzan
  * @date 2024-12-27 11:13:27
  */
-public interface ParagraphMapper extends BaseMapper<ParagraphEntity>{
+public interface ParagraphMapper extends BaseMapper<ParagraphEntity> {
 
     List<ParagraphRagVO> retrievalParagraph(List<String> paragraphIds);
 
-    void updateStatusByIds(List<String> paragraphIds, int type, int status,int up,int next);
+    void updateStatusByIds(List<String> paragraphIds, int type, int status, int up, int next);
 
-    void updateStatusByDocIds(List<String> docIds, int type, int status,int up,int next);
+    void updateStatusByDocIds(List<String> docIds, int type, int status, int up, int next);
 
-    List<ParagraphEntity> listByStateIds(String docId,int fromIndex, List<String> stateList);
-    List<String> listParagraphIdsByStates(String docId,int fromIndex, List<String> stateList);
+    List<ParagraphEntity> listByStateIds(String docId, int fromIndex, List<String> stateList);
+
+    List<String> listParagraphIdsByStates(String docId, int fromIndex, List<String> stateList);
 }

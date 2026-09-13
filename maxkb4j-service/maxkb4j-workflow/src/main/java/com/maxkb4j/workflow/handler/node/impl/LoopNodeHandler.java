@@ -41,7 +41,7 @@ public class LoopNodeHandler extends AbsNodeHandler {
     @Override
     public NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         LoopNode.NodeParams nodeParams = parseParams(node, LoopNode.NodeParams.class);
-        messageForwarder.emitIteration(workflow, node,  true);
+        messageForwarder.emitIteration(workflow, node, true);
         List<JSONObject> loopDetails = iterationRunner.run(workflow, node, nodeParams);
         node.getDetail().put(DETAIL_LOOP_DATA, loopDetails);
         node.getDetail().put(DETAIL_LOOP_TYPE, nodeParams.getLoopType());

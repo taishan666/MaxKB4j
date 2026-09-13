@@ -43,19 +43,18 @@ public class RagContentInjector {
     private Prompt createPrompt(String problemText, List<? extends RagContent> contents, int maxCharNumber) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("userMessage", problemText);
-        variables.put("contents", this.formatJson(contents,maxCharNumber));
+        variables.put("contents", this.formatJson(contents, maxCharNumber));
         return this.promptTemplate.apply(variables);
     }
 
 
-
     public String formatJson1(List<? extends RagContent> contents, int maxCharNumber) {
-        List<RagContent> ragContents=new ArrayList<>();
-        int charNumber=0;
+        List<RagContent> ragContents = new ArrayList<>();
+        int charNumber = 0;
         for (RagContent content : contents) {
-            String text= content.getTitle()+content.getContent()+content.getDocumentName();
-            charNumber=charNumber+text.length();
-            if (charNumber>maxCharNumber){
+            String text = content.getTitle() + content.getContent() + content.getDocumentName();
+            charNumber = charNumber + text.length();
+            if (charNumber > maxCharNumber) {
                 break;
             }
             ragContents.add(content);

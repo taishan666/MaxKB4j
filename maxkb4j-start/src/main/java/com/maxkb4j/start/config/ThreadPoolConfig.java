@@ -53,6 +53,7 @@ public class ThreadPoolConfig {
 
     /**
      * 统一创建有界线程池的方法
+     *
      * @param threadNamePrefix 线程名前缀
      * @param corePoolSize     核心线程数
      * @param maxPoolSize      最大线程数

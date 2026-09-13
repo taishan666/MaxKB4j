@@ -10,12 +10,12 @@ import java.util.List;
 
 @Data
 public class GenerateCodeDTO {
-   private JSONArray inputFieldList;
-   private JSONArray initFieldList;
-   @NotBlank
-   private String modelId;
-   private JSONObject modelParamsSetting;
-   private List<MessageDTO> messages;
-   @NotBlank
-   private String prompt;
+    private JSONArray inputFieldList;
+    private JSONArray initFieldList;
+    @NotBlank
+    private String modelId;
+    private JSONObject modelParamsSetting;
+    private List<MessageDTO> messages;
+    @NotBlank
+    private String prompt;
 }

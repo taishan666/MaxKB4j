@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 
@@ -36,7 +37,7 @@ public class SpeechToTextNodeHandler extends AbsNodeHandler {
         SpeechToTextNode.NodeParams params = parseParams(node, SpeechToTextNode.NodeParams.class);
         ModelConfig modelConfig = resolveModelConfig(workflow, params);
         STTModel sttModel = modelFactory.buildSTTModel(modelConfig.getModelId(), modelConfig.getModelParamsSetting());
-        List<OssFile> audioFiles = getOssFiles(workflow,params.getAudioList());
+        List<OssFile> audioFiles = getOssFiles(workflow, params.getAudioList());
         List<String> content = new ArrayList<>();
         List<String> answerTextList = new ArrayList<>();
 

@@ -19,7 +19,9 @@ public class ToolAssembleHandler {
     private final IUserService userService;
     private final ToolSkillHandler skillHandler;
 
-    /** 单实体装配：用于详情查询、更新返回。 */
+    /**
+     * 单实体装配：用于详情查询、更新返回。
+     */
     public ToolVO assemble(ToolEntity tool) {
         if (tool == null) {
             return null;

@@ -1,4 +1,5 @@
 package com.maxkb4j.model.provider;
+
 import com.maxkb4j.model.annotation.ModelProviderType;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +15,7 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 
 import java.util.List;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**

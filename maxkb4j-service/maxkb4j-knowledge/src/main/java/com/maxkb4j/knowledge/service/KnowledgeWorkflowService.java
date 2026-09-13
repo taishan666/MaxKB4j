@@ -168,7 +168,7 @@ public class KnowledgeWorkflowService {
         List<ProblemEntity> problems = problemService.lambdaQuery()
                 .select(ProblemEntity::getId)
                 .eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
-        problemService.reIndexBatch(knowledgeId,problems.stream().map(ProblemEntity::getId).toList());
+        problemService.reIndexBatch(knowledgeId, problems.stream().map(ProblemEntity::getId).toList());
         return true;
     }
 
@@ -176,7 +176,7 @@ public class KnowledgeWorkflowService {
      * 生成相关问题
      */
     public Boolean generateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(),dto.getModelParamsSetting(), dto.getNumber(), dto.getStateList()));
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getModelParamsSetting(), dto.getNumber(), dto.getStateList()));
         return true;
     }
 }

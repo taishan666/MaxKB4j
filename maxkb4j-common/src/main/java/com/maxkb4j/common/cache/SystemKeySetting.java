@@ -16,10 +16,14 @@ import com.alibaba.fastjson.JSONObject;
  */
 public record SystemKeySetting(String publicKeyPem, String encryptedPrivateKeyPem) {
 
-    /** meta JSON 中存放公钥 PEM 的字段名（历史命名，涉及存量数据，勿改）。 */
+    /**
+     * meta JSON 中存放公钥 PEM 的字段名（历史命名，涉及存量数据，勿改）。
+     */
     public static final String FIELD_PUBLIC_KEY = "key";
 
-    /** meta JSON 中存放加密私钥 PEM 的字段名（历史命名，涉及存量数据，勿改）。 */
+    /**
+     * meta JSON 中存放加密私钥 PEM 的字段名（历史命名，涉及存量数据，勿改）。
+     */
     public static final String FIELD_ENCRYPTED_PRIVATE_KEY = "value";
 
     /**

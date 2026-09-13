@@ -1,4 +1,5 @@
 package com.maxkb4j.workflow.node.impl;
+
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
@@ -11,8 +12,8 @@ import java.util.List;
 
 @NodeCreatorType(NodeType.NL2SQL)
 public class NL2SqlNode extends AbsNode {
-    public NL2SqlNode(String id,JSONObject properties) {
-        super(id,properties);
+    public NL2SqlNode(String id, JSONObject properties) {
+        super(id, properties);
     }
 
     @Data

@@ -20,20 +20,20 @@ public enum ModelStatus {
     PAUSE_DOWNLOAD("PAUSE_DOWNLOAD", "暂停下载"),
     ;
 
-    private final String key;
-    private final String name;
-
-    ModelStatus(String key, String name) {
-        this.key = key;
-        this.name = name;
-    }
-
     private static final Map<String, ModelStatus> KEY_MAP = new HashMap<>();
 
     static {
         for (ModelStatus status : ModelStatus.values()) {
             KEY_MAP.put(status.getKey(), status);
         }
+    }
+
+    private final String key;
+    private final String name;
+
+    ModelStatus(String key, String name) {
+        this.key = key;
+        this.name = name;
     }
 
     public static ModelStatus getByKey(String key) {

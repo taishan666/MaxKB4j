@@ -22,7 +22,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) {
         AuthHandler authHandler = getAuthHandler(request);
-        if (authHandler!=null){
+        if (authHandler != null) {
             return authHandler.handle(response);
         }
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -31,13 +31,12 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     private AuthHandler getAuthHandler(HttpServletRequest request) {
         for (AuthHandler authHandler : authHandlerList) {
-            if (authHandler.support(request)){
+            if (authHandler.support(request)) {
                 return authHandler;
             }
         }
         return null;
     }
-
 
 
 }

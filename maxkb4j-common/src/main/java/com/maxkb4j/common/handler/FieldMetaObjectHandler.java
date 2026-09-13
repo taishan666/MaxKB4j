@@ -15,14 +15,14 @@ public class FieldMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void insertFill(MetaObject metaObject) {
-        if(isInsert("isActive", metaObject)){
-            this.setFieldValByName("isActive",true , metaObject);
+        if (isInsert("isActive", metaObject)) {
+            this.setFieldValByName("isActive", true, metaObject);
         }
-        if(isInsert("statusMeta", metaObject)){
-            this.setFieldValByName("statusMeta",defaultStatusMeta() , metaObject);
+        if (isInsert("statusMeta", metaObject)) {
+            this.setFieldValByName("statusMeta", defaultStatusMeta(), metaObject);
         }
-        if(isInsert("meta", metaObject)){
-            this.setFieldValByName("meta",new JSONObject() , metaObject);
+        if (isInsert("meta", metaObject)) {
+            this.setFieldValByName("meta", new JSONObject(), metaObject);
         }
         this.setFieldValByName("createTime", new Date(), metaObject);
         this.setFieldValByName("updateTime", new Date(), metaObject);
@@ -34,10 +34,9 @@ public class FieldMetaObjectHandler implements MetaObjectHandler {
     }
 
 
-
     public boolean isInsert(String fieldName, MetaObject metaObject) {
-        if(metaObject.hasGetter(fieldName)){
-            return metaObject.getValue(fieldName)==null;
+        if (metaObject.hasGetter(fieldName)) {
+            return metaObject.getValue(fieldName) == null;
         }
         return false;
     }

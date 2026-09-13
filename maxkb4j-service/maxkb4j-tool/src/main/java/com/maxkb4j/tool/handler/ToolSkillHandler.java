@@ -37,7 +37,9 @@ public class ToolSkillHandler {
 
     private final IOssService ossService;
 
-    /** 工具创建时：若为 SKILL，将 oss 压缩包解压到工具目录。 */
+    /**
+     * 工具创建时：若为 SKILL，将 oss 压缩包解压到工具目录。
+     */
     public void onCreate(ToolEntity entity) {
         if (isNotSkill(entity)) {
             return;
@@ -45,7 +47,9 @@ public class ToolSkillHandler {
         extractSkill(entity.getId(), entity.getCode());
     }
 
-    /** 工具更新时：若为 SKILL 且文件 code 变更，先删旧目录再解压新文件。 */
+    /**
+     * 工具更新时：若为 SKILL 且文件 code 变更，先删旧目录再解压新文件。
+     */
     public void onUpdate(ToolEntity oldEntity, ToolEntity newEntity) {
         if (isNotSkill(newEntity)) {
             return;
@@ -60,8 +64,8 @@ public class ToolSkillHandler {
     /**
      * 加载 Skill 的 FileSystemSkill，若本地目录不存在则从 OSS 懒加载解压。
      *
-     * @param toolId  工具 ID
-     * @param fileId  OSS 文件 ID（Skill 压缩包）
+     * @param toolId 工具 ID
+     * @param fileId OSS 文件 ID（Skill 压缩包）
      * @return 加载好的 FileSystemSkill
      */
     public FileSystemSkill loadSkill(String toolId, String fileId) throws ApiException {
@@ -72,7 +76,9 @@ public class ToolSkillHandler {
         return FileSystemSkillLoader.loadSkill(skillFolder);
     }
 
-    /** 从 OSS 下载并解压 Skill 压缩包到工具目录。 */
+    /**
+     * 从 OSS 下载并解压 Skill 压缩包到工具目录。
+     */
     private void extractSkill(String toolId, String fileId) throws ApiException {
         if (StringUtils.isEmpty(toolId) || StringUtils.isEmpty(fileId)) {
             return;
@@ -84,7 +90,9 @@ public class ToolSkillHandler {
         }
     }
 
-    /** 工具删除时：若为 SKILL，移除工具目录。 */
+    /**
+     * 工具删除时：若为 SKILL，移除工具目录。
+     */
     public void onDelete(ToolEntity entity) {
         if (isNotSkill(entity)) {
             return;
@@ -92,7 +100,9 @@ public class ToolSkillHandler {
         SkillsToolUtil.deleteDirectory(entity.getId());
     }
 
-    /** 组装 VO 时获取 Skill 关联文件列表（非 SKILL 或文件缺失返回空列表，避免前端 NPE）。 */
+    /**
+     * 组装 VO 时获取 Skill 关联文件列表（非 SKILL 或文件缺失返回空列表，避免前端 NPE）。
+     */
     public List<ToolFileVO> resolveFileList(ToolEntity entity) {
         if (isNotSkill(entity) || StringUtils.isEmpty(entity.getCode())) {
             return List.of();

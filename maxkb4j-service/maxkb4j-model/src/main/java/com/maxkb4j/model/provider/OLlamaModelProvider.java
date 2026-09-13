@@ -1,4 +1,5 @@
 package com.maxkb4j.model.provider;
+
 import com.maxkb4j.model.annotation.ModelProviderType;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
@@ -85,7 +87,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
-                .think(getBooleanParam(params,ParamKey.ENABLE_THINKING))
+                .think(getBooleanParam(params, ParamKey.ENABLE_THINKING))
                 .returnThinking(true)
                 .build();
     }
@@ -97,7 +99,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
-                .think(getBooleanParam(params,ParamKey.ENABLE_THINKING))
+                .think(getBooleanParam(params, ParamKey.ENABLE_THINKING))
                 .returnThinking(true)
                 .build();
     }
@@ -113,7 +115,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
 
     @Override
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
-        return  OllamaImageModel.builder()
+        return OllamaImageModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)

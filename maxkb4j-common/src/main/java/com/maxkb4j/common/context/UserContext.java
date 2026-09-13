@@ -16,6 +16,7 @@ public interface UserContext {
      * 当前是否已登录(ADMIN 或 USER 任一已解析)。
      */
     boolean isLogin();
+
     /**
      * 当前用户ID。
      *

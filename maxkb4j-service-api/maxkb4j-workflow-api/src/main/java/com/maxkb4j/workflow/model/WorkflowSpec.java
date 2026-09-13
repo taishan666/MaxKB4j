@@ -29,11 +29,6 @@ import java.util.Objects;
 @Getter
 public final class WorkflowSpec {
 
-    /** 工作流规格类别 */
-    public enum Kind {
-        APPLICATION, KNOWLEDGE, LOOP
-    }
-
     private final Kind kind;
     private final List<INode> nodes;
     private final List<LfEdge> edges;
@@ -47,7 +42,6 @@ public final class WorkflowSpec {
     private final IWorkflow parent;
     private final LoopParams loopParams;
     private final JSONObject details;
-
     private WorkflowSpec(Builder builder) {
         this.kind = builder.kind;
         this.nodes = builder.nodes;
@@ -61,19 +55,32 @@ public final class WorkflowSpec {
         this.details = builder.details;
     }
 
-    /** 应用（聊天）工作流规格 */
+    /**
+     * 应用（聊天）工作流规格
+     */
     public static Builder application(List<INode> nodes, List<LfEdge> edges) {
         return new Builder(Kind.APPLICATION, nodes, edges);
     }
 
-    /** 知识库工作流规格 */
+    /**
+     * 知识库工作流规格
+     */
     public static Builder knowledge(List<INode> nodes, List<LfEdge> edges, KnowledgeParams knowledgeParams) {
         return new Builder(Kind.KNOWLEDGE, nodes, edges).knowledgeParams(knowledgeParams);
     }
 
-    /** 循环子工作流规格（变体由父工作流决定） */
+    /**
+     * 循环子工作流规格（变体由父工作流决定）
+     */
     public static Builder loop(IWorkflow parent, List<INode> nodes, List<LfEdge> edges, LoopParams loopParams) {
         return new Builder(Kind.LOOP, nodes, edges).parent(parent).loopParams(loopParams);
+    }
+
+    /**
+     * 工作流规格类别
+     */
+    public enum Kind {
+        APPLICATION, KNOWLEDGE, LOOP
     }
 
     /**

@@ -11,13 +11,13 @@ import java.util.List;
  * @author tarzan
  * @date 2024-12-27 11:23:44
  */
-public interface ProblemParagraphMapper extends BaseMapper<ProblemParagraphEntity>{
+public interface ProblemParagraphMapper extends BaseMapper<ProblemParagraphEntity> {
 
-    List<ProblemParagraphVO> getProblems(String knowledgeId, List<String>  docIds);
+    List<ProblemParagraphVO> getProblems(String knowledgeId, List<String> docIds);
 
     List<ProblemEntity> getProblemsByParagraphIds(List<String> paragraphIds);
 
-    default List<ProblemEntity> getProblemsByParagraphId(String id){
+    default List<ProblemEntity> getProblemsByParagraphId(String id) {
         return getProblemsByParagraphIds(List.of(id));
     }
 

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.VARIABLE_ASSIGN)
@@ -44,9 +45,9 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
                 Map<String, Object> chatVariables = getChatHandleResult(workflow, variable, fields);
                 resultList.add(chatVariables);
                 String chatId = (String) workflow.getGlobalContext().get(ChatField.CHAT_ID);
-                if (chatId != null){
+                if (chatId != null) {
                     ChatInfo chatInfo = ChatCache.get(chatId);
-                    if (chatInfo!=null){
+                    if (chatInfo != null) {
                         chatInfo.putChatVariables(chatVariables);
                         ChatCache.put(chatId, chatInfo);
                     }
@@ -95,10 +96,10 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         result.put(VariableField.OUTPUT_VALUE, value);
         // Update chat variables
         String chatId = (String) workflow.getGlobalContext().get(ChatField.CHAT_ID);
-        if (chatId!= null) {
+        if (chatId != null) {
             ChatInfo chatInfo = ChatCache.get(chatId);
             if (chatInfo != null && chatInfo.getChatVariables() != null) {
-                chatInfo.getChatVariables().put(varName,value);
+                chatInfo.getChatVariables().put(varName, value);
             }
         }
         return result;

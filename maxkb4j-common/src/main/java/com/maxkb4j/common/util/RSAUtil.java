@@ -30,10 +30,60 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 @Slf4j
-public class RSAUtil{
+public class RSAUtil {
 
-    /** 密钥保护口令：优先读取系统属性/环境变量，未配置时回退默认值（兼容存量数据） */
+    /**
+     * 密钥保护口令：优先读取系统属性/环境变量，未配置时回退默认值（兼容存量数据）
+     */
     private final static String password = resolveKeyPassword();
+    /**
+     * RSA 算法名称
+     */
+    private static final String ALGORITHM = "RSA";
+    /**
+     * 新数据统一使用 OAEP 填充，避免默认 PKCS#1 v1.5 填充的预言机攻击风险
+     */
+    private static final String TRANSFORMATION_OAEP = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
+    /**
+     * 仅用于解密历史存量密文（JDK 默认 "RSA" 即 PKCS#1 v1.5 填充）
+     */
+    private static final String TRANSFORMATION_LEGACY = "RSA/ECB/PKCS1Padding";
+    /**
+     * RSA 密钥长度
+     */
+    private static final int KEY_SIZE = 2048;
+    /**
+     * BouncyCastle 提供者名称
+     */
+    private static final String PROVIDER = "BC";
+    /**
+     * PEM 公钥头标记
+     */
+    private static final String PEM_PUBLIC_KEY_HEADER = "-----BEGIN PUBLIC KEY-----";
+    /**
+     * PEM 公钥尾标记
+     */
+    private static final String PEM_PUBLIC_KEY_FOOTER = "-----END PUBLIC KEY-----";
+    /**
+     * PEM 加密私钥头标记
+     */
+    private static final String PEM_ENCRYPTED_PRIVATE_KEY_HEADER = "-----BEGIN ENCRYPTED PRIVATE KEY-----";
+    /**
+     * PEM 加密私钥尾标记
+     */
+    private static final String PEM_ENCRYPTED_PRIVATE_KEY_FOOTER = "-----END ENCRYPTED PRIVATE KEY-----";
+    /**
+     * PEM 公钥类型标识
+     */
+    private static final String PEM_TYPE_PUBLIC_KEY = "PUBLIC KEY";
+    /**
+     * PEM 加密私钥类型标识
+     */
+    private static final String PEM_TYPE_ENCRYPTED_PRIVATE_KEY = "ENCRYPTED PRIVATE KEY";
+
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     private static String resolveKeyPassword() {
         String fromProperty = System.getProperty("maxkb4j.rsa.key-password");
@@ -46,29 +96,6 @@ public class RSAUtil{
         }
         return "mac_kb_password";
     }
-
-    /** RSA 算法名称 */
-    private static final String ALGORITHM = "RSA";
-    /** 新数据统一使用 OAEP 填充，避免默认 PKCS#1 v1.5 填充的预言机攻击风险 */
-    private static final String TRANSFORMATION_OAEP = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
-    /** 仅用于解密历史存量密文（JDK 默认 "RSA" 即 PKCS#1 v1.5 填充） */
-    private static final String TRANSFORMATION_LEGACY = "RSA/ECB/PKCS1Padding";
-    /** RSA 密钥长度 */
-    private static final int KEY_SIZE = 2048;
-    /** BouncyCastle 提供者名称 */
-    private static final String PROVIDER = "BC";
-    /** PEM 公钥头标记 */
-    private static final String PEM_PUBLIC_KEY_HEADER = "-----BEGIN PUBLIC KEY-----";
-    /** PEM 公钥尾标记 */
-    private static final String PEM_PUBLIC_KEY_FOOTER = "-----END PUBLIC KEY-----";
-    /** PEM 加密私钥头标记 */
-    private static final String PEM_ENCRYPTED_PRIVATE_KEY_HEADER = "-----BEGIN ENCRYPTED PRIVATE KEY-----";
-    /** PEM 加密私钥尾标记 */
-    private static final String PEM_ENCRYPTED_PRIVATE_KEY_FOOTER = "-----END ENCRYPTED PRIVATE KEY-----";
-    /** PEM 公钥类型标识 */
-    private static final String PEM_TYPE_PUBLIC_KEY = "PUBLIC KEY";
-    /** PEM 加密私钥类型标识 */
-    private static final String PEM_TYPE_ENCRYPTED_PRIVATE_KEY = "ENCRYPTED PRIVATE KEY";
 
     public static String byteToBase64(byte[] encoded) {
         return Base64.getEncoder().encodeToString(encoded);
@@ -101,12 +128,13 @@ public class RSAUtil{
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         return byteToBase64(cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8)));
     }
+
     public static String encrypt(String plainText, String publicKey) throws Exception {
-        return encrypt(plainText,importPublicKey(publicKey));
+        return encrypt(plainText, importPublicKey(publicKey));
     }
 
     public static String encryptPem(String plainText, String publicKey) throws Exception {
-        return encrypt(plainText,readPublicKeyPEM(publicKey));
+        return encrypt(plainText, readPublicKeyPEM(publicKey));
     }
 
     public static String decrypt(String cipherText, PrivateKey privateKey) throws Exception {
@@ -124,10 +152,7 @@ public class RSAUtil{
     }
 
     public static String decrypt(String cipherText, String privateKey) throws Exception {
-        return decrypt(cipherText,importPrivateKey(privateKey));
-    }
-    static {
-        Security.addProvider(new BouncyCastleProvider());
+        return decrypt(cipherText, importPrivateKey(privateKey));
     }
 
     private static String readPublicKeyPEM(String pemContent) {
@@ -146,8 +171,6 @@ public class RSAUtil{
                 .replaceAll("\\s", "");
         return Base64.getDecoder().decode(base64Encoded);
     }
-
-
 
 
     private static PrivateKey decryptPrivateKey1(String encodedKey, String passphrase) throws Exception {
@@ -173,10 +196,10 @@ public class RSAUtil{
             PemObject pemObject = new PemObject("ENCRYPTED PRIVATE KEY", encryptedPrivateKeyInfo.getEncoded());
             pemWriter.writeObject(pemObject);
         }*/
-        return convertPEM(encryptedPrivateKeyInfo.getEncoded(),PEM_TYPE_ENCRYPTED_PRIVATE_KEY);
+        return convertPEM(encryptedPrivateKeyInfo.getEncoded(), PEM_TYPE_ENCRYPTED_PRIVATE_KEY);
     }
 
-    public static String convertPEM(byte[] encoded,String type)  throws Exception {
+    public static String convertPEM(byte[] encoded, String type) throws Exception {
         // 将加密后的私钥转换为PEM格式
         StringWriter stringWriter = new StringWriter();
         try (PemWriter pemWriter = new PemWriter(stringWriter)) {
@@ -187,15 +210,15 @@ public class RSAUtil{
     }
 
     public static String publicKeyPem(PublicKey publicKey) throws Exception {
-        return convertPEM(publicKey.getEncoded(),PEM_TYPE_PUBLIC_KEY);
+        return convertPEM(publicKey.getEncoded(), PEM_TYPE_PUBLIC_KEY);
     }
 
     public static String encryptPrivateKeyPem(PrivateKey privateKey) throws Exception {
-        return encryptPrivateKeyPem(privateKey,password);
+        return encryptPrivateKeyPem(privateKey, password);
     }
 
 
-    private static  PrivateKey decryptPrivateKey(String encryptPrivateKey, String passphrase)
+    private static PrivateKey decryptPrivateKey(String encryptPrivateKey, String passphrase)
             throws IOException, PKCSException {
         PrivateKeyInfo pki;
         try (PEMParser pemParser = new PEMParser(new StringReader(encryptPrivateKey))) {
@@ -224,6 +247,6 @@ public class RSAUtil{
 
     public static String rsaLongDecrypt(String encryptedPem, String encryptPrivateKey) throws Exception {
         PrivateKey privateKey = decryptPrivateKey(encryptPrivateKey, password);
-        return decrypt(encryptedPem,privateKey);
+        return decrypt(encryptedPem, privateKey);
     }
 }

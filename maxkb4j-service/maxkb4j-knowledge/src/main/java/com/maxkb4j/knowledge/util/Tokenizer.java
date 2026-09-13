@@ -9,11 +9,13 @@ import java.util.List;
  * 内容分词工具类
  * 统一处理中文分词逻辑，避免代码重复
  * TextSegmented
+ *
  * @author tarzan
  * @date 2026-03-02
  */
 public final class Tokenizer {
     final static JiebaSegmenter jiebaSegmenter = new JiebaSegmenter();
+
     /**
      * 对文本进行分词处理
      *

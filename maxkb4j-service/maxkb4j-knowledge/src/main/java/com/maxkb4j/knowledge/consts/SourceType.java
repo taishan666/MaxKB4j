@@ -7,12 +7,15 @@ package com.maxkb4j.knowledge.consts;
  */
 public final class SourceType {
 
+    /**
+     * 问题来源
+     */
+    public static final int PROBLEM = 0;
+    /**
+     * 段落来源
+     */
+    public static final int PARAGRAPH = 1;
     private SourceType() {
     }
-
-    /** 问题来源 */
-    public static final int PROBLEM = 0;
-    /** 段落来源 */
-    public static final int PARAGRAPH = 1;
 
 }

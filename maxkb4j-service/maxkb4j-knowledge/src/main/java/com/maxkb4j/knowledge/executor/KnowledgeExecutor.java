@@ -15,12 +15,12 @@ import java.util.concurrent.CompletableFuture;
 
 public class KnowledgeExecutor extends AbsToolExecutor {
 
+    public final RagContentInjector contentInjector;
     private final String knowledgeId;
     private final KnowledgeSetting knowledgeSetting;
     private final IRetrieveService retrieveService;
-    public  final RagContentInjector contentInjector;
 
-    public KnowledgeExecutor(String knowledgeId,KnowledgeSetting knowledgeSetting, IRetrieveService retrieveService) {
+    public KnowledgeExecutor(String knowledgeId, KnowledgeSetting knowledgeSetting, IRetrieveService retrieveService) {
         this.knowledgeId = knowledgeId;
         this.knowledgeSetting = knowledgeSetting;
         this.retrieveService = retrieveService;
@@ -51,7 +51,7 @@ public class KnowledgeExecutor extends AbsToolExecutor {
                 .filter(p -> seenIds.add(p.getId()))
                 .toList();
         int maxCharNumber = knowledgeSetting.getMaxParagraphCharNumber();
-        return contentInjector.formatJson(paragraphList,maxCharNumber);
+        return contentInjector.formatJson(paragraphList, maxCharNumber);
     }
 
 }

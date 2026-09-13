@@ -32,20 +32,30 @@ import java.io.IOException;
 @Order(0)
 public class SpaForwardFilter extends OncePerRequestFilter {
 
-    /** 管理后台路由前缀 */
+    /**
+     * 管理后台路由前缀
+     */
     private static final String ADMIN_PREFIX = "/admin";
 
-    /** 对话应用路由前缀 */
+    /**
+     * 对话应用路由前缀
+     */
     private static final String CHAT_PREFIX = "/chat";
 
-    /** 后端 API 前缀（见 AppConst：ADMIN_API / CHAT_API） */
+    /**
+     * 后端 API 前缀（见 AppConst：ADMIN_API / CHAT_API）
+     */
     private static final String ADMIN_API_PREFIX = "/admin/api/";
     private static final String CHAT_API_PREFIX = "/chat/api/";
 
-    /** 文件下载接口路径（FileController），URL 中不含扩展名，需单独排除 */
+    /**
+     * 文件下载接口路径（FileController），URL 中不含扩展名，需单独排除
+     */
     private static final String OSS_FILE_PATH = "/oss/file/";
 
-    /** Knife4j / Swagger 文档地址，统一交给 springdoc 处理 */
+    /**
+     * Knife4j / Swagger 文档地址，统一交给 springdoc 处理
+     */
     private static final String[] API_DOC_PATHS = {
             "/doc.html", "/webjars/", "/v3/api-docs", "/swagger-ui"
     };
@@ -58,7 +68,9 @@ public class SpaForwardFilter extends OncePerRequestFilter {
                 || (isStaticResource(uri) && resolveRouteRelativeAsset(uri) == null);
     }
 
-    /** 后端接口与文件下载直接放行，避免被 SPA 转发吞掉 */
+    /**
+     * 后端接口与文件下载直接放行，避免被 SPA 转发吞掉
+     */
     private boolean isBackendRequest(String uri) {
         return uri.startsWith(ADMIN_API_PREFIX)
                 || uri.startsWith(CHAT_API_PREFIX)
@@ -66,7 +78,9 @@ public class SpaForwardFilter extends OncePerRequestFilter {
                 || uri.equals("/error");
     }
 
-    /** Knife4j 文档路径放行 */
+    /**
+     * Knife4j 文档路径放行
+     */
     private boolean isApiDocRequest(String uri) {
         for (String path : API_DOC_PATHS) {
             if (uri.startsWith(path)) {
@@ -76,7 +90,9 @@ public class SpaForwardFilter extends OncePerRequestFilter {
         return false;
     }
 
-    /** 最后一个路径段带扩展名视为静态资源（如 /admin/assets/*.js、/favicon.ico） */
+    /**
+     * 最后一个路径段带扩展名视为静态资源（如 /admin/assets/*.js、/favicon.ico）
+     */
     private boolean isStaticResource(String uri) {
         int slashIndex = uri.lastIndexOf('/');
         String lastSegment = slashIndex >= 0 ? uri.substring(slashIndex + 1) : uri;
@@ -162,7 +178,9 @@ public class SpaForwardFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    /** 去掉 context-path，保证配置了 server.servlet.context-path 时判定依然准确 */
+    /**
+     * 去掉 context-path，保证配置了 server.servlet.context-path 时判定依然准确
+     */
     private String stripContextPath(HttpServletRequest request) {
         String contextPath = request.getContextPath();
         String uri = request.getRequestURI();

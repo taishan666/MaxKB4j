@@ -88,7 +88,7 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
 
     private List<Image> buildImages(IWorkflow workflow, AbsNode node, List<String> imageFieldList) {
         List<Image> images = new ArrayList<>();
-        List<OssFile> imageFiles = getOssFiles(workflow,imageFieldList);
+        List<OssFile> imageFiles = getOssFiles(workflow, imageFieldList);
         for (OssFile file : imageFiles) {
             byte[] bytes = ossService.getBytes(file.getFileId());
             String base64Data = Base64.getEncoder().encodeToString(bytes);

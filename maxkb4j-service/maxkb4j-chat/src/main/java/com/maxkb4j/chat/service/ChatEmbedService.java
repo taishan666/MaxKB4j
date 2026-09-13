@@ -26,13 +26,14 @@ public class ChatEmbedService {
 
     private final IApplicationAccessTokenService accessTokenService;
 
-    public String embed(String protocol,String host, String token,Map<String, Object> params) {
+    public String embed(String protocol, String host, String token, Map<String, Object> params) {
         // 移除固定参数，剩下的就是不固定参数
         params.remove("protocol");
         params.remove("host");
         params.remove("token");
-        return embed(new EmbedQuery(protocol,host,token,params));
+        return embed(new EmbedQuery(protocol, host, token, params));
     }
+
     public String embed(EmbedQuery query) {
         ApplicationAccessTokenDTO token = accessTokenService.getByAccessToken(query.getToken());
         if (token == null || Boolean.FALSE.equals(token.getIsActive())) {
@@ -51,7 +52,7 @@ public class ChatEmbedService {
         String floatIcon = query.getProtocol() + "://" + query.getHost() + "/chat/MaxKB.gif";
         List<String> whiteList = token.getWhiteList();
         Map<String, String> map = new HashMap<>();
-        Boolean isAuth=token.getIsActive();
+        Boolean isAuth = token.getIsActive();
         map.put("is_auth", String.valueOf(isAuth));
         map.put("protocol", query.getProtocol());
         map.put("host", query.getHost());
@@ -61,7 +62,7 @@ public class ChatEmbedService {
         map.put("is_draggable", "false");
         map.put("float_icon", floatIcon);
         map.put("prefix", "/chat");
-        String queryStr= getQueryApiInput(query.getParams());
+        String queryStr = getQueryApiInput(query.getParams());
         map.put("query", queryStr);
         map.put("show_guide", "true");
         map.put("x_type", "right");

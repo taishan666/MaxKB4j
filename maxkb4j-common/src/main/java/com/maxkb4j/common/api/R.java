@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+
 /**
  * @author tarzan
  * @date 2024-12-25 10:20:33
@@ -46,6 +47,9 @@ public class R<T> implements Serializable {
     }
 
 
+    public R() {
+    }
+
     public static <T> R<T> data(T data) {
         return data(data, I18nUtil.get("common.success"));
     }
@@ -57,7 +61,6 @@ public class R<T> implements Serializable {
     public static <T> R<T> data(int code, T data, String message) {
         return new R(code, data, data == null ? I18nUtil.get("common.no.data") : message);
     }
-
 
     public static <T> R<T> success(String data) {
         return new R(ResultCode.SUCCESS, data, I18nUtil.get("common.success"));
@@ -92,7 +95,7 @@ public class R<T> implements Serializable {
     }
 
     public static <T> R<T> status(boolean flag) {
-        return flag ?  success(I18nUtil.get("common.success")) : fail(I18nUtil.get("common.fail"));
+        return flag ? success(I18nUtil.get("common.success")) : fail(I18nUtil.get("common.fail"));
     }
 
     public static <T> R<T> pkIsNull() {
@@ -101,8 +104,5 @@ public class R<T> implements Serializable {
 
     public static <T> R<T> notExists() {
         return new R(ResultCode.FAILURE, I18nUtil.get("common.record.not.exists"));
-    }
-
-    public R() {
     }
 }

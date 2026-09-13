@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.model.base.TTSModel;
 import lombok.Data;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
@@ -23,11 +24,11 @@ public class BaiLianTTSModel implements TTSModel {
     }
 
     private TTSModel buildInstance(String modelName) {
-       if (modelName.startsWith(ModelName.QWEN3_TTS_PREFIX)){
-           return new QWenTTS(modelName, credential, params);
-       }else {
-           return new BaiLianTTS(modelName, credential, params);
-       }
+        if (modelName.startsWith(ModelName.QWEN3_TTS_PREFIX)) {
+            return new QWenTTS(modelName, credential, params);
+        } else {
+            return new BaiLianTTS(modelName, credential, params);
+        }
     }
 
     @Override

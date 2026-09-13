@@ -140,7 +140,7 @@ public class ApplicationController {
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @PostMapping("/application/{id}/speech_to_text")
     public R<String> speechToText(@PathVariable("id") String id, MultipartFile file) throws IOException {
-        return R.data(applicationSpeechService.speechToText(id, file,true));
+        return R.data(applicationSpeechService.speechToText(id, file, true));
     }
 
 

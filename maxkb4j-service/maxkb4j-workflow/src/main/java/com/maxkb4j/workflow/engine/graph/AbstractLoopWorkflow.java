@@ -44,10 +44,10 @@ public abstract class AbstractLoopWorkflow extends AbstractWorkflow {
     protected static Components composeLoopComponents(AbstractWorkflow parent, List<AbsNode> nodes,
                                                       List<LfEdge> edges, Sinks.Many<ChatMessageVO> sink) {
         Objects.requireNonNull(parent, "parent workflow cannot be null");
-        WorkflowMode workflowMode=parent.configuration.getWorkflowMode();
-        if (WorkflowMode.APPLICATION.equals(workflowMode)){
+        WorkflowMode workflowMode = parent.configuration.getWorkflowMode();
+        if (WorkflowMode.APPLICATION.equals(workflowMode)) {
             workflowMode = WorkflowMode.APPLICATION_LOOP;
-        } else if (WorkflowMode.KNOWLEDGE.equals(workflowMode)){
+        } else if (WorkflowMode.KNOWLEDGE.equals(workflowMode)) {
             workflowMode = WorkflowMode.KNOWLEDGE_LOOP;
         }
         WorkflowConfiguration configuration = new WorkflowConfiguration(workflowMode, nodes, edges);

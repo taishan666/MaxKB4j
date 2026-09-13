@@ -16,34 +16,21 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Slf4j
 @Data
-public class QWenTTS  implements TTSModel {
+public class QWenTTS implements TTSModel {
     private MultiModalConversationParam param;
 
     public QWenTTS(String modelName, ModelCredential modelCredential, JSONObject params) {
-        String voice= params==null?Value.CHERRY:(String) params.getOrDefault(ParamKey.VOICE,Value.CHERRY);
-        this.param= MultiModalConversationParam.builder()
+        String voice = params == null ? Value.CHERRY : (String) params.getOrDefault(ParamKey.VOICE, Value.CHERRY);
+        this.param = MultiModalConversationParam.builder()
                 .model(modelName)
                 .apiKey(modelCredential.getApiKey())
                 .voice(AudioParameters.Voice.valueOf(voice))
                 .build();
-    }
-
-    @Override
-    public byte[] textToSpeech(String text) {
-        MultiModalConversation conv = new MultiModalConversation();
-        param.setText(text);
-        MultiModalConversationResult result;
-        try {
-            result = conv.call(param);
-            String audioUrl = result.getOutput().getAudio().getUrl();
-            return  toBytes(audioUrl);
-        } catch (NoApiKeyException | UploadFileException | IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public static byte[] toBytes(String audioUrl) throws IOException {
@@ -57,6 +44,20 @@ public class QWenTTS  implements TTSModel {
             }
             buffer.flush();
             return buffer.toByteArray();
+        }
+    }
+
+    @Override
+    public byte[] textToSpeech(String text) {
+        MultiModalConversation conv = new MultiModalConversation();
+        param.setText(text);
+        MultiModalConversationResult result;
+        try {
+            result = conv.call(param);
+            String audioUrl = result.getOutput().getAudio().getUrl();
+            return toBytes(audioUrl);
+        } catch (NoApiKeyException | UploadFileException | IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

@@ -22,6 +22,13 @@ public enum ModelType {
     ;
 
 
+    private static final Map<String, ModelType> KEY_MAP = new HashMap<>();
+
+    static {
+        for (ModelType type : ModelType.values()) {
+            KEY_MAP.put(type.getKey(), type);
+        }
+    }
 
     @Getter
     private final String key;
@@ -30,14 +37,6 @@ public enum ModelType {
     ModelType(String key, String name) {
         this.key = key;
         this.name = name;
-    }
-
-    private static final Map<String, ModelType> KEY_MAP = new HashMap<>();
-
-    static {
-        for (ModelType type : ModelType.values()) {
-            KEY_MAP.put(type.getKey(), type);
-        }
     }
 
     public static List<ModelType> getModelTypeList() {

@@ -17,7 +17,7 @@ public class IoUtil extends StreamUtils {
         if (closeable != null) {
             if (closeable instanceof Flushable) {
                 try {
-                    ((Flushable)closeable).flush();
+                    ((Flushable) closeable).flush();
                 } catch (IOException var3) {
                     log.error(var3.getMessage(), var3);
                 }
@@ -31,6 +31,7 @@ public class IoUtil extends StreamUtils {
 
         }
     }
+
     public static String readToString(InputStream input) {
         return readToString(input, Charsets.UTF_8);
     }

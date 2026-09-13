@@ -29,12 +29,12 @@ public enum ResultCode implements IResultCode {
     final int code;
     final String message;
 
-    public String toString() {
-        return JSONUtil.toJsonStr(this);
-    }
-
     ResultCode(final int code, final String message) {
         this.code = code;
         this.message = message;
+    }
+
+    public String toString() {
+        return JSONUtil.toJsonStr(this);
     }
 }

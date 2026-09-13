@@ -8,7 +8,9 @@ import org.codehaus.groovy.control.CompilationFailedException;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.Map; /**
+import java.util.Map;
+
+/**
  * Groovy 脚本编译缓存。
  * <p>
  * Groovy 每次编译都会生成新的 Class，重复编译既浪费 CPU 又导致 metaspace 增长。
@@ -19,7 +21,9 @@ import java.util.Map; /**
  */
 public final class GroovyScriptCache {
 
-    /** 编译缓存最大条目数，超出按 LRU 淘汰 */
+    /**
+     * 编译缓存最大条目数，超出按 LRU 淘汰
+     */
     private static final int MAX_CACHED_SCRIPTS = 256;
 
     /**
@@ -33,21 +37,21 @@ public final class GroovyScriptCache {
                 }
             });
 
-    /** 编译产物：脚本类及其专属 ClassLoader。 */
-    public record CompiledScript(GroovyClassLoader loader, Class<?> scriptClass) {
-    }
-
     private GroovyScriptCache() {
     }
 
-    /** 获取脚本编译结果，未缓存时编译并放入缓存。 */
+    /**
+     * 获取脚本编译结果，未缓存时编译并放入缓存。
+     */
     public static CompiledScript get(String code) {
         synchronized (SCRIPT_CACHE) {
             return SCRIPT_CACHE.computeIfAbsent(cacheKey(code), key -> compileScript(code));
         }
     }
 
-    /** 脚本是否已进入编译缓存。 */
+    /**
+     * 脚本是否已进入编译缓存。
+     */
     public static boolean contains(String code) {
         return SCRIPT_CACHE.containsKey(cacheKey(code));
     }
@@ -76,5 +80,11 @@ public final class GroovyScriptCache {
             throw new RuntimeException(I18nUtil.get("tool.groovy.script.execution.failed", "unsupported script structure"));
         }
         return new CompiledScript(loader, scriptClass);
+    }
+
+    /**
+     * 编译产物：脚本类及其专属 ClassLoader。
+     */
+    public record CompiledScript(GroovyClassLoader loader, Class<?> scriptClass) {
     }
 }

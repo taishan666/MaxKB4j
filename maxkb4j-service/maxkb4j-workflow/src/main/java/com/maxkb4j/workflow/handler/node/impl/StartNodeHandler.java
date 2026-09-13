@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.START)
@@ -36,7 +37,7 @@ public class StartNodeHandler extends AbsNodeHandler {
             Map<String, Object> chatVariable = getChatVariable(node, chatParams.getChatId());
             workflow.getChatContext().putAll(chatVariable);
             JSONObject config = node.getProperties().getJSONObject(NodeField.CONFIG);
-            if (config != null){
+            if (config != null) {
                 JSONArray globalFields = config.getJSONArray(ChatField.GLOBAL_FIELDS);
                 if (globalFields != null) {
                     for (int i = 0; i < globalFields.size(); i++) {
@@ -53,7 +54,7 @@ public class StartNodeHandler extends AbsNodeHandler {
                         JSONObject chatField = chatFields.getJSONObject(i);
                         String key = chatField.getString(VariableField.VALUE);
                         chatField.put(VariableField.KEY, key);
-                        chatField.put(VariableField.VALUE, workflow.getChatContext().getOrDefault(key,Defaults.NONE));
+                        chatField.put(VariableField.VALUE, workflow.getChatContext().getOrDefault(key, Defaults.NONE));
                     }
                     putDetail(node, ChatField.CHAT_FIELDS, chatFields);
                 }
@@ -77,7 +78,7 @@ public class StartNodeHandler extends AbsNodeHandler {
         resultMap.put(ChatField.CHAT_USER_ID, chatWorkflow.getChatState().getChatUserId());
         resultMap.put(ChatField.CHAT_USER_TYPE, chatWorkflow.getChatState().getChatUserType());
         resultMap.put(ChatField.CHAT_USER, chatWorkflow.getChatState().getChatUser());
-        if (chatParams.getFormData() != null){
+        if (chatParams.getFormData() != null) {
             resultMap.putAll(chatParams.getFormData());
         }
         return resultMap;

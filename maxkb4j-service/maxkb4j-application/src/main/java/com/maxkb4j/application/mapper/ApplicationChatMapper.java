@@ -16,11 +16,11 @@ import java.util.List;
  * @date 2024-12-26 09:50:23
  */
 @Mapper
-public interface ApplicationChatMapper extends BaseMapper<ApplicationChatEntity>{
+public interface ApplicationChatMapper extends BaseMapper<ApplicationChatEntity> {
 
     IPage<ApplicationChatEntity> chatLogs(IPage<ApplicationChatEntity> page, @Param("appId") String appId, @Param("query") ChatQueryDTO query);
 
-    List<ChatRecordDetailVO> chatRecordDetail(List<String>  ids);
+    List<ChatRecordDetailVO> chatRecordDetail(List<String> ids);
 
     List<ApplicationStatisticsVO> statistics(String appId, ChatQueryDTO query);
 

@@ -7,7 +7,7 @@ import java.security.NoSuchAlgorithmException;
 public class MD5Util {
 
 
-    public static String encrypt(String text){
+    public static String encrypt(String text) {
         MessageDigest md;
         try {
             md = MessageDigest.getInstance("MD5");
@@ -24,7 +24,7 @@ public class MD5Util {
         return sb.toString();
     }
 
-    public static String encrypt(String text,int beginIndex, int endIndex){
+    public static String encrypt(String text, int beginIndex, int endIndex) {
         return encrypt(text).substring(beginIndex, endIndex);
     }
 }

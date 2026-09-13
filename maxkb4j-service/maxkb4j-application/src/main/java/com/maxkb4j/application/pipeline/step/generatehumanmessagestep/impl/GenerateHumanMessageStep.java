@@ -15,12 +15,13 @@ import java.util.List;
 public class GenerateHumanMessageStep extends AbsGenerateHumanMessageStep {
 
     public static final RagContentInjector contentInjector = new RagContentInjector();
+
     @Override
     protected String execute(LlmModelSetting llmModelSetting, KnowledgeSetting knowledgeSetting, String problemText, List<ParagraphRagVO> paragraphList) {
         String safeProblemText = problemText != null ? problemText : "";
         int maxCharNumber = knowledgeSetting.getMaxParagraphCharNumber();
         if (!CollectionUtils.isEmpty(paragraphList)) {
-           return contentInjector.inject(paragraphList, safeProblemText,maxCharNumber);
+            return contentInjector.inject(paragraphList, safeProblemText, maxCharNumber);
         }
         return safeProblemText;
     }

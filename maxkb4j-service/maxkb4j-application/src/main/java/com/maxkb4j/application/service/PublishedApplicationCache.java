@@ -23,10 +23,14 @@ public class PublishedApplicationCache {
 
     private static final int INITIAL_CAPACITY = 64;
 
-    /** 缓存最大容量（应用数）。 */
+    /**
+     * 缓存最大容量（应用数）。
+     */
     private static final int MAXIMUM_SIZE = 1000;
 
-    /** 缓存过期时间（分钟）。 */
+    /**
+     * 缓存过期时间（分钟）。
+     */
     private static final int EXPIRE_AFTER_WRITE_MINUTES = 10;
 
     private final ApplicationVersionService applicationVersionService;
@@ -37,6 +41,13 @@ public class PublishedApplicationCache {
             .maximumSize(MAXIMUM_SIZE)
             .expireAfterWrite(EXPIRE_AFTER_WRITE_MINUTES, TimeUnit.MINUTES)
             .build();
+
+    private static ApplicationVO deepCopy(ApplicationVO source) {
+        if (source == null) {
+            return null;
+        }
+        return JSONObject.parseObject(JSON.toJSONString(source), ApplicationVO.class);
+    }
 
     /**
      * 获取应用最新发布版本的详情，未发布过或无版本时返回 null。
@@ -56,12 +67,5 @@ public class PublishedApplicationCache {
         if (appId != null) {
             cache.invalidate(appId);
         }
-    }
-
-    private static ApplicationVO deepCopy(ApplicationVO source) {
-        if (source == null) {
-            return null;
-        }
-        return JSONObject.parseObject(JSON.toJSONString(source), ApplicationVO.class);
     }
 }

@@ -17,16 +17,16 @@ import java.util.List;
  * @date 2024-12-29 10:34:03
  */
 @Service
-public class ApplicationChatUserStatsService extends ServiceImpl<ApplicationChatUserStatsMapper, ApplicationChatUserStatsEntity>{
+public class ApplicationChatUserStatsService extends ServiceImpl<ApplicationChatUserStatsMapper, ApplicationChatUserStatsEntity> {
 
     public List<ApplicationStatisticsVO> getCustomerCountTrend(String appId, ChatQueryDTO query) {
-        return baseMapper.getCustomerCountTrend(appId,query);
+        return baseMapper.getCustomerCountTrend(appId, query);
     }
 
     public ApplicationChatUserStatsEntity getByUserIdAndAppId(String chatUserId, String appId) {
         return this.getOne(Wrappers.<ApplicationChatUserStatsEntity>lambdaQuery()
-                        .select(ApplicationChatUserStatsEntity::getId,ApplicationChatUserStatsEntity::getAccessNum,ApplicationChatUserStatsEntity::getIntraDayAccessNum)
-                .eq(ApplicationChatUserStatsEntity::getChatUserId,chatUserId).eq(ApplicationChatUserStatsEntity::getApplicationId,appId));
+                .select(ApplicationChatUserStatsEntity::getId, ApplicationChatUserStatsEntity::getAccessNum, ApplicationChatUserStatsEntity::getIntraDayAccessNum)
+                .eq(ApplicationChatUserStatsEntity::getChatUserId, chatUserId).eq(ApplicationChatUserStatsEntity::getApplicationId, appId));
     }
 
     /**

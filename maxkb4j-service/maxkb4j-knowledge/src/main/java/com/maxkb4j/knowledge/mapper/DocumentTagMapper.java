@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 public interface DocumentTagMapper extends BaseMapper<DocumentTagEntity> {
-    List<TagEntity> listTags(String docId,String name);
+    List<TagEntity> listTags(String docId, String name);
 
     List<DocumentTagVO> listTagsByDocIds(@Param("docIds") List<String> docIds);
 }

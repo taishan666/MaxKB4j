@@ -84,7 +84,7 @@ public class ToolProviderServiceImpl implements IToolProviderService {
 
     @Override
     public List<AiServiceTool> getKnowledgeTools(List<String> knowledgeIds, KnowledgeSetting knowledgeSetting) throws ApiException {
-        return knowledgeToolService.buildTools(knowledgeIds,knowledgeSetting);
+        return knowledgeToolService.buildTools(knowledgeIds, knowledgeSetting);
     }
 
     @Override

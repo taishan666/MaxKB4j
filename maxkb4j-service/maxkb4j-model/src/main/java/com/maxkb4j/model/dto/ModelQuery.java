@@ -12,5 +12,5 @@ public class ModelQuery implements PermissionScopeAware {
     private String modelType;
     private String createUser;
     private List<String> targetIds;
-    private Boolean isAdmin=false;
+    private Boolean isAdmin = false;
 }

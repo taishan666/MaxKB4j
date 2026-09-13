@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.VARIABLE_AGGREGATE)
@@ -25,6 +26,20 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
     static {
         STRATEGY_MAP.put(VariableStrategy.FIRST_NON_NULL, VariableAggregationNodeHandler::getFirstNonNull);
         STRATEGY_MAP.put(VariableStrategy.VARIABLE_TO_JSON, VariableAggregationNodeHandler::getCollection);
+    }
+
+    public static Object getFirstNonNull(List<VariableAggregationNode.Variable> variableList) {
+        return variableList.stream()
+                .map(VariableAggregationNode.Variable::getValue)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public static Object getCollection(List<VariableAggregationNode.Variable> variableList) {
+        return variableList.stream()
+                .map(VariableAggregationNode.Variable::getValue)
+                .toList();
     }
 
     @Override
@@ -60,7 +75,7 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
         for (VariableAggregationNode.Variable e : variableList) {
             String nodeId = e.getVariable().getFirst();
             INode lfNode = workflow.getNode(nodeId);
-            String nodeName =lfNode==null?"未知节点": lfNode.getProperties().getString(RuntimeDetailField.NODE_NAME);
+            String nodeName = lfNode == null ? "未知节点" : lfNode.getProperties().getString(RuntimeDetailField.NODE_NAME);
             e.setNodeName(nodeName == null ? "未知节点" : nodeName);
             String field = e.getVariable().get(1);
             Object value = workflow.getReferenceField(e.getVariable());
@@ -69,23 +84,8 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
         }
     }
 
-
     @FunctionalInterface
     public interface StrategyFunction {
         Object apply(List<VariableAggregationNode.Variable> variableList);
-    }
-
-    public static Object getFirstNonNull(List<VariableAggregationNode.Variable> variableList) {
-        return variableList.stream()
-                .map(VariableAggregationNode.Variable::getValue)
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(null);
-    }
-
-    public static Object getCollection(List<VariableAggregationNode.Variable> variableList) {
-        return variableList.stream()
-                .map(VariableAggregationNode.Variable::getValue)
-                .toList();
     }
 }

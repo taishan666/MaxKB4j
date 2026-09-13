@@ -25,7 +25,7 @@ import java.util.List;
 public class ProblemParagraphServiceImpl extends ServiceImpl<ProblemParagraphMapper, ProblemParagraphEntity> implements IProblemParagraphService {
 
     private final ProblemMapper problemMapper;
-   // private final KnowledgeModelService knowledgeModelService;
+    // private final KnowledgeModelService knowledgeModelService;
     private final IDataStore compositeStore;
 
     public List<ProblemEntity> getProblemsByParagraphId(String paragraphId) {
@@ -43,8 +43,8 @@ public class ProblemParagraphServiceImpl extends ServiceImpl<ProblemParagraphMap
         problemParagraph.setProblemId(problemId);
         problemParagraph.setParagraphId(paragraphId);
         problemParagraph.setDocumentId(docId);
-        LambdaQueryWrapper<ProblemEntity> wrapper= Wrappers.<ProblemEntity>lambdaQuery().select(ProblemEntity::getContent).eq(ProblemEntity::getId,problemId);
-        ProblemEntity  problem= problemMapper.selectOne(wrapper);
+        LambdaQueryWrapper<ProblemEntity> wrapper = Wrappers.<ProblemEntity>lambdaQuery().select(ProblemEntity::getContent).eq(ProblemEntity::getId, problemId);
+        ProblemEntity problem = problemMapper.selectOne(wrapper);
         problemParagraph.setContent(problem.getContent());
         return this.save(problemParagraph);
     }

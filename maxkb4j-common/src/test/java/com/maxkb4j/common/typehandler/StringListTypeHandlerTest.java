@@ -24,7 +24,9 @@ class StringListTypeHandlerTest {
 
     private final StringListTypeHandler handler = new StringListTypeHandler();
 
-    /** 构造一个返回给定原始值的 Array mock（先完成自身打桩，避免嵌套打桩）。 */
+    /**
+     * 构造一个返回给定原始值的 Array mock（先完成自身打桩，避免嵌套打桩）。
+     */
     private Array arrayWith(Object raw) throws Exception {
         Array array = mock(Array.class);
         when(array.getArray()).thenReturn(raw);

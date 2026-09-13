@@ -68,7 +68,7 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/split")
     public R<List<TextSegmentVO>> split(@PathVariable String id, MultipartFile[] file, String[] patterns, Integer limit, Boolean withFilter) throws IOException {
-        return R.data(documentImportService.split(id,file, patterns, limit, withFilter));
+        return R.data(documentImportService.split(id, file, patterns, limit, withFilter));
     }
 
 
@@ -151,7 +151,7 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DELETE)
     @DeleteMapping("/knowledge/{id}/document/{docId}")
     public R<Boolean> deleteDoc(@PathVariable("id") String id, @PathVariable("docId") String docId) {
-        return R.status(documentService.deleteDocByIds(id,List.of(docId)));
+        return R.status(documentService.deleteDocByIds(id, List.of(docId)));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)

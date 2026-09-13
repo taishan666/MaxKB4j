@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
@@ -47,7 +48,7 @@ public class QuestionNodeHandler extends AbsNodeHandler {
         String chatId = (String) workflow.getGlobalContext().get(ChatField.CHAT_ID);
         Assistant assistant = AiServiceFactory.builder(Assistant.class)
                 .systemMessage(systemPrompt)
-                .chatMemory(AiChatMemory.withMessages(chatId,historyMessages))
+                .chatMemory(AiChatMemory.withMessages(chatId, historyMessages))
                 .chatModel(chatModel)
                 .build();
 

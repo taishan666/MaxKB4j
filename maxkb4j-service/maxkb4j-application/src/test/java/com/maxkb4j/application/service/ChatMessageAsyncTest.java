@@ -36,6 +36,32 @@ class ChatMessageAsyncTest {
 
     private static final String CHAT_ID = "chat-async-test";
 
+    private static ChatParams chatParams() {
+        return ChatParams.builder().chatId(CHAT_ID).message("hello").reChat(false).stream(true).build();
+    }
+
+    private static ChatState chatState() {
+        return ChatState.builder()
+                .appId("app-1")
+                .chatUserId("user-1")
+                .debug(false)
+                .build();
+    }
+
+    private static Throwable awaitTermination(Sinks.Many<ChatMessageVO> sink) throws InterruptedException {
+        AtomicReference<Throwable> errorRef = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        sink.asFlux().subscribe(
+                message -> {
+                },
+                error -> {
+                    errorRef.set(error);
+                    latch.countDown();
+                },
+                latch::countDown);
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "SSE 流应在超时前终止");
+        return errorRef.get();
+    }
 
     @AfterEach
     void tearDown() {
@@ -53,32 +79,6 @@ class ChatMessageAsyncTest {
                 mock(PostResponseHandler.class),
                 Runnable::run,
                 mock(ApplicationChatShareLinkMapper.class));
-    }
-
-    private static ChatParams chatParams() {
-        return ChatParams.builder().chatId(CHAT_ID).message("hello").reChat(false).stream(true).build();
-    }
-
-    private static ChatState chatState() {
-        return ChatState.builder()
-                .appId("app-1")
-                .chatUserId("user-1")
-                .debug(false)
-                .build();
-    }
-
-    private static Throwable awaitTermination(Sinks.Many<ChatMessageVO> sink) throws InterruptedException {
-        AtomicReference<Throwable> errorRef = new AtomicReference<>();
-        CountDownLatch latch = new CountDownLatch(1);
-        sink.asFlux().subscribe(
-                message -> { },
-                error -> {
-                    errorRef.set(error);
-                    latch.countDown();
-                },
-                latch::countDown);
-        assertTrue(latch.await(5, TimeUnit.SECONDS), "SSE 流应在超时前终止");
-        return errorRef.get();
     }
 
     @Test

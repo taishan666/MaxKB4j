@@ -31,10 +31,10 @@ public class ToolValidationHandler {
             if (jsonStr == null || jsonStr.trim().isEmpty()) {
                 return false;
             }
-            if (!JSONUtil.isTypeJSONObject(jsonStr)){
+            if (!JSONUtil.isTypeJSONObject(jsonStr)) {
                 throw new ToolValidationException("MCP服务器配置解析失败");
             }
-            JSONObject root= JSONUtil.parseObj(jsonStr);
+            JSONObject root = JSONUtil.parseObj(jsonStr);
             for (String fieldName : root.keySet()) {
                 Object valueObj = root.get(fieldName);
                 // 每个值必须是 JSONObject (对应原代码的 isObject())

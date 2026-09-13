@@ -2,10 +2,10 @@
 
 ## 支持版本
 
-| 版本 | 安全支持状态 |
-| --- | --- |
-| 最新稳定版（见 [Tags / Releases](https://github.com/taishan666/MaxKB4j/tags)） | ✅ 积极维护 |
-| 历史版本 | ❌ 已停止维护，请升级到最新版 |
+| 版本                                                                     | 安全支持状态          |
+|------------------------------------------------------------------------|-----------------|
+| 最新稳定版（见 [Tags / Releases](https://github.com/taishan666/MaxKB4j/tags)） | ✅ 积极维护          |
+| 历史版本                                                                   | ❌ 已停止维护，请升级到最新版 |
 
 ## 报告漏洞
 
@@ -26,11 +26,11 @@
 
 ## 响应承诺
 
-| 阶段 | 时限 |
-| --- | --- |
-| 确认收到报告 | 48 小时内 |
-| 初步评估（确认与否、影响等级） | 7 天内 |
-| 修复与发布 | 确认后尽快完成，高危漏洞优先处理 |
+| 阶段              | 时限               |
+|-----------------|------------------|
+| 确认收到报告          | 48 小时内           |
+| 初步评估（确认与否、影响等级） | 7 天内             |
+| 修复与发布           | 确认后尽快完成，高危漏洞优先处理 |
 
 ## 安全公告
 
@@ -42,10 +42,10 @@
 
 ## Supported Versions
 
-| Version | Security Support |
-| --- | --- |
-| Latest stable release (see [Tags / Releases](https://github.com/taishan666/MaxKB4j/tags)) | ✅ Actively maintained |
-| Older versions | ❌ End of life, please upgrade |
+| Version                                                                                   | Security Support              |
+|-------------------------------------------------------------------------------------------|-------------------------------|
+| Latest stable release (see [Tags / Releases](https://github.com/taishan666/MaxKB4j/tags)) | ✅ Actively maintained         |
+| Older versions                                                                            | ❌ End of life, please upgrade |
 
 ## Reporting a Vulnerability
 
@@ -66,12 +66,13 @@ Please include, where possible:
 
 ## Response Timeline
 
-| Stage | Timeframe |
-| --- | --- |
-| Acknowledge receipt | Within 48 hours |
-| Initial assessment (confirmation & severity) | Within 7 days |
-| Fix & release | As soon as possible after confirmation; high-severity issues are prioritized |
+| Stage                                        | Timeframe                                                                    |
+|----------------------------------------------|------------------------------------------------------------------------------|
+| Acknowledge receipt                          | Within 48 hours                                                              |
+| Initial assessment (confirmation & severity) | Within 7 days                                                                |
+| Fix & release                                | As soon as possible after confirmation; high-severity issues are prioritized |
 
 ## Security Advisories
 
-After a fix is released, details will be published in the Release Notes and [CHANGELOG.md](./CHANGELOG.md). Thank you to every researcher and user who helps make MaxKB4j more secure.
+After a fix is released, details will be published in the Release Notes and [CHANGELOG.md](./CHANGELOG.md). Thank you to
+every researcher and user who helps make MaxKB4j more secure.

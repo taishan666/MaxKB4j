@@ -38,8 +38,8 @@ public final class ResourcePermissionQuerySupport {
     /**
      * 分页查询某类资源，并按名称和权限过滤。
      *
-     * @param iconGetter       资源图标的取值方式，不同资源类型图标来源不同（应用/工具取 icon，模型取 provider，知识库为空串）
-     * @param extraConditions  额外的 wrapper 条件，可为 null
+     * @param iconGetter      资源图标的取值方式，不同资源类型图标来源不同（应用/工具取 icon，模型取 provider，知识库为空串）
+     * @param extraConditions 额外的 wrapper 条件，可为 null
      */
     public static <E extends BaseEntity> IPage<UserResourcePermissionVO> pageResource(
             Page<E> page,

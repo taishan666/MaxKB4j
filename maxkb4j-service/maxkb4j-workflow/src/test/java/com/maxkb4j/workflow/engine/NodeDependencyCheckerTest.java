@@ -17,7 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class NodeDependencyCheckerTest {
 
     private AbsNode node(String id) {
-        return new AbsNode(id, new JSONObject()) {};
+        return new AbsNode(id, new JSONObject()) {
+        };
     }
 
     private LfEdge edge(String source, String target) {

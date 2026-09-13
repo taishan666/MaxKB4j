@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Executor;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.BeanName;
 
 @Slf4j
@@ -35,7 +36,7 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler {
     protected void onNodeStart(IWorkflow workflow, AbsNode node) {
         if (workflow instanceof IChatWorkflow chatWorkflow) {
             ChatParams chatParams = chatWorkflow.getChatParams();
-            ChatMessageVO nodeStartVo =node.toChatMessageVO(
+            ChatMessageVO nodeStartVo = node.toChatMessageVO(
                     chatParams.getChatId(),
                     chatParams.getChatRecordId(),
                     "",

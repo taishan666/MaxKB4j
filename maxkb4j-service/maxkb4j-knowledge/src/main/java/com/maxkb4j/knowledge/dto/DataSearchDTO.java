@@ -8,9 +8,9 @@ import java.util.List;
 @Data
 public class DataSearchDTO {
     @NotBlank(message = "查询内容不能为空")
-    private String  queryText;
-    private String  searchMode;
-    private Float  similarity;
-    private Integer  topNumber;
+    private String queryText;
+    private String searchMode;
+    private Float similarity;
+    private Integer topNumber;
     private List<String> excludeParagraphIds;
 }

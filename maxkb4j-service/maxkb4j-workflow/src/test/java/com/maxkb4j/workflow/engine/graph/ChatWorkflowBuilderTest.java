@@ -19,7 +19,8 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 class ChatWorkflowBuilderTest {
 
     private AbsNode node(String id) {
-        return new AbsNode(id, new JSONObject()) {};
+        return new AbsNode(id, new JSONObject()) {
+        };
     }
 
     private ChatState chatStateWithDetails() {

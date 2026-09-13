@@ -1,4 +1,5 @@
 package com.maxkb4j.workflow.node.impl;
+
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
@@ -12,13 +13,14 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.APPLICATION)
 public class ApplicationNode extends AbsNode {
 
-    public ApplicationNode(String id,JSONObject properties) {
-        super(id,properties);
+    public ApplicationNode(String id, JSONObject properties) {
+        super(id, properties);
     }
 
     @Override

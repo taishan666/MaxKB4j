@@ -96,7 +96,6 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
     }
 
 
-
     /**
      * 批量删除多个知识库下的文档及其标签，用 {@code IN (...)} 合并查询，避免逐个知识库往返。
      */
@@ -153,7 +152,7 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
     }
 
     public boolean batchGenerateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(),dto.getModelParamsSetting(), dto.getNumber(), dto.getStateList()));
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getModelParamsSetting(), dto.getNumber(), dto.getStateList()));
         return true;
     }
 

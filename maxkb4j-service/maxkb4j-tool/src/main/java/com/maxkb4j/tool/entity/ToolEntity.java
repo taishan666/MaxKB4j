@@ -19,7 +19,7 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "tool",autoResultMap = true)
+@TableName(value = "tool", autoResultMap = true)
 public class ToolEntity extends BaseEntity {
 
     private String name;

@@ -16,8 +16,8 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.USER_SELECT)
 public class UserSelectNode extends AbsNode {
-    public UserSelectNode(String id,JSONObject properties) {
-        super(id,properties);
+    public UserSelectNode(String id, JSONObject properties) {
+        super(id, properties);
         super.setViewType(ViewType.SINGLE_VIEW);
     }
 
@@ -27,8 +27,8 @@ public class UserSelectNode extends AbsNode {
     }
 
     @Override
-    public List<Answer> getAnswerList(String chatRecordId)  {
-        String runtimeNodeId=super.getRuntimeNodeId();
+    public List<Answer> getAnswerList(String chatRecordId) {
+        String runtimeNodeId = super.getRuntimeNodeId();
         String formRender = FormRenderUtil.buildFormRender(new JSONObject(detail), FormField.CARD_SELECTION_RENDER_TAG);
         return List.of(Answer.builder().content(formRender).reasoningContent("").chatRecordId(chatRecordId).runtimeNodeId(runtimeNodeId).viewType(this.getViewType()).build());
     }

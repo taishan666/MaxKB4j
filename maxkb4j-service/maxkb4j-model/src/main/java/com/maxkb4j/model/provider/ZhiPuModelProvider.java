@@ -1,4 +1,5 @@
 package com.maxkb4j.model.provider;
+
 import com.maxkb4j.model.annotation.ModelProviderType;
 import org.springframework.stereotype.Component;
 
@@ -6,6 +7,7 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 
 import java.util.List;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
@@ -34,13 +36,14 @@ public class ZhiPuModelProvider extends OpenAiModelProvider {
             new ModelInfo(ModelName.COGVIEW_4, "", ModelType.TTI),
             new ModelInfo(ModelName.COGVIEW_3_FLASH, "", ModelType.TTI)
     );
+
     @Override
     public List<ModelInfo> getModelList() {
         return MODEL_INFOS;
     }
 
     @Override
-    public String getDefaultBaseUrl(){
+    public String getDefaultBaseUrl() {
         return BASE_URL;
     }
 }

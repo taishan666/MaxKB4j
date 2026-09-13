@@ -1,4 +1,5 @@
 package com.maxkb4j.model.provider;
+
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.annotation.ModelProviderType;
 import com.maxkb4j.model.entity.ModelCredential;
@@ -12,6 +13,7 @@ import com.maxkb4j.model.vo.ModelInfo;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
@@ -57,7 +59,7 @@ public class VolcanicEngineModelProvider extends OpenAiModelProvider {
     }
 
     @Override
-    public String getDefaultBaseUrl(){
+    public String getDefaultBaseUrl() {
         return BASE_URL;
     }
 }

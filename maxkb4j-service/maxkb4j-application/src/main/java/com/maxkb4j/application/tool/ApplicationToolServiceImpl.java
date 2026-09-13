@@ -82,7 +82,7 @@ public class ApplicationToolServiceImpl implements IAgentToolService {
      */
     private ToolSpecification buildAgentSpecification(ApplicationSimple app) {
         JsonObjectSchema parameters = JsonObjectSchema.builder()
-                .addStringProperty("message","user input")
+                .addStringProperty("message", "user input")
                 .required("message")
                 .build();
         return ToolSpecification.builder()

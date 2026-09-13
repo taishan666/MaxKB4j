@@ -42,7 +42,7 @@ public class ToolFormatterServiceImpl implements IToolFormatterService {
         RenderMeta meta = ref == null ? null : resolveMeta(ref.type(), ref.id());
         if (meta == null) {
             meta = RenderMeta.fallback(request.name());
-          //  return "";
+            //  return "";
         }
         return MessageUtils.buildToolCallRender(
                 request.id(), status, meta.icon(), meta.name(), meta.toolType(),

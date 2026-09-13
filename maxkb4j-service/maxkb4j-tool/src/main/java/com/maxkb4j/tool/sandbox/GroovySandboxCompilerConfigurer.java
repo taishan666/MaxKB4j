@@ -35,7 +35,7 @@ import java.util.Set;
  * 编译期防护包含两部分：
  * 1. AST 限制（SecureASTCustomizer）：类引用仅限白名单、限制常量类型、禁止危险导入；
  * 2. 沙箱转换（SandboxTransformer）：向字节码注入运行期拦截点，
- *    交由 {@link GroovySandboxInterceptor} 在运行期执行白名单校验。
+ * 交由 {@link GroovySandboxInterceptor} 在运行期执行白名单校验。
  * </p>
  */
 public final class GroovySandboxCompilerConfigurer {
@@ -48,7 +48,7 @@ public final class GroovySandboxCompilerConfigurer {
         // ========== 1. 导入限制 ==========
         ImportCustomizer importCustomizer = new ImportCustomizer();
         importCustomizer.addStaticStars("java.lang.Math");
-        importCustomizer.addStarImports("groovy.json", "groovy.xml", "net.objecthunter.exp4j","java.nio.file");
+        importCustomizer.addStarImports("groovy.json", "groovy.xml", "net.objecthunter.exp4j", "java.nio.file");
         // SearXNG 模板脚本（templates/tool/web_search/SearXNG-1.0.0.tool）未显式 import 即裸用
         // SearXNGWebSearchEngine，而该类实际位于 dev.langchain4j.community.web.search.searxng 包
         // （非脚本作者直觉的 dev.langchain4j.web.search），需星号导入才能解析
@@ -276,7 +276,9 @@ public final class GroovySandboxCompilerConfigurer {
     private GroovySandboxCompilerConfigurer() {
     }
 
-    /** 沙箱脚本共用的安全编译配置（全局单例，禁止外部修改）。 */
+    /**
+     * 沙箱脚本共用的安全编译配置（全局单例，禁止外部修改）。
+     */
     public static CompilerConfiguration safeConfiguration() {
         return SAFE_CONFIG;
     }

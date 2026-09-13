@@ -4,43 +4,47 @@
 
     <!-- 多个字段中某个字段的类型处理器配置 -->
     <resultMap id="docResultMap" type="com.maxkb4j.knowledge.vo.DocumentVO">
-        <result property="meta" column="meta" typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler" />
-        <result property="statusMeta" column="status_meta" typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler" />
+        <result property="meta" column="meta"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler"/>
+        <result property="statusMeta" column="status_meta"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler"/>
     </resultMap>
     <update id="updateStatusMetaByIds">
         UPDATE "document"
         SET status_meta = jsonb_set ( "document".status_meta, '{aggs}', tmp.status_meta )
-            FROM
+        FROM
         (
         SELECT COALESCE
-                ( jsonb_agg ( jsonb_delete ( ( row_to_json ( record ) :: JSONB ), 'document_id' ) ), '[]' :: JSONB ) AS status_meta,
-                document_id AS document_id
+        ( jsonb_agg ( jsonb_delete ( ( row_to_json ( record ) :: JSONB ), 'document_id' ) ), '[]' :: JSONB ) AS
+        status_meta,
+        document_id AS document_id
         FROM
-                (
-                SELECT
-                        "paragraph".status,
-                        "count" ( "paragraph"."id" ),
-                        "document"."id" AS document_id
-                FROM
-                        "document"
-                        LEFT JOIN "paragraph" ON "document"."id" = paragraph.document_id
-                WHERE "document"."id" IN
-                    <foreach item="id" collection="ids" open="(" separator="," close=")">
-                        #{id}
-                    </foreach>
-            GROUP BY
-            "paragraph".status,
-            "document"."id"
-            ) record
-            GROUP BY
-            document_id
-            ) tmp
+        (
+        SELECT
+        "paragraph".status,
+        "count" ( "paragraph"."id" ),
+        "document"."id" AS document_id
+        FROM
+        "document"
+        LEFT JOIN "paragraph" ON "document"."id" = paragraph.document_id
+        WHERE "document"."id" IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        GROUP BY
+        "paragraph".status,
+        "document"."id"
+        ) record
+        GROUP BY
+        document_id
+        ) tmp
         WHERE "document".id="tmp".document_id;
     </update>
     <update id="updateStatusByIds">
         UPDATE "document"
         SET status = reverse (
-        SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR (#{type}-1) ) || #{status} || SUBSTRING ( reverse (
+        SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR (#{type}-1) ) || #{status} || SUBSTRING (
+        reverse (
         LPAD( status, 3, 'n' ) ) :: TEXT FROM (#{type}+1) )
         ),
         status_meta = jsonb_set (
@@ -60,10 +64,10 @@
     <update id="updateCharLengthById">
         UPDATE document doc
         SET char_length = COALESCE((
-                                       SELECT SUM(CHAR_LENGTH(content))
-                                       FROM paragraph p
-                                       WHERE p.document_id = doc.id
-                                   ), 0)
+        SELECT SUM(CHAR_LENGTH(content))
+        FROM paragraph p
+        WHERE p.document_id = doc.id
+        ), 0)
         WHERE doc.id =#{id};
     </update>
     <select id="selectDocPage" resultMap="docResultMap">
@@ -112,17 +116,17 @@
                 </if>
             </if>
             <if test="(query.tagExclude == null or !query.tagExclude) and (query.tags != null and !query.tags.isEmpty())">
-                    <bind name="tagCount" value="query.tags.size()"/>
-                    AND d.ID  IN (
-                    SELECT dt.document_id
-                    FROM document_tag dt
-                    WHERE dt.tag_id IN
-                    <foreach collection="query.tags" item="tagId" open="(" separator="," close=")">
-                        #{tagId}
-                    </foreach>
-                    GROUP BY dt.document_id
-                    HAVING COUNT(DISTINCT dt.tag_id) = #{tagCount}
-                    )
+                <bind name="tagCount" value="query.tags.size()"/>
+                AND d.ID IN (
+                SELECT dt.document_id
+                FROM document_tag dt
+                WHERE dt.tag_id IN
+                <foreach collection="query.tags" item="tagId" open="(" separator="," close=")">
+                    #{tagId}
+                </foreach>
+                GROUP BY dt.document_id
+                HAVING COUNT(DISTINCT dt.tag_id) = #{tagCount}
+                )
             </if>
         </where>
         ORDER BY d.create_time DESC

@@ -16,12 +16,12 @@ public class KnowledgeModelService {
     private final IModelProviderService modelFactory;
     private final KnowledgeMapper knowledgeMapper;
 
-    public EmbeddingModel getEmbeddingModel(String knowledgeId){
-        LambdaQueryWrapper<KnowledgeEntity> wrapper=Wrappers.<KnowledgeEntity>lambdaQuery()
+    public EmbeddingModel getEmbeddingModel(String knowledgeId) {
+        LambdaQueryWrapper<KnowledgeEntity> wrapper = Wrappers.<KnowledgeEntity>lambdaQuery()
                 .select(KnowledgeEntity::getEmbeddingModelId)
-                .eq(KnowledgeEntity::getId,knowledgeId);
-        KnowledgeEntity knowledge=knowledgeMapper.selectOne(wrapper);
-        if (knowledge==null){
+                .eq(KnowledgeEntity::getId, knowledgeId);
+        KnowledgeEntity knowledge = knowledgeMapper.selectOne(wrapper);
+        if (knowledge == null) {
             throw new RuntimeException("数据集不存在");
         }
         return modelFactory.buildEmbeddingModel(knowledge.getEmbeddingModelId());

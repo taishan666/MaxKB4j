@@ -23,8 +23,8 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 public class WebUtil extends WebUtils {
-    private static final Logger log = LoggerFactory.getLogger(WebUtil.class);
     public static final String USER_AGENT_HEADER = "user-agent";
+    private static final Logger log = LoggerFactory.getLogger(WebUtil.class);
     private static final String[] IP_HEADER_NAMES = new String[]{"x-forwarded-for", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"};
     private static final Predicate<String> IP_PREDICATE = (ip) -> StringUtils.isBlank(ip) || "unknown".equalsIgnoreCase(ip);
 
@@ -119,15 +119,15 @@ public class WebUtil extends WebUtils {
     }
 
     public static String getTokenValue() {
-        String authorization=getHeader("Authorization");
-        if (authorization==null||authorization.length()<9) return null;
-        return  authorization.substring(7);
+        String authorization = getHeader("Authorization");
+        if (authorization == null || authorization.length() < 9) return null;
+        return authorization.substring(7);
     }
 
     public static String getTokenValue(HttpServletRequest request) {
-        String authorization=request.getHeader("Authorization");
-        if (authorization==null||authorization.length()<9) return null;
-        return  authorization.substring(7);
+        String authorization = request.getHeader("Authorization");
+        if (authorization == null || authorization.length() < 9) return null;
+        return authorization.substring(7);
     }
 
     public static Enumeration<String> getHeaders(String name) {
@@ -144,7 +144,6 @@ public class WebUtil extends WebUtils {
         HttpServletRequest request = getRequest();
         return Objects.requireNonNull(request).getParameter(name);
     }
-
 
 
 }

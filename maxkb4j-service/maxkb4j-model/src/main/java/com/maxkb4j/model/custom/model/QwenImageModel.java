@@ -15,6 +15,7 @@ import dev.langchain4j.model.output.Response;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Slf4j

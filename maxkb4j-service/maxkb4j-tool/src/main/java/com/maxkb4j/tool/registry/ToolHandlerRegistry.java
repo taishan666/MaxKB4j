@@ -24,7 +24,9 @@ public class ToolHandlerRegistry {
         handlers.put(annotation.value(), handler);
     }
 
-    /** Get the handler for a tool type, or null if none registered. */
+    /**
+     * Get the handler for a tool type, or null if none registered.
+     */
     public AbsToolHandler get(String toolType) {
         if (toolType == null || toolType.isEmpty()) {
             return null;

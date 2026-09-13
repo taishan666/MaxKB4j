@@ -45,7 +45,7 @@ public class TriggerTaskExecutor {
         execute(triggerId, new JSONObject());
     }
 
-    public void execute(String triggerId,JSONObject data) {
+    public void execute(String triggerId, JSONObject data) {
         if (StringUtils.isBlank(triggerId)) {
             return;
         }
@@ -68,7 +68,8 @@ public class TriggerTaskExecutor {
                             if (fieldValue.containsKey("source")) {
                                 String source = fieldValue.getString("source");
                                 if ("reference".equals(source)) {
-                                    List<String> reference = fieldValue.getObject("value", new TypeReference<List<String>>() {});
+                                    List<String> reference = fieldValue.getObject("value", new TypeReference<List<String>>() {
+                                    });
                                     if (reference != null && reference.size() >= 2) {
                                         parameter.put(key, data.get(reference.get(1)));
                                     } else {
@@ -144,7 +145,7 @@ public class TriggerTaskExecutor {
         try {
             ToolDTO tool = toolService.getDtoById(toolId);
             JSONObject parameter = task.getParameter();
-            Object response=toolExecuteService.httpOrCodeExecute(tool.getToolType(),tool.getCode(),tool.getInitParams(),parameter);
+            Object response = toolExecuteService.httpOrCodeExecute(tool.getToolType(), tool.getCode(), tool.getInitParams(), parameter);
             float runTime = (System.currentTimeMillis() - startTime) / 1000f;
             TaskState state = (response != null) ? TaskState.SUCCESS : TaskState.FAILURE;
             JSONObject meta = new JSONObject();

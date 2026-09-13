@@ -1,4 +1,5 @@
 package com.maxkb4j.workflow.node.impl;
+
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
@@ -12,13 +13,14 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.RERANKER)
 public class RerankerNode extends AbsNode {
 
-    public RerankerNode(String id,JSONObject properties) {
-        super(id,properties);
+    public RerankerNode(String id, JSONObject properties) {
+        super(id, properties);
     }
 
     @Override
@@ -60,7 +62,7 @@ public class RerankerNode extends AbsNode {
     @Data
     public static class RerankResult {
         private String pageContent;
-        private Map<String,Object> metadata;
+        private Map<String, Object> metadata;
     }
 
 }

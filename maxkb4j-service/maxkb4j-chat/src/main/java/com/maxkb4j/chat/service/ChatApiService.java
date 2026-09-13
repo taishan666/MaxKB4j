@@ -46,14 +46,14 @@ public class ChatApiService {
     public String authToken(JSONObject params) {
         String accessToken = params.getString("accessToken");
         ApplicationAccessTokenDTO accessTokenEntity = accessTokenService.getByAccessToken(accessToken);
-        if (accessTokenEntity == null){
+        if (accessTokenEntity == null) {
             throw new ApiException("application.app.not.found");
         }
         String chatUserId = IdWorker.get32UUID();
         String tokenValue = WebUtil.getTokenValue();
-        if (StringUtils.isNotBlank(tokenValue)){
+        if (StringUtils.isNotBlank(tokenValue)) {
             StpKit.USER.setTokenValue(tokenValue);
-            chatUserId= StpKit.USER.getLoginIdAsString();
+            chatUserId = StpKit.USER.getLoginIdAsString();
         }
         Map<String, Object> extraData = new HashMap<>();
         extraData.put("applicationId", accessTokenEntity.getApplicationId());
@@ -172,7 +172,7 @@ public class ChatApiService {
                 case null, default -> resp.error = Map.of("code", -32601, "message", "Method not supported");
             }
         } catch (Exception e) {
-            resp.error = Map.of("code", -32000, "message", e.getMessage()==null?"":e.getMessage());
+            resp.error = Map.of("code", -32000, "message", e.getMessage() == null ? "" : e.getMessage());
         }
         return resp;
     }

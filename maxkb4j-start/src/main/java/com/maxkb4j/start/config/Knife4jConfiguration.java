@@ -66,6 +66,5 @@ public class Knife4jConfiguration {
     }
 
 
-
 }
 

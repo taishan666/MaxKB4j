@@ -25,6 +25,7 @@ public enum SettingType {
     CHAT_PLATFORM_SOURCE(8);
 
     private final int type;
+
     SettingType(int type) {
         this.type = type;
     }

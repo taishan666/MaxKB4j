@@ -11,6 +11,6 @@ public class KnowledgeQuery implements PermissionScopeAware {
     private String createUser;
     private String folderId;
     private List<String> targetIds;
-    private Boolean isAdmin=false;
+    private Boolean isAdmin = false;
     private Integer type;
 }

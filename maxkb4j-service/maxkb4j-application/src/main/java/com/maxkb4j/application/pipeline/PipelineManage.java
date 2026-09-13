@@ -37,17 +37,17 @@ public class PipelineManage {
     }
 
 
-    public Answer run(ApplicationVO application, ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink)  {
+    public Answer run(ApplicationVO application, ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
         if (application != null) {
-            this.application= application;
+            this.application = application;
         }
         if (chatParams != null) {
-            this.chatParams= chatParams;
+            this.chatParams = chatParams;
         }
         if (chatState != null) {
-            this.chatState= chatState;
+            this.chatState = chatState;
         }
-        if (sink != null){
+        if (sink != null) {
             this.sink = sink;
         }
         for (AbsStep step : stepList) {
@@ -62,21 +62,23 @@ public class PipelineManage {
                 throw new RuntimeException(e);
             }
         }
-        String answer =(String) this.context.getOrDefault("answer","");
-        String reasoningContent =(String) this.context.getOrDefault("reasoningContent","");
+        String answer = (String) this.context.getOrDefault("answer", "");
+        String reasoningContent = (String) this.context.getOrDefault("reasoningContent", "");
         return Answer.builder().content(answer).reasoningContent(reasoningContent).viewType("many_view").runtimeNodeId("ai-chat-node").build();
     }
+
     public List<ChatMessage> getHistoryMessages(int dialogueNumber) {
         return MessageConverter.toHistoryMessages(chatState.getHistoryChatRecords(), dialogueNumber);
     }
-    public JSONArray formatHistoryMessages(List<ChatMessage> historyMessages){
+
+    public JSONArray formatHistoryMessages(List<ChatMessage> historyMessages) {
         return MessageConverter.formatHistoryMessages(historyMessages);
     }
 
     @SuppressWarnings("unchecked")
     public List<String> getExcludeParagraphIds(String problemText) {
         List<String> excludeParagraphIds = new ArrayList<>();
-        List<ApplicationChatRecordEntity> chatRecordList= (List<ApplicationChatRecordEntity>) context.get("chatRecordList");
+        List<ApplicationChatRecordEntity> chatRecordList = (List<ApplicationChatRecordEntity>) context.get("chatRecordList");
         if (!CollectionUtils.isEmpty(chatRecordList)) {
             for (ApplicationChatRecordEntity chatRecord : chatRecordList) {
                 JSONObject details = chatRecord.getDetails();

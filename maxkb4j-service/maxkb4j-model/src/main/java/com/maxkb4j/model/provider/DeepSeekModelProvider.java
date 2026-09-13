@@ -1,4 +1,5 @@
 package com.maxkb4j.model.provider;
+
 import com.maxkb4j.model.annotation.ModelProviderType;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,7 @@ import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
@@ -31,7 +33,7 @@ public class DeepSeekModelProvider extends OpenAiModelProvider {
     );
 
     @Override
-    public String getDefaultBaseUrl(){
+    public String getDefaultBaseUrl() {
         return BASE_URL;
     }
 

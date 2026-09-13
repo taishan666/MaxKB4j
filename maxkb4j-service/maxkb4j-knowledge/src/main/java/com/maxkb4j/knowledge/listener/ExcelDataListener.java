@@ -23,7 +23,7 @@ public class ExcelDataListener<T> extends AnalysisEventListener<T> {
     }
 
     public void clear() {
-         this.dataList.clear();
+        this.dataList.clear();
     }
 
 

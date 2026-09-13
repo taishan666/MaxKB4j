@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
@@ -45,23 +46,25 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
 
     private static final int MODEL_CACHE_INITIAL_CAPACITY = 100;
 
-    /** 模型缓存最大容量。 */
+    /**
+     * 模型缓存最大容量。
+     */
     private static final int MODEL_CACHE_MAXIMUM_SIZE = 10000;
 
-    /** 模型缓存过期时间（分钟）。 */
+    /**
+     * 模型缓存过期时间（分钟）。
+     */
     private static final int MODEL_CACHE_EXPIRE_MINUTES = 1;
-
-    private final IUserResourcePermissionService userResourcePermissionService;
-    private final UserContext userContext;
-    private final DataPermissionSupport dataPermissionSupport;
-    private final ModelProviderRegistry providerRegistry;
-
     private static final Cache<String, ModelEntity> MODEL_CACHE = Caffeine.newBuilder()
             .initialCapacity(MODEL_CACHE_INITIAL_CAPACITY)
             .maximumSize(MODEL_CACHE_MAXIMUM_SIZE)
             .expireAfterWrite(MODEL_CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES)
             .expireAfterAccess(MODEL_CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES)
             .build();
+    private final IUserResourcePermissionService userResourcePermissionService;
+    private final UserContext userContext;
+    private final DataPermissionSupport dataPermissionSupport;
+    private final ModelProviderRegistry providerRegistry;
 
     @Override
     public List<ModelVO> models(ModelQuery query) {
@@ -74,20 +77,18 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     }
 
 
-
-
     @Transactional(rollbackFor = Exception.class)
     public boolean createModel(ModelEntity model) {
         String userId = userContext.getUserId();
-        if (checkModelExists(null,model.getName(),userId)) {
+        if (checkModelExists(null, model.getName(), userId)) {
             throw new ApiException(MessageCode.MODEL_NAME_EXISTS);
         }
-        if (model.getModelParamsForm() == null){
+        if (model.getModelParamsForm() == null) {
             model.setModelParamsForm(new JSONArray());
         }
-        AbsModelProvider  modelProvider= providerRegistry.get(model.getProvider());
+        AbsModelProvider modelProvider = providerRegistry.get(model.getProvider());
         JSONObject params = extractDefaultModelParams(model.getModelParamsForm());
-        modelProvider.modelIsValid(model.getModelType(),model.getModelName(),model.getCredential(),params);
+        modelProvider.modelIsValid(model.getModelType(), model.getModelName(), model.getCredential(), params);
         model.setUserId(userId);
         model.setMeta(new JSONObject());
         model.setStatus(ModelStatus.SUCCESS.getKey());
@@ -114,7 +115,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
 
     public ModelEntity updateModel(String id, ModelEntity model) {
         String userId = userContext.getUserId();
-        if (checkModelExists(id,model.getName(),userId)) {
+        if (checkModelExists(id, model.getName(), userId)) {
             throw new ApiException(MessageCode.MODEL_NAME_EXISTS);
         }
         model.setId(id);
@@ -128,9 +129,9 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
             credential.setBaseUrl(model.getCredential().getBaseUrl());
             model.setCredential(credential);
         }
-        AbsModelProvider  modelProvider= providerRegistry.get(entity.getProvider());
+        AbsModelProvider modelProvider = providerRegistry.get(entity.getProvider());
         JSONObject params = extractDefaultModelParams(entity.getModelParamsForm());
-        modelProvider.modelIsValid(model.getModelType(),model.getModelName(),model.getCredential(),params);
+        modelProvider.modelIsValid(model.getModelType(), model.getModelName(), model.getCredential(), params);
         this.updateById(model);
         evictCache(id);
         return model;
@@ -203,17 +204,17 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
         if (entity == null) {
             throw new ApiException(MessageCode.MODEL_NAME_NOT_FOUND);
         }
-        AbsModelProvider  modelProvider= providerRegistry.get(entity.getProvider());
+        AbsModelProvider modelProvider = providerRegistry.get(entity.getProvider());
         JSONObject params = extractDefaultModelParams(paramsForm);
-        modelProvider.modelIsValid(entity.getModelType(),entity.getModelName(),entity.getCredential(),params);
-        ModelEntity modelEntity= new ModelEntity();
+        modelProvider.modelIsValid(entity.getModelType(), entity.getModelName(), entity.getCredential(), params);
+        ModelEntity modelEntity = new ModelEntity();
         modelEntity.setId(id);
         modelEntity.setModelParamsForm(paramsForm);
         this.updateById(modelEntity);
     }
 
     private String getLastModelId(ModelType modelType) {
-        LambdaQueryWrapper<ModelEntity> wrapper= new LambdaQueryWrapper<>();
+        LambdaQueryWrapper<ModelEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ModelEntity::getModelType, modelType.getKey());
         applyDataPermission(wrapper);
         wrapper.orderByDesc(ModelEntity::getCreateTime);
@@ -237,12 +238,12 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     }
 
 
-    private boolean checkModelExists(String id, String name,String userId) {
+    private boolean checkModelExists(String id, String name, String userId) {
         long count;
-        if (StringUtils.isBlank(id)){
-             count = this.lambdaQuery().eq(ModelEntity::getName, name).eq(ModelEntity::getUserId, userId).count();
-        }else {
-             count = this.lambdaQuery().eq(ModelEntity::getName, name).eq(ModelEntity::getUserId, userId).ne(ModelEntity::getId, id).count();
+        if (StringUtils.isBlank(id)) {
+            count = this.lambdaQuery().eq(ModelEntity::getName, name).eq(ModelEntity::getUserId, userId).count();
+        } else {
+            count = this.lambdaQuery().eq(ModelEntity::getName, name).eq(ModelEntity::getUserId, userId).ne(ModelEntity::getId, id).count();
         }
         return count > 0;
     }

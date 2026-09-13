@@ -32,38 +32,38 @@ public class ParagraphMigrationService {
 
     @Transactional(rollbackFor = Exception.class)
     public Boolean paragraphMigrate(String sourceKnowledgeId, String sourceDocId, String targetKnowledgeId, String targetDocId, List<String> paragraphIds) {
-        compositeStore.deleteByParagraphIds(sourceKnowledgeId,paragraphIds);
-        if (sourceKnowledgeId.equals(targetKnowledgeId)){
+        compositeStore.deleteByParagraphIds(sourceKnowledgeId, paragraphIds);
+        if (sourceKnowledgeId.equals(targetKnowledgeId)) {
             problemParagraphService.lambdaUpdate()
                     .in(ProblemParagraphEntity::getParagraphId, paragraphIds)
                     .set(ProblemParagraphEntity::getKnowledgeId, targetKnowledgeId)
                     .set(ProblemParagraphEntity::getDocumentId, targetDocId)
                     .update();
-        }else {
+        } else {
             problemParagraphService.lambdaUpdate()
                     .in(ProblemParagraphEntity::getParagraphId, paragraphIds)
                     .eq(ProblemParagraphEntity::getKnowledgeId, sourceKnowledgeId)
                     .eq(ProblemParagraphEntity::getDocumentId, sourceDocId)
                     .remove();
         }
-        List<ParagraphEntity> sourceParagraphs=paragraphService.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, sourceKnowledgeId).eq(ParagraphEntity::getDocumentId, sourceDocId).orderByAsc(ParagraphEntity::getPosition).list();
-        int position=1;
+        List<ParagraphEntity> sourceParagraphs = paragraphService.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, sourceKnowledgeId).eq(ParagraphEntity::getDocumentId, sourceDocId).orderByAsc(ParagraphEntity::getPosition).list();
+        int position = 1;
         for (ParagraphEntity sourceParagraph : sourceParagraphs) {
             sourceParagraph.setPosition(position);
             position++;
         }
         paragraphService.updateBatchById(sourceParagraphs);
-        long targetCount=paragraphService.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, targetKnowledgeId).eq(ParagraphEntity::getDocumentId, targetDocId).count();
+        long targetCount = paragraphService.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, targetKnowledgeId).eq(ParagraphEntity::getDocumentId, targetDocId).count();
         for (String paragraphId : paragraphIds) {
             paragraphService.lambdaUpdate()
                     .set(ParagraphEntity::getKnowledgeId, targetKnowledgeId)
                     .set(ParagraphEntity::getDocumentId, targetDocId)
-                    .set(ParagraphEntity::getPosition, targetCount+1)
+                    .set(ParagraphEntity::getPosition, targetCount + 1)
                     .eq(ParagraphEntity::getId, paragraphId)
                     .update();
             targetCount++;
         }
-        eventPublisher.publishEvent(new ParagraphIndexEvent(this, targetKnowledgeId,targetDocId,paragraphIds));
+        eventPublisher.publishEvent(new ParagraphIndexEvent(this, targetKnowledgeId, targetDocId, paragraphIds));
         documentMapper.updateCharLengthById(sourceDocId);
         return documentMapper.updateCharLengthById(targetDocId);
     }

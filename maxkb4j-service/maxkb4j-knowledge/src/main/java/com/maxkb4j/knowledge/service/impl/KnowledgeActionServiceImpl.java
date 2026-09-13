@@ -14,7 +14,7 @@ import java.util.Date;
 @Service
 public class KnowledgeActionServiceImpl extends ServiceImpl<KnowledgeActionMapper, KnowledgeActionEntity> implements IKnowledgeActionInternalService {
 
-    public void updateState(String id, JSONObject details, String state){
+    public void updateState(String id, JSONObject details, String state) {
         KnowledgeActionEntity knowledgeActionEntity = baseMapper.selectById(id);
         knowledgeActionEntity.setDetails(details);
         knowledgeActionEntity.setState(state);

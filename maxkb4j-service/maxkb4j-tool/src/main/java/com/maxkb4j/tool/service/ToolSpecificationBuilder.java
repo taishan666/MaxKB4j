@@ -43,8 +43,10 @@ public class ToolSpecificationBuilder {
                 case "int" -> parametersBuilder.addIntegerProperty(name, description);
                 case "number" -> parametersBuilder.addNumberProperty(name, description);
                 case "boolean" -> parametersBuilder.addBooleanProperty(name, description);
-                case "array" -> parametersBuilder.addProperty(name, JsonArraySchema.builder().description(description).build());
-                case "object" -> parametersBuilder.addProperty(name, JsonObjectSchema.builder().description(description).build());
+                case "array" ->
+                        parametersBuilder.addProperty(name, JsonArraySchema.builder().description(description).build());
+                case "object" ->
+                        parametersBuilder.addProperty(name, JsonObjectSchema.builder().description(description).build());
                 default -> log.warn("Unsupported parameter type: {} for field: {}", type, name);
             }
         }

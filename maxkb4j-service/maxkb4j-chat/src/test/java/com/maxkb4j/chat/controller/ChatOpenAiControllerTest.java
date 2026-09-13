@@ -1,4 +1,5 @@
 package com.maxkb4j.chat.controller;
+
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.dto.ApplicationApiKeyDTO;
 import com.maxkb4j.application.dto.ChatResponse;
@@ -18,7 +19,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import reactor.core.publisher.Sinks;
+
 import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,6 +33,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
+
 /**
  * Regression tests for the OpenAI-compatible chat endpoint.
  *
@@ -44,6 +48,25 @@ class ChatOpenAiControllerTest {
     private MockMvc mvc;
     private IApplicationChatService chatService;
     private IApplicationApiKeyService apiKeyService;
+
+    private static ApplicationApiKeyDTO validApiKey() {
+        ApplicationApiKeyDTO apiKey = new ApplicationApiKeyDTO();
+        apiKey.setIsActive(true);
+        apiKey.setApplicationId("app-1");
+        return apiKey;
+    }
+
+    private static ChatResponse sampleChatResponse() {
+        return new ChatResponse(
+                List.of(Answer.builder().content("hello world").build()),
+                new JSONObject());
+    }
+
+    private static String body(boolean stream) {
+        return "{\"model\":\"test-model\",\"stream\":" + stream
+                + ",\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}";
+    }
+
     @BeforeEach
     void setUp() {
         chatService = mock(IApplicationChatService.class);
@@ -56,13 +79,14 @@ class ChatOpenAiControllerTest {
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
+
     @Test
     void streamTrue_wildcardAccept_routesToSse() throws Exception {
         doAnswer(invocation -> {
-                    Sinks.Many<ChatMessageVO> sink = invocation.getArgument(2);
-                    sink.tryEmitError(new RateLimitException("rate limit hit"));
-                    return null;
-                })
+            Sinks.Many<ChatMessageVO> sink = invocation.getArgument(2);
+            sink.tryEmitError(new RateLimitException("rate limit hit"));
+            return null;
+        })
                 .when(chatService).chatMessageAsync(any(ChatParams.class), any(ChatState.class), any());
         MvcResult sync = mvc.perform(post("/chat/api/app-1/chat/completions")
                         .accept(MediaType.ALL)
@@ -98,10 +122,10 @@ class ChatOpenAiControllerTest {
     @Test
     void streamTrue_conflictingJsonAccept_stillStreams() throws Exception {
         doAnswer(invocation -> {
-                    Sinks.Many<ChatMessageVO> sink = invocation.getArgument(2);
-                    sink.tryEmitError(new RateLimitException("rate limit hit"));
-                    return null;
-                })
+            Sinks.Many<ChatMessageVO> sink = invocation.getArgument(2);
+            sink.tryEmitError(new RateLimitException("rate limit hit"));
+            return null;
+        })
                 .when(chatService).chatMessageAsync(any(ChatParams.class), any(ChatState.class), any());
 
         MvcResult sync = mvc.perform(post("/chat/api/app-1/chat/completions")
@@ -161,23 +185,5 @@ class ChatOpenAiControllerTest {
         String responseBody = result.getResponse().getContentAsString();
         assertTrue(responseBody.contains("chat.token.invalid.or.disabled"), responseBody);
         assertFalse(responseBody.contains("chat.completion"), responseBody);
-    }
-
-    private static ApplicationApiKeyDTO validApiKey() {
-        ApplicationApiKeyDTO apiKey = new ApplicationApiKeyDTO();
-        apiKey.setIsActive(true);
-        apiKey.setApplicationId("app-1");
-        return apiKey;
-    }
-
-    private static ChatResponse sampleChatResponse() {
-        return new ChatResponse(
-                List.of(Answer.builder().content("hello world").build()),
-                new JSONObject());
-    }
-
-    private static String body(boolean stream) {
-        return "{\"model\":\"test-model\",\"stream\":" + stream
-                + ",\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}";
     }
 }

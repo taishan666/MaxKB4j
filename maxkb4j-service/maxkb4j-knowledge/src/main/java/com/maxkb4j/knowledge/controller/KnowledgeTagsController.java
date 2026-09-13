@@ -44,7 +44,7 @@ public class KnowledgeTagsController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_READ)
     @GetMapping("/knowledge/{id}/tags")
     public R<List<TagListVO>> listTags(@PathVariable String id, @RequestParam(required = false) String name) {
-        List<TagVO> tags = tagService.listTags(id,name);
+        List<TagVO> tags = tagService.listTags(id, name);
         return R.data(TagUtil.convert(tags));
     }
 
@@ -67,10 +67,9 @@ public class KnowledgeTagsController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DELETE)
     @PutMapping("/knowledge/{id}/tag/{tagId}/docs_delete")
-    public R<Boolean> docsDelete(@PathVariable("id") String id,@PathVariable("tagId") String tagId,  @Valid @RequestBody IdListDTO dto) {
-        return R.status(tagService.docsDelete(tagId,dto.getIdList()));
+    public R<Boolean> docsDelete(@PathVariable("id") String id, @PathVariable("tagId") String tagId, @Valid @RequestBody IdListDTO dto) {
+        return R.status(tagService.docsDelete(tagId, dto.getIdList()));
     }
-
 
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DELETE)

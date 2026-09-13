@@ -21,7 +21,7 @@ public class TxtParser implements DocumentParser {
 
     @Override
     public String handle(InputStream inputStream) {
-        TextDocumentParser  parser = new TextDocumentParser();
+        TextDocumentParser parser = new TextDocumentParser();
         Document document = parser.parse(inputStream);
         return document.text();
     }

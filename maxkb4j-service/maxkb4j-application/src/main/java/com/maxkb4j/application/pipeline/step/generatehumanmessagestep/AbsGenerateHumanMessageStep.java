@@ -17,12 +17,12 @@ public abstract class AbsGenerateHumanMessageStep extends AbsStep {
     protected void _run(PipelineManage manage) {
         String problemText = manage.chatParams.getMessage();
         List<ParagraphRagVO> paragraphList = (List<ParagraphRagVO>) manage.context.get("paragraphList");
-        ApplicationVO application= manage.application;
+        ApplicationVO application = manage.application;
         LlmModelSetting llmModelSetting = application.getModelSetting();
         KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
-        String prompt = execute(llmModelSetting, knowledgeSetting,problemText, paragraphList);
+        String prompt = execute(llmModelSetting, knowledgeSetting, problemText, paragraphList);
         manage.context.put("userPrompt", prompt);
     }
 
-    protected abstract String execute(LlmModelSetting llmModelSetting , KnowledgeSetting knowledgeSetting, String problemText, List<ParagraphRagVO> paragraphList);
+    protected abstract String execute(LlmModelSetting llmModelSetting, KnowledgeSetting knowledgeSetting, String problemText, List<ParagraphRagVO> paragraphList);
 }

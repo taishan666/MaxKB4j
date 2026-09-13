@@ -26,7 +26,7 @@ public class EmailService {
 
 
     public void sendTextMessage(String to, String subject, String text) {
-        JavaMailSenderImpl mailSender=mailConfigService.createMailSender();
+        JavaMailSenderImpl mailSender = mailConfigService.createMailSender();
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(mailSender.getUsername());
         message.setTo(to);
@@ -36,11 +36,11 @@ public class EmailService {
     }
 
     public void sendMessage(String to, String subject, String templateName, Context context) throws MessagingException {
-        JavaMailSenderImpl mailSender=mailConfigService.createMailSender();
+        JavaMailSenderImpl mailSender = mailConfigService.createMailSender();
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
         String content = springTemplateEngine.process(templateName, context);
-        helper.setFrom(new InternetAddress(Objects.requireNonNull(mailSender.getUsername()).substring(0, mailSender.getUsername().indexOf("@"))+"<"+mailSender.getUsername()+">").toString());
+        helper.setFrom(new InternetAddress(Objects.requireNonNull(mailSender.getUsername()).substring(0, mailSender.getUsername().indexOf("@")) + "<" + mailSender.getUsername() + ">").toString());
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(content, true); // true indicates HTML content

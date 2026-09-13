@@ -9,14 +9,19 @@ package com.maxkb4j.knowledge.consts;
  */
 public final class SearchType {
 
+    /**
+     * 向量检索
+     */
+    public static final String EMBEDDING = "embedding";
+    /**
+     * 全文检索
+     */
+    public static final String FULL_TEXT = "keywords";
+    /**
+     * 混合检索
+     */
+    public static final String HYBRID = "hybrid";
     private SearchType() {
     }
-
-    /** 向量检索 */
-    public static final String EMBEDDING = "embedding";
-    /** 全文检索 */
-    public static final String FULL_TEXT = "keywords";
-    /** 混合检索 */
-    public static final String HYBRID = "hybrid";
 
 }

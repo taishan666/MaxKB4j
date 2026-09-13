@@ -7,15 +7,16 @@ import com.maxkb4j.model.service.IModelParams;
 import lombok.Data;
 
 import java.util.List;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
-public  class OLlamaChatModelParams implements IModelParams {
+public class OLlamaChatModelParams implements IModelParams {
 
     @Override
     public List<BaseField> toForm() {
-        BaseField temperature=new SliderField(0.0F,1.5F,0.1F,0,"温度",ParamKey.TEMPERATURE,"较高的数值会使输出更加随机，而较低的数值会使其更加集中和确定",1F);
-        BaseField switchField=new SwitchField("是否开启思考",ParamKey.ENABLE_THINKING,"是否开启思考模式",true);
-        return List.of(temperature,switchField);
+        BaseField temperature = new SliderField(0.0F, 1.5F, 0.1F, 0, "温度", ParamKey.TEMPERATURE, "较高的数值会使输出更加随机，而较低的数值会使其更加集中和确定", 1F);
+        BaseField switchField = new SwitchField("是否开启思考", ParamKey.ENABLE_THINKING, "是否开启思考模式", true);
+        return List.of(temperature, switchField);
     }
 }

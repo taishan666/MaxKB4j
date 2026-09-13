@@ -13,10 +13,14 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class AuthCodeCache {
 
-    /** 缓存最大容量（邮件验证码条数）。 */
+    /**
+     * 缓存最大容量（邮件验证码条数）。
+     */
     private static final int MAXIMUM_SIZE = 9999;
 
-    /** 验证码过期时间（分钟）。 */
+    /**
+     * 验证码过期时间（分钟）。
+     */
     private static final int EXPIRE_MINUTES = 1;
 
     private final Cache<String, String> cache;

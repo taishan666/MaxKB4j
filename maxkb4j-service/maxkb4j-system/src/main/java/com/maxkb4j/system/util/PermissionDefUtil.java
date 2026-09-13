@@ -33,13 +33,13 @@ public final class PermissionDefUtil {
      * @return 对应的 PermissionDef，不存在时返回 Optional.empty()
      */
     public static PermissionDef get(String key) {
-        return PERMISSION_MAP.getOrDefault(key,new PermissionDef(AuthType.RESOURCE_PERMISSION_GROUP, List.of(Permission.NOT_AUTH)));
+        return PERMISSION_MAP.getOrDefault(key, new PermissionDef(AuthType.RESOURCE_PERMISSION_GROUP, List.of(Permission.NOT_AUTH)));
     }
 
     /**
      * 根据 type 和 permissions 反向查找对应的 Map key
      *
-     * @param authType        权限类型，如 "RESOURCE_PERMISSION_GROUP"
+     * @param authType       权限类型，如 "RESOURCE_PERMISSION_GROUP"
      * @param permissionList 权限列表，如 ["MANAGE", "VIEW"]
      * @return 匹配的 key，未找到时返回 Optional.empty()
      */

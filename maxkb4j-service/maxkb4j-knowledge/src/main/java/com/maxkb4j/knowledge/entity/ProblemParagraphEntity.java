@@ -6,16 +6,16 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
-  * @author tarzan
-  * @date 2024-12-27 11:23:44
-  */
+ * @author tarzan
+ * @date 2024-12-27 11:23:44
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 @TableName("problem_paragraph_mapping")
 public class ProblemParagraphEntity extends BaseEntity {
 
-	private String knowledgeId;
-	private String documentId;
-	private String paragraphId;
-	private String problemId;
+    private String knowledgeId;
+    private String documentId;
+    private String paragraphId;
+    private String problemId;
 } 

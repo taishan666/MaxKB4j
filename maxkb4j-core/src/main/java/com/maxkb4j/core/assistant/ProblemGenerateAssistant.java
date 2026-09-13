@@ -21,5 +21,5 @@ public interface ProblemGenerateAssistant {
              without enumerations, hyphens, bullet points, or any additional formatting!
              Content: {{content}}
             """)
-    Result<List<String>> generate(@V("n") int n, @V("content")String  content);
+    Result<List<String>> generate(@V("n") int n, @V("content") String content);
 }

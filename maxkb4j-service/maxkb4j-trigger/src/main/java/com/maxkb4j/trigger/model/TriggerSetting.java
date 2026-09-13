@@ -46,8 +46,10 @@ public record TriggerSetting(
         ScheduleType scheduleType = StringUtils.isBlank(scheduleTypeStr) ? null : ScheduleType.fromValue(scheduleTypeStr);
         return new TriggerSetting(
                 scheduleType,
-                json.getObject(FIELD_TIME, new TypeReference<List<String>>() {}),
-                json.getObject(FIELD_DAYS, new TypeReference<List<String>>() {}),
+                json.getObject(FIELD_TIME, new TypeReference<List<String>>() {
+                }),
+                json.getObject(FIELD_DAYS, new TypeReference<List<String>>() {
+                }),
                 json.getInteger(FIELD_INTERVAL_VALUE),
                 json.getString(FIELD_INTERVAL_UNIT),
                 json.getString(FIELD_TOKEN));
@@ -57,12 +59,16 @@ public record TriggerSetting(
         return scheduleType != null;
     }
 
-    /** 第一个执行时间（HH:mm），无则返回 null。 */
+    /**
+     * 第一个执行时间（HH:mm），无则返回 null。
+     */
     public String firstTime() {
         return times == null || times.isEmpty() ? null : times.get(0);
     }
 
-    /** 第一个日期项（周几/几号），无则返回 null。 */
+    /**
+     * 第一个日期项（周几/几号），无则返回 null。
+     */
     public String firstDay() {
         return days == null || days.isEmpty() ? null : days.get(0);
     }

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
@@ -71,7 +72,7 @@ public class ProviderController {
     @GetMapping(ApiPath.PROVIDER_MODEL_PARAMS_FORM)
     public R<List<BaseField>> modelParamsForm(String provider, String modelType, String modelName) {
         AbsModelProvider modelProvider = providerRegistry.get(provider);
-        if (modelProvider == null){
+        if (modelProvider == null) {
             return R.data(List.of());
         }
         ModelInfo modelInfo = modelProvider.getModelInfo(ModelType.getByKey(modelType), modelName);

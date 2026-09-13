@@ -23,14 +23,14 @@ public class DocumentSimple {
         this.paragraphs = new ArrayList<>();
     }
 
-    public DocumentSimple(String name, String content,JSONObject meta) {
+    public DocumentSimple(String name, String content, JSONObject meta) {
         this.name = name;
         this.content = content;
         this.meta = meta;
         this.paragraphs = new ArrayList<>();
     }
 
-    public DocumentSimple(String name, String content,String sourceFileId) {
+    public DocumentSimple(String name, String content, String sourceFileId) {
         this.name = name;
         this.content = content;
         this.sourceFileId = sourceFileId;

@@ -15,7 +15,7 @@ import java.util.List;
 @Slf4j
 public class DatabaseUtil {
 
-    public static DataSource getDataSource(String databaseType, String host, Integer port, String username, String password,String databaseName) {
+    public static DataSource getDataSource(String databaseType, String host, Integer port, String username, String password, String databaseName) {
         String jdbcUrl = buildJdbcUrl(databaseType, host, port, databaseName);
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(jdbcUrl);
@@ -58,7 +58,7 @@ public class DatabaseUtil {
         return ddl.toString();
     }
 
-    public static String executeSqlQuery(String sqlQuery,DataSource dataSource) {
+    public static String executeSqlQuery(String sqlQuery, DataSource dataSource) {
         // 只允许 SELECT 查询
         if (!isSelect(sqlQuery)) {
             // 可选：记录警告日志
@@ -77,7 +77,7 @@ public class DatabaseUtil {
     }
 
     protected static void validate(String sqlQuery) {
-        if (!sqlQuery.startsWith("SELECT")){
+        if (!sqlQuery.startsWith("SELECT")) {
             throw new IllegalArgumentException("SQL query must start");
         }
     }
@@ -99,15 +99,15 @@ public class DatabaseUtil {
             int columnCount = resultSet.getMetaData().getColumnCount();
             List<String> columnNames = new ArrayList<>();
 
-            for(int i = 1; i <= columnCount; ++i) {
+            for (int i = 1; i <= columnCount; ++i) {
                 columnNames.add(resultSet.getMetaData().getColumnName(i));
             }
 
             resultRows.add(String.join(",", columnNames));
 
-            while(resultSet.next()) {
+            while (resultSet.next()) {
                 List<String> columnValues = new ArrayList<>();
-                for(int i = 1; i <= columnCount; ++i) {
+                for (int i = 1; i <= columnCount; ++i) {
                     String columnValue = resultSet.getObject(i) == null ? "" : resultSet.getObject(i).toString();
                     if (columnValue.contains(",")) {
                         columnValue = "\"" + columnValue + "\"";
@@ -159,7 +159,7 @@ public class DatabaseUtil {
             createTableStatement.append(" {\n");
             String columnName;
             String columnComment;
-            while(columns.next()) {
+            while (columns.next()) {
                 columnName = columns.getString("COLUMN_NAME");
                 columnComment = columns.getString("TYPE_NAME");
                 String comment = columns.getString("REMARKS");
@@ -172,7 +172,7 @@ public class DatabaseUtil {
                 }
                 createTableStatement.append(",\n");
             }
-            while(fks.next()) {
+            while (fks.next()) {
                 columnName = fks.getString("FKCOLUMN_NAME");
                 columnComment = fks.getString("PKTABLE_NAME");
                 String pkColumnName = fks.getString("PKCOLUMN_NAME");
@@ -191,10 +191,12 @@ public class DatabaseUtil {
 
     private static String buildJdbcUrl(String databaseType, String host, int port, String databaseName) {
         return switch (databaseType.toLowerCase()) {
-            case "mysql" -> String.format("jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=UTC", host, port, databaseName);
+            case "mysql" ->
+                    String.format("jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=UTC", host, port, databaseName);
             case "postgresql" -> String.format("jdbc:postgresql://%s:%d/%s", host, port, databaseName);
             case "oracle" -> String.format("jdbc:oracle:thin:@//%s:%d/%s", host, port, databaseName);
-            case "sqlserver" -> String.format("jdbc:sqlserver://%s:%d;databaseName=%s;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;", host, port, databaseName);
+            case "sqlserver" ->
+                    String.format("jdbc:sqlserver://%s:%d;databaseName=%s;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;", host, port, databaseName);
             case "sqlite" -> String.format("jdbc:sqlite:%s", databaseName); // SQLite 使用文件路径作为数据库名
             default -> throw new IllegalArgumentException("Unsupported database type: " + databaseType);
         };

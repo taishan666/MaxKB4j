@@ -33,18 +33,18 @@ public class ToolExecuteServiceImpl implements IToolExecuteService {
     @Override
     public Object httpOrCodeExecute(String toolType, String code, Map<String, Object> initParams, List<ToolInputField> inputFieldList) throws IOException {
         Map<String, Object> inputParams = convertParamType(inputFieldList);
-        return httpOrCodeExecute(toolType,code,initParams,inputParams);
+        return httpOrCodeExecute(toolType, code, initParams, inputParams);
     }
 
     @Override
     public Object httpOrCodeExecute(String toolType, String code, Map<String, Object> initParams, Map<String, Object> parameters) throws IOException {
         log.info("input params: {}", parameters);
         Object result;
-        if (ToolConstants.ToolType.HTTP.equals(toolType)){
-            HttpResponse httpResponse = httpExecute(code,initParams,parameters);
+        if (ToolConstants.ToolType.HTTP.equals(toolType)) {
+            HttpResponse httpResponse = httpExecute(code, initParams, parameters);
             result = httpResponse.body();
-        }else {
-            result = customExecute(code,initParams,parameters);
+        } else {
+            result = customExecute(code, initParams, parameters);
         }
         return result;
     }
@@ -91,8 +91,8 @@ public class ToolExecuteServiceImpl implements IToolExecuteService {
     }
 
     @Override
-    public HttpResponse httpExecute(String code, Map<String, Object> initParams,Map<String, Object> parameter) throws IOException {
-        HttpRequestExecutor executor = new HttpRequestExecutor(code,initParams);
+    public HttpResponse httpExecute(String code, Map<String, Object> initParams, Map<String, Object> parameter) throws IOException {
+        HttpRequestExecutor executor = new HttpRequestExecutor(code, initParams);
         return executor.execute(parameter);
     }
 

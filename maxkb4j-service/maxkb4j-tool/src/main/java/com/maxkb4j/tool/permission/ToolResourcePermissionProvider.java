@@ -38,8 +38,8 @@ public class ToolResourcePermissionProvider implements IResourcePermissionPagePr
 
     @Override
     public IPage<UserResourcePermissionVO> pageResource(int current, int size, String name,
-                                                       Map<String, String> permissionMap,
-                                                       Set<String> permissionFilter) {
+                                                        Map<String, String> permissionMap,
+                                                        Set<String> permissionFilter) {
         Consumer<LambdaQueryWrapper<ToolEntity>> scopeFilter = w -> w.eq(ToolEntity::getScope, "WORKSPACE");
         return ResourcePermissionQuerySupport.pageResource(
                 new Page<>(current, size), toolMapper,

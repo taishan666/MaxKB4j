@@ -41,6 +41,8 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
 
     // 预编译 DEFAULT_PATTERNS，避免 recursive 中循环内重复编译
     private static final Pattern[] COMPILED_DEFAULT_PATTERNS;
+    private static final int DEFAULT_LIMIT = 512;
+
     static {
         COMPILED_DEFAULT_PATTERNS = new Pattern[DEFAULT_PATTERNS.length];
         for (int i = 0; i < DEFAULT_PATTERNS.length; i++) {
@@ -48,7 +50,130 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
         }
     }
 
-    private static final int DEFAULT_LIMIT = 512;
+    private static String buildTitleFromStack(String[] headingStack) {
+        // 格式与原 recursive 一致："" + " " + heading → " Introduction Background"
+        StringBuilder sb = new StringBuilder();
+        for (String h : headingStack) {
+            if (h != null) {
+                sb.append(" ").append(h);
+            }
+        }
+        return sb.toString();
+    }
+
+    public static List<String> lineSplit(String text, int limit) {
+        String[] texts = text.split("\n");
+        return TextSplitter.mergeChunksIntoParts(Arrays.asList(texts), limit, "\n");
+    }
+
+    /**
+     * 清理字符串中的多余空格和空行，并移除 Markdown 标题符号
+     */
+    public static String cleanAndFilter(String input) {
+        if (StringUtils.isEmpty(input)) {
+            return "";
+        }
+        String result = MULTIPLE_SPACES.matcher(input).replaceAll(" ");
+        result = MULTIPLE_NEWLINES.matcher(result).replaceAll("\n");
+        result = MARKDOWN_HEADER.matcher(result).replaceAll("");
+        return result.trim();
+    }
+
+    private static String cleanTitle(String input) {
+        String result = MARKDOWN_HEADER.matcher(input).replaceAll("");
+        return result.trim();
+    }
+
+    public static List<ParagraphSimple> splitContentPreserveTable(ParagraphSimple part, int limit) {
+        String content = part.getContent();
+
+        if (StringUtils.isBlank(content)) {
+            return Collections.emptyList();
+        }
+
+        // 内容已不超过 limit，无需切分（避免调用昂贵的 SentenceSplitter）
+        if (content.length() <= limit) {
+            return Collections.singletonList(part);
+        }
+
+        // 查找所有表格块
+        List<String> segments = getStringList(content);
+
+        // 遍历 segments，对非表格段切分，表格段保留
+        List<ParagraphSimple> result = new ArrayList<>();
+        for (String seg : segments) {
+            if (seg.startsWith("{{TABLE}}") && seg.endsWith("{{/TABLE}}")) {
+                String tableContent = seg.substring("{{TABLE}}".length(), seg.length() - "{{/TABLE}}".length());
+                result.add(ParagraphSimple.builder()
+                        .title(part.getTitle())
+                        .content(tableContent)
+                        .build());
+            } else {
+                List<String> texts = SentenceSplitter.split(seg, limit);
+                for (String text : texts) {
+                    if (StringUtils.isNotBlank(text)) {
+                        result.add(ParagraphSimple.builder()
+                                .title(part.getTitle())
+                                .content(text.trim())
+                                .build());
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 将文本按表格行/非表格行分段。用逐行检测替代原正则匹配，
+     * 避免 (?sm).*? 惰性匹配在大文本上的回溯开销。
+     */
+    private static @NotNull List<String> getStringList(String content) {
+        // 快速检查：文本不含 | 则一定没有表格
+        if (!content.contains("|")) {
+            return Collections.singletonList(content);
+        }
+
+        String[] lines = content.split("\n");
+        List<String> segments = new ArrayList<>();
+        StringBuilder nonTableBuffer = new StringBuilder();
+        StringBuilder tableBuffer = new StringBuilder();
+        boolean inTable = false;
+
+        for (String line : lines) {
+            String trimmed = line.trim();
+            boolean isTableLine = trimmed.startsWith("|") && trimmed.indexOf('|', 1) > 0;
+            if (isTableLine) {
+                if (!inTable) {
+                    // 切换到表格模式，先把前面的非表格内容输出
+                    if (!nonTableBuffer.isEmpty()) {
+                        segments.add(nonTableBuffer.toString());
+                        nonTableBuffer = new StringBuilder();
+                    }
+                    inTable = true;
+                }
+                tableBuffer.append(line).append("\n");
+            } else {
+                if (inTable) {
+                    // 退出表格模式，输出表格块
+                    segments.add("{{TABLE}}" + tableBuffer.toString() + "{{/TABLE}}");
+                    tableBuffer = new StringBuilder();
+                    inTable = false;
+                }
+                nonTableBuffer.append(line).append("\n");
+            }
+        }
+
+        // 处理尾部缓冲
+        if (inTable) {
+            segments.add("{{TABLE}}" + tableBuffer.toString() + "{{/TABLE}}");
+        }
+        if (!nonTableBuffer.isEmpty()) {
+            segments.add(nonTableBuffer.toString());
+        }
+
+        return segments;
+    }
 
     public List<ParagraphSimple> split(String docText, String[] patterns, Integer limit, Boolean withFilter) {
         if (patterns != null && patterns.length > 0) {
@@ -141,40 +266,6 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
         return result;
     }
 
-    private static String buildTitleFromStack(String[] headingStack) {
-        // 格式与原 recursive 一致："" + " " + heading → " Introduction Background"
-        StringBuilder sb = new StringBuilder();
-        for (String h : headingStack) {
-            if (h != null) {
-                sb.append(" ").append(h);
-            }
-        }
-        return sb.toString();
-    }
-
-    public static List<String> lineSplit(String text, int limit) {
-        String[] texts = text.split("\n");
-        return TextSplitter.mergeChunksIntoParts(Arrays.asList(texts), limit, "\n");
-    }
-
-    /**
-     * 清理字符串中的多余空格和空行，并移除 Markdown 标题符号
-     */
-    public static String cleanAndFilter(String input) {
-        if (StringUtils.isEmpty(input)) {
-            return "";
-        }
-        String result = MULTIPLE_SPACES.matcher(input).replaceAll(" ");
-        result = MULTIPLE_NEWLINES.matcher(result).replaceAll("\n");
-        result = MARKDOWN_HEADER.matcher(result).replaceAll("");
-        return result.trim();
-    }
-
-    private static String cleanTitle(String input) {
-        String result = MARKDOWN_HEADER.matcher(input).replaceAll("");
-        return result.trim();
-    }
-
     public List<ParagraphSimple> recursive(String docText, String[] patterns, int limit, Boolean withFilter) {
         if (docText == null || docText.isEmpty()) {
             return Collections.emptyList();
@@ -242,97 +333,6 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
         return result.stream()
                 .filter(e -> StringUtils.isNotBlank(e.getContent()))
                 .toList();
-    }
-
-    public static List<ParagraphSimple> splitContentPreserveTable(ParagraphSimple part, int limit) {
-        String content = part.getContent();
-
-        if (StringUtils.isBlank(content)) {
-            return Collections.emptyList();
-        }
-
-        // 内容已不超过 limit，无需切分（避免调用昂贵的 SentenceSplitter）
-        if (content.length() <= limit) {
-            return Collections.singletonList(part);
-        }
-
-        // 查找所有表格块
-        List<String> segments = getStringList(content);
-
-        // 遍历 segments，对非表格段切分，表格段保留
-        List<ParagraphSimple> result = new ArrayList<>();
-        for (String seg : segments) {
-            if (seg.startsWith("{{TABLE}}") && seg.endsWith("{{/TABLE}}")) {
-                String tableContent = seg.substring("{{TABLE}}".length(), seg.length() - "{{/TABLE}}".length());
-                result.add(ParagraphSimple.builder()
-                        .title(part.getTitle())
-                        .content(tableContent)
-                        .build());
-            } else {
-                List<String> texts = SentenceSplitter.split(seg, limit);
-                for (String text : texts) {
-                    if (StringUtils.isNotBlank(text)) {
-                        result.add(ParagraphSimple.builder()
-                                .title(part.getTitle())
-                                .content(text.trim())
-                                .build());
-                    }
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * 将文本按表格行/非表格行分段。用逐行检测替代原正则匹配，
-     * 避免 (?sm).*? 惰性匹配在大文本上的回溯开销。
-     */
-    private static @NotNull List<String> getStringList(String content) {
-        // 快速检查：文本不含 | 则一定没有表格
-        if (!content.contains("|")) {
-            return Collections.singletonList(content);
-        }
-
-        String[] lines = content.split("\n");
-        List<String> segments = new ArrayList<>();
-        StringBuilder nonTableBuffer = new StringBuilder();
-        StringBuilder tableBuffer = new StringBuilder();
-        boolean inTable = false;
-
-        for (String line : lines) {
-            String trimmed = line.trim();
-            boolean isTableLine = trimmed.startsWith("|") && trimmed.indexOf('|', 1) > 0;
-            if (isTableLine) {
-                if (!inTable) {
-                    // 切换到表格模式，先把前面的非表格内容输出
-                    if (!nonTableBuffer.isEmpty()) {
-                        segments.add(nonTableBuffer.toString());
-                        nonTableBuffer = new StringBuilder();
-                    }
-                    inTable = true;
-                }
-                tableBuffer.append(line).append("\n");
-            } else {
-                if (inTable) {
-                    // 退出表格模式，输出表格块
-                    segments.add("{{TABLE}}" + tableBuffer.toString() + "{{/TABLE}}");
-                    tableBuffer = new StringBuilder();
-                    inTable = false;
-                }
-                nonTableBuffer.append(line).append("\n");
-            }
-        }
-
-        // 处理尾部缓冲
-        if (inTable) {
-            segments.add("{{TABLE}}" + tableBuffer.toString() + "{{/TABLE}}");
-        }
-        if (!nonTableBuffer.isEmpty()) {
-            segments.add(nonTableBuffer.toString());
-        }
-
-        return segments;
     }
 
     public List<KeyAndValue> splitPattern() {

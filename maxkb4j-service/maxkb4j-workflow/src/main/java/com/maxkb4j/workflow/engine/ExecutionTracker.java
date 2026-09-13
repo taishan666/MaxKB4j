@@ -23,10 +23,9 @@ public class ExecutionTracker {
      * 执行路径记录
      * 记录已执行节点的 runtimeNodeId 顺序
      * -- GETTER --
-     *  获取执行路径记录
+     * 获取执行路径记录
      *
      * @return 已执行节点的 runtimeNodeId 顺序
-
      */
     private final List<String> executionPath;
 
@@ -34,10 +33,9 @@ public class ExecutionTracker {
      * 执行时间戳记录
      * Key: runtimeNodeId, Value: 执行开始时间戳（毫秒）
      * -- GETTER --
-     *  获取执行时间戳记录
+     * 获取执行时间戳记录
      *
      * @return runtimeNodeId 到执行开始时间戳的映射
-
      */
     private final Map<String, Long> executionTimestamps;
 

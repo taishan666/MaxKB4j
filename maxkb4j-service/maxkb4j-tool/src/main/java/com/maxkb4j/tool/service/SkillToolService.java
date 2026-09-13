@@ -73,12 +73,12 @@ public class SkillToolService {
     /**
      * 构建单个 Skill 工具的 AiServiceTool 列表（基于 chatMemoryId 模式）。
      *
-     * @param tools        工具实体集合
+     * @param tools 工具实体集合
      * @return AiServiceTool 列表
      */
     public List<AiServiceTool> getSkillsTools(List<ToolEntity> tools) throws ApiException {
-        List<AiServiceTool> aiServiceTools=new ArrayList<>();
-        tools.forEach(tool->{
+        List<AiServiceTool> aiServiceTools = new ArrayList<>();
+        tools.forEach(tool -> {
             FileSystemSkill fileSystemSkill = loadFileSystemSkill(tool);
             ShellSkills shellSkills = buildNamedShellSkills(fileSystemSkill, tool.getId());
             ToolProviderResult result = shellSkills.toolProvider().provideTools(null);
@@ -100,7 +100,7 @@ public class SkillToolService {
      * 构建带 tool_&lt;id&gt; 命名的 ShellSkills（单 Skill 场景）。
      */
     private ShellSkills buildNamedShellSkills(FileSystemSkill fileSystemSkill, String toolId) {
-        String DEFAULT_DESCRIPTION = "Execute a shell command on the local " + System.getProperty("os.name") +" machine. Output in UTF-8 encoding format.";
+        String DEFAULT_DESCRIPTION = "Execute a shell command on the local " + System.getProperty("os.name") + " machine. Output in UTF-8 encoding format.";
         RunShellCommandToolConfig config = RunShellCommandToolConfig.builder()
                 .name(ToolNaming.buildToolName(toolId))
                 .description(DEFAULT_DESCRIPTION)

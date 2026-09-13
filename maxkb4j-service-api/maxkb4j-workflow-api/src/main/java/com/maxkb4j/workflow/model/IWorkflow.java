@@ -121,6 +121,7 @@ public interface IWorkflow {
      * 根据节点 ID 获取节点。
      */
     INode getNode(String nodeId);
+
     /**
      * 获取节点执行超时时间（分钟），与 TimeUnit.MINUTES 配合使用。
      */

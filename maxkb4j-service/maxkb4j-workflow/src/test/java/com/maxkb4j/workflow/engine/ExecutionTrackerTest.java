@@ -12,7 +12,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ExecutionTrackerTest {
 
     private AbsNode newNode(String id) {
-        return new AbsNode(id, new JSONObject()) {};
+        return new AbsNode(id, new JSONObject()) {
+        };
     }
 
     @Test

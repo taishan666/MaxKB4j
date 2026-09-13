@@ -26,7 +26,9 @@ import static com.maxkb4j.workflow.enums.NodeType.*;
 public class ApplicationModelService {
 
 
-    /** 需要校验并替换 LLM 模型 ID 的工作流节点类型 */
+    /**
+     * 需要校验并替换 LLM 模型 ID 的工作流节点类型
+     */
     private static final Set<String> LLM_NODE_TYPES = Set.of(
             QUESTION.getKey(), NL2SQL.getKey(), INTENT_CLASSIFY.getKey(),
             IMAGE_UNDERSTAND.getKey(), AI_CHAT.getKey(), PARAMETER_EXTRACTION.getKey());
@@ -35,7 +37,7 @@ public class ApplicationModelService {
 
 
     public void normalizeAppModels(ApplicationEntity app) {
-        if (AppType.SIMPLE.name().equals(app.getType())){
+        if (AppType.SIMPLE.name().equals(app.getType())) {
             app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.LLM));
             app.setTtsModelId(modelService.getSafeModelId(app.getModelId(), ModelType.TTS));
             app.setSttModelId(modelService.getSafeModelId(app.getModelId(), ModelType.STT));
@@ -91,10 +93,10 @@ public class ApplicationModelService {
                     nodeData.put("sttModelId", modelService.getSafeModelId(sttModelId, ModelType.STT));
                 }
             }
-            if (LOOP.getKey().equals(type)){
+            if (LOOP.getKey().equals(type)) {
                 JSONObject nodeData = WorkFlowNodes.getNodeData(node);
-                if (nodeData != null){
-                    JSONObject loopBody= nodeData.getJSONObject("loopBody");
+                if (nodeData != null) {
+                    JSONObject loopBody = nodeData.getJSONObject("loopBody");
                     normalizeNodeModels(loopBody);
                 }
             }

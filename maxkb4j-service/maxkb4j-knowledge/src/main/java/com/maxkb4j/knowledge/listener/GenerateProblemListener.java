@@ -34,8 +34,8 @@ public class GenerateProblemListener {
     @EventListener
     public void handleEvent(GenerateProblemEvent event) {
         log.info("收到问题生成事件消息: {}", event.getDocumentIdList());
-        ChatModel chatModel=modelFactory.buildChatModel(event.getModelId(),event.getModelParamsSetting());
-        EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
+        ChatModel chatModel = modelFactory.buildChatModel(event.getModelId(), event.getModelParamsSetting());
+        EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
         documentService.updateStatusByIds(event.getDocumentIdList(), 2, 0);
         List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, event.getKnowledgeId()).list();
         for (String docId : event.getDocumentIdList()) {

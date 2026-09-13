@@ -26,7 +26,7 @@ public class AiServiceFactory {
         Function<ToolExecutionRequest, ToolExecutionResultMessage> strategy = (request) -> ToolExecutionResultMessage.builder()
                 .id(request.id())
                 .toolName(request.name())
-                .text("工具（"+request.name()+"）不存在！")
+                .text("工具（" + request.name() + "）不存在！")
                 .isError(true)
                 .build();
         return AiServices.builder(aiService)

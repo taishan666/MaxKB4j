@@ -9,9 +9,12 @@ import java.util.Map;
 
 public interface IToolService {
     ToolDTO getDtoById(String id);
+
     List<ToolDTO> listDtoByIds(List<String> ids);
+
     List<Map<String, Object>> listMapsByIds(List<String> ids);
-    void saveOrUpdateBatch(List<ToolDTO> toolDTOList,String userId);
+
+    void saveOrUpdateBatch(List<ToolDTO> toolDTOList, String userId);
 
     /**
      * 应用导出预处理：将 SKILL 工具的 code（OSS 文件 ID）替换为文件字节的 Base64 编码，

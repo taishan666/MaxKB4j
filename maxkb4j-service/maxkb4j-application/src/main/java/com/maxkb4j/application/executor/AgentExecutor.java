@@ -35,9 +35,9 @@ public class AgentExecutor extends AbsToolExecutor {
     @Override
     public String execute(ToolExecutionRequest toolExecutionRequest, Object memoryId) {
         Map<String, Object> args = argumentsAsMap(toolExecutionRequest.arguments());
-        String message = (String) args.getOrDefault("message","");
+        String message = (String) args.getOrDefault("message", "");
         ChatParams params = ChatParams.builder()
-                .chatId("agent_"+ memoryId)
+                .chatId("agent_" + memoryId)
                 .message(message)
                 .reChat(false)
                 .stream(false)

@@ -5,6 +5,7 @@ import com.maxkb4j.workflow.model.Condition;
 import com.maxkb4j.workflow.model.IWorkflow;
 
 import java.util.List;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.LogicField;
 
 /**

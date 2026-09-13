@@ -14,9 +14,9 @@ import java.util.List;
  * @author tarzan
  * @date 2025-01-25 22:00:45
  */
-public interface ToolMapper extends BaseMapper<ToolEntity>{
+public interface ToolMapper extends BaseMapper<ToolEntity> {
 
-    IPage<ToolCardVO> pageList(IPage<ToolEntity> page,  @Param("query") ToolQuery query);
+    IPage<ToolCardVO> pageList(IPage<ToolEntity> page, @Param("query") ToolQuery query);
 
     List<ToolItemVO> listTools(@Param("query") ToolQuery query);
 }

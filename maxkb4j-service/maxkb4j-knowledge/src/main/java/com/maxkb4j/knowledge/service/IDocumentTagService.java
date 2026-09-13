@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IDocumentTagService extends IService<DocumentTagEntity> {
-    List<TagListVO> listTags(String docId,String name);
+    List<TagListVO> listTags(String docId, String name);
 
     Map<String, List<TagEntity>> listTagsByDocIds(List<String> docIds);
 

@@ -6,6 +6,7 @@ import com.openai.client.okhttp.OpenAIOkHttpClient;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**

@@ -4,5 +4,5 @@ public interface Permission {
     String ROLE = "ROLE";
     String MANAGE = "MANAGE";
     String VIEW = "VIEW";
-    String NOT_AUTH ="NOT_AUTH";
+    String NOT_AUTH = "NOT_AUTH";
 }

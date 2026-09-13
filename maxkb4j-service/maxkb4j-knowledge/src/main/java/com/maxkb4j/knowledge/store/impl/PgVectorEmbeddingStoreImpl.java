@@ -51,12 +51,25 @@ import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metad
 @RequiredArgsConstructor
 public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
 
-    /** 写入/检索 metadata 使用的字段名，与检索过滤条件保持一致。 */
+    /**
+     * 写入/检索 metadata 使用的字段名，与检索过滤条件保持一致。
+     */
     private static final String META_KNOWLEDGE_ID = "knowledgeId";
     private static final String META_DOCUMENT_ID = "documentId";
     private static final String META_SOURCE_ID = "sourceId";
     private static final String META_SOURCE_TYPE = "sourceType";
-
+    /**
+     * 从Markdown文本中提取所有图片URL
+     */
+    private static final Pattern MD_IMAGE_PATTERN = Pattern.compile("!\\[[^]]*]\\(([^)\\s]+)(?:\\s+\"[^\"]*\")?\\)");
+    private final KnowledgeModelService knowledgeModelService;
+    private final DataSource dataSource;
+    /**
+     * 按 embedding 维度缓存 PgVectorEmbeddingStore 实例。
+     * <p>原先的 {@code public static HashMap} 既线程不安全，又因 {@code getOrDefault} 而从未真正缓存（每次新建）。
+     * 这里改为实例字段 + {@link ConcurrentHashMap#computeIfAbsent} 保证原子初始化与缓存命中。</p>
+     */
+    private final Map<Integer, EmbeddingStore<TextSegment>> stores = new ConcurrentHashMap<>();
     @Value("${vector.store.batch-size:10}")
     private int batchSize = 10;
     @Value("${vector.store.retry-times:3}")
@@ -64,15 +77,17 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
     @Value("${vector.store.retry-delay-ms:1000}")
     private int retryDelayMs = 1000;
 
-    private final KnowledgeModelService knowledgeModelService;
-    private final DataSource dataSource;
-
     /**
-     * 按 embedding 维度缓存 PgVectorEmbeddingStore 实例。
-     * <p>原先的 {@code public static HashMap} 既线程不安全，又因 {@code getOrDefault} 而从未真正缓存（每次新建）。
-     * 这里改为实例字段 + {@link ConcurrentHashMap#computeIfAbsent} 保证原子初始化与缓存命中。</p>
+     * 将 langchain4j 归一化到 {@code [0,1]} 的相似度还原为 {@code [-1,1]} 的余弦相似度，
+     * 与 {@link BaseStoreImpl} 中 {@code (minScore + 1.0) / 2.0} 的归一化互为逆运算。
      */
-    private final Map<Integer, EmbeddingStore<TextSegment>> stores = new ConcurrentHashMap<>();
+    private static double denormalizeScore(double score) {
+        return 2.0 * score - 1.0;
+    }
+
+    private static double normalizeScore(double score) {
+        return (score + 1.0) / 2.0;
+    }
 
     private EmbeddingStore<TextSegment> build(int dimension) {
         return PgVectorEmbeddingStore.datasourceBuilder()
@@ -123,20 +138,20 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
      */
     private void processBatchWithRetry(EmbeddingModel model, EmbeddingStore<TextSegment> store, List<EmbeddingEntity> batch) {
         Exception lastException = null;
-        Set<ContentType> contentTypes= model.supportedContentTypes();
+        Set<ContentType> contentTypes = model.supportedContentTypes();
         for (int attempt = 1; attempt <= retryTimes; attempt++) {
             try {
                 List<TextSegment> textSegments = batch.stream().map(this::toTextSegment).toList();
-                List<EmbeddingInput> inputs=new ArrayList<>();
-                if (contentTypes.contains(ContentType.IMAGE)){
-                    textSegments.forEach(segment->{
-                        String text=segment.text();
+                List<EmbeddingInput> inputs = new ArrayList<>();
+                if (contentTypes.contains(ContentType.IMAGE)) {
+                    textSegments.forEach(segment -> {
+                        String text = segment.text();
                         inputs.add(EmbeddingInput.from(TextContent.from(text)));
                     });
-                }else {
-                    textSegments.forEach(segment->{
-                        String text=segment.text();
-                        List<Content> contents=new ArrayList<>();
+                } else {
+                    textSegments.forEach(segment -> {
+                        String text = segment.text();
+                        List<Content> contents = new ArrayList<>();
                         contents.add(TextContent.from(text));
                         List<String> imageUrls = extractImageUrls(text);
                         for (String imageUrl : imageUrls) {
@@ -146,7 +161,7 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
                         inputs.add(EmbeddingInput.from(contents));
                     });
                 }
-                EmbeddingResponse res=model.embed(EmbeddingRequest.builder().inputs(inputs).build());
+                EmbeddingResponse res = model.embed(EmbeddingRequest.builder().inputs(inputs).build());
                 store.addAll(res.embeddings(), textSegments);
                 return;
             } catch (Exception e) {
@@ -163,10 +178,6 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         }
     }
 
-    /**
-     * 从Markdown文本中提取所有图片URL
-     */
-    private static final Pattern MD_IMAGE_PATTERN = Pattern.compile("!\\[[^]]*]\\(([^)\\s]+)(?:\\s+\"[^\"]*\")?\\)");
     private List<String> extractImageUrls(String markdownText) {
         List<String> urls = new ArrayList<>();
         if (markdownText == null || markdownText.isEmpty()) {
@@ -215,7 +226,6 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         }
     }
 
-
     @Override
     public void deleteByProblemIds(String knowledgeId, List<String> problemIds) {
         if (problemIds == null || problemIds.isEmpty()) {
@@ -256,7 +266,6 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         Filter filter = metadataKey(META_KNOWLEDGE_ID).isEqualTo(knowledgeId);
         removeAllStores(filter);
     }
-
 
     /**
      * 按来源类型做向量检索：仅依据 {@link SearchRequest} 入参构造 langchain4j {@link Filter}，
@@ -312,18 +321,6 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
             TextSegment segment = match.embedded();
             return new TextChunkVO(segment.metadata().getString(META_SOURCE_ID), denormalizeScore(match.score()));
         }).toList();
-    }
-
-    /**
-     * 将 langchain4j 归一化到 {@code [0,1]} 的相似度还原为 {@code [-1,1]} 的余弦相似度，
-     * 与 {@link BaseStoreImpl} 中 {@code (minScore + 1.0) / 2.0} 的归一化互为逆运算。
-     */
-    private static double denormalizeScore(double score) {
-        return 2.0 * score - 1.0;
-    }
-
-    private static double normalizeScore(double score) {
-        return (score + 1.0) / 2.0;
     }
 
     private void removeAllStores(Filter filter) {

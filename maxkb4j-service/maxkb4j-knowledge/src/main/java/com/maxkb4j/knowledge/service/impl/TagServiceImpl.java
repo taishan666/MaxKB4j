@@ -24,28 +24,29 @@ import java.util.stream.Collectors;
 public class TagServiceImpl extends ServiceImpl<TagMapper, TagEntity> implements ITagService {
 
     private final IDocumentTagService documentTagService;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean deleteTagId(String tagId) {
-        documentTagService.lambdaUpdate().eq(DocumentTagEntity::getTagId,tagId).remove();
+        documentTagService.lambdaUpdate().eq(DocumentTagEntity::getTagId, tagId).remove();
         return this.removeById(tagId);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean batchDelete(List<String> tagIds) {
-        documentTagService.lambdaUpdate().in(DocumentTagEntity::getTagId,tagIds).remove();
+        documentTagService.lambdaUpdate().in(DocumentTagEntity::getTagId, tagIds).remove();
         return this.removeByIds(tagIds);
     }
 
     @Override
     public List<TagVO> listTags(String id, String name) {
-        return baseMapper.listTags(id,name);
+        return baseMapper.listTags(id, name);
     }
 
     @Override
     public Boolean docsDelete(String tagId, List<String> docIds) {
-        return documentTagService.lambdaUpdate().eq(DocumentTagEntity::getTagId,tagId).in(DocumentTagEntity::getDocumentId,docIds).remove();
+        return documentTagService.lambdaUpdate().eq(DocumentTagEntity::getTagId, tagId).in(DocumentTagEntity::getDocumentId, docIds).remove();
     }
 
     @Override

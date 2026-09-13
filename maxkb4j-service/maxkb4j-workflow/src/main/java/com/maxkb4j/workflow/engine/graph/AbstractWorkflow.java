@@ -41,22 +41,6 @@ public abstract class AbstractWorkflow implements IWorkflow {
     protected final WorkflowOutputManager outputManager;
 
 
-    @Override
-    public WorkflowMode getWorkflowMode() {
-        return configuration.getWorkflowMode();
-    }
-
-    /**
-     * 工作流内部组件束
-     * 供子类在构造器中一次性组装各组件，解决组件间相互依赖、无法逐个传入 super() 的问题。
-     */
-    protected record Components(WorkflowConfiguration configuration,
-                                WorkflowContext context,
-                                HistoryManager historyManager,
-                                WorkflowExecutionAccessor executionAccessor,
-                                WorkflowOutputManager outputManager) {
-    }
-
     protected AbstractWorkflow(Components components) {
         Objects.requireNonNull(components, "components cannot be null");
         this.configuration = Objects.requireNonNull(components.configuration(), "configuration cannot be null");
@@ -66,12 +50,17 @@ public abstract class AbstractWorkflow implements IWorkflow {
         this.outputManager = Objects.requireNonNull(components.outputManager(), "outputManager cannot be null");
     }
 
-    // ==================== 便捷方法层（推荐使用） ====================
+    @Override
+    public WorkflowMode getWorkflowMode() {
+        return configuration.getWorkflowMode();
+    }
 
     @Override
     public IWorkflowOutputManager output() {
         return outputManager;
     }
+
+    // ==================== 便捷方法层（推荐使用） ====================
 
     /**
      * 获取全局上下文
@@ -215,8 +204,6 @@ public abstract class AbstractWorkflow implements IWorkflow {
         return configuration.getNodeExecutionTimeoutMinutes();
     }
 
-    // ==================== 分层访问器（推荐使用） ====================
-
     /**
      * 获取上下文访问器
      *
@@ -227,6 +214,8 @@ public abstract class AbstractWorkflow implements IWorkflow {
         return workflowContext;
     }
 
+    // ==================== 分层访问器（推荐使用） ====================
+
     /**
      * 获取执行访问器
      *
@@ -235,6 +224,17 @@ public abstract class AbstractWorkflow implements IWorkflow {
     @Override
     public IWorkflowExecutionAccessor execution() {
         return executionAccessor;
+    }
+
+    /**
+     * 工作流内部组件束
+     * 供子类在构造器中一次性组装各组件，解决组件间相互依赖、无法逐个传入 super() 的问题。
+     */
+    protected record Components(WorkflowConfiguration configuration,
+                                WorkflowContext context,
+                                HistoryManager historyManager,
+                                WorkflowExecutionAccessor executionAccessor,
+                                WorkflowOutputManager outputManager) {
     }
 
 }

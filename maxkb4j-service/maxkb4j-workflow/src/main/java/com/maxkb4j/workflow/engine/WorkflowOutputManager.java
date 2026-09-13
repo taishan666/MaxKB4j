@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
@@ -48,7 +49,7 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
      */
     @Override
     public void emit(ChatMessageVO message) {
-        if (needsSink()){
+        if (needsSink()) {
             if (sink != null && message != null) {
                 sink.tryEmitNext(message);
             }
@@ -57,7 +58,7 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
 
     @Override
     public List<Answer> getAnswers(String chatRecordId) {
-        List<INode> executedNodes=getExecutedNodes();
+        List<INode> executedNodes = getExecutedNodes();
         if (executedNodes.isEmpty()) {
             return List.of();
         }

@@ -33,7 +33,7 @@ import java.util.Map;
 public class UserManageController {
 
     private final IUserInternalService userService;
-	private final SystemProperties systemProperties;
+    private final SystemProperties systemProperties;
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @GetMapping("/user_manage/{page}/{size}")

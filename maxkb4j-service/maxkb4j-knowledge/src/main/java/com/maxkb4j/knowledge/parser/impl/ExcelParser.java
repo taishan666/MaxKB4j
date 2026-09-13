@@ -31,6 +31,7 @@ public class ExcelParser implements DocumentParser {
         List<List<String>> rows = new ArrayList<>();
         EasyExcel.read(inputStream, new AnalysisEventListener<Map<Integer, String>>() {
             Map<Integer, String> headMap = new LinkedHashMap<>();
+
             @Override
             public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
                 this.headMap = headMap;
@@ -39,6 +40,7 @@ public class ExcelParser implements DocumentParser {
                     headers.add(headMap.get(i));
                 }
             }
+
             @Override
             public void invoke(Map<Integer, String> data, AnalysisContext context) {
                 List<String> row = new ArrayList<>();
@@ -67,7 +69,7 @@ public class ExcelParser implements DocumentParser {
             // 数据行
             for (List<String> row : rows) {
                 for (String cell : row) {
-                    cell=cell.replaceAll("\n", "<br>");
+                    cell = cell.replaceAll("\n", "<br>");
                     markdown.append("| ").append(cell);
                 }
                 markdown.append(" |\n");

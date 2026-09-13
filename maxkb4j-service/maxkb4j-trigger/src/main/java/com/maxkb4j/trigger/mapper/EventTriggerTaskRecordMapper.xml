@@ -4,22 +4,22 @@
 
     <select id="pageListWithSourceName" resultType="com.maxkb4j.trigger.vo.EventTriggerTaskRecordVO">
         SELECT
-            r.id,
-            r.source_type,
-            r.source_id,
-            r.trigger_id,
-            r.trigger_task_id,
-            r.state,
-            r.meta,
-            r.run_time,
-            r.task_record_id,
-            r.create_time,
-            r.update_time,
-            CASE
-                WHEN r.source_type = 'APPLICATION' THEN a.name
-                WHEN r.source_type = 'TOOL' THEN t.name
-                ELSE NULL
-            END AS source_name
+        r.id,
+        r.source_type,
+        r.source_id,
+        r.trigger_id,
+        r.trigger_task_id,
+        r.state,
+        r.meta,
+        r.run_time,
+        r.task_record_id,
+        r.create_time,
+        r.update_time,
+        CASE
+        WHEN r.source_type = 'APPLICATION' THEN a.name
+        WHEN r.source_type = 'TOOL' THEN t.name
+        ELSE NULL
+        END AS source_name
         FROM event_trigger_task_record r
         LEFT JOIN application a ON r.source_type = 'APPLICATION' AND r.source_id = a.id
         LEFT JOIN tool t ON r.source_type = 'TOOL' AND r.source_id = t.id

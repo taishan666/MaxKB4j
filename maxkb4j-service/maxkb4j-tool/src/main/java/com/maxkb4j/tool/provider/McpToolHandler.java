@@ -22,7 +22,7 @@ public class McpToolHandler extends AbsToolHandler {
 
     @Override
     public List<AiServiceTool> buildAiServiceTools(List<ToolEntity> tools) {
-        List<AiServiceTool> aiServiceTools=new ArrayList<>();
+        List<AiServiceTool> aiServiceTools = new ArrayList<>();
         for (ToolEntity tool : tools) {
             JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
             aiServiceTools.addAll(McpToolUtil.getTools(mcpConfig));
@@ -35,7 +35,7 @@ public class McpToolHandler extends AbsToolHandler {
         List<ToolProvider> toolProviders = new ArrayList<>();
         for (ToolEntity tool : tools) {
             JSONObject mcpConfig = JSONObject.parseObject(tool.getCode());
-            McpToolProvider mcpToolProvider = McpToolUtil.getMcpToolProvider(tool.getId(),mcpConfig);
+            McpToolProvider mcpToolProvider = McpToolUtil.getMcpToolProvider(tool.getId(), mcpConfig);
             if (mcpToolProvider != null) {
                 toolProviders.add(mcpToolProvider);
             }

@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.USER_SELECT)
@@ -24,6 +25,7 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 public class UserSelectNodeHandler extends AbsNodeHandler {
 
     private static final String SELECT_FILED = UserSelectField.SELECT_CARD;
+
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         UserSelectNode.NodeParams params = parseParams(node, UserSelectNode.NodeParams.class);
@@ -55,8 +57,8 @@ public class UserSelectNodeHandler extends AbsNodeHandler {
             nodeVariable.put(FormField.FORM_FIELD_LIST, formFieldList);
             nodeVariable.put(FormField.IS_SUBMIT, false);
         }
-        if (workflow instanceof IChatWorkflow chatWorkflow){
-            String chatRecordId=chatWorkflow.getChatParams().getChatRecordId();
+        if (workflow instanceof IChatWorkflow chatWorkflow) {
+            String chatRecordId = chatWorkflow.getChatParams().getChatRecordId();
             putDetail(node, ChatField.CHAT_RECORD_ID, chatRecordId);
         }
         return new NodeResult(nodeVariable, false, this::shouldInterrupt);

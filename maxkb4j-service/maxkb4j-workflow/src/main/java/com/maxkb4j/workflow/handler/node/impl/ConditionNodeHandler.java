@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.CONDITION)
@@ -21,7 +22,7 @@ public class ConditionNodeHandler extends AbsNodeHandler {
 
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
-        ConditionNodeParams params= parseParams(node, ConditionNodeParams.class);
+        ConditionNodeParams params = parseParams(node, ConditionNodeParams.class);
         ConditionNodeParams.Branch branch = executeBranch(workflow, params.getBranch());
         if (branch == null) {
             throw new ApiException(MessageCode.CONDITION_NO_MATCH);

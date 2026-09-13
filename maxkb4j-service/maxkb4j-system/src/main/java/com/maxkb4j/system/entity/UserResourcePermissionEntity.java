@@ -15,7 +15,7 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "user_resource_permission",autoResultMap = true)
+@TableName(value = "user_resource_permission", autoResultMap = true)
 public class UserResourcePermissionEntity extends BaseEntity {
     private String workspaceId;
     private String authTargetType;

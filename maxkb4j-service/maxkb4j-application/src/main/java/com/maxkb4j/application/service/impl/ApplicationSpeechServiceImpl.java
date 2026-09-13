@@ -37,7 +37,7 @@ public class ApplicationSpeechServiceImpl implements IApplicationSpeechService {
 
     @Override
     public String speechToText(String appId, MultipartFile file, boolean debug) throws IOException {
-        ApplicationVO app =applicationService.getAppDetail(appId, debug);
+        ApplicationVO app = applicationService.getAppDetail(appId, debug);
         return speechToText(app.getSttModelId(), file);
     }
 
@@ -45,7 +45,7 @@ public class ApplicationSpeechServiceImpl implements IApplicationSpeechService {
     public byte[] textToSpeech(String appId, JSONObject data, boolean debug) {
         String text = data.getString("text");
         ApplicationVO app = applicationService.getAppDetail(appId, debug);
-        return this.textToSpeech(text,app);
+        return this.textToSpeech(text, app);
     }
 
     /**

@@ -12,9 +12,6 @@ public class Charsets {
     public static final Charset UTF_8;
     public static final String UTF_8_NAME;
 
-    public Charsets() {
-    }
-
     static {
         ISO_8859_1 = StandardCharsets.ISO_8859_1;
         ISO_8859_1_NAME = ISO_8859_1.name();
@@ -22,6 +19,9 @@ public class Charsets {
         GBK_NAME = GBK.name();
         UTF_8 = StandardCharsets.UTF_8;
         UTF_8_NAME = UTF_8.name();
+    }
+
+    public Charsets() {
     }
 }
 

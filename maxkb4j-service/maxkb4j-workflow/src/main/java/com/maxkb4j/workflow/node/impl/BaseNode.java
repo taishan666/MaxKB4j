@@ -1,4 +1,5 @@
 package com.maxkb4j.workflow.node.impl;
+
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
@@ -9,7 +10,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 public class BaseNode extends AbsNode {
 
     public BaseNode(String id, JSONObject properties) {
-        super(id,properties);
+        super(id, properties);
     }
 
 }

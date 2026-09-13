@@ -29,19 +29,19 @@ public class WebContentCleaner {
     // ======================== 广告/噪音 class/id 关键词 ========================
     private static final Pattern NOISE_CLASS_PATTERN = Pattern.compile(
             "(?i)(ad|ads|advert|advertisement|banner|sponsor|popup|pop-up|modal|overlay|" +
-            "sidebar|side-bar|widget|social|share|sharing|comment|recommend|related|" +
-            "hot|trending|suggest|subscribe|newsletter|cookie|consent|gdpr|" +
-            "toolbar|menu|search-box|searchbar|login|register|signup|signin|sign-up|sign-in|" +
-            "pagination|pager|breadcrumb|footer|header|navbar|nav-bar|" +
-            "adsbygoogle|adsense|doubleclick|taboola|outbrain)"
+                    "sidebar|side-bar|widget|social|share|sharing|comment|recommend|related|" +
+                    "hot|trending|suggest|subscribe|newsletter|cookie|consent|gdpr|" +
+                    "toolbar|menu|search-box|searchbar|login|register|signup|signin|sign-up|sign-in|" +
+                    "pagination|pager|breadcrumb|footer|header|navbar|nav-bar|" +
+                    "adsbygoogle|adsense|doubleclick|taboola|outbrain)"
     );
 
     private static final Pattern NOISE_ID_PATTERN = Pattern.compile(
             "(?i)(ad|ads|advert|advertisement|banner|sponsor|popup|pop-up|modal|overlay|" +
-            "sidebar|side-bar|widget|social|share|sharing|comment|recommend|related|" +
-            "hot|trending|suggest|subscribe|newsletter|cookie|consent|gdpr|" +
-            "toolbar|menu|search-box|searchbar|login|register|signup|signin|sign-up|sign-in|" +
-            "pagination|pager|breadcrumb|footer|header|navbar|nav-bar)"
+                    "sidebar|side-bar|widget|social|share|sharing|comment|recommend|related|" +
+                    "hot|trending|suggest|subscribe|newsletter|cookie|consent|gdpr|" +
+                    "toolbar|menu|search-box|searchbar|login|register|signup|signin|sign-up|sign-in|" +
+                    "pagination|pager|breadcrumb|footer|header|navbar|nav-bar)"
     );
 
     // ======================== 广告/噪音 属性选择器 ========================

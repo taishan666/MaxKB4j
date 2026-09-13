@@ -2,6 +2,7 @@ package com.maxkb4j.common.api;
 
 
 import java.io.Serializable;
+
 /**
  * @author tarzan
  * @date 2024-12-25 10:20:33

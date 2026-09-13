@@ -18,11 +18,11 @@ import java.util.*;
 
 @RequiredArgsConstructor
 @Service
-public class DocumentTagServiceImpl extends ServiceImpl<DocumentTagMapper,DocumentTagEntity> implements IDocumentTagService {
+public class DocumentTagServiceImpl extends ServiceImpl<DocumentTagMapper, DocumentTagEntity> implements IDocumentTagService {
     @Override
-    public List<TagListVO> listTags(String docId,String name) {
-        List<TagEntity> tagEntities = baseMapper.listTags(docId,name);
-        List<TagVO> tags= BeanUtil.copyList(tagEntities, TagVO.class);
+    public List<TagListVO> listTags(String docId, String name) {
+        List<TagEntity> tagEntities = baseMapper.listTags(docId, name);
+        List<TagVO> tags = BeanUtil.copyList(tagEntities, TagVO.class);
         return TagUtil.convert(tags);
     }
 

@@ -15,9 +15,9 @@ public interface KnowledgeWorkflowStateListener {
     /**
      * 工作流状态变更回调
      *
-     * @param actionId      知识库动作 ID
+     * @param actionId       知识库动作 ID
      * @param runtimeDetails 各节点运行时详情
-     * @param state         目标状态（ActionStatus 名称）
+     * @param state          目标状态（ActionStatus 名称）
      */
     void onStateChange(String actionId, JSONObject runtimeDetails, String state);
 }

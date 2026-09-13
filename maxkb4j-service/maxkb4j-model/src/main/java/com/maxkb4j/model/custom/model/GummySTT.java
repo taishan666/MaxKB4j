@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicReference;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 
@@ -24,24 +25,24 @@ public class GummySTT extends AbsSTTModel {
     private String translationLanguage;
 
     public GummySTT(String modelName, ModelCredential modelCredential, JSONObject params) {
-        if (params != null){
-            String  targetLanguage=params.getString(ParamKey.TARGET_LANGUAGE);
-            if (targetLanguage != null){
+        if (params != null) {
+            String targetLanguage = params.getString(ParamKey.TARGET_LANGUAGE);
+            if (targetLanguage != null) {
                 this.translationLanguage = targetLanguage;
             }
-        }else {
+        } else {
             this.translationLanguage = Value.EN;
         }
         this.param = TranslationRecognizerParam.builder()
-                         .apiKey(modelCredential.getApiKey())
-                        .model(modelName)
-                        .format(Value.MP3) // 'pcm'、'wav'、'mp3'、'opus'、'speex'、'aac'、'amr', you
-                        .sampleRate(16000)
-                        .transcriptionEnabled(true)
-                        .sourceLanguage(Value.AUTO)
-                        .translationEnabled(false)
-                        .translationLanguages(new String[]{this.translationLanguage})
-                        .build();
+                .apiKey(modelCredential.getApiKey())
+                .model(modelName)
+                .format(Value.MP3) // 'pcm'、'wav'、'mp3'、'opus'、'speex'、'aac'、'amr', you
+                .sampleRate(16000)
+                .transcriptionEnabled(true)
+                .sourceLanguage(Value.AUTO)
+                .translationEnabled(false)
+                .translationLanguages(new String[]{this.translationLanguage})
+                .build();
     }
 
     @Override
@@ -65,7 +66,7 @@ public class GummySTT extends AbsSTTModel {
                 log.error("RecognitionCallback error: {}", e.getMessage());
             }
         };
-        int sampleRate=getSampleRate(audioBytes, FileToken.DOT+suffix);
+        int sampleRate = getSampleRate(audioBytes, FileToken.DOT + suffix);
         this.param.setSampleRate(sampleRate);
         String format = suffix != null ? suffix.toLowerCase() : Value.MP3;
         this.param.setFormat(format);
@@ -73,7 +74,7 @@ public class GummySTT extends AbsSTTModel {
             // 将录音音频数据发送给流式识别服务
             translator.call(param, callback);
             int sendFrameLength = 3200;
-            for (int i = 0; i * sendFrameLength < audioBytes.length; i ++) {
+            for (int i = 0; i * sendFrameLength < audioBytes.length; i++) {
                 int start = i * sendFrameLength;
                 int end = Math.min(start + sendFrameLength, audioBytes.length);
                 ByteBuffer byteBuffer = ByteBuffer.wrap(audioBytes, start, end - start);

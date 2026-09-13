@@ -24,17 +24,17 @@ public class ResetProblemStep extends AbsResetProblemStep {
     private final IModelProviderService modelFactory;
 
     @Override
-    protected String execute( String modelId,JSONObject modelParams, String question, List<ChatMessage> chatMemory) {
+    protected String execute(String modelId, JSONObject modelParams, String question, List<ChatMessage> chatMemory) {
         long startTime = System.currentTimeMillis();
-        ChatModel chatModel = modelFactory.buildChatModel(modelId,modelParams);
+        ChatModel chatModel = modelFactory.buildChatModel(modelId, modelParams);
         CompressingQueryAssistant queryAssistant = AiServiceFactory.builder(CompressingQueryAssistant.class)
                 .chatModel(chatModel)
                 .build();
-        Result<String> result= queryAssistant.transform(MessageUtils.format(chatMemory),question);
-        String paddingProblem=result.content();
+        Result<String> result = queryAssistant.transform(MessageUtils.format(chatMemory), question);
+        String paddingProblem = result.content();
         super.context.put("modelId", modelId);
         super.context.put("problemText", question);
-        TokenUsage tokenUsage=result.tokenUsage();
+        TokenUsage tokenUsage = result.tokenUsage();
         super.context.put("messageTokens", tokenUsage.inputTokenCount());
         super.context.put("answerTokens", tokenUsage.outputTokenCount());
         super.context.put("paddingProblemText", paddingProblem);
@@ -44,13 +44,13 @@ public class ResetProblemStep extends AbsResetProblemStep {
 
     @Override
     public JSONObject getDetails() {
-        JSONObject details=new JSONObject(true);
-        details.put("step_type","problem_padding");
-        details.put("problemText",context.get("problemText"));
-        details.put("paddingProblemText",context.get("paddingProblemText"));
+        JSONObject details = new JSONObject(true);
+        details.put("step_type", "problem_padding");
+        details.put("problemText", context.get("problemText"));
+        details.put("paddingProblemText", context.get("paddingProblemText"));
         details.put("runTime", context.get("runTime"));
-        details.put("messageTokens", context.getOrDefault("messageTokens",0));
-        details.put("answerTokens", context.getOrDefault("answerTokens",0));
+        details.put("messageTokens", context.getOrDefault("messageTokens", 0));
+        details.put("answerTokens", context.getOrDefault("answerTokens", 0));
         return details;
     }
 }

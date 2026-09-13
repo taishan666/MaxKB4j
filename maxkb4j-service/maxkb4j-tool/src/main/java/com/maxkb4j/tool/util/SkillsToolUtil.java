@@ -22,7 +22,9 @@ import java.util.zip.ZipInputStream;
 @Slf4j
 public class SkillsToolUtil {
 
-    /** Skill 描述文件名 */
+    /**
+     * Skill 描述文件名
+     */
     public static final String SKILL_MD = "skill.md";
 
     @Getter
@@ -144,7 +146,9 @@ public class SkillsToolUtil {
         return null;
     }
 
-    /** 判断 entry 是否为 SKILL.md（根目录或唯一一级目录下）。 */
+    /**
+     * 判断 entry 是否为 SKILL.md（根目录或唯一一级目录下）。
+     */
     private static boolean isSkillMdEntry(String entryName) {
         String normalized = entryName.replace('\\', '/').toLowerCase(Locale.ROOT);
         return normalized.equals(SKILL_MD) || normalized.matches("[^/]+/" + SKILL_MD);

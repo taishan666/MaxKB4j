@@ -13,6 +13,7 @@ import com.maxkb4j.workflow.node.AbsNode;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.LOOP_START)
@@ -28,17 +29,17 @@ public class LoopStartNodeHandler extends AbsNodeHandler {
             index = loopParams.getIndex();
             item = loopParams.getItem();
             JSONObject properties = node.getProperties();
-            if (properties != null){
+            if (properties != null) {
                 JSONArray loopInputFieldList = properties.getJSONArray(LoopField.LOOP_INPUT_FIELD_LIST);
                 if (loopInputFieldList != null) {
                     for (int i = 0; i < loopInputFieldList.size(); i++) {
                         JSONObject loopInputField = loopInputFieldList.getJSONObject(i);
                         String key = loopInputField.getString(NodeField.FIELD);
-                        Object value=Defaults.NONE;
-                        if (workflow.getLoopContext().containsKey(key)){
-                            value=workflow.getLoopContext().get(key);
-                        }else {
-                            workflow.getLoopContext().put(key,value);
+                        Object value = Defaults.NONE;
+                        if (workflow.getLoopContext().containsKey(key)) {
+                            value = workflow.getLoopContext().get(key);
+                        } else {
+                            workflow.getLoopContext().put(key, value);
                         }
                         loopInputField.put(VariableField.VALUE, value);
                     }
@@ -46,7 +47,7 @@ public class LoopStartNodeHandler extends AbsNodeHandler {
                 }
             }
         }
-        item=item==null?Defaults.NONE:item.toString();
+        item = item == null ? Defaults.NONE : item.toString();
         return new NodeResult(Map.of(RuntimeDetailField.INDEX, index, LoopField.ITEM, item));
     }
 }

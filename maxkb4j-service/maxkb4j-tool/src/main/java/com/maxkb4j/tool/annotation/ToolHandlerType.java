@@ -13,6 +13,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface ToolHandlerType {
-    /** Tool type key, matching {@code ToolConstants.ToolType} / {@code ToolEntity#getToolType()}. */
+    /**
+     * Tool type key, matching {@code ToolConstants.ToolType} / {@code ToolEntity#getToolType()}.
+     */
     String value();
 }

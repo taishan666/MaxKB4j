@@ -32,6 +32,7 @@ public interface IWorkflowContext {
      * 获取提示词变量（"scope.variable": value 统一格式）。
      */
     Map<String, Object> getPromptVariables();
+
     /**
      * 获取引用字段值（兼容层，内部委托 {@link NodeReference}；新代码请使用类型化重载）。
      *
@@ -52,6 +53,7 @@ public interface IWorkflowContext {
      * 获取引用字段值（nodeId 为节点 ID 或作用域名 global/chat/loop）。
      */
     Object getReferenceField(String nodeId, String key);
+
     /**
      * 获取字段值。
      *
@@ -60,6 +62,7 @@ public interface IWorkflowContext {
      * @return 实际字段值
      */
     Object getFieldValue(Object value, String source);
+
     /**
      * 获取已执行节点（按 nodeId）。
      */

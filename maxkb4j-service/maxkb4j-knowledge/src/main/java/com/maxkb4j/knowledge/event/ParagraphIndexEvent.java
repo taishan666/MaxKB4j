@@ -13,7 +13,7 @@ public class ParagraphIndexEvent extends ApplicationEvent {
     private final List<String> paragraphIds;
 
 
-    public ParagraphIndexEvent(Object source, String knowledgeId,String docId, List<String> paragraphIds) {
+    public ParagraphIndexEvent(Object source, String knowledgeId, String docId, List<String> paragraphIds) {
         super(source);
         this.knowledgeId = knowledgeId;
         this.docId = docId;

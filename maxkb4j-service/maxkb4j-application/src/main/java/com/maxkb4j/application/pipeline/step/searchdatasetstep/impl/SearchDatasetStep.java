@@ -31,8 +31,8 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
     @Override
     protected List<ParagraphRagVO> execute(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat, PipelineManage manage) {
         long startTime = System.currentTimeMillis();
-        List<ParagraphRagVO> paragraphList= new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(knowledgeIds)){
+        List<ParagraphRagVO> paragraphList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(knowledgeIds)) {
     /*        if(Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
                 ApplicationVO application = manage.application;
                 String modelId = application.getModelId();
@@ -64,9 +64,9 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
                 super.context.put("messageTokens", tokenUsage.inputTokenCount());
                 super.context.put("answerTokens", tokenUsage.outputTokenCount());
             }*/
-            if(!Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
+            if (!Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())) {
                 List<String> excludeParagraphIds = reChat ? manage.getExcludeParagraphIds(problemText) : List.of();
-                paragraphList = retrieval(knowledgeIds,datasetSetting, problemText, paddingProblemText, reChat,excludeParagraphIds);
+                paragraphList = retrieval(knowledgeIds, datasetSetting, problemText, paddingProblemText, reChat, excludeParagraphIds);
             }
         }
         log.info("dataset search 耗时 {} ms", System.currentTimeMillis() - startTime);
@@ -75,14 +75,14 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
         return paragraphList;
     }
 
-    protected List<ParagraphRagVO> retrieval(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat,List<String> excludeParagraphIds) {
+    protected List<ParagraphRagVO> retrieval(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat, List<String> excludeParagraphIds) {
         List<CompletableFuture<List<ParagraphRagVO>>> futureList = new ArrayList<>();
         CompletableFuture<List<ParagraphRagVO>> future = CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(problemText, knowledgeIds, excludeParagraphIds, datasetSetting), taskExecutor);
         futureList.add(future);
         if (StringUtils.isNotBlank(paddingProblemText) && !problemText.equals(paddingProblemText)) {
             futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(paddingProblemText, knowledgeIds, excludeParagraphIds, datasetSetting)));
         }
-        List<ParagraphRagVO> paragraphList= futureList.stream().flatMap(f -> f.join().stream()).toList();
+        List<ParagraphRagVO> paragraphList = futureList.stream().flatMap(f -> f.join().stream()).toList();
         //当有优化的问题时
         if (paragraphList.size() > datasetSetting.getTopN()) {
             Map<String, ParagraphRagVO> map = new LinkedHashMap<>();

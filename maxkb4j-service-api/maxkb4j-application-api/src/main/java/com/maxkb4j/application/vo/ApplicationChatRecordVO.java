@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class ApplicationChatRecordVO{
+public class ApplicationChatRecordVO {
     private String id;
     private String voteStatus;
     private String voteReason;

@@ -27,7 +27,7 @@ public class ParagraphIndexListener {
             indexBatchExecutor.indexBatch(embeddingModel, event.getKnowledgeId(), event.getDocId(), event.getParagraphIds());
         } catch (Exception e) {
             log.error("段落索引失败: docId={}, paragraphIds={}, 错误: {}",
-                event.getDocId(), event.getParagraphIds(), e.getMessage(), e);
+                    event.getDocId(), event.getParagraphIds(), e.getMessage(), e);
         }
     }
 }

@@ -30,17 +30,17 @@ public class ToolNodeHandler extends AbsNodeHandler {
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         ToolNode.NodeParams params = parseParams(node, ToolNode.NodeParams.class);
         Map<String, Object> inputParams = toolExecuteService.convertParamType(params.getInputFieldList());
-        Object result=toolExecuteService.httpOrCodeExecute(params.getToolType(),params.getCode(),params.getInitParams(),inputParams);
+        Object result = toolExecuteService.httpOrCodeExecute(params.getToolType(), params.getCode(), params.getInitParams(), inputParams);
         // 使用辅助方法写入详情
         putDetail(node, NodeField.PARAMS, inputParams);
         if (Boolean.TRUE.equals(params.getIsResult())) {
             setAnswerText(node, result.toString());
         }
-        Map<String, Object> nodeVariable=new HashMap<>();
-        if (result instanceof Map<?,?> resultMap){
+        Map<String, Object> nodeVariable = new HashMap<>();
+        if (result instanceof Map<?, ?> resultMap) {
             nodeVariable.putAll((Map<? extends String, ?>) resultMap);
         }
-        nodeVariable.put(NodeField.RESULT,result);
+        nodeVariable.put(NodeField.RESULT, result);
         return new NodeResult(nodeVariable);
     }
 

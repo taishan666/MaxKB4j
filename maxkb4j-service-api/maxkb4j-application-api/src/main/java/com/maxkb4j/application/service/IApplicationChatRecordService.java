@@ -6,12 +6,13 @@ import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 
 import java.util.List;
 
-public interface IApplicationChatRecordService  {
+public interface IApplicationChatRecordService {
 
     ApplicationChatRecordVO getChatRecordInfo(String chatId, String chatRecordId);
 
     IPage<ApplicationChatRecordVO> chatRecordPage(String chatId, int current, int size);
 
     void updateDtoById(ApplicationChatRecordDTO applicationChatDTO);
+
     List<ApplicationChatRecordDTO> listVoteStatusByChatId(String chatIds);
 }

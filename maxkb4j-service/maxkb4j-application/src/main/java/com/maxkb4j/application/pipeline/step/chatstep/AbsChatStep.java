@@ -26,7 +26,7 @@ public abstract class AbsChatStep extends AbsStep {
         List<ParagraphRagVO> paragraphList = (List<ParagraphRagVO>) manage.context.get("paragraphList");
         ApplicationVO application = manage.application;
         String userPrompt = (String) manage.context.get("userPrompt");
-        String chatRecordId =manage.chatParams.getChatRecordId();
+        String chatRecordId = manage.chatParams.getChatRecordId();
         int dialogueNumber = application.getDialogueNumber();
         List<ChatMessage> historyMessages = manage.getHistoryMessages(dialogueNumber);
         AtomicReference<String> answerText = new AtomicReference<>("");
@@ -44,7 +44,7 @@ public abstract class AbsChatStep extends AbsStep {
         boolean isAiAnswer = false;
         if (StringUtils.isBlank(modelId)) {
             answerText.set("抱歉，AI 模型未配置，请先前往智能体设置 AI 模型。");
-        }else if (StringUtils.isBlank(problemText)) {
+        } else if (StringUtils.isBlank(problemText)) {
             answerText.set("用户消息不能为空");
         } else {
             KnowledgeSetting knowledgeSetting = application.getKnowledgeSetting();
@@ -55,15 +55,15 @@ public abstract class AbsChatStep extends AbsStep {
                 if (paragraphList.isEmpty() && Boolean.TRUE.equals(fallbackEnable)) {
                     String fallbackResponse = knowledgeSetting.getFallbackResponse();
                     answerText.set(fallbackResponse);
-                }else {
-                    String answer =execute(chatId,chatRecordId,application,historyMessages,userPrompt,manage);
+                } else {
+                    String answer = execute(chatId, chatRecordId, application, historyMessages, userPrompt, manage);
                     answerText.set(answer);
-                    isAiAnswer= true;
+                    isAiAnswer = true;
                 }
             }
         }
-        if (!isAiAnswer){
-            manage.sink.tryEmitNext(this.toChatMessageVO(chatId, chatRecordId,answerText.get(), "",true));
+        if (!isAiAnswer) {
+            manage.sink.tryEmitNext(this.toChatMessageVO(chatId, chatRecordId, answerText.get(), "", true));
         }
         historyMessages.add(new UserMessage(problemText));
         historyMessages.add(new AiMessage(answerText.get()));
@@ -73,8 +73,7 @@ public abstract class AbsChatStep extends AbsStep {
     }
 
 
-    protected abstract String execute(String chatId,String chatRecordId,ApplicationVO application,List<ChatMessage> historyMessages,String userPrompt,PipelineManage manage) throws Exception;
-
+    protected abstract String execute(String chatId, String chatRecordId, ApplicationVO application, List<ChatMessage> historyMessages, String userPrompt, PipelineManage manage) throws Exception;
 
 
     /**
@@ -93,7 +92,7 @@ public abstract class AbsChatStep extends AbsStep {
                 chatId,
                 chatRecordId,
                 "ai-chat-node",
-                 "",
+                "",
                 content,
                 reasoningContent,
                 List.of(),

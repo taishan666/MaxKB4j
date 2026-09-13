@@ -80,7 +80,7 @@ public class ApplicationResourceMappingService {
                 }
             }
         }
-        upsertResourceMappings(app.getId(), applicationIds,knowledgeIds, toolIds, modelIds);
+        upsertResourceMappings(app.getId(), applicationIds, knowledgeIds, toolIds, modelIds);
     }
 
     /**
@@ -94,10 +94,10 @@ public class ApplicationResourceMappingService {
      * 批量保存资源映射关系
      */
     private void upsertResourceMappings(String appId,
-                                      List<String> applicationIds,
-                                      List<String> knowledgeIds,
-                                      List<String> toolIds,
-                                      List<String> modelIds) {
+                                        List<String> applicationIds,
+                                        List<String> knowledgeIds,
+                                        List<String> toolIds,
+                                        List<String> modelIds) {
         List<TargetResource> targets = new ArrayList<>();
         targets.addAll(applicationIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.APPLICATION)).toList());
         targets.addAll(knowledgeIds.stream().filter(Objects::nonNull).map(id -> new TargetResource(id, ResourceType.KNOWLEDGE)).toList());

@@ -29,7 +29,7 @@ public class ChatAnonymousTokenHandler implements AuthHandler {
         if (token == null || !token.getIsActive()) {
             log.warn("accessToken不合法或被禁用");
             ResponseProvider.write(response);
-            return  false;
+            return false;
         }
         return true;
     }
@@ -37,7 +37,7 @@ public class ChatAnonymousTokenHandler implements AuthHandler {
     @Override
     public boolean support(HttpServletRequest request) {
         String tokenValue = WebUtil.getTokenValue(request);
-        if (Objects.isNull(tokenValue)){
+        if (Objects.isNull(tokenValue)) {
             return false;
         }
         StpKit.USER.setTokenValue(tokenValue);

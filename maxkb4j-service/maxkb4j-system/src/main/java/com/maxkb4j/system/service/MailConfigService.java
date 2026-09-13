@@ -19,16 +19,16 @@ public class MailConfigService {
 
 
     public JavaMailSenderImpl createMailSender() {
-        SystemSettingEntity systemSetting = systemSettingMapper.selectOne(Wrappers.<SystemSettingEntity>lambdaQuery().eq(SystemSettingEntity::getType,0));
-        if(Objects.nonNull(systemSetting)){
-           return createJavaMailSender(systemSetting.getMeta());
+        SystemSettingEntity systemSetting = systemSettingMapper.selectOne(Wrappers.<SystemSettingEntity>lambdaQuery().eq(SystemSettingEntity::getType, 0));
+        if (Objects.nonNull(systemSetting)) {
+            return createJavaMailSender(systemSetting.getMeta());
         }
         return new JavaMailSenderImpl();
     }
 
     public JavaMailSenderImpl createJavaMailSender(JSONObject meta) {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        if(Objects.nonNull(meta)){
+        if (Objects.nonNull(meta)) {
             mailSender.setHost(meta.getString("email_host"));
             mailSender.setPort(meta.getInteger("email_port"));
             mailSender.setUsername(meta.getString("email_host_user"));

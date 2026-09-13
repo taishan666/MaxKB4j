@@ -40,9 +40,9 @@ public class MessageConverter {
             if (chatMessage instanceof UserMessage userMessage) {
                 message.put("role", "user");
                 List<Content> contents = userMessage.contents();
-                if (contents.size() == 1 && contents.getFirst() instanceof TextContent){
+                if (contents.size() == 1 && contents.getFirst() instanceof TextContent) {
                     message.put("content", userMessage.singleText());
-                }else {
+                } else {
                     message.put("content", resetContents(contents));
                 }
                 newMessageList.add(message);
@@ -68,7 +68,7 @@ public class MessageConverter {
                 textMassage.put("type", "text");
                 textMassage.put("text", textContent.text());
                 contentList.add(textMassage);
-            }else if (content instanceof ImageContent imageContent) {
+            } else if (content instanceof ImageContent imageContent) {
                 JSONObject imageMassage = new JSONObject();
                 imageMassage.put("type", "image_url");
                 Image image = imageContent.image();
@@ -125,18 +125,18 @@ public class MessageConverter {
     /**
      * 将节点数据转换为聊天消息VO
      *
-     * @param chatId         聊天ID
-     * @param chatRecordId   聊天记录ID
-     * @param nodeId         节点ID
-     * @param content        消息内容
+     * @param chatId           聊天ID
+     * @param chatRecordId     聊天记录ID
+     * @param nodeId           节点ID
+     * @param content          消息内容
      * @param reasoningContent 推理内容
-     * @param upNodeIdList   上游节点ID列表
-     * @param runtimeNodeId  运行时节点ID
-     * @param type           节点类型
-     * @param viewType       视图类型
-     * @param childNode      子节点
-     * @param nodeIsEnd      节点是否结束
-     * @param isEnd    是否结束
+     * @param upNodeIdList     上游节点ID列表
+     * @param runtimeNodeId    运行时节点ID
+     * @param type             节点类型
+     * @param viewType         视图类型
+     * @param childNode        子节点
+     * @param nodeIsEnd        节点是否结束
+     * @param isEnd            是否结束
      * @return 聊天消息VO
      */
     public static ChatMessageVO toChatMessageVO(

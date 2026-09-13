@@ -61,8 +61,8 @@ public class HomeController {
     @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/application/tokens_ranking/{current}/{size}")
     public R<IPage<AgentStatDTO>> tokensRanking(@PathVariable("current") int current,
-                                                 @PathVariable("size") int size,
-                                                 HomeQuery query) {
+                                                @PathVariable("size") int size,
+                                                HomeQuery query) {
         return R.data(homeService.tokensRanking(current, size, query));
     }
 
@@ -92,9 +92,9 @@ public class HomeController {
     @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/question_ranking/export")
     public void questionRankingExport(HomeQuery query,
-                                     @RequestParam(value = "start_time", required = false) String startTime,
-                                     @RequestParam(value = "end_time", required = false) String endTime,
-                                     HttpServletResponse response) throws IOException {
+                                      @RequestParam(value = "start_time", required = false) String startTime,
+                                      @RequestParam(value = "end_time", required = false) String endTime,
+                                      HttpServletResponse response) throws IOException {
         if (startTime != null && !startTime.isEmpty()) {
             query.setStartTime(startTime);
         }
@@ -107,17 +107,17 @@ public class HomeController {
     @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/application/user_tokens_ranking/{current}/{size}")
     public R<IPage<ChatUserStatDTO>> userTokensRanking(@PathVariable("current") int current,
-                                                        @PathVariable("size") int size,
-                                                        HomeQuery query) {
+                                                       @PathVariable("size") int size,
+                                                       HomeQuery query) {
         return R.data(homeService.userTokensRanking(current, size, query));
     }
 
     @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/homepage/user_tokens_ranking/export")
     public void userTokensRankingExport(HomeQuery query,
-                                       @RequestParam(value = "start_time", required = false) String startTime,
-                                       @RequestParam(value = "end_time", required = false) String endTime,
-                                       HttpServletResponse response) throws IOException {
+                                        @RequestParam(value = "start_time", required = false) String startTime,
+                                        @RequestParam(value = "end_time", required = false) String endTime,
+                                        HttpServletResponse response) throws IOException {
         if (startTime != null && !startTime.isEmpty()) {
             query.setStartTime(startTime);
         }

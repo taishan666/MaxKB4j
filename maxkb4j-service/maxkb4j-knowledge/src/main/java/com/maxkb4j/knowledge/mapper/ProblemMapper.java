@@ -10,7 +10,7 @@ import com.maxkb4j.knowledge.vo.ProblemVO;
  * @author tarzan
  * @date 2024-12-26 10:45:40
  */
-public interface ProblemMapper extends BaseMapper<ProblemEntity>{
+public interface ProblemMapper extends BaseMapper<ProblemEntity> {
 
     IPage<ProblemVO> pageByDatasetId(Page<ProblemEntity> problemPage, String knowledgeId, String content);
 

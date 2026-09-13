@@ -8,7 +8,7 @@ import java.io.InputStream;
 
 public interface IOssService {
 
-    default String uploadAndGetFileUrl(String fileName, byte[] fileBytes){
+    default String uploadAndGetFileUrl(String fileName, byte[] fileBytes) {
         return uploadFile(fileName, fileBytes).getUrl();
     }
 
@@ -16,7 +16,7 @@ public interface IOssService {
 
     String storeFile(MultipartFile file) throws IOException;
 
-    String storeFile(byte[] bytes,String fileName,String contentType);
+    String storeFile(byte[] bytes, String fileName, String contentType);
 
     OssFile getFile(String id);
 

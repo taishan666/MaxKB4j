@@ -4,17 +4,18 @@
     <update id="updateStatusByIds">
         UPDATE "paragraph"
         SET status = reverse (
-                SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR #{up} ) || #{status} || SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM #{next} )
-                     ),
-            status_meta = jsonb_set (
-                    "paragraph".status_meta,
-                    ARRAY['state_time', #{type}::TEXT],
-                    jsonb_set (
-                            COALESCE ( "paragraph".status_meta #> ARRAY['state_time', #{type}::TEXT], jsonb_build_object(#{status}, now())),
-                            ARRAY[#{status}::TEXT],
-                            CONCAT ( '"', now( ), '"' ) :: JSONB
-                    )
-         ) WHERE "paragraph"."id" IN
+        SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR #{up} ) || #{status} || SUBSTRING ( reverse (
+        LPAD( status, 3, 'n' ) ) :: TEXT FROM #{next} )
+        ),
+        status_meta = jsonb_set (
+        "paragraph".status_meta,
+        ARRAY['state_time', #{type}::TEXT],
+        jsonb_set (
+        COALESCE ( "paragraph".status_meta #> ARRAY['state_time', #{type}::TEXT], jsonb_build_object(#{status}, now())),
+        ARRAY[#{status}::TEXT],
+        CONCAT ( '"', now( ), '"' ) :: JSONB
+        )
+        ) WHERE "paragraph"."id" IN
         <foreach item="paragraphId" collection="paragraphIds" open="(" separator="," close=")">
             #{paragraphId}
         </foreach>
@@ -24,17 +25,18 @@
     <update id="updateStatusByDocIds">
         UPDATE "paragraph"
         SET status = reverse (
-                SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR #{up} ) || #{status} || SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM #{next} )
-                     ),
-            status_meta = jsonb_set (
-                    "paragraph".status_meta,
-                    ARRAY['state_time', #{type}::TEXT],
-                    jsonb_set (
-                            COALESCE ( "paragraph".status_meta #> ARRAY['state_time', #{type}::TEXT], jsonb_build_object(#{status}, now())),
-                            ARRAY[#{status}::TEXT],
-                            CONCAT ( '"', now( ), '"' ) :: JSONB
-                    )
-                          ) WHERE "paragraph"."document_id" IN
+        SUBSTRING ( reverse ( LPAD( status, 3, 'n' ) ) :: TEXT FROM 1 FOR #{up} ) || #{status} || SUBSTRING ( reverse (
+        LPAD( status, 3, 'n' ) ) :: TEXT FROM #{next} )
+        ),
+        status_meta = jsonb_set (
+        "paragraph".status_meta,
+        ARRAY['state_time', #{type}::TEXT],
+        jsonb_set (
+        COALESCE ( "paragraph".status_meta #> ARRAY['state_time', #{type}::TEXT], jsonb_build_object(#{status}, now())),
+        ARRAY[#{status}::TEXT],
+        CONCAT ( '"', now( ), '"' ) :: JSONB
+        )
+        ) WHERE "paragraph"."document_id" IN
         <foreach item="docId" collection="docIds" open="(" separator="," close=")">
             #{docId}
         </foreach>
@@ -42,23 +44,23 @@
 
     <select id="retrievalParagraph" resultType="com.maxkb4j.knowledge.vo.ParagraphRagVO">
         SELECT
-            ph.ID,
-            ph.title,
-            ph.content,
-            ph.position,
-            ph.document_id,
-            ph.knowledge_id,
-            ph.is_active,
-            doc."name" AS document_name,
-            doc."hit_handling_method",
-            doc."directly_return_similarity",
-            doc."meta",
-            knowledge."name" AS knowledge_name,
-            knowledge."type" AS knowledge_type
+        ph.ID,
+        ph.title,
+        ph.content,
+        ph.position,
+        ph.document_id,
+        ph.knowledge_id,
+        ph.is_active,
+        doc."name" AS document_name,
+        doc."hit_handling_method",
+        doc."directly_return_similarity",
+        doc."meta",
+        knowledge."name" AS knowledge_name,
+        knowledge."type" AS knowledge_type
         FROM
-            paragraph ph
-                LEFT JOIN "document" doc ON ph.document_id = doc.ID
-                LEFT JOIN "knowledge" knowledge ON ph.knowledge_id = knowledge.ID
+        paragraph ph
+        LEFT JOIN "document" doc ON ph.document_id = doc.ID
+        LEFT JOIN "knowledge" knowledge ON ph.knowledge_id = knowledge.ID
         WHERE ph.id IN
         <foreach item="id" collection="paragraphIds" open="(" separator="," close=")">
             #{id}
@@ -67,12 +69,12 @@
     <select id="listByStateIds"
             resultType="com.maxkb4j.knowledge.entity.ParagraphEntity">
         SELECT
-            *
+        *
         FROM
-            paragraph
+        paragraph
         WHERE
-            document_id=#{docId}
-            AND SUBSTRING(status FROM #{fromIndex} FOR 1) IN
+        document_id=#{docId}
+        AND SUBSTRING(status FROM #{fromIndex} FOR 1) IN
         <foreach item="state" collection="stateList" open="(" separator="," close=")">
             #{state}
         </foreach>

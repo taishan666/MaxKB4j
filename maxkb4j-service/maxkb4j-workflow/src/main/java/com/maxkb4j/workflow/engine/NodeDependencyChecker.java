@@ -49,7 +49,7 @@ public class NodeDependencyChecker {
                 .filter(n -> upNodeIdList.contains(n.getId()))
                 .toList();
         Predicate<AbsNode> isExecuted = n -> (NodeStatus.SUCCESS.getStatus() == n.getStatus()
-                ||NodeStatus.SKIP.getStatus() == n.getStatus());
+                || NodeStatus.SKIP.getStatus() == n.getStatus());
         return !upNodes.stream()
                 .allMatch(isExecuted);
     }

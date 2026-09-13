@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface IDocumentService {
 
-    boolean batchCreateDocs(String knowledgeId,int knowledgeType, List<DocumentSimple> docs);
+    boolean batchCreateDocs(String knowledgeId, int knowledgeType, List<DocumentSimple> docs);
 }

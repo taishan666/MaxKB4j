@@ -9,7 +9,7 @@
         knowledge_action
         <where>
             <if test="username != null and username != ''">
-                AND  meta->>'username' LIKE '%' || #{username} || '%'
+                AND meta->>'username' LIKE '%' || #{username} || '%'
             </if>
             <if test="state != null and state != ''">
                 AND state = #{state}

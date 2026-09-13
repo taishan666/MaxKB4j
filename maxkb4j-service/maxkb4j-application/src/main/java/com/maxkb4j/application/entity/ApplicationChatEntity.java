@@ -14,7 +14,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "application_chat",autoResultMap = true)
+@TableName(value = "application_chat", autoResultMap = true)
 public class ApplicationChatEntity extends BaseEntity {
     private String summary;
     private String applicationId;

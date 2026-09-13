@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
@@ -281,17 +281,17 @@
                 <artifactId>langchain4j-http-client-spring-restclient</artifactId>
                 <version>${langchain4j.beta.version}</version>
             </dependency>
-      <!--      <dependency>
-                <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-experimental-sql</artifactId>
-                <version>${langchain4j.beta.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.github.jsqlparser</groupId>
-                        <artifactId>jsqlparser</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>-->
+            <!--      <dependency>
+                      <groupId>dev.langchain4j</groupId>
+                      <artifactId>langchain4j-experimental-sql</artifactId>
+                      <version>${langchain4j.beta.version}</version>
+                      <exclusions>
+                          <exclusion>
+                              <groupId>com.github.jsqlparser</groupId>
+                              <artifactId>jsqlparser</artifactId>
+                          </exclusion>
+                      </exclusions>
+                  </dependency>-->
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-embeddings</artifactId>
@@ -365,11 +365,11 @@
                 <artifactId>langchain4j-community-xinference</artifactId>
                 <version>${langchain4j.beta.version}</version>
             </dependency>
-<!--            <dependency>
-                <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-embeddings-all-minilm-l6-v2-q</artifactId>
-                <version>${langchain4j.beta.version}</version>
-            </dependency>-->
+            <!--            <dependency>
+                            <groupId>dev.langchain4j</groupId>
+                            <artifactId>langchain4j-embeddings-all-minilm-l6-v2-q</artifactId>
+                            <version>${langchain4j.beta.version}</version>
+                        </dependency>-->
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-local-ai</artifactId>

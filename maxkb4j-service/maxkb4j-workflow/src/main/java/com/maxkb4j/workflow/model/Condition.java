@@ -3,6 +3,7 @@ package com.maxkb4j.workflow.model;
 import lombok.Data;
 
 import jakarta.validation.constraints.NotBlank;
+
 import java.util.List;
 
 @Data

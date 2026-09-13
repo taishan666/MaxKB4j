@@ -26,11 +26,6 @@ public class I18nUtil implements ApplicationContextAware {
 
     private static MessageSource MESSAGE_SOURCE;
 
-    @Override
-    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
-        MESSAGE_SOURCE = applicationContext.getBean(MessageSource.class);
-    }
-
     /**
      * 按当前 Locale 翻译 key；若无对应消息则返回 key 本身（避免抛错）
      */
@@ -64,5 +59,10 @@ public class I18nUtil implements ApplicationContextAware {
         } catch (NoSuchMessageException ex) {
             return code;
         }
+    }
+
+    @Override
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
+        MESSAGE_SOURCE = applicationContext.getBean(MessageSource.class);
     }
 }

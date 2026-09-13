@@ -13,21 +13,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class PageUtilTest {
 
-    static class Source {
-        private String name;
-        public Source() {}
-        public Source(String name) { this.name = name; }
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-    }
-
-    static class Target {
-        private String name;
-        public Target() {}
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-    }
-
     private Page<Source> page(List<Source> records) {
         Page<Source> page = new Page<>();
         page.setRecords(records);
@@ -49,7 +34,6 @@ class PageUtilTest {
         assertThat(result.getTotal()).isEqualTo(55L);
     }
 
-
     @Test
     void copy_byMapper_transformsRecords() {
         IPage<String> result = BeanUtil.copyPage(
@@ -58,5 +42,39 @@ class PageUtilTest {
         assertThat(result.getRecords()).containsExactly("a", "b");
         assertThat(result.getCurrent()).isEqualTo(2L);
         assertThat(result.getTotal()).isEqualTo(55L);
+    }
+
+    static class Source {
+        private String name;
+
+        public Source() {
+        }
+
+        public Source(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
+    static class Target {
+        private String name;
+
+        public Target() {
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
     }
 }

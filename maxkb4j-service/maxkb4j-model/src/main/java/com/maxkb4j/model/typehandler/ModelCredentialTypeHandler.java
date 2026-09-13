@@ -19,7 +19,7 @@ public class ModelCredentialTypeHandler extends BaseTypeHandler<ModelCredential>
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, ModelCredential parameter, JdbcType jdbcType) throws SQLException {
         if (null != parameter) {
-            String publicKey= SystemCache.getPublicKey();
+            String publicKey = SystemCache.getPublicKey();
             String text;
             try {
                 text = RSAUtil.encryptPem(JSONObject.toJSONString(parameter), publicKey);
@@ -50,7 +50,7 @@ public class ModelCredentialTypeHandler extends BaseTypeHandler<ModelCredential>
 
     private ModelCredential convert(String value) {
         if (notNull(value)) {
-            String privateKey= SystemCache.getPrivateKey();
+            String privateKey = SystemCache.getPrivateKey();
             String text;
             try {
                 text = RSAUtil.rsaLongDecrypt(value, privateKey);

@@ -20,7 +20,7 @@ public class ClientIntraDayAccessNumResetJob {
     @Scheduled(cron = "0 0 0 * * *")
     public void execute() {
         log.info("开始重置intraDayAccessNum");
-        chatUserStatsService.update(Wrappers.<ApplicationChatUserStatsEntity>lambdaUpdate().set(ApplicationChatUserStatsEntity::getIntraDayAccessNum,0));
+        chatUserStatsService.update(Wrappers.<ApplicationChatUserStatsEntity>lambdaUpdate().set(ApplicationChatUserStatsEntity::getIntraDayAccessNum, 0));
         log.info("结束重置intraDayAccessNum");
     }
 }

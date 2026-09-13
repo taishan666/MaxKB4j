@@ -11,7 +11,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class FolderService extends ServiceImpl<FolderMapper, FolderEntity>  {
+public class FolderService extends ServiceImpl<FolderMapper, FolderEntity> {
 
     public List<FolderVO> tree(String source) {
         return List.of(new FolderVO("default", ""));

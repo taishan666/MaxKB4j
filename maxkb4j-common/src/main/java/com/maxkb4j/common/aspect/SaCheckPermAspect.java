@@ -23,7 +23,6 @@ import java.util.Map;
 public class SaCheckPermAspect {
 
 
-
     @Around("@annotation(saCheckPerm)")
     public Object checkPermission(ProceedingJoinPoint joinPoint, SaCheckPerm saCheckPerm) throws Throwable {
         // 先校验是否已正常登录，未登录将抛出 NotLoginException
@@ -35,10 +34,10 @@ public class SaCheckPermAspect {
         }
         String permissionStr = permissionStr(saCheckPerm, attributes);
         //校验权限（精确匹配）
-        if (StpKit.ADMIN.hasPermission(permissionStr)||StpKit.ADMIN.hasRole(RoleConst.ADMIN)) {
+        if (StpKit.ADMIN.hasPermission(permissionStr) || StpKit.ADMIN.hasRole(RoleConst.ADMIN)) {
             // 放行
             return joinPoint.proceed();
-        }else {
+        } else {
             throw new NotPermissionException(permissionStr);
         }
     }
@@ -52,8 +51,8 @@ public class SaCheckPermAspect {
         PermissionEnum permission = saCheckPerm.value();
         String permissionStr = permission.getResourcePerm(); // 使用默认值
         if (pathVars != null) {
-            String resourceId=pathVars.get("id");
-            if (resourceId != null){
+            String resourceId = pathVars.get("id");
+            if (resourceId != null) {
                 permissionStr = permission.getResourcePerm("default", resourceId); // 使用实际资源ID替换
             }
         }

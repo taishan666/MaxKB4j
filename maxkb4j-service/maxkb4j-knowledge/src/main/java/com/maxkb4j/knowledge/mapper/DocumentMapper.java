@@ -14,7 +14,7 @@ import java.util.List;
  * @author tarzan
  * @date 2024-12-25 17:00:26
  */
-public interface DocumentMapper extends BaseMapper<DocumentEntity>{
+public interface DocumentMapper extends BaseMapper<DocumentEntity> {
 
     IPage<DocumentVO> selectDocPage(Page<DocumentVO> docPage, String knowledgeId, @Param("query") DocQuery query);
 

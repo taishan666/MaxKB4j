@@ -3,8 +3,8 @@
 <mapper namespace="com.maxkb4j.knowledge.mapper.DocumentTagMapper">
 
     <select id="listTags" resultType="com.maxkb4j.knowledge.entity.TagEntity">
-        SELECT dt.id,tag.key, tag.value  FROM TAG tag LEFT JOIN DOCUMENT_TAG dt ON tag.id=dt.tag_id
-                 WHERE dt.document_id=#{docId}
+        SELECT dt.id,tag.key, tag.value FROM TAG tag LEFT JOIN DOCUMENT_TAG dt ON tag.id=dt.tag_id
+        WHERE dt.document_id=#{docId}
         <if test="name != null and name != ''">
             AND CONCAT(tag.key, tag.value) LIKE CONCAT('%', #{name}, '%')
         </if>

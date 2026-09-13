@@ -1,1 +1,10 @@
-.clean-strategy-row[data-v-fef1203f]{display:flex;align-items:center;gap:8px;line-height:32px}.clean-strategy-number[data-v-fef1203f]{width:110px}
+.clean-strategy-row[data-v-fef1203f] {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 32px
+}
+
+.clean-strategy-number[data-v-fef1203f] {
+    width: 110px
+}

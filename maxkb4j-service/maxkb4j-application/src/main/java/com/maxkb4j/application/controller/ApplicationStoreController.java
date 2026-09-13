@@ -43,25 +43,25 @@ public class ApplicationStoreController {
             if (Objects.requireNonNull(resource.getFilename()).endsWith(".mk")) {
                 String filename = resource.getFilename();
                 AppTemplate appTemplate = new AppTemplate();
-                ApplicationEntity app= ResourceUtil.parseApp(resource);
-                if (app!=null){
+                ApplicationEntity app = ResourceUtil.parseApp(resource);
+                if (app != null) {
                     String parentDirName = JarUtil.getParentDirName(resource);
-                    String icon=StringUtils.isNotBlank(app.getIcon())?app.getIcon():"./app/"+parentDirName+"/logo.png";
+                    String icon = StringUtils.isNotBlank(app.getIcon()) ? app.getIcon() : "./app/" + parentDirName + "/logo.png";
                     appTemplate.setIcon(icon);
                     appTemplate.setName(app.getName());
                     appTemplate.setDescription(app.getDesc());
                     appTemplate.setType(app.getType());
-                    Resource readmeResource= resolver.getResource("templates/app/"+parentDirName+"/readme.md");
-                    if (readmeResource.exists()){
+                    Resource readmeResource = resolver.getResource("templates/app/" + parentDirName + "/readme.md");
+                    if (readmeResource.exists()) {
                         appTemplate.setReadMe(IoUtil.readToString(readmeResource.getInputStream()));
                     }
-                    appTemplate.setDownloadUrl(parentDirName+"/"+filename);
+                    appTemplate.setDownloadUrl(parentDirName + "/" + filename);
                     appTemplate.setLabel("application_template");
                     appTemplates.add(appTemplate);
                 }
             }
         }
-        if(StringUtils.isNotBlank(name)) {
+        if (StringUtils.isNotBlank(name)) {
             appTemplates = appTemplates.stream().filter(app -> app.getName().contains(name)).collect(Collectors.toList());
         }
         result.put("apps", appTemplates);

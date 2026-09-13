@@ -13,9 +13,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 class LoopExecutionContext {
 
-    int currentIndex;
     final List<JSONObject> loopDetails;
     final AtomicBoolean isInterrupted;
+    int currentIndex;
 
     LoopExecutionContext(int startIndex, List<JSONObject> existingDetails) {
         this.currentIndex = startIndex;

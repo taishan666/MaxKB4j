@@ -14,40 +14,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class BeanUtilTest {
 
-    static class Source {
-        private String name;
-        private Integer age;
-        private String blank;
-
-        public Source() {
-        }
-
-        public Source(String name, Integer age) {
-            this.name = name;
-            this.age = age;
-        }
-
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public Integer getAge() { return age; }
-        public void setAge(Integer age) { this.age = age; }
-        public String getBlank() { return blank; }
-        public void setBlank(String blank) { this.blank = blank; }
-    }
-
-    static class Target {
-        private String name;
-        private Integer age;
-
-        public Target() {
-        }
-
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public Integer getAge() { return age; }
-        public void setAge(Integer age) { this.age = age; }
-    }
-
     @Test
     void copy_createsNewInstanceWithCopiedProperties() {
         Target target = BeanUtil.copy(new Source("alice", 30), Target.class);
@@ -133,5 +99,67 @@ class BeanUtilTest {
         IPage<Target> result = BeanUtil.copyPage(null, Target.class);
         assertThat(result).isNotNull();
         assertThat(result.getRecords()).isEmpty();
+    }
+
+    static class Source {
+        private String name;
+        private Integer age;
+        private String blank;
+
+        public Source() {
+        }
+
+        public Source(String name, Integer age) {
+            this.name = name;
+            this.age = age;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Integer getAge() {
+            return age;
+        }
+
+        public void setAge(Integer age) {
+            this.age = age;
+        }
+
+        public String getBlank() {
+            return blank;
+        }
+
+        public void setBlank(String blank) {
+            this.blank = blank;
+        }
+    }
+
+    static class Target {
+        private String name;
+        private Integer age;
+
+        public Target() {
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Integer getAge() {
+            return age;
+        }
+
+        public void setAge(Integer age) {
+            this.age = age;
+        }
     }
 }

@@ -33,21 +33,21 @@ public class WebhookTriggerController {
 
     @PostMapping("/trigger/v1/webhook/{id}")
     public R<Boolean> webhook(@PathVariable String id, @RequestBody JSONObject data) {
-        EventTriggerEntity eventTrigger =eventTriggerService.getById( id);
-        if (eventTrigger == null){
+        EventTriggerEntity eventTrigger = eventTriggerService.getById(id);
+        if (eventTrigger == null) {
             return R.fail(I18nUtil.get("trigger.event.not.found"));
         }
-        if (!TriggerType.EVENT.name().equals(eventTrigger.getTriggerType())){
+        if (!TriggerType.EVENT.name().equals(eventTrigger.getTriggerType())) {
             return R.fail(I18nUtil.get("trigger.event.type.invalid"));
         }
-        if (!eventTrigger.getIsActive()){
+        if (!eventTrigger.getIsActive()) {
             return R.fail(I18nUtil.get("trigger.event.disabled"));
         }
         TriggerSetting setting = TriggerSetting.from(eventTrigger.getTriggerSetting());
-        if (Objects.nonNull(setting) && Objects.nonNull(setting.token())){
-            String tokenValue=WebUtil.getTokenValue();
-            if (Objects.equals(tokenValue, setting.token())){
-                triggerTaskExecutor.execute(id,data);
+        if (Objects.nonNull(setting) && Objects.nonNull(setting.token())) {
+            String tokenValue = WebUtil.getTokenValue();
+            if (Objects.equals(tokenValue, setting.token())) {
+                triggerTaskExecutor.execute(id, data);
                 return R.data(true);
             }
         }

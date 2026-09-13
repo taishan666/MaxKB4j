@@ -17,7 +17,7 @@ public interface IntentClassifyAssistant {
             It is very important that your answer consists of a single number and nothing else!
             Conversation: {{chatMemory}}
             User query: {{query}}""")
-    Result<String> route(@V("options") String options,@V("chatMemory") String chatMemory, @V("query")String  query);
+    Result<String> route(@V("options") String options, @V("chatMemory") String chatMemory, @V("query") String query);
 
 
     @SystemMessage(SYSTEM_MESSAGE)
@@ -29,5 +29,5 @@ public interface IntentClassifyAssistant {
             Background information: {{background}}
             Conversation: {{chatMemory}}
             User query: {{query}}""")
-    Result<String> route(@V("options") String options,@V("chatMemory") String chatMemory, @V("background")String  background, @V("query")String  query);
+    Result<String> route(@V("options") String options, @V("chatMemory") String chatMemory, @V("background") String background, @V("query") String query);
 }

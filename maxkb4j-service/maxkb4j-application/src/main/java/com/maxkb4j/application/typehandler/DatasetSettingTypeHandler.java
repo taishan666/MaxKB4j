@@ -16,7 +16,7 @@ public class DatasetSettingTypeHandler extends BaseTypeHandler<KnowledgeSetting>
 
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, KnowledgeSetting parameter, JdbcType jdbcType) throws SQLException {
-        if(null != parameter){
+        if (null != parameter) {
             PGobject pGobject = new PGobject();
             pGobject.setType("jsonb");
             pGobject.setValue(toJson(parameter));
@@ -42,14 +42,14 @@ public class DatasetSettingTypeHandler extends BaseTypeHandler<KnowledgeSetting>
         return convert(value);
     }
 
-    private KnowledgeSetting convert(String value){
-        if(notNull(value)){
-            return  JSON.parseObject(value, KnowledgeSetting.class);
+    private KnowledgeSetting convert(String value) {
+        if (notNull(value)) {
+            return JSON.parseObject(value, KnowledgeSetting.class);
         }
         return null;
     }
 
-    private boolean notNull(String value){
+    private boolean notNull(String value) {
         return (null != value && !value.isEmpty());
     }
 

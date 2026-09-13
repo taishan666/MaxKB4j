@@ -18,7 +18,8 @@ class VariableResolverTest {
         if (nodeName != null) {
             props.put("nodeName", nodeName);
         }
-        return new AbsNode(id, props) {};
+        return new AbsNode(id, props) {
+        };
     }
 
     @Test

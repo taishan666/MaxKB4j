@@ -30,13 +30,13 @@ public class AppKeyHandler implements AuthHandler {
     @Override
     public boolean handle(HttpServletResponse response) {
         String secretKey = WebUtil.getTokenValue();
-        if (StrUtil.isBlank(secretKey)){
+        if (StrUtil.isBlank(secretKey)) {
             log.warn("token不存在");
-            ResponseProvider.write( response);
+            ResponseProvider.write(response);
             return false;
         }
         ApplicationApiKeyDTO apiKey = apiKeyService.getBySecretKey(secretKey);
-        if (apiKey==null || !apiKey.getIsActive()){
+        if (apiKey == null || !apiKey.getIsActive()) {
             log.warn("token不合法或被禁用");
             ResponseProvider.write(response);
             return false;
@@ -45,8 +45,8 @@ public class AppKeyHandler implements AuthHandler {
         loginModel.setExtra("applicationId", apiKey.getApplicationId());
         loginModel.setExtra("chatUserType", ChatUserType.APPLICATION_API_KEY.name());
         String secretKeyId = secretKey.replace(AppConst.APP_KEY_PREFIX, "");
-        StpKit.USER.login(secretKeyId,loginModel);
-        if (apiKey.getAllowCrossDomain() && CollUtil.isNotEmpty(apiKey.getCrossDomainList())){
+        StpKit.USER.login(secretKeyId, loginModel);
+        if (apiKey.getAllowCrossDomain() && CollUtil.isNotEmpty(apiKey.getCrossDomainList())) {
             // 设置跨域
             String domains = String.join(",", apiKey.getCrossDomainList());
             response.setHeader("Access-Control-Allow-Origin", domains);
@@ -61,6 +61,6 @@ public class AppKeyHandler implements AuthHandler {
     @Override
     public boolean support(HttpServletRequest request) {
         String tokenValue = WebUtil.getTokenValue(request);
-        return Objects.nonNull(tokenValue)&&tokenValue.startsWith(AppConst.APP_KEY_PREFIX);
+        return Objects.nonNull(tokenValue) && tokenValue.startsWith(AppConst.APP_KEY_PREFIX);
     }
 }

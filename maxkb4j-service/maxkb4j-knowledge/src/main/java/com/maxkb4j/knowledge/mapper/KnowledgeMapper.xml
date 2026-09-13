@@ -10,12 +10,12 @@
     <!-- 文档统计：每个知识库的文档数与总字符数 -->
     <sql id="docStatsJoin">
         LEFT JOIN (
-            SELECT
-                d.knowledge_id,
-                COUNT(*) AS document_count,
-                SUM(d.char_length) AS char_length
-            FROM "document" d
-            GROUP BY d.knowledge_id
+        SELECT
+        d.knowledge_id,
+        COUNT(*) AS document_count,
+        SUM(d.char_length) AS char_length
+        FROM "document" d
+        GROUP BY d.knowledge_id
         ) doc_stats ON k.id = doc_stats.knowledge_id
     </sql>
 
@@ -38,26 +38,26 @@
 
     <select id="pageList" resultMap="knowledgeResultMap">
         SELECT
-            k.id,
-            k.name,
-            k.desc,
-            k.type,
-            k.user_id,
-            u.nickname,
-            k.create_time,
-            COALESCE(doc_stats.document_count, 0) AS document_count,
-            COALESCE(doc_stats.char_length, 0) AS char_length,
-            COALESCE(res_stats.resource_count, 0) AS resource_count
+        k.id,
+        k.name,
+        k.desc,
+        k.type,
+        k.user_id,
+        u.nickname,
+        k.create_time,
+        COALESCE(doc_stats.document_count, 0) AS document_count,
+        COALESCE(doc_stats.char_length, 0) AS char_length,
+        COALESCE(res_stats.resource_count, 0) AS resource_count
         FROM knowledge k
         LEFT JOIN "user" u ON k.user_id = u.id
         <include refid="docStatsJoin"/>
         LEFT JOIN (
-            SELECT
-                m.target_id,
-                COUNT(*) AS resource_count
-            FROM resource_mapping m
-            WHERE m.target_type = 'KNOWLEDGE'
-            GROUP BY m.target_id
+        SELECT
+        m.target_id,
+        COUNT(*) AS resource_count
+        FROM resource_mapping m
+        WHERE m.target_type = 'KNOWLEDGE'
+        GROUP BY m.target_id
         ) res_stats ON k.id = res_stats.target_id
         <where>
             <if test="query.createUser != null and query.createUser != ''">
@@ -79,17 +79,17 @@
 
     <select id="listKnowledge" resultType="com.maxkb4j.knowledge.vo.KnowledgeListVO">
         SELECT
-            k.id,
-            k.name,
-            k.desc,
-            k.type,
-            k.embedding_model_id,
-            k.user_id,
-            k.folder_id,
-            u.nickname,
-            k.create_time,
-            COALESCE(doc_stats.document_count, 0) AS document_count,
-            COALESCE(doc_stats.char_length, 0) AS char_length
+        k.id,
+        k.name,
+        k.desc,
+        k.type,
+        k.embedding_model_id,
+        k.user_id,
+        k.folder_id,
+        u.nickname,
+        k.create_time,
+        COALESCE(doc_stats.document_count, 0) AS document_count,
+        COALESCE(doc_stats.char_length, 0) AS char_length
         FROM knowledge k
         LEFT JOIN "user" u ON k.user_id = u.id
         <include refid="docStatsJoin"/>

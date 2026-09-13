@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 /**
@@ -25,21 +26,22 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 @Slf4j
 @Data
 public abstract class AbsNode implements INode {
+    /**
+     * Lock-free CAS updater for status, used to atomically claim node execution.
+     */
+    private static final AtomicReferenceFieldUpdater<AbsNode, Integer> STATUS_UPDATER =
+            AtomicReferenceFieldUpdater.newUpdater(AbsNode.class, Integer.class, "status");
+    protected Map<String, Object> context;
+    protected Map<String, Object> detail;
     private String id;
     private String type;
     private String viewType;
     private JSONObject properties;
-    protected Map<String, Object> context;
-    protected Map<String, Object> detail;
     private List<String> upNodeIdList;
     private String runtimeNodeId;
     private String answerText;
     private volatile Integer status;
     private String errMessage;
-
-    /** Lock-free CAS updater for status, used to atomically claim node execution. */
-    private static final AtomicReferenceFieldUpdater<AbsNode, Integer> STATUS_UPDATER =
-            AtomicReferenceFieldUpdater.newUpdater(AbsNode.class, Integer.class, "status");
 
     public AbsNode(String id, JSONObject properties) {
         this.id = id;
@@ -104,8 +106,8 @@ public abstract class AbsNode implements INode {
 
     public List<Answer> getAnswerList(String chatRecordId) {
         if (isResult()) {
-            Object answer = detail.getOrDefault(NodeField.ANSWER,"");
-            Object reasoningContent = reasoningContentEnable()?detail.getOrDefault(NodeField.REASONING_CONTENT,""):"";
+            Object answer = detail.getOrDefault(NodeField.ANSWER, "");
+            Object reasoningContent = reasoningContentEnable() ? detail.getOrDefault(NodeField.REASONING_CONTENT, "") : "";
             return List.of(Answer.builder()
                     .content((String) answer)
                     .reasoningContent((String) reasoningContent)
@@ -133,13 +135,13 @@ public abstract class AbsNode implements INode {
         return toChatMessageVO(chatId, chatRecordId, this.getNodeName(), content, reasoningContent, childNode, nodeIsEnd);
     }
 
-    public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String nodeName,String content, String reasoningContent, ChildNode childNode, boolean nodeIsEnd) {
-        String realNodeId=this.getRuntimeNodeId();
-        if (childNode!=null){
-            realNodeId=childNode.getRuntimeNodeId();
+    public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String nodeName, String content, String reasoningContent, ChildNode childNode, boolean nodeIsEnd) {
+        String realNodeId = this.getRuntimeNodeId();
+        if (childNode != null) {
+            realNodeId = childNode.getRuntimeNodeId();
         }
-        if (nodeName==null){
-            nodeName=this.getNodeName();
+        if (nodeName == null) {
+            nodeName = this.getNodeName();
         }
         return MessageConverter.toChatMessageVO(
                 chatId,

@@ -39,6 +39,8 @@ public class ToolSaveDTO {
 
     private String templateId;
 
-    /** 工具类型（CUSTOM / HTTP / MCP / SKILL 等），创建时未提供则默认 CUSTOM；更新时为空表示不变。 */
+    /**
+     * 工具类型（CUSTOM / HTTP / MCP / SKILL 等），创建时未提供则默认 CUSTOM；更新时为空表示不变。
+     */
     private String toolType;
 }

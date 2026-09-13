@@ -12,9 +12,9 @@ import java.util.Map;
 public interface ParameterExtractionAssistant {
 
     @SystemMessage("""
-        You are an information extraction assistant. Please accurately extract the information of the following fields from the user input:{{extractInfo}}
-        If a certain piece of information is not mentioned or cannot be determined in the input, please set the corresponding field to null.
-        """)
+            You are an information extraction assistant. Please accurately extract the information of the following fields from the user input:{{extractInfo}}
+            If a certain piece of information is not mentioned or cannot be determined in the input, please set the corresponding field to null.
+            """)
     @OutputGuardrails({ParameterExtractionOutputGuardrail.class})
     Result<Map<String, Object>> extract(@V("extractInfo") String extractInfo, @UserMessage String userMessage);
 }

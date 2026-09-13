@@ -20,13 +20,13 @@ public class SystemSettingService extends ServiceImpl<SystemSettingMapper, Syste
     private final EmailService emailService;
 
     public boolean testConnect(JSONObject meta) {
-       return emailService.testConnect(meta);
+        return emailService.testConnect(meta);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean saveOrUpdate(JSONObject meta,SettingType settingType) {
-        SystemSettingEntity systemSetting=new SystemSettingEntity();
+    public boolean saveOrUpdate(JSONObject meta, SettingType settingType) {
+        SystemSettingEntity systemSetting = new SystemSettingEntity();
         systemSetting.setMeta(meta);
         systemSetting.setType(settingType.getType());
         return this.saveOrUpdate(systemSetting);

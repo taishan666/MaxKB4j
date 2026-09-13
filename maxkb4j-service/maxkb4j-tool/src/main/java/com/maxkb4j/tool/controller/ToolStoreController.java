@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class ToolStoreController {
 
     @GetMapping("/workspace/internal/tool")
-    public R<List<ToolVO>>  store(String name) throws IOException {
+    public R<List<ToolVO>> store(String name) throws IOException {
         List<ToolEntity> list = new ArrayList<>();
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         Resource[] resources = resolver.getResources("classpath:templates/tool/*/*" + ToolConstants.FileType.TOOL_EXTENSION);

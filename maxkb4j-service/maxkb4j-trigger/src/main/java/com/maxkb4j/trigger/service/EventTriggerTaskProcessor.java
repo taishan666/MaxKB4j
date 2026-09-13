@@ -110,8 +110,8 @@ public class EventTriggerTaskProcessor {
     }
 
     private PageResult processTasks(List<EventTriggerTaskVO> tasks,
-                                     Map<String, Map<String, Object>> appMap,
-                                     Map<String, Map<String, Object>> toolMap) {
+                                    Map<String, Map<String, Object>> appMap,
+                                    Map<String, Map<String, Object>> toolMap) {
         List<EventTriggerTaskVO> result = tasks.stream()
                 .map(task -> enrichTaskFromMaps(task, appMap, toolMap))
                 .toList();
@@ -119,8 +119,8 @@ public class EventTriggerTaskProcessor {
     }
 
     private EventTriggerTaskVO enrichTaskFromMaps(EventTriggerTaskVO task,
-                                                   Map<String, Map<String, Object>> appMap,
-                                                   Map<String, Map<String, Object>> toolMap) {
+                                                  Map<String, Map<String, Object>> appMap,
+                                                  Map<String, Map<String, Object>> toolMap) {
         EventTriggerTaskVO newTask = BeanUtil.copy(task, EventTriggerTaskVO.class);
         newTask.setType(task.getSourceType());
         Map<String, Map<String, Object>> sourceMap = ResourceType.APPLICATION.equals(task.getSourceType())
@@ -134,6 +134,9 @@ public class EventTriggerTaskProcessor {
         return newTask;
     }
 
-    public record PageResult(List<EventTriggerTaskVO> tasks) {}
-    public record DetailResult(List<EventTriggerTaskVO> tasks, List<ApplicationTaskVO> apps, List<ToolTaskVO> tools) {}
+    public record PageResult(List<EventTriggerTaskVO> tasks) {
+    }
+
+    public record DetailResult(List<EventTriggerTaskVO> tasks, List<ApplicationTaskVO> apps, List<ToolTaskVO> tools) {
+    }
 }

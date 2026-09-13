@@ -62,6 +62,24 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     private final ApplicationCascadeDeleteService cascadeDeleteService;
     private final ApplicationModelService applicationModelService;
 
+    private static JSONObject findBaseNode(JSONObject workFlow) {
+        JSONArray nodes = WorkFlowNodes.getNodes(workFlow);
+        if (nodes == null) {
+            return null;
+        }
+        for (int i = 0; i < nodes.size(); i++) {
+            JSONObject node = nodes.getJSONObject(i);
+            if (node != null && BASE.getKey().equals(node.getString("type"))) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    private static String getTemplateDownloadUrl(JSONObject workFlowTemplate) {
+        return workFlowTemplate == null ? null : workFlowTemplate.getString("downloadUrl");
+    }
+
     @Override
     public IPage<ApplicationListVO> selectAppPage(int page, int size, ApplicationQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
@@ -92,7 +110,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
 
     @Override
     public boolean batchCleanTime(ApplicationBatchEditDTO dto) {
-        List<String> idList=dto.getIdList();
+        List<String> idList = dto.getIdList();
         if (CollectionUtils.isEmpty(idList)) {
             return true;
         }
@@ -232,8 +250,8 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         syncFromBaseNode(appDTO);
         applicationResourceMappingService.saveResourceMappings(appDTO);
         publishedApplicationCache.invalidate(appDTO.getId());
-        ApplicationEntity entity=BeanUtil.copy(appDTO, ApplicationEntity.class);
-       // applicationModelService.normalizeAppModels(entity);
+        ApplicationEntity entity = BeanUtil.copy(appDTO, ApplicationEntity.class);
+        // applicationModelService.normalizeAppModels(entity);
         return this.updateById(entity);
     }
 
@@ -272,24 +290,6 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         appDTO.setSttModelEnable(nodeData.getBooleanValue("sttModelEnable"));
         appDTO.setSttModelId(nodeData.getString("sttModelId"));
         appDTO.setSttAutoSend(nodeData.getBooleanValue("sttAutoSend"));
-    }
-
-    private static JSONObject findBaseNode(JSONObject workFlow) {
-        JSONArray nodes = WorkFlowNodes.getNodes(workFlow);
-        if (nodes == null) {
-            return null;
-        }
-        for (int i = 0; i < nodes.size(); i++) {
-            JSONObject node = nodes.getJSONObject(i);
-            if (node != null && BASE.getKey().equals(node.getString("type"))) {
-                return node;
-            }
-        }
-        return null;
-    }
-
-    private static String getTemplateDownloadUrl(JSONObject workFlowTemplate) {
-        return workFlowTemplate == null ? null : workFlowTemplate.getString("downloadUrl");
     }
 
     @Override

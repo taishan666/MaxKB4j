@@ -52,7 +52,7 @@ public class ChatState {
     private String ipAddress;
     @Schema(description = "是否调试模式")
     @Builder.Default
-    private Boolean debug= false;
+    private Boolean debug = false;
     @Schema(description = "历史聊天记录（按 chatId 加载）")
     private List<ChatRecordDTO> historyChatRecords;
     @Schema(description = "当前对话记录（重新回答时定位）")
@@ -71,6 +71,6 @@ public class ChatState {
     }
 
     public ChatSource getSource() {
-        return source== null ? ChatSource.ONLINE : source;
+        return source == null ? ChatSource.ONLINE : source;
     }
 }

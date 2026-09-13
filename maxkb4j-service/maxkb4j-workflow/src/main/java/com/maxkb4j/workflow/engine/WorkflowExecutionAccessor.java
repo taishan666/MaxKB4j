@@ -62,10 +62,42 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
                                      WorkflowContext context,
                                      EdgeNavigator navigator) {
         this.navigator = navigator;
-        this.configuration= configuration;
+        this.configuration = configuration;
         this.dependencyChecker = new NodeDependencyChecker(configuration, navigator);
         this.stateLoader = new NodeStateLoader(configuration, context);
         this.executionTracker = new ExecutionTracker();
+    }
+
+    /**
+     * 提取下游边指向的目标节点ID（去重）
+     *
+     * @param sourceEdges 下游边列表
+     * @return 目标节点ID列表
+     */
+    private static List<String> extractTargetNodeIds(List<LfEdge> sourceEdges) {
+        return sourceEdges.stream()
+                .map(LfEdge::getTargetNodeId)
+                .distinct()
+                .toList();
+    }
+
+    /**
+     * 计算断言结果命中的目标节点ID集合
+     * <p>
+     * 断言结果通过 branchId 标识命中分支，对应边的锚点格式为 {sourceNodeId}_{branchId}_right
+     * </p>
+     *
+     * @param currentNodeResult 当前节点执行结果
+     * @param sourceEdges       下游边列表
+     * @return 命中断言分支的目标节点ID集合
+     */
+    private static Set<String> findAssertionTargetNodeIds(NodeResult currentNodeResult, List<LfEdge> sourceEdges) {
+        Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
+        String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault(NodeField.BRANCH_ID, "") : "";
+        return sourceEdges.stream()
+                .filter(edge -> (edge.getSourceNodeId() + "_" + branchId + "_right").equals(edge.getSourceAnchorId()))
+                .map(LfEdge::getTargetNodeId)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -163,38 +195,6 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
             }
         }
         return nextNodes;
-    }
-
-    /**
-     * 提取下游边指向的目标节点ID（去重）
-     *
-     * @param sourceEdges 下游边列表
-     * @return 目标节点ID列表
-     */
-    private static List<String> extractTargetNodeIds(List<LfEdge> sourceEdges) {
-        return sourceEdges.stream()
-                .map(LfEdge::getTargetNodeId)
-                .distinct()
-                .toList();
-    }
-
-    /**
-     * 计算断言结果命中的目标节点ID集合
-     * <p>
-     * 断言结果通过 branchId 标识命中分支，对应边的锚点格式为 {sourceNodeId}_{branchId}_right
-     * </p>
-     *
-     * @param currentNodeResult 当前节点执行结果
-     * @param sourceEdges       下游边列表
-     * @return 命中断言分支的目标节点ID集合
-     */
-    private static Set<String> findAssertionTargetNodeIds(NodeResult currentNodeResult, List<LfEdge> sourceEdges) {
-        Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
-        String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault(NodeField.BRANCH_ID, "") : "";
-        return sourceEdges.stream()
-                .filter(edge -> (edge.getSourceNodeId() + "_" + branchId + "_right").equals(edge.getSourceAnchorId()))
-                .map(LfEdge::getTargetNodeId)
-                .collect(Collectors.toSet());
     }
 
 }

@@ -31,57 +31,57 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AuthController {
 
-	private final IUserInternalService userService;
-	private final PasswordService passwordService;
+    private final IUserInternalService userService;
+    private final PasswordService passwordService;
 
-	@PostMapping("/user/login")
-	public R<String> login(@Valid @RequestBody UserLoginDTO dto, HttpServletRequest request){
-		return R.data(userService.login(dto,request));
-	}
+    @PostMapping("/user/login")
+    public R<String> login(@Valid @RequestBody UserLoginDTO dto, HttpServletRequest request) {
+        return R.data(userService.login(dto, request));
+    }
 
-	@GetMapping("/user/captcha")
-	public R<Map<String, String>> captcha(HttpServletRequest request){
-		SpecCaptcha specCaptcha = new SpecCaptcha(130, 48, 4);
-		String verCode = specCaptcha.text().toLowerCase();
-		//  将验证码存入 session
-		HttpSession session = request.getSession();
-		session.setAttribute("captcha", verCode);
-		// 将key和base64返回给前端
-		return R.data(Map.of("captcha",specCaptcha.toBase64()));
-	}
+    @GetMapping("/user/captcha")
+    public R<Map<String, String>> captcha(HttpServletRequest request) {
+        SpecCaptcha specCaptcha = new SpecCaptcha(130, 48, 4);
+        String verCode = specCaptcha.text().toLowerCase();
+        //  将验证码存入 session
+        HttpSession session = request.getSession();
+        session.setAttribute("captcha", verCode);
+        // 将key和base64返回给前端
+        return R.data(Map.of("captcha", specCaptcha.toBase64()));
+    }
 
-	@PostMapping("/user/send_email")
-	public R<Boolean> sendEmail(@Valid @RequestBody ResetPasswordDTO dto) throws MessagingException {
-		return R.status(userService.sendEmailCode(dto.getEmail(), I18nUtil.get("email.subject.forget.password")));
-	}
+    @PostMapping("/user/send_email")
+    public R<Boolean> sendEmail(@Valid @RequestBody ResetPasswordDTO dto) throws MessagingException {
+        return R.status(userService.sendEmailCode(dto.getEmail(), I18nUtil.get("email.subject.forget.password")));
+    }
 
 
-	@PostMapping("/user/check_code")
-	public R<Boolean> checkCode(@Valid @RequestBody ResetPasswordDTO dto){
-		return R.status(userService.checkCode(dto.getEmail(),dto.getCode()));
-	}
+    @PostMapping("/user/check_code")
+    public R<Boolean> checkCode(@Valid @RequestBody ResetPasswordDTO dto) {
+        return R.status(userService.checkCode(dto.getEmail(), dto.getCode()));
+    }
 
-	@SaCheckLogin(type = LoginType.ADMIN)
-	@PostMapping("/user/rePassword")
-	public R<Boolean> rePassword(@Valid @RequestBody ResetPasswordDTO dto){
-		 String password=dto.getPassword();
-		 String rePassword=dto.getRePassword();
-		if (Objects.equals(password, rePassword)){
-			UserEntity user=new UserEntity();
-			user.setId(StpKit.ADMIN.getLoginIdAsString());
-			user.setPassword(passwordService.encode(password));
-			return R.status(userService.updateById(user));
-		}
-		return R.status(false);
-	}
+    @SaCheckLogin(type = LoginType.ADMIN)
+    @PostMapping("/user/rePassword")
+    public R<Boolean> rePassword(@Valid @RequestBody ResetPasswordDTO dto) {
+        String password = dto.getPassword();
+        String rePassword = dto.getRePassword();
+        if (Objects.equals(password, rePassword)) {
+            UserEntity user = new UserEntity();
+            user.setId(StpKit.ADMIN.getLoginIdAsString());
+            user.setPassword(passwordService.encode(password));
+            return R.status(userService.updateById(user));
+        }
+        return R.status(false);
+    }
 
-	@SaCheckLogin(type = LoginType.ADMIN)
-	@PostMapping("/user/logout")
-	public R<Boolean> logout(){
-		if(StpKit.ADMIN.isLogin()){
-			StpKit.ADMIN.logout();
-		}
-		return R.status(true);
-	}
+    @SaCheckLogin(type = LoginType.ADMIN)
+    @PostMapping("/user/logout")
+    public R<Boolean> logout() {
+        if (StpKit.ADMIN.isLogin()) {
+            StpKit.ADMIN.logout();
+        }
+        return R.status(true);
+    }
 
 }

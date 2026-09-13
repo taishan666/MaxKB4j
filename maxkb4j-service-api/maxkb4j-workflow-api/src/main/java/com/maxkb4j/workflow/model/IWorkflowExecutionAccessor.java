@@ -16,6 +16,7 @@ public interface IWorkflowExecutionAccessor {
      * 获取当前执行节点。
      */
     INode currentNode();
+
     /**
      * 获取下一个节点列表（根据当前节点执行结果与下游边计算，处理断言分支与跳过）。
      */

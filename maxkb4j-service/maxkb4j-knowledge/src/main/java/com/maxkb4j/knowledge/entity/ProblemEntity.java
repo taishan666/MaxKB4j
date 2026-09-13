@@ -15,13 +15,13 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class ProblemEntity extends BaseEntity {
-    
+
     private String content;
     private Integer hitNum;
     private String knowledgeId;
 
     public static ProblemEntity createDefault() {
-        ProblemEntity entity= new ProblemEntity();
+        ProblemEntity entity = new ProblemEntity();
         entity.setHitNum(0);
         return entity;
     }

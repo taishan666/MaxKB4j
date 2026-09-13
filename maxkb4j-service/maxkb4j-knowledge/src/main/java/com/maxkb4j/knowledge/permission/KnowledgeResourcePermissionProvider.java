@@ -36,8 +36,8 @@ public class KnowledgeResourcePermissionProvider implements IResourcePermissionP
 
     @Override
     public IPage<UserResourcePermissionVO> pageResource(int current, int size, String name,
-                                                       Map<String, String> permissionMap,
-                                                       Set<String> permissionFilter) {
+                                                        Map<String, String> permissionMap,
+                                                        Set<String> permissionFilter) {
         return ResourcePermissionQuerySupport.pageResource(
                 new Page<>(current, size), knowledgeMapper,
                 KnowledgeEntity::getName, KnowledgeEntity::getId,

@@ -17,7 +17,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @TableName(value = "knowledge", autoResultMap = true)
 public class KnowledgeEntity extends BaseEntity {
-    
+
     private String name;
     private String desc;
     private Integer type;

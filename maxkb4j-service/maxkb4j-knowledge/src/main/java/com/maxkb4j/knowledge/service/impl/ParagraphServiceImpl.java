@@ -50,11 +50,11 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     private final ApplicationEventPublisher eventPublisher;
 
     public void updateStatusById(String id, int type, int status) {
-        baseMapper.updateStatusByIds(List.of(id),type,status,type-1,type+1);
+        baseMapper.updateStatusByIds(List.of(id), type, status, type - 1, type + 1);
     }
 
     public void updateStatusByIds(List<String> paragraphIds, int type, int status) {
-        baseMapper.updateStatusByIds(paragraphIds,type,status,type-1,type+1);
+        baseMapper.updateStatusByIds(paragraphIds, type, status, type - 1, type + 1);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
         queryWrapper.select(ParagraphEntity::getId);
         queryWrapper.in(ParagraphEntity::getKnowledgeId, knowledgeIds);
         queryWrapper.eq(ParagraphEntity::getIsActive, false);
-        if (!CollectionUtils.isEmpty(excludeDocIds)){
+        if (!CollectionUtils.isEmpty(excludeDocIds)) {
             queryWrapper.notIn(ParagraphEntity::getDocumentId, excludeDocIds);
         }
         List<ParagraphEntity> paragraphs = super.list(queryWrapper);
@@ -76,19 +76,19 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
 
 
     @Transactional(rollbackFor = Exception.class)
-    public void updateParagraphById(String knowledgeId,String docId,ParagraphEntity paragraph) {
+    public void updateParagraphById(String knowledgeId, String docId, ParagraphEntity paragraph) {
         this.updateById(paragraph);
-        if (Objects.nonNull(paragraph.getContent())){
+        if (Objects.nonNull(paragraph.getContent())) {
             documentMapper.updateCharLengthById(docId);
-            eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId,docId,List.of(paragraph.getId())));
+            eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId, docId, List.of(paragraph.getId())));
         }
         // isActive 不再回写到各 store；检索时统一通过 noActiveList() 在搜索阶段排除非活跃段落。
     }
 
 
     @Transactional(rollbackFor = Exception.class)
-    public Boolean deleteBatchByIds(String knowledgeId,String docId, List<String> paragraphIds) {
-        compositeStore.deleteByParagraphIds(knowledgeId,paragraphIds);
+    public Boolean deleteBatchByIds(String knowledgeId, String docId, List<String> paragraphIds) {
+        compositeStore.deleteByParagraphIds(knowledgeId, paragraphIds);
         this.removeByIds(paragraphIds);
         return documentMapper.updateCharLengthById(docId);
     }
@@ -96,11 +96,11 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
 
     @Transactional(rollbackFor = Exception.class)
     public boolean saveParagraphAndProblem(String knowledgeId, String docId, ParagraphAddDTO addDTO) {
-        ParagraphDTO paragraph= new ParagraphDTO(knowledgeId, docId, addDTO.getTitle(), addDTO.getContent(),addDTO.getPosition());
+        ParagraphDTO paragraph = new ParagraphDTO(knowledgeId, docId, addDTO.getTitle(), addDTO.getContent(), addDTO.getPosition());
         List<ProblemDTO> problemList = addDTO.getProblemList();
         List<String> problems = new ArrayList<>();
         if (!CollectionUtils.isEmpty(problemList)) {
-            problems =problemList.stream().map(ProblemDTO::getContent).toList();
+            problems = problemList.stream().map(ProblemDTO::getContent).toList();
         }
         return saveParagraphAndProblem(paragraph, problems);
     }
@@ -130,12 +130,12 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
             }
             problemParagraphService.saveBatch(problemParagraphMappingEntities);
         }
-        eventPublisher.publishEvent(new ParagraphIndexEvent(this, paragraph.getKnowledgeId(),paragraph.getDocumentId(),List.of(paragraph.getId())));
+        eventPublisher.publishEvent(new ParagraphIndexEvent(this, paragraph.getKnowledgeId(), paragraph.getDocumentId(), List.of(paragraph.getId())));
         return documentMapper.updateCharLengthById(paragraph.getDocumentId());
     }
 
 
-    public ParagraphEntity createParagraph(String knowledgeId, String docId, String title, String content,Integer  position) {
+    public ParagraphEntity createParagraph(String knowledgeId, String docId, String title, String content, Integer position) {
         ParagraphEntity paragraph = new ParagraphEntity();
         paragraph.setId(IdWorker.get32UUID());
         paragraph.setTitle(title == null ? "" : title);
@@ -144,7 +144,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
         paragraph.setStatus("nn0");
         paragraph.setHitNum(0);
         paragraph.setIsActive(true);
-        paragraph.setPosition(position==null?1:position);
+        paragraph.setPosition(position == null ? 1 : position);
         paragraph.setDocumentId(docId);
         return paragraph;
     }
@@ -153,9 +153,9 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     @Transactional(rollbackFor = Exception.class)
     public boolean save(ParagraphEntity paragraph) {
         List<ParagraphEntity> list = this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, paragraph.getKnowledgeId()).eq(ParagraphEntity::getDocumentId, paragraph.getDocumentId()).list();
-        List<ParagraphEntity> updateList=list.stream().filter(e->e.getPosition()>=paragraph.getPosition()).peek(e-> e.setPosition(e.getPosition()+1)).toList();
-        if (!CollectionUtils.isEmpty(updateList)){
-             super.updateBatchById(updateList);
+        List<ParagraphEntity> updateList = list.stream().filter(e -> e.getPosition() >= paragraph.getPosition()).peek(e -> e.setPosition(e.getPosition() + 1)).toList();
+        if (!CollectionUtils.isEmpty(updateList)) {
+            super.updateBatchById(updateList);
         }
         return super.save(paragraph);
     }
@@ -164,26 +164,26 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean saveDtoBatch(List<ParagraphDTO> paragraphs) {
-        Map<String,List<ParagraphDTO>> knowledgeGroup = paragraphs.stream()
+        Map<String, List<ParagraphDTO>> knowledgeGroup = paragraphs.stream()
                 .filter(e -> e.getKnowledgeId() != null)
                 .collect(Collectors.groupingBy(ParagraphDTO::getKnowledgeId));
-        knowledgeGroup.forEach((knowledgeId,knowledgeParagraphs)->{
-            Map<String,List<ParagraphDTO>> docGroup = knowledgeParagraphs.stream()
+        knowledgeGroup.forEach((knowledgeId, knowledgeParagraphs) -> {
+            Map<String, List<ParagraphDTO>> docGroup = knowledgeParagraphs.stream()
                     .filter(e -> e.getDocumentId() != null)
                     .collect(Collectors.groupingBy(ParagraphDTO::getDocumentId));
-            docGroup.forEach((docId,docParagraphs)->{
+            docGroup.forEach((docId, docParagraphs) -> {
                 long count = this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, knowledgeId).eq(ParagraphEntity::getDocumentId, docId).count();
-                int position= (int) (count+1);
+                int position = (int) (count + 1);
                 for (ParagraphDTO paragraph : docParagraphs) {
-                    if (paragraph.getTitle()!=null&&paragraph.getTitle().trim().length()>256){
-                        paragraph.setTitle(paragraph.getTitle().substring(0,256));
+                    if (paragraph.getTitle() != null && paragraph.getTitle().trim().length() > 256) {
+                        paragraph.setTitle(paragraph.getTitle().substring(0, 256));
                     }
                     paragraph.setPosition(position);
                     position++;
                 }
             });
         });
-       return super.saveBatch(BeanUtil.copyList(paragraphs, ParagraphEntity.class));
+        return super.saveBatch(BeanUtil.copyList(paragraphs, ParagraphEntity.class));
     }
 
 
@@ -214,7 +214,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
 
     public Boolean batchGenerateRelated(String knowledgeId, String docId, GenerateProblemDTO dto) {
         this.updateStatusByIds(dto.getParagraphIdList(), 2, 0);
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId,List.of(docId),dto.getModelId(),dto.getModelParamsSetting(),dto.getNumber(),List.of("0")));
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, List.of(docId), dto.getModelId(), dto.getModelParamsSetting(), dto.getNumber(), List.of("0")));
         return true;
     }
 
@@ -294,13 +294,13 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
 
 
     //type 1 向量化 2 问题生成 3 网络同步
-    public List<String> listParagraphIdsByStates(String docId,int type, List<String> stateList) {
-        return baseMapper.listParagraphIdsByStates(docId, (4-type),stateList);
+    public List<String> listParagraphIdsByStates(String docId, int type, List<String> stateList) {
+        return baseMapper.listParagraphIdsByStates(docId, (4 - type), stateList);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deleteById(String knowledgeId,String paragraphId) {
+    public boolean deleteById(String knowledgeId, String paragraphId) {
         compositeStore.deleteByParagraphId(knowledgeId, paragraphId);
         problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getParagraphId, paragraphId).remove();
         return this.removeById(paragraphId);

@@ -16,7 +16,7 @@ public abstract class AbsToolHandler {
     /**
      * Build {@link AiServiceTool}s for a single tool (used when assembling an AiService).
      *
-     * @param tools         the tool entities
+     * @param tools the tool entities
      * @return the built tools (empty list by default)
      */
     public List<AiServiceTool> buildAiServiceTools(List<ToolEntity> tools) {

@@ -47,5 +47,4 @@ public class SearchRequest {
     private double minScore = 0D;
 
 
-
 }

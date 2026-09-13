@@ -57,8 +57,8 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
                     .orElse(null);
         }
         if (Objects.isNull(chatRecord)) {
-            ApplicationChatRecordEntity  chatRecordEntity= this.getById(chatRecordId);
-            chatRecord=chatRecordEntity==null?null:BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
+            ApplicationChatRecordEntity chatRecordEntity = this.getById(chatRecordId);
+            chatRecord = chatRecordEntity == null ? null : BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
         }
         return chatRecord;
     }
@@ -67,7 +67,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     public List<ChatRecordDTO> getChatRecords(String chatId) {
         List<ApplicationChatRecordEntity> chatRecordList = this.lambdaQuery().eq(ApplicationChatRecordEntity::getChatId, chatId).last("limit 100").list();
         if (CollectionUtils.isEmpty(chatRecordList)) {
-             return Collections.emptyList();
+            return Collections.emptyList();
         }
         return BeanUtil.copyList(chatRecordList, ChatRecordDTO.class);
     }
@@ -79,9 +79,10 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     }
 
     private ApplicationChatRecordVO convert(ApplicationChatRecordEntity chatRecordEntity) {
-        ChatRecordDTO  chatRecord=BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
+        ChatRecordDTO chatRecord = BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
         return convert(chatRecord);
     }
+
     @SuppressWarnings("unchecked")
     private ApplicationChatRecordVO convert(ChatRecordDTO chatRecord) {
         if (Objects.isNull(chatRecord)) {
@@ -105,7 +106,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
             }
             List<JSONObject> executionDetails = new ArrayList<>();
             for (String key : details.keySet()) {
-                JSONObject detail=details.getJSONObject(key);
+                JSONObject detail = details.getJSONObject(key);
                 if (detail == null) {
                     continue;
                 }
@@ -138,7 +139,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
 
     @Override
     public List<ApplicationChatRecordVO> listVOByIds(List<String> ids) {
-        if (CollectionUtils.isEmpty(ids)){
+        if (CollectionUtils.isEmpty(ids)) {
             return List.of();
         }
         List<ApplicationChatRecordEntity> chatRecordList = this.lambdaQuery()
@@ -148,7 +149,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
                         ApplicationChatRecordEntity::getAnswerTextList,
                         ApplicationChatRecordEntity::getDetails,
                         ApplicationChatRecordEntity::getCreateTime)
-                .in(ApplicationChatRecordEntity::getId,ids).list();
+                .in(ApplicationChatRecordEntity::getId, ids).list();
         return BeanUtil.copyList(chatRecordList, this::convert);
     }
 
@@ -174,9 +175,9 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     @Transactional(rollbackFor = Exception.class)
     public boolean addChatLogs(String appId, AddChatImproveDTO dto) {
         List<ApplicationChatRecordEntity> chatRecords = this.lambdaQuery().select(ApplicationChatRecordEntity::getProblemText, ApplicationChatRecordEntity::getAnswerText).in(ApplicationChatRecordEntity::getChatId, dto.getChatIds()).list();
-        List<ParagraphDTO> paragraphs=new ArrayList<>();
+        List<ParagraphDTO> paragraphs = new ArrayList<>();
         for (ApplicationChatRecordEntity e : chatRecords) {
-            ParagraphDTO paragraphDTO= new ParagraphDTO(dto.getKnowledgeId(), dto.getDocumentId(), e.getProblemText(), e.getAnswerText(), null);
+            ParagraphDTO paragraphDTO = new ParagraphDTO(dto.getKnowledgeId(), dto.getDocumentId(), e.getProblemText(), e.getAnswerText(), null);
             paragraphs.add(paragraphDTO);
         }
         return paragraphService.saveDtoBatch(paragraphs);
@@ -185,13 +186,13 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     @Transactional(rollbackFor = Exception.class)
     public ApplicationChatRecordEntity improveChatLog(String chatId, String chatRecordId, String knowledgeId, String docId, ChatImproveDTO dto) {
         ParagraphDTO paragraphDTO = new ParagraphDTO(knowledgeId, docId, dto.getTitle(), dto.getContent(), null);
-        paragraphService.saveParagraphAndProblem(paragraphDTO,List.of(dto.getProblemText()));
+        paragraphService.saveParagraphAndProblem(paragraphDTO, List.of(dto.getProblemText()));
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
         chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of(paragraphDTO.getId()));
         this.updateById(chatRecord);
         ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
-        ApplicationChatEntity updateChatEntity=new ApplicationChatEntity();
+        ApplicationChatEntity updateChatEntity = new ApplicationChatEntity();
         updateChatEntity.setId(chatId);
         int currentMarkSum = chatEntity != null && chatEntity.getMarkSum() != null ? chatEntity.getMarkSum() : 0;
         updateChatEntity.setMarkSum(currentMarkSum + 1);
@@ -200,27 +201,27 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public boolean removeImproveChatLog(String chatId,String chatRecordId,String knowledgeId,String paragraphId) {
+    public boolean removeImproveChatLog(String chatId, String chatRecordId, String knowledgeId, String paragraphId) {
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
         chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of());
         this.updateById(chatRecord);
         ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
-        ApplicationChatEntity updateChatEntity=new ApplicationChatEntity();
+        ApplicationChatEntity updateChatEntity = new ApplicationChatEntity();
         updateChatEntity.setId(chatId);
         int currentMarkSum2 = chatEntity != null && chatEntity.getMarkSum() != null ? chatEntity.getMarkSum() : 0;
         updateChatEntity.setMarkSum(Math.max(currentMarkSum2 - 1, 0));
         chatMapper.updateById(updateChatEntity);
-        return paragraphService.deleteById(knowledgeId,paragraphId);
+        return paragraphService.deleteById(knowledgeId, paragraphId);
     }
 
     public List<ParagraphDTO> improveChatLog(String chatRecordId) {
-        ApplicationChatRecordEntity chatRecord =this.getById(chatRecordId);
+        ApplicationChatRecordEntity chatRecord = this.getById(chatRecordId);
         return paragraphService.listDtoByIds(chatRecord.getImproveParagraphIdList());
     }
 
-    public List<ApplicationChatRecordEntity> listByAppIdAndChatUserId(String applicationId, String chatUserId,int pageSize,int offset) {
-        return baseMapper.listByAppIdAndChatUserId(applicationId, chatUserId,pageSize, offset);
+    public List<ApplicationChatRecordEntity> listByAppIdAndChatUserId(String applicationId, String chatUserId, int pageSize, int offset) {
+        return baseMapper.listByAppIdAndChatUserId(applicationId, chatUserId, pageSize, offset);
     }
 
     public long countByAppIdAndChatUserId(String applicationId, String chatUserId) {

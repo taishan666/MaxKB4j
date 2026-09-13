@@ -15,7 +15,7 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "application_chat_share_link",autoResultMap = true)
+@TableName(value = "application_chat_share_link", autoResultMap = true)
 public class ApplicationChatShareLinkEntity extends BaseEntity {
     private String shareType;
     @TableField(typeHandler = StringListTypeHandler.class)

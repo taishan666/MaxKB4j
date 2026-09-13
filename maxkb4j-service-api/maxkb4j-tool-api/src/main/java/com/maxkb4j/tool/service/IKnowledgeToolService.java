@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * 将知识库构建为可执行工具的 SPI。
- *
+ * <p>
  * 故接口声明在 tool-api 供 tool 模块消费，由 Knowledge 模块实现并在运行期注入，
  * 从而避免 tool 模块反向编译依赖 Knowledge。
  *
@@ -24,5 +24,5 @@ public interface IKnowledgeToolService {
     /**
      * 根据知识库 ID 列表构建 ToolProvider
      */
-    ToolProvider buildToolProvider(List<String> KnowledgeIds,KnowledgeSetting knowledgeSetting);
+    ToolProvider buildToolProvider(List<String> KnowledgeIds, KnowledgeSetting knowledgeSetting);
 }

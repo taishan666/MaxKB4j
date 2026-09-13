@@ -1,15 +1,15 @@
-
 -- ----------------------------
 -- Table structure for tag
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."tag";
-CREATE TABLE "public"."tag" (
-                                "create_time" timestamptz(6) NOT NULL,
-                                "update_time" timestamptz(6) NOT NULL,
-                                "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                "key" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
-                                "value" varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
-                                "knowledge_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL
+CREATE TABLE "public"."tag"
+(
+    "create_time"  timestamptz(6) NOT NULL,
+    "update_time"  timestamptz(6) NOT NULL,
+    "id"           varchar(50) COLLATE "pg_catalog"."default"  NOT NULL,
+    "key"          varchar(64) COLLATE "pg_catalog"."default"  NOT NULL,
+    "value"        varchar(128) COLLATE "pg_catalog"."default" NOT NULL,
+    "knowledge_id" varchar(50) COLLATE "pg_catalog"."default"  NOT NULL
 )
 ;
 
@@ -42,24 +42,27 @@ CREATE INDEX "tag_value_0d236690_like" ON "public"."tag" USING btree (
 -- ----------------------------
 -- Uniques structure for table tag
 -- ----------------------------
-ALTER TABLE "public"."tag" ADD CONSTRAINT "tag_knowledge_id_key_value_eb5f0e5d_uniq" UNIQUE ("knowledge_id", "key", "value");
+ALTER TABLE "public"."tag"
+    ADD CONSTRAINT "tag_knowledge_id_key_value_eb5f0e5d_uniq" UNIQUE ("knowledge_id", "key", "value");
 
 -- ----------------------------
 -- Primary Key structure for table tag
 -- ----------------------------
-ALTER TABLE "public"."tag" ADD CONSTRAINT "tag_pkey" PRIMARY KEY ("id");
+ALTER TABLE "public"."tag"
+    ADD CONSTRAINT "tag_pkey" PRIMARY KEY ("id");
 
 
 -- ----------------------------
 -- Table structure for document_tag
 -- ----------------------------
 DROP TABLE IF EXISTS "public"."document_tag";
-CREATE TABLE "public"."document_tag" (
-                                         "create_time" timestamptz(6) NOT NULL,
-                                         "update_time" timestamptz(6) NOT NULL,
-                                         "id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                         "document_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
-                                         "tag_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL
+CREATE TABLE "public"."document_tag"
+(
+    "create_time" timestamptz(6) NOT NULL,
+    "update_time" timestamptz(6) NOT NULL,
+    "id"          varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+    "document_id" varchar(50) COLLATE "pg_catalog"."default" NOT NULL,
+    "tag_id"      varchar(50) COLLATE "pg_catalog"."default" NOT NULL
 )
 ;
 
@@ -82,9 +85,11 @@ CREATE INDEX "document_tag_update_time_2c460bdf" ON "public"."document_tag" USIN
 -- ----------------------------
 -- Uniques structure for table document_tag
 -- ----------------------------
-ALTER TABLE "public"."document_tag" ADD CONSTRAINT "document_tag_document_id_tag_id_55f500a6_uniq" UNIQUE ("document_id", "tag_id");
+ALTER TABLE "public"."document_tag"
+    ADD CONSTRAINT "document_tag_document_id_tag_id_55f500a6_uniq" UNIQUE ("document_id", "tag_id");
 
 -- ----------------------------
 -- Primary Key structure for table document_tag
 -- ----------------------------
-ALTER TABLE "public"."document_tag" ADD CONSTRAINT "document_tag_pkey" PRIMARY KEY ("id");
+ALTER TABLE "public"."document_tag"
+    ADD CONSTRAINT "document_tag_pkey" PRIMARY KEY ("id");

@@ -1,4 +1,5 @@
 package com.maxkb4j.workflow.node.impl;
+
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
@@ -15,10 +16,10 @@ public class DocumentSpiltNode extends AbsNode {
     }
 
     @Data
-    public static class NodeParams  {
+    public static class NodeParams {
         private List<String> documentList;
         private String splitStrategy;
-        private String[]  patterns;
+        private String[] patterns;
         private Integer chunkSize;
         private Boolean paragraphTitleRelateProblem;
         private Boolean documentNameRelateProblem;

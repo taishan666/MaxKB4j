@@ -60,7 +60,7 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
     );
 
     @Override
-    public String getDefaultBaseUrl(){
+    public String getDefaultBaseUrl() {
         return BASE_URL;
     }
 

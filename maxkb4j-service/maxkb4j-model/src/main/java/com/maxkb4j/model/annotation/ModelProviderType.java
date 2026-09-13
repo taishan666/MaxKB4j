@@ -13,10 +13,18 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface ModelProviderType {
-    /** 供应商唯一标识，对应 {@code ModelEntity#getProvider()} 存储的值。 */
+    /**
+     * 供应商唯一标识，对应 {@code ModelEntity#getProvider()} 存储的值。
+     */
     String provider();
-    /** 展示名称。 */
+
+    /**
+     * 展示名称。
+     */
     String name();
-    /** 图标文件名（位于 classpath:model-icons/ 下）。 */
+
+    /**
+     * 图标文件名（位于 classpath:model-icons/ 下）。
+     */
     String icon();
 }

@@ -17,7 +17,7 @@ public class ToolInputParamsTypeHandler extends BaseTypeHandler<List<ToolInputFi
 
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, List<ToolInputField> parameter, JdbcType jdbcType) throws SQLException {
-        if(null != parameter){
+        if (null != parameter) {
             PGobject pGobject = new PGobject();
             pGobject.setType("jsonb");
             pGobject.setValue(toJson(parameter));
@@ -43,14 +43,14 @@ public class ToolInputParamsTypeHandler extends BaseTypeHandler<List<ToolInputFi
         return convert(value);
     }
 
-    private List<ToolInputField> convert(String value){
-        if(notNull(value)){
-            return  JSON.parseArray(value, ToolInputField.class);
+    private List<ToolInputField> convert(String value) {
+        if (notNull(value)) {
+            return JSON.parseArray(value, ToolInputField.class);
         }
         return null;
     }
 
-    private boolean notNull(String value){
+    private boolean notNull(String value) {
         return (null != value && !value.isEmpty());
     }
 

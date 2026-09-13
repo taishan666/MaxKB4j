@@ -17,10 +17,14 @@ import org.springframework.context.annotation.Configuration;
 public class UndertowWebSocketConfig
         implements WebServerFactoryCustomizer<UndertowServletWebServerFactory> {
 
-    /** 默认缓冲区大小（字节）。1024 与 Undertow 内置默认池一致，足以承载普通 WebSocket 帧 */
+    /**
+     * 默认缓冲区大小（字节）。1024 与 Undertow 内置默认池一致，足以承载普通 WebSocket 帧
+     */
     private static final int BUFFER_SIZE = 1024;
 
-    /** 是否使用堆外内存。开启后减少 GC 压力，与 Undertow 默认行为一致 */
+    /**
+     * 是否使用堆外内存。开启后减少 GC 压力，与 Undertow 默认行为一致
+     */
     private static final boolean DIRECT_BUFFERS = true;
 
     @Override

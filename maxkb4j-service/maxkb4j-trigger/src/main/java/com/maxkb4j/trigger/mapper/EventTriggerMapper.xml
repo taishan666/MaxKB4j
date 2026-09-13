@@ -11,9 +11,9 @@
 
     <select id="selectEventTriggerPage" resultMap="eventTriggerResultMap">
         SELECT
-            et.*
+        et.*
         FROM
-            event_trigger et
+        event_trigger et
         <where>
             <if test="query.name != null and query.name != ''">
                 AND et.name LIKE '%' || #{query.name} || '%'
@@ -29,11 +29,11 @@
             </if>
             <if test="query.task != null and query.task != ''">
                 AND EXISTS (
-                    SELECT 1 FROM event_trigger_task ett
-                    LEFT JOIN application a ON ett.source_type = 'APPLICATION' AND ett.source_id = a.id
-                    LEFT JOIN tool t ON ett.source_type = 'TOOL' AND ett.source_id = t.id
-                    WHERE ett.trigger_id = et.id
-                    AND (a.name LIKE '%' || #{query.task} || '%' OR t.name LIKE '%' || #{query.task} || '%')
+                SELECT 1 FROM event_trigger_task ett
+                LEFT JOIN application a ON ett.source_type = 'APPLICATION' AND ett.source_id = a.id
+                LEFT JOIN tool t ON ett.source_type = 'TOOL' AND ett.source_id = t.id
+                WHERE ett.trigger_id = et.id
+                AND (a.name LIKE '%' || #{query.task} || '%' OR t.name LIKE '%' || #{query.task} || '%')
                 )
             </if>
         </where>

@@ -31,74 +31,73 @@ public class DocumentTagController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document/{docId}/tags")
     public R<List<TagListVO>> listTags(@PathVariable("id") String id, @PathVariable String docId, @RequestParam(required = false) String name) {
-        return R.data(documentTagService.listTags(docId,name));
+        return R.data(documentTagService.listTags(docId, name));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @PostMapping("/knowledge/{id}/document/{docId}/tags")
     public R<Boolean> addTags(@PathVariable("id") String id, @PathVariable String docId, @RequestBody List<String> tagIds) {
-        List<DocumentTagEntity> documentTags=new ArrayList<>();
-        if (tagIds.isEmpty()){
+        List<DocumentTagEntity> documentTags = new ArrayList<>();
+        if (tagIds.isEmpty()) {
             return R.status(true);
         }
-        Set<String> existTagIds=documentTagService.lambdaQuery()
+        Set<String> existTagIds = documentTagService.lambdaQuery()
                 .select(DocumentTagEntity::getTagId)
-                .eq(DocumentTagEntity::getDocumentId,docId)
-                .in(DocumentTagEntity::getTagId,tagIds)
+                .eq(DocumentTagEntity::getDocumentId, docId)
+                .in(DocumentTagEntity::getTagId, tagIds)
                 .list()
                 .stream()
                 .map(DocumentTagEntity::getTagId)
                 .collect(java.util.stream.Collectors.toSet());
-        Set<String> addTagIds=new HashSet<>();
+        Set<String> addTagIds = new HashSet<>();
         for (String tagId : tagIds) {
-            if (!existTagIds.contains(tagId)&&addTagIds.add(tagId)){
-                DocumentTagEntity documentTag=new DocumentTagEntity();
+            if (!existTagIds.contains(tagId) && addTagIds.add(tagId)) {
+                DocumentTagEntity documentTag = new DocumentTagEntity();
                 documentTag.setDocumentId(docId);
                 documentTag.setTagId(tagId);
                 documentTags.add(documentTag);
             }
         }
-        return R.status(documentTags.isEmpty()||documentTagService.saveBatch(documentTags));
+        return R.status(documentTags.isEmpty() || documentTagService.saveBatch(documentTags));
     }
 
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/document/batch_add_tag")
     public R<Boolean> batchAddTags(@PathVariable("id") String id, @Valid @RequestBody DocumentTagAddDTO dto) {
-        List<DocumentTagEntity> documentTags=new ArrayList<>();
-        List<String> documentIds=dto.getDocumentIds();
-        List<String> tagIds=dto.getTagIds();
-        if (documentIds.isEmpty()||tagIds.isEmpty()){
+        List<DocumentTagEntity> documentTags = new ArrayList<>();
+        List<String> documentIds = dto.getDocumentIds();
+        List<String> tagIds = dto.getTagIds();
+        if (documentIds.isEmpty() || tagIds.isEmpty()) {
             return R.status(true);
         }
-        Set<String> existDocumentTags=documentTagService.lambdaQuery()
-                .select(DocumentTagEntity::getDocumentId,DocumentTagEntity::getTagId)
-                .in(DocumentTagEntity::getDocumentId,documentIds)
-                .in(DocumentTagEntity::getTagId,tagIds)
+        Set<String> existDocumentTags = documentTagService.lambdaQuery()
+                .select(DocumentTagEntity::getDocumentId, DocumentTagEntity::getTagId)
+                .in(DocumentTagEntity::getDocumentId, documentIds)
+                .in(DocumentTagEntity::getTagId, tagIds)
                 .list()
                 .stream()
-                .map(documentTag -> documentTag.getDocumentId()+":"+documentTag.getTagId())
+                .map(documentTag -> documentTag.getDocumentId() + ":" + documentTag.getTagId())
                 .collect(java.util.stream.Collectors.toSet());
-        Set<String> addDocumentTags=new HashSet<>();
+        Set<String> addDocumentTags = new HashSet<>();
         for (String documentId : documentIds) {
             for (String tagId : tagIds) {
-                String key=documentId+":"+tagId;
-                if (!existDocumentTags.contains(key)&&addDocumentTags.add(key)){
-                    DocumentTagEntity documentTag=new DocumentTagEntity();
+                String key = documentId + ":" + tagId;
+                if (!existDocumentTags.contains(key) && addDocumentTags.add(key)) {
+                    DocumentTagEntity documentTag = new DocumentTagEntity();
                     documentTag.setDocumentId(documentId);
                     documentTag.setTagId(tagId);
                     documentTags.add(documentTag);
                 }
             }
         }
-        return R.status(documentTags.isEmpty()||documentTagService.saveBatch(documentTags));
+        return R.status(documentTags.isEmpty() || documentTagService.saveBatch(documentTags));
     }
-
 
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DELETE)
     @PutMapping("/knowledge/{id}/document/{docId}/tags/batch_delete")
-    public R<Boolean> batchDeleteTags(@PathVariable("id") String id,  @PathVariable String docId,@RequestBody List<String> tagIds) {
+    public R<Boolean> batchDeleteTags(@PathVariable("id") String id, @PathVariable String docId, @RequestBody List<String> tagIds) {
         return R.status(documentTagService.removeByIds(tagIds));
     }
 

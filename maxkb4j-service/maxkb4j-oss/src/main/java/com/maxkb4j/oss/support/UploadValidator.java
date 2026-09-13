@@ -17,14 +17,16 @@ import java.util.Set;
 @Component
 public class UploadValidator {
 
-    /** 允许上传的扩展名白名单：图片 / 常见文档 / 音视频。 */
+    /**
+     * 允许上传的扩展名白名单：图片 / 常见文档 / 音视频。
+     */
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
             // 图片
             "jpg", "jpeg", "png", "gif", "webp", "bmp", "svg",
             // 文档
             "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "md", "html", "csv",
             // 音频
-            "mp3", "wav", "m4a", "ogg","aac", "flac",
+            "mp3", "wav", "m4a", "ogg", "aac", "flac",
             // 视频
             "mp4", "webm"
     );

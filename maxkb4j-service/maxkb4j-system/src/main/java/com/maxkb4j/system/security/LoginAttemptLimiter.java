@@ -18,13 +18,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class LoginAttemptLimiter {
 
-    /** 锁定前允许的最大连续失败次数。 */
+    /**
+     * 锁定前允许的最大连续失败次数。
+     */
     private static final int MAX_ATTEMPTS = 5;
 
-    /** 锁定时长（分钟）。 */
+    /**
+     * 锁定时长（分钟）。
+     */
     private static final int LOCK_MINUTES = 15;
 
-    /** 失败计数窗口（分钟），窗口内累计失败次数。 */
+    /**
+     * 失败计数窗口（分钟），窗口内累计失败次数。
+     */
     private static final int ATTEMPT_WINDOW_MINUTES = 15;
 
     private final Cache<String, AtomicInteger> attempts = Caffeine.newBuilder()

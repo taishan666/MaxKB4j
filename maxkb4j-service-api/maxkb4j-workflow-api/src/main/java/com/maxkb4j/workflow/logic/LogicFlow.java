@@ -21,10 +21,9 @@ public class LogicFlow {
 
     public static LogicFlow newInstance(JSONObject flowJson) {
         // 使用TypeReference来指定复杂的类型
-        return JSON.parseObject(flowJson.toJSONString(), new TypeReference<>() {});
+        return JSON.parseObject(flowJson.toJSONString(), new TypeReference<>() {
+        });
     }
-
-
 
 
 }

@@ -1,4 +1,3 @@
-
 package com.maxkb4j.common.handler;
 
 import cn.dev33.satoken.exception.NotLoginException;
@@ -102,8 +101,8 @@ public class GlobalExceptionHandler {
     /**
      * 处理客户端断开连接导致的 IOException
      * 浏览器快速刷新/取消请求时，服务端仍在向 socket 写响应，会抛出：
-     *   - "你的主机中的软件中止了一个已建立的连接" (Windows)
-     *   - "Connection reset by peer" / "Broken pipe" (Linux)
+     * - "你的主机中的软件中止了一个已建立的连接" (Windows)
+     * - "Connection reset by peer" / "Broken pipe" (Linux)
      * 这些是正常的客户端行为，不应作为 ERROR 打印完整堆栈。
      */
     @ExceptionHandler(IOException.class)
@@ -204,26 +203,24 @@ public class GlobalExceptionHandler {
     }
 
 
-
-
     @ExceptionHandler(AuthenticationException.class)
     @ResponseBody
     public R<String> handleException(AuthenticationException e) {
         log.error("模型接口token鉴权失败: {}", e.getMessage(), e);
-        return R.fail(500,e.getMessage());
+        return R.fail(500, e.getMessage());
     }
 
     @ExceptionHandler(InvalidRequestException.class)
     @ResponseBody
     public R<String> handleException(InvalidRequestException e) {
         log.error("模型接口请求失败: {}", e.getMessage(), e);
-        return R.fail(500,e.getMessage());
+        return R.fail(500, e.getMessage());
     }
 
     @ExceptionHandler(SecurityException.class)
     @ResponseBody
     public R<String> handleException(SecurityException e) {
-        return R.fail(500,e.getMessage());
+        return R.fail(500, e.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -231,7 +228,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public R<String> handleException(IllegalArgumentException e) {
         log.error("非法参数: {}", e.getMessage(), e);
-        return R.fail(500,e.getMessage());
+        return R.fail(500, e.getMessage());
     }
 
     @ExceptionHandler(FileLimitExceededException.class)

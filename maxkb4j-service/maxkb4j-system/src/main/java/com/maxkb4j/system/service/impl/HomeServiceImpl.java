@@ -48,18 +48,21 @@ import java.util.Optional;
 @Service
 public class HomeServiceImpl implements IHomeService {
 
+    /**
+     * 问题数排行 Excel 文件名（同时用作 sheet 名，长度不超过 31）。
+     */
+    private static final String FILE_NAME = "问题数排行";
+    /**
+     * Token 数排行 Excel 文件名（同时用作 sheet 名，长度不超过 31）。
+     */
+    private static final String TOKENS_FILE_NAME = "Token数排行";
+    /**
+     * 用户 Token 数排行 Excel 文件名（同时用作 sheet 名，长度不超过 31）。
+     */
+    private static final String USER_TOKENS_FILE_NAME = "用户Token数排行";
     private final HomeMapper homeMapper;
     private final DataPermissionSupport dataPermissionSupport;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-    /** 问题数排行 Excel 文件名（同时用作 sheet 名，长度不超过 31）。 */
-    private static final String FILE_NAME = "问题数排行";
-
-    /** Token 数排行 Excel 文件名（同时用作 sheet 名，长度不超过 31）。 */
-    private static final String TOKENS_FILE_NAME = "Token数排行";
-
-    /** 用户 Token 数排行 Excel 文件名（同时用作 sheet 名，长度不超过 31）。 */
-    private static final String USER_TOKENS_FILE_NAME = "用户Token数排行";
 
     /* ==================== 资源数量聚合 ==================== */
 
@@ -77,10 +80,10 @@ public class HomeServiceImpl implements IHomeService {
         }
         String authTargetType = switch (type) {
             case "application" -> AuthTargetType.APPLICATION;
-            case "knowledge"   -> AuthTargetType.KNOWLEDGE;
-            case "tool"         -> AuthTargetType.TOOL;
-            case "model"        -> AuthTargetType.MODEL;
-            default             -> null;
+            case "knowledge" -> AuthTargetType.KNOWLEDGE;
+            case "tool" -> AuthTargetType.TOOL;
+            case "model" -> AuthTargetType.MODEL;
+            default -> null;
         };
         if (authTargetType == null) {
             return new JSONObject();
@@ -90,10 +93,10 @@ public class HomeServiceImpl implements IHomeService {
         List<String> targetIds = scope.getTargetIds();
         Map<String, Object> data = switch (type) {
             case "application" -> homeMapper.applicationAggregation(isAdmin, targetIds);
-            case "knowledge"   -> homeMapper.knowledgeAggregation(isAdmin, targetIds);
-            case "tool"         -> homeMapper.toolAggregation(isAdmin, targetIds);
-            case "model"        -> homeMapper.modelAggregation(isAdmin, targetIds);
-            default             -> Map.of();
+            case "knowledge" -> homeMapper.knowledgeAggregation(isAdmin, targetIds);
+            case "tool" -> homeMapper.toolAggregation(isAdmin, targetIds);
+            case "model" -> homeMapper.modelAggregation(isAdmin, targetIds);
+            default -> Map.of();
         };
         return data == null ? new JSONObject() : new JSONObject(data);
     }
@@ -124,7 +127,9 @@ public class HomeServiceImpl implements IHomeService {
         return result;
     }
 
-    /** 命中则返回当天的聚合记录，未命中则返回零填充的占位记录。 */
+    /**
+     * 命中则返回当天的聚合记录，未命中则返回零填充的占位记录。
+     */
     private DailyStatDTO getDailyStat(List<DailyStatDTO> list, String day) {
         if (!CollectionUtils.isEmpty(list)) {
             Optional<DailyStatDTO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
@@ -142,7 +147,9 @@ public class HomeServiceImpl implements IHomeService {
         return dto;
     }
 
-    /** 命中则返回当天的新增客户数，未命中则返回 0。 */
+    /**
+     * 命中则返回当天的新增客户数，未命中则返回 0。
+     */
     private int getCustomerAddedCount(List<DailyStatDTO> list, String day) {
         if (!CollectionUtils.isEmpty(list)) {
             Optional<DailyStatDTO> optional = list.stream().filter(e -> e.getDay().equals(day)).findFirst();
@@ -156,7 +163,9 @@ public class HomeServiceImpl implements IHomeService {
 
     /* ==================== 总量 ==================== */
 
-    /** 时间范围内的聊天记录总数（null -> 0）。 */
+    /**
+     * 时间范围内的聊天记录总数（null -> 0）。
+     */
     @Override
     public int chatRecordCount(HomeQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
@@ -164,7 +173,9 @@ public class HomeServiceImpl implements IHomeService {
         return count == null ? 0 : count;
     }
 
-    /** 时间范围内的 Token 总数（null -> 0）。 */
+    /**
+     * 时间范围内的 Token 总数（null -> 0）。
+     */
     @Override
     public int tokensCount(HomeQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
@@ -174,14 +185,18 @@ public class HomeServiceImpl implements IHomeService {
 
     /* ==================== 排行榜（分页） ==================== */
 
-    /** 应用 Token 排行（按 total_tokens 降序）。 */
+    /**
+     * 应用 Token 排行（按 total_tokens 降序）。
+     */
     @Override
     public IPage<AgentStatDTO> tokensRanking(int current, int size, HomeQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         return homeMapper.tokensRanking(new Page<>(current, size), query);
     }
 
-    /** 应用 Token 排行全量数据导出为 Excel（按 total_tokens 降序）。 */
+    /**
+     * 应用 Token 排行全量数据导出为 Excel（按 total_tokens 降序）。
+     */
     @Override
     public void exportTokensRanking(HomeQuery query, HttpServletResponse response) throws IOException {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
@@ -210,14 +225,18 @@ public class HomeServiceImpl implements IHomeService {
                 .doWrite(rows);
     }
 
-    /** 应用问题数排行（按 chat_record_count 降序）。 */
+    /**
+     * 应用问题数排行（按 chat_record_count 降序）。
+     */
     @Override
     public IPage<AgentStatDTO> questionRanking(int current, int size, HomeQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         return homeMapper.questionRanking(new Page<>(current, size), query);
     }
 
-    /** 应用问题数排行全量数据导出为 Excel（按 chat_record_count 降序）。 */
+    /**
+     * 应用问题数排行全量数据导出为 Excel（按 chat_record_count 降序）。
+     */
     @Override
     public void exportQuestionRanking(HomeQuery query, HttpServletResponse response) throws IOException {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
@@ -247,7 +266,9 @@ public class HomeServiceImpl implements IHomeService {
                 .doWrite(rows);
     }
 
-    /** 单个应用的指标值占该检索条件下对应总数的百分比，保留一位小数。 */
+    /**
+     * 单个应用的指标值占该检索条件下对应总数的百分比，保留一位小数。
+     */
     private String formatRatio(Integer value, int total) {
         if (value == null || value == 0 || total <= 0) {
             return "0.0%";
@@ -256,7 +277,9 @@ public class HomeServiceImpl implements IHomeService {
         return String.format(Locale.ROOT, "%.1f%%", ratio);
     }
 
-    /** 均值保留一位小数：numerator / denominator，denominator 为 0/空 或 numerator 为空时返回 0.0。 */
+    /**
+     * 均值保留一位小数：numerator / denominator，denominator 为 0/空 或 numerator 为空时返回 0.0。
+     */
     private String formatAvg(Integer numerator, Integer denominator) {
         if (numerator == null || denominator == null || denominator == 0) {
             return "0.0";
@@ -265,14 +288,18 @@ public class HomeServiceImpl implements IHomeService {
         return String.format(Locale.ROOT, "%.1f", avg);
     }
 
-    /** 用户 Token 排行（按 total_tokens 降序）。 */
+    /**
+     * 用户 Token 排行（按 total_tokens 降序）。
+     */
     @Override
     public IPage<ChatUserStatDTO> userTokensRanking(int current, int size, HomeQuery query) {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         return homeMapper.userTokensRanking(new Page<>(current, size), query);
     }
 
-    /** 用户 Token 排行全量数据导出为 Excel（按 total_tokens 降序）。 */
+    /**
+     * 用户 Token 排行全量数据导出为 Excel（按 total_tokens 降序）。
+     */
     @Override
     public void exportUserTokensRanking(HomeQuery query, HttpServletResponse response) throws IOException {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);

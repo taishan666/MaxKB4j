@@ -102,6 +102,4 @@ public class ApplicationEntity extends BaseEntity {
     private Boolean longTermEnable;
 
 
-
-
-} 
+}

@@ -49,7 +49,48 @@ public class ChatOpenAiController {
 
     private final IApplicationApiKeyService apiKeyService;
 
-    private final String DEFAULT_MODEL_NAME="gpt-5.4";
+    private final String DEFAULT_MODEL_NAME = "gpt-5.4";
+
+    /**
+     * 取 messages 中最后一个 user 消息之前的 user/assistant 轮次，转换为内部聊天记录；
+     * 末尾的 user 消息为当前问题，不纳入历史；system 消息不进入对话历史。
+     */
+    static List<ChatRecordDTO> buildHistoryRecords(List<OpenAIMessage> messages) {
+        List<ChatRecordDTO> history = new ArrayList<>();
+        if (messages == null || messages.size() < 2) {
+            return history;
+        }
+        int lastUserIndex = -1;
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            OpenAIMessage msg = messages.get(i);
+            if (msg != null && "user".equals(msg.getRole())) {
+                lastUserIndex = i;
+                break;
+            }
+        }
+        if (lastUserIndex <= 0) {
+            return history;
+        }
+        for (int i = 0; i < lastUserIndex; i++) {
+            OpenAIMessage msg = messages.get(i);
+            if (msg == null || !"user".equals(msg.getRole())) {
+                continue;
+            }
+            String answer = "";
+            for (int j = i + 1; j < messages.size(); j++) {
+                OpenAIMessage next = messages.get(j);
+                if (next != null && "assistant".equals(next.getRole())) {
+                    answer = next.getContent();
+                    break;
+                }
+            }
+            ChatRecordDTO record = new ChatRecordDTO();
+            record.setProblemText(msg.getContent());
+            record.setAnswerText(answer);
+            history.add(record);
+        }
+        return history;
+    }
 
     @Operation(summary = "聊天对话", description = "兼容 OpenAI Chat Completions API 格式")
     @PostMapping(value = "/{appId}/chat/completions", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -175,7 +216,6 @@ public class ChatOpenAiController {
                 .body(response);
     }
 
-
     /**
      * 将 OpenAI 请求携带的历史消息（当前问题之前的 user/assistant 轮次）预置到会话缓存，
      * 使对话流水线基于完整上下文生成回答，避免多轮上下文丢失。
@@ -190,47 +230,6 @@ public class ChatOpenAiController {
             chatInfo.setChatRecordList(history);
             ChatCache.put(chatId, chatInfo);
         }
-    }
-
-    /**
-     * 取 messages 中最后一个 user 消息之前的 user/assistant 轮次，转换为内部聊天记录；
-     * 末尾的 user 消息为当前问题，不纳入历史；system 消息不进入对话历史。
-     */
-    static List<ChatRecordDTO> buildHistoryRecords(List<OpenAIMessage> messages) {
-        List<ChatRecordDTO> history = new ArrayList<>();
-        if (messages == null || messages.size() < 2) {
-            return history;
-        }
-        int lastUserIndex = -1;
-        for (int i = messages.size() - 1; i >= 0; i--) {
-            OpenAIMessage msg = messages.get(i);
-            if (msg != null && "user".equals(msg.getRole())) {
-                lastUserIndex = i;
-                break;
-            }
-        }
-        if (lastUserIndex <= 0) {
-            return history;
-        }
-        for (int i = 0; i < lastUserIndex; i++) {
-            OpenAIMessage msg = messages.get(i);
-            if (msg == null || !"user".equals(msg.getRole())) {
-                continue;
-            }
-            String answer = "";
-            for (int j = i + 1; j < messages.size(); j++) {
-                OpenAIMessage next = messages.get(j);
-                if (next != null && "assistant".equals(next.getRole())) {
-                    answer = next.getContent();
-                    break;
-                }
-            }
-            ChatRecordDTO record = new ChatRecordDTO();
-            record.setProblemText(msg.getContent());
-            record.setAnswerText(answer);
-            history.add(record);
-        }
-        return history;
     }
 
     private String buildErrorMessage(Throwable throwable) {

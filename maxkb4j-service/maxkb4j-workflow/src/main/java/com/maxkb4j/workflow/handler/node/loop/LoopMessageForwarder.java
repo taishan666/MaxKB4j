@@ -35,28 +35,12 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.LoopField;
 public class LoopMessageForwarder {
 
     /**
-     * 一次迭代的输出订阅句柄：持有子工作流 Sink 与最新子节点引用
-     */
-    @Getter
-    public static final class LoopSubscription {
-
-        private final Sinks.Many<ChatMessageVO> sink;
-        private final AtomicReference<ChildNode> childNodeRef;
-
-        private LoopSubscription(Sinks.Many<ChatMessageVO> sink, AtomicReference<ChildNode> childNodeRef) {
-            this.sink = sink;
-            this.childNodeRef = childNodeRef;
-        }
-
-    }
-
-    /**
      * 为 chat 系工作流创建子工作流输出订阅；非 chat 系返回 empty。
      *
-     * @param workflow  主工作流
+     * @param workflow   主工作流
      * @param loopParams 当前迭代参数
-     * @param ctx       循环执行上下文（中断标记写回）
-     * @param node      循环节点（消息组装用）
+     * @param ctx        循环执行上下文（中断标记写回）
+     * @param node       循环节点（消息组装用）
      * @return 订阅句柄
      */
     Optional<LoopSubscription> subscribe(IWorkflow workflow, LoopParams loopParams,
@@ -139,5 +123,21 @@ public class LoopMessageForwarder {
             vo.setViewType(message.getViewType());
             workflow.output().emit(vo);
         }
+    }
+
+    /**
+     * 一次迭代的输出订阅句柄：持有子工作流 Sink 与最新子节点引用
+     */
+    @Getter
+    public static final class LoopSubscription {
+
+        private final Sinks.Many<ChatMessageVO> sink;
+        private final AtomicReference<ChildNode> childNodeRef;
+
+        private LoopSubscription(Sinks.Many<ChatMessageVO> sink, AtomicReference<ChildNode> childNodeRef) {
+            this.sink = sink;
+            this.childNodeRef = childNodeRef;
+        }
+
     }
 }

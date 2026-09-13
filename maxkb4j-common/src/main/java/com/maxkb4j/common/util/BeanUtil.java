@@ -21,8 +21,8 @@ import java.util.stream.Stream;
  * Bean拷贝工具类
  *
  * @author tarzan liu
- * @since JDK1.8
  * @date 2021年5月11日
+ * @since JDK1.8
  */
 @Slf4j
 public class BeanUtil {
@@ -140,7 +140,7 @@ public class BeanUtil {
         return copyPage(source, r -> copy(r, target));
     }
 
-    public static <S, T> IPage<T>  copyPage(IPage<S> source, Function<? super S, ? extends T> mapper) {
+    public static <S, T> IPage<T> copyPage(IPage<S> source, Function<? super S, ? extends T> mapper) {
         Page<T> page = new Page<>();
         if (source == null) {
             return page;

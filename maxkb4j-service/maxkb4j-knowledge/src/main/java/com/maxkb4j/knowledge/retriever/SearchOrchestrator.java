@@ -42,6 +42,7 @@ public class SearchOrchestrator {
 
     /**
      * 在指定 store 上执行双路召回编排。
+     *
      * @param store 由调用方按检索模式选定的后端（vector / fullText / composite）
      */
     public List<TextChunkVO> search(IDataStore store, SearchRequest request) {
@@ -108,11 +109,11 @@ public class SearchOrchestrator {
 
     /**
      * 对原始检索结果按 paragraphId 做去重 + 排序 + 截断：
-     *   1) 先按 paragraphId 累加 totalScore（用于同分时的 tiebreaker）
-     *   2) 按 score 降序排序
-     *   3) 每个 paragraphId 仅保留 score 最高的一条
-     *   4) 同 score 的条目按 paragraphId 累计总分降序
-     *   5) 截断到 topK
+     * 1) 先按 paragraphId 累加 totalScore（用于同分时的 tiebreaker）
+     * 2) 按 score 降序排序
+     * 3) 每个 paragraphId 仅保留 score 最高的一条
+     * 4) 同 score 的条目按 paragraphId 累计总分降序
+     * 5) 截断到 topK
      */
     private List<TextChunkVO> dedupAndRank(List<TextChunkVO> raw, int topK) {
         if (raw == null || raw.isEmpty()) {

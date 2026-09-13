@@ -16,7 +16,7 @@ import java.util.List;
  * @date 2024-12-25 12:22:22
  */
 @Mapper
-public interface ModelMapper extends BaseMapper<ModelEntity>{
+public interface ModelMapper extends BaseMapper<ModelEntity> {
 
     List<ModelVO> models(@Param("query") ModelQuery query);
 

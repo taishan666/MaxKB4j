@@ -16,86 +16,86 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 /**
-  * @author tarzan
-  * @date 2024-12-28 18:47:27
-  */
+ * @author tarzan
+ * @date 2024-12-28 18:47:27
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "application_version",autoResultMap = true)
+@TableName(value = "application_version", autoResultMap = true)
 public class ApplicationVersionEntity extends BaseEntity {
 
-	private String applicationId;
-	private String applicationName;
-	private String publishUserId;
-	private String publishUserName;
-	private String name;
+    private String applicationId;
+    private String applicationName;
+    private String publishUserId;
+    private String publishUserName;
+    private String name;
 
-	private String desc;
+    private String desc;
 
-	private String prologue;
+    private String prologue;
 
-	private Integer dialogueNumber;
+    private Integer dialogueNumber;
 
-	@TableField(typeHandler = DatasetSettingTypeHandler.class)
-	private KnowledgeSetting knowledgeSetting;
+    @TableField(typeHandler = DatasetSettingTypeHandler.class)
+    private KnowledgeSetting knowledgeSetting;
 
-	@TableField(typeHandler = LlmModelSettingTypeHandler.class)
-	private LlmModelSetting modelSetting;
+    @TableField(typeHandler = LlmModelSettingTypeHandler.class)
+    private LlmModelSetting modelSetting;
 
-	private Boolean problemOptimization;
+    private Boolean problemOptimization;
 
-	private String modelId;
+    private String modelId;
 
-	private String userId;
+    private String userId;
 
-	private String icon;
+    private String icon;
 
-	private String type;
+    private String type;
 
-	@TableField(typeHandler = JSONBTypeHandler.class)
-	private JSONObject workFlow;
+    @TableField(typeHandler = JSONBTypeHandler.class)
+    private JSONObject workFlow;
 
-	@TableField(typeHandler = JSONBTypeHandler.class)
-	private JSONObject modelParamsSetting;
+    @TableField(typeHandler = JSONBTypeHandler.class)
+    private JSONObject modelParamsSetting;
 
-	private String sttModelId;
+    private String sttModelId;
 
-	private Boolean sttModelEnable;
+    private Boolean sttModelEnable;
 
-	private Boolean sttAutoSend;
+    private Boolean sttAutoSend;
 
-	private String ttsModelId;
+    private String ttsModelId;
 
-	private Boolean ttsModelEnable;
+    private Boolean ttsModelEnable;
 
-	private Boolean ttsAutoplay;
+    private Boolean ttsAutoplay;
 
-	private String ttsType;
+    private String ttsType;
 
-	private String problemOptimizationPrompt;
+    private String problemOptimizationPrompt;
 
-	@TableField(typeHandler = JSONBTypeHandler.class)
-	private JSONObject ttsModelParamsSetting;
+    @TableField(typeHandler = JSONBTypeHandler.class)
+    private JSONObject ttsModelParamsSetting;
 
-	/*单位天*/
-	private Integer cleanTime;
+    /*单位天*/
+    private Integer cleanTime;
 
-	private Boolean fileUploadEnable;
+    private Boolean fileUploadEnable;
 
-	@TableField(typeHandler = JSONBTypeHandler.class)
-	private JSONObject fileUploadSetting;
+    @TableField(typeHandler = JSONBTypeHandler.class)
+    private JSONObject fileUploadSetting;
 
-	@TableField(typeHandler = StringListTypeHandler.class)
-	private List<String> toolIds;
+    @TableField(typeHandler = StringListTypeHandler.class)
+    private List<String> toolIds;
 
-	@TableField(typeHandler = StringListTypeHandler.class)
-	private List<String> applicationIds;
+    @TableField(typeHandler = StringListTypeHandler.class)
+    private List<String> applicationIds;
 
-	@TableField(typeHandler = StringListTypeHandler.class)
-	private List<String> knowledgeIds;
+    @TableField(typeHandler = StringListTypeHandler.class)
+    private List<String> knowledgeIds;
 
-	private Boolean toolOutputEnable;
+    private Boolean toolOutputEnable;
 
-	private Boolean longTermEnable;
+    private Boolean longTermEnable;
 
 }

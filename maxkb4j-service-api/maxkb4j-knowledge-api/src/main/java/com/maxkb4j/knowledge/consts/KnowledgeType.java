@@ -7,14 +7,19 @@ package com.maxkb4j.knowledge.consts;
  */
 public final class KnowledgeType {
 
+    /**
+     * 通用类型
+     */
+    public static final int BASE = 0;
+    /**
+     * web 站点类型
+     */
+    public static final int WEB = 1;
+    /**
+     * 工作流类型
+     */
+    public static final int WORKFLOW = 2;
     private KnowledgeType() {
     }
-
-    /** 通用类型 */
-    public static final int BASE = 0;
-    /** web 站点类型 */
-    public static final int WEB = 1;
-    /** 工作流类型 */
-    public static final int WORKFLOW = 2;
 
 }

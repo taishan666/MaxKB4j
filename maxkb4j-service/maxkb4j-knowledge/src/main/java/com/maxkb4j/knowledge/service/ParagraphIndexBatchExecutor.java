@@ -40,13 +40,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ParagraphIndexBatchExecutor {
 
-    /** status 状态串的索引维度 */
+    /**
+     * status 状态串的索引维度
+     */
     private static final int INDEX_TYPE = 1;
-    /** 待处理（可被重试流程重新拾起） */
+    /**
+     * 待处理（可被重试流程重新拾起）
+     */
     private static final int STATUS_PENDING = 0;
-    /** 处理中 */
+    /**
+     * 处理中
+     */
     private static final int STATUS_PROCESSING = 1;
-    /** 完成 */
+    /**
+     * 完成
+     */
     private static final int STATUS_COMPLETED = 2;
 
     private final IDocumentInternalService documentService;
@@ -60,9 +68,9 @@ public class ParagraphIndexBatchExecutor {
      * 并在捕获异常时记录日志。索引失败时段落与文档均回退为待处理状态，以便重试。
      *
      * @param embeddingModel 嵌入模型
-     * @param knowledgeId     知识库 ID
-     * @param docId           文档 ID
-     * @param paragraphIds    待索引段落 ID 列表
+     * @param knowledgeId    知识库 ID
+     * @param docId          文档 ID
+     * @param paragraphIds   待索引段落 ID 列表
      */
     public void indexBatch(EmbeddingModel embeddingModel, String knowledgeId, String docId, List<String> paragraphIds) {
         if (CollectionUtils.isEmpty(paragraphIds)) {

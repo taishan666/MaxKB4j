@@ -124,23 +124,23 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public boolean saveBatchProblems(List<ProblemEntity> problems){
+    public boolean saveBatchProblems(List<ProblemEntity> problems) {
         if (!problems.isEmpty()) {
             boolean saved = this.saveBatch(problems);
             if (!saved) {
                 return false;
             }
             String knowledgeId = problems.getFirst().getKnowledgeId();
-            EmbeddingModel embeddingModel=knowledgeModelService.getEmbeddingModel(knowledgeId);
+            EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(knowledgeId);
             createIndexBatch(problems.stream().map(ProblemEntity::getId).toList(), embeddingModel);
         }
         return true;
     }
 
-    public void reIndexBatch( String knowledgeId, List<String> problemIds) {
+    public void reIndexBatch(String knowledgeId, List<String> problemIds) {
         EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(knowledgeId);
-        compositeStore.deleteByProblemIds(knowledgeId,problemIds);
-        createIndexBatch(problemIds,embeddingModel);
+        compositeStore.deleteByProblemIds(knowledgeId, problemIds);
+        createIndexBatch(problemIds, embeddingModel);
     }
 
     /**
@@ -208,7 +208,7 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
         if (CollectionUtils.isEmpty(problems)) {
             return false;
         }
-        problems=problems.stream().distinct().toList();
+        problems = problems.stream().distinct().toList();
         // 获取已有问题（按内容去重）
         List<ProblemEntity> existing = this.lambdaQuery()
                 .eq(ProblemEntity::getKnowledgeId, knowledgeId)
@@ -251,7 +251,7 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
             return false;
         }
         EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(knowledgeId);
-        createIndexBatch(List.of(problem.getId()),embeddingModel);
+        createIndexBatch(List.of(problem.getId()), embeddingModel);
         return problemParagraphService.association(knowledgeId, docId, paragraphId, problem.getId());
     }
 
@@ -288,8 +288,8 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
 
     @Transactional(rollbackFor = Exception.class)
     public boolean updateProblemById(ProblemEntity problem) {
-        compositeStore.deleteByProblemIds(problem.getKnowledgeId(),List.of(problem.getId()));
-        reIndexBatch(problem.getKnowledgeId(),List.of(problem.getId()));
+        compositeStore.deleteByProblemIds(problem.getKnowledgeId(), List.of(problem.getId()));
+        reIndexBatch(problem.getKnowledgeId(), List.of(problem.getId()));
         return this.updateById(problem);
     }
 }

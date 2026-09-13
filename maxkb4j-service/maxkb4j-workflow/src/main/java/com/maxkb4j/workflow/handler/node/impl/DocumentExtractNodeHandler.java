@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.util.*;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.DOCUMENT_EXTRACT)
@@ -33,7 +34,7 @@ public class DocumentExtractNodeHandler extends AbsNodeHandler {
         if (params == null || params.getDocumentList() == null || params.getDocumentList().size() < 2) {
             throw new IllegalArgumentException("Invalid documentList in node params: expected at least two elements");
         }
-        List<OssFile> documentFiles = getOssFiles(workflow,params.getDocumentList());
+        List<OssFile> documentFiles = getOssFiles(workflow, params.getDocumentList());
         // 处理文档
         List<String> contentList = new LinkedList<>();
         List<DocumentSimple> documentList = new ArrayList<>();

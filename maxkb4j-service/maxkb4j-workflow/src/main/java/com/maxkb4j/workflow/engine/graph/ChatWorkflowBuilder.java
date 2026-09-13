@@ -71,6 +71,18 @@ public class ChatWorkflowBuilder {
     // ==================== 可选参数设置方法 ====================
 
     /**
+     * 创建构建器
+     *
+     * @param mode  工作流模式
+     * @param nodes 节点列表
+     * @param edges 边列表
+     * @return ChatWorkflowBuilder 实例
+     */
+    public static ChatWorkflowBuilder create(WorkflowMode mode, List<AbsNode> nodes, List<LfEdge> edges) {
+        return new ChatWorkflowBuilder(mode, nodes, edges);
+    }
+
+    /**
      * 设置聊天参数
      *
      * @param params 聊天参数
@@ -103,6 +115,8 @@ public class ChatWorkflowBuilder {
         return this;
     }
 
+    // ==================== 构建方法 ====================
+
     /**
      * 设置待恢复的执行状态
      *
@@ -118,8 +132,6 @@ public class ChatWorkflowBuilder {
         this.restoreState = (details != null && nodeId != null);
         return this;
     }
-
-    // ==================== 构建方法 ====================
 
     /**
      * 构建 ChatWorkflow 实例
@@ -148,18 +160,6 @@ public class ChatWorkflowBuilder {
         this.navigator = new EdgeNavigator(edges);
         // 6. 构建 Workflow（内部完成依赖组件初始化）
         return new ChatWorkflow(this);
-    }
-
-    /**
-     * 创建构建器
-     *
-     * @param mode  工作流模式
-     * @param nodes 节点列表
-     * @param edges 边列表
-     * @return ChatWorkflowBuilder 实例
-     */
-    public static ChatWorkflowBuilder create(WorkflowMode mode, List<AbsNode> nodes, List<LfEdge> edges) {
-        return new ChatWorkflowBuilder(mode, nodes, edges);
     }
 
 }

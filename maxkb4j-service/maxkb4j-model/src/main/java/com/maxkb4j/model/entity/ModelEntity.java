@@ -21,26 +21,26 @@ import lombok.EqualsAndHashCode;
 public class ModelEntity extends BaseEntity {
 
     private String name;
-    
+
     private String modelType;
-    
+
     private String modelName;
-    
+
     private String provider;
 
     @TableField(typeHandler = ModelCredentialTypeHandler.class)
     private ModelCredential credential;
-    
+
     private String userId;
-    
-	@TableField(typeHandler = JSONBTypeHandler.class)
+
+    @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject meta;
 
     /**
      * 状态，取值参考 {@link com.maxkb4j.model.enums.ModelStatus}。
      */
     private String status;
-    
+
     @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONArray modelParamsForm;
 } 

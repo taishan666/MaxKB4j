@@ -22,12 +22,16 @@ public class DataPermissionSupport {
 
     private final IDataPermissionScopeResolver scopeResolver;
 
-    /** 解析当前登录用户对指定资源类型的数据权限范围。 */
+    /**
+     * 解析当前登录用户对指定资源类型的数据权限范围。
+     */
     public DataPermissionScope resolve(String authTargetType) {
         return scopeResolver.resolve(authTargetType);
     }
 
-    /** 解析当前登录用户对指定资源类型的「管理」数据权限范围（删除等写操作的资源级校验用）。 */
+    /**
+     * 解析当前登录用户对指定资源类型的「管理」数据权限范围（删除等写操作的资源级校验用）。
+     */
     public DataPermissionScope resolveManageScope(String authTargetType) {
         return scopeResolver.resolveManageScope(authTargetType);
     }
@@ -54,7 +58,9 @@ public class DataPermissionSupport {
         }
     }
 
-    /** 将当前用户的数据权限范围注入查询条件，供 Mapper XML 按 isAdmin/targetIds 拼接过滤。 */
+    /**
+     * 将当前用户的数据权限范围注入查询条件，供 Mapper XML 按 isAdmin/targetIds 拼接过滤。
+     */
     public void fill(PermissionScopeAware query, String authTargetType) {
         DataPermissionScope scope = scopeResolver.resolve(authTargetType);
         query.setIsAdmin(scope.isAdmin());

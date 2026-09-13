@@ -73,11 +73,11 @@ public class StpInterfaceImpl implements StpInterface {
      */
     @Override
     public List<String> getRoleList(Object loginId, String loginType) {
-        LambdaQueryWrapper<UserEntity>  wrapper= Wrappers.lambdaQuery();
-        wrapper.eq(UserEntity::getId,loginId);
+        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(UserEntity::getId, loginId);
         wrapper.select(UserEntity::getRole);
         UserEntity user = userMapper.selectOne(wrapper);
-        if (user==null){
+        if (user == null) {
             return List.of();
         }
         return List.of(user.getRole());

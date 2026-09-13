@@ -184,7 +184,6 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
     }
 
 
-
     public void chatExport(List<String> ids, HttpServletResponse response) throws IOException {
         if (CollectionUtils.isNotEmpty(ids)) {
             List<ChatRecordDetailVO> list = baseMapper.chatRecordDetail(ids);

@@ -11,9 +11,9 @@ import java.util.List;
  * @date 2025-01-10 11:46:06
  */
 @Mapper
-public interface ApplicationChatRecordMapper extends BaseMapper<ApplicationChatRecordEntity>{
+public interface ApplicationChatRecordMapper extends BaseMapper<ApplicationChatRecordEntity> {
 
-    List<ApplicationChatRecordEntity> listByAppIdAndChatUserId(String applicationId, String chatUserId,int pageSize,int offset);
+    List<ApplicationChatRecordEntity> listByAppIdAndChatUserId(String applicationId, String chatUserId, int pageSize, int offset);
 
     long countByAppIdAndChatUserId(String applicationId, String chatUserId);
 }

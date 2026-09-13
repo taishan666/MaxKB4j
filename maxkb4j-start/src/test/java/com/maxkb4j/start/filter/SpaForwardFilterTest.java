@@ -28,28 +28,6 @@ class SpaForwardFilterTest {
         filter = new SpaForwardFilter();
     }
 
-    /** 执行过滤器并捕获转发目标（forward 的路径无法直接断言，需捕获 getRequestDispatcher 入参） */
-    private static class Capture {
-        final MockHttpServletRequest request;
-        final MockHttpServletResponse response = new MockHttpServletResponse();
-        final MockFilterChain chain = new MockFilterChain();
-        final AtomicReference<String> forwarded = new AtomicReference<>();
-
-        Capture(String method, String uri) {
-            request = new MockHttpServletRequest(method, uri) {
-                @Override
-                public RequestDispatcher getRequestDispatcher(String path) {
-                    forwarded.set(path);
-                    return new MockRequestDispatcher(path);
-                }
-            };
-        }
-
-        void doFilter(SpaForwardFilter filter) throws Exception {
-            filter.doFilter(request, response, chain);
-        }
-    }
-
     @Test
     void 深层前端路由转发到admin入口() throws Exception {
         Capture c = new Capture("GET", "/admin/application/workspace/a697f3b7559ee5211c3ec1cb4feb4185/WORK_FLOW");
@@ -112,5 +90,29 @@ class SpaForwardFilterTest {
         Capture c = new Capture("GET", "/");
         c.doFilter(filter);
         assertEquals("/admin/", c.response.getRedirectedUrl());
+    }
+
+    /**
+     * 执行过滤器并捕获转发目标（forward 的路径无法直接断言，需捕获 getRequestDispatcher 入参）
+     */
+    private static class Capture {
+        final MockHttpServletRequest request;
+        final MockHttpServletResponse response = new MockHttpServletResponse();
+        final MockFilterChain chain = new MockFilterChain();
+        final AtomicReference<String> forwarded = new AtomicReference<>();
+
+        Capture(String method, String uri) {
+            request = new MockHttpServletRequest(method, uri) {
+                @Override
+                public RequestDispatcher getRequestDispatcher(String path) {
+                    forwarded.set(path);
+                    return new MockRequestDispatcher(path);
+                }
+            };
+        }
+
+        void doFilter(SpaForwardFilter filter) throws Exception {
+            filter.doFilter(request, response, chain);
+        }
     }
 }

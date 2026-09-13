@@ -14,7 +14,7 @@ spring:
     ansi:
       enabled: ALWAYS
   application:
-      name: MaxKB4j
+    name: MaxKB4j
   servlet:
     multipart:
       # 单文件上限（文档导入等大文件场景）；超限由框架直接拒绝，避免 OOM
@@ -46,7 +46,7 @@ mybatis-plus:
     db-config:
       capital-mode: false
       table-format: "\"%s\""
-      column-format:  "\"%s\""
+      column-format: "\"%s\""
   mapper-locations: classpath:mapper/**/*.xml,mapper/*.xml
   type-aliases-package: com.maxkb4j.**.entity
   type-handlers-package: com.maxkb4j.common.typehandler,com.maxkb4j.application.typehandler,com.maxkb4j.model.typehandler,com.maxkb4j.tool.typehandler

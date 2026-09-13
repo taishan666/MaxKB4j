@@ -28,7 +28,9 @@ public class ModelProviderRegistry {
                 new RegisteredProvider(annotation.provider(), annotation.name(), annotation.icon(), provider));
     }
 
-    /** 按供应商标识获取其实现，找不到返回 null。 */
+    /**
+     * 按供应商标识获取其实现，找不到返回 null。
+     */
     public AbsModelProvider get(String provider) {
         if (provider == null || provider.isEmpty()) {
             throw new IllegalArgumentException("Provider name cannot be null or empty.");
@@ -41,14 +43,18 @@ public class ModelProviderRegistry {
         return providers.values();
     }
 
-    /** 构建全部供应商的展示信息（替代 {@code ModelProvider.values()} + {@code getInfo()}）。 */
+    /**
+     * 构建全部供应商的展示信息（替代 {@code ModelProvider.values()} + {@code getInfo()}）。
+     */
     public List<ModelProviderInfo> getProviderInfos() {
         return providers.values().stream()
                 .map(rp -> new ModelProviderInfo(rp.key(), rp.name(), rp.icon()))
                 .toList();
     }
 
-    /** 一个已注册的供应商：标识 / 展示名 / 图标 / 实现 Bean。 */
+    /**
+     * 一个已注册的供应商：标识 / 展示名 / 图标 / 实现 Bean。
+     */
     public record RegisteredProvider(String key, String name, String icon, AbsModelProvider provider) {
     }
 }

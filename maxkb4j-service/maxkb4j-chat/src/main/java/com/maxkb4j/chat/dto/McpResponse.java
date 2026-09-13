@@ -8,6 +8,6 @@ import java.util.Map;
 public class McpResponse {
     public String jsonrpc = "2.0";
     public Object result;
-    public Map<String,Object> error;
+    public Map<String, Object> error;
     public Object id;
 }

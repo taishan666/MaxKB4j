@@ -18,7 +18,7 @@ public class ParagraphDTO {
     private Integer position;
     private JSONObject meta;
 
-    public ParagraphDTO(String knowledgeId, String documentId, String title, String content, Integer  position) {
+    public ParagraphDTO(String knowledgeId, String documentId, String title, String content, Integer position) {
         this.id = IdWorker.get32UUID();
         this.title = title == null ? "" : title;
         this.content = content == null ? "" : content;
@@ -27,7 +27,7 @@ public class ParagraphDTO {
         this.isActive = true;
         this.knowledgeId = knowledgeId;
         this.documentId = documentId;
-        this.position = position==null?1:position;
+        this.position = position == null ? 1 : position;
         this.meta = new JSONObject();
     }
 }

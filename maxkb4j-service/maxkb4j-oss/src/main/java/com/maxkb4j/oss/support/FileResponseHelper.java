@@ -18,7 +18,9 @@ import java.nio.charset.StandardCharsets;
  */
 public final class FileResponseHelper {
 
-    /** 无法识别类型时的默认 Content-Type。 */
+    /**
+     * 无法识别类型时的默认 Content-Type。
+     */
     public static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
 
     private FileResponseHelper() {

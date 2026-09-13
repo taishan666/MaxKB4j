@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "event_trigger_task",autoResultMap = true)
+@TableName(value = "event_trigger_task", autoResultMap = true)
 public class EventTriggerTaskEntity extends BaseEntity {
     private String sourceType;
     private String sourceId;

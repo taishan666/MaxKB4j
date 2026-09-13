@@ -9,28 +9,29 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
 public class TTSParams implements IModelParams {
     @Override
     public List<BaseField> toForm() {
-        List<BaseField> fields=new ArrayList<>(3);
-        Map<String,Object> options=getVoiceOptions();
-        if (!options.isEmpty()){
-            Object defaultValue=options.values().stream().findFirst().get();
-            BaseField voiceSelectFiled=new SingleSelectField("音色",ParamKey.VOICE,"指定音色名称",options,defaultValue);
+        List<BaseField> fields = new ArrayList<>(3);
+        Map<String, Object> options = getVoiceOptions();
+        if (!options.isEmpty()) {
+            Object defaultValue = options.values().stream().findFirst().get();
+            BaseField voiceSelectFiled = new SingleSelectField("音色", ParamKey.VOICE, "指定音色名称", options, defaultValue);
             fields.add(voiceSelectFiled);
         }
 
-        BaseField volumeFiled=new SliderField(1,100,1,0,"音量",ParamKey.VOLUME,"指定音量，取值范围：0~100。",50);
+        BaseField volumeFiled = new SliderField(1, 100, 1, 0, "音量", ParamKey.VOLUME, "指定音量，取值范围：0~100。", 50);
         fields.add(volumeFiled);
-        BaseField speechRateField=new SliderField(0.5F,2F,0.1F,1,"语速",ParamKey.SPEECH_RATE,"取值范围：0.5~2倍速。",1);
+        BaseField speechRateField = new SliderField(0.5F, 2F, 0.1F, 1, "语速", ParamKey.SPEECH_RATE, "取值范围：0.5~2倍速。", 1);
         fields.add(speechRateField);
         return fields;
     }
 
-    public Map<String,Object> getVoiceOptions(){
+    public Map<String, Object> getVoiceOptions() {
         return Map.of();
     }
 }

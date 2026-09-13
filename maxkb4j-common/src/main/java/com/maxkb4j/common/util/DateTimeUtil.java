@@ -15,7 +15,7 @@ public class DateTimeUtil {
     }
 
 
-    public static String format(LocalDateTime  dateTime, String pattern) {
+    public static String format(LocalDateTime dateTime, String pattern) {
         return DateTimeFormatter.ofPattern(pattern).format(dateTime);
     }
 
@@ -90,6 +90,7 @@ public class DateTimeUtil {
 
     /**
      * 获取第二天的指定时间
+     *
      * @param time 指定时间
      * @return 第二天指定时间的LocalDateTime
      */
@@ -99,7 +100,8 @@ public class DateTimeUtil {
 
     /**
      * 获取下一个到达的指定时间点：若今天该时刻尚未过去则返回今天，否则返回明天。
-     * @param hour 小时
+     *
+     * @param hour   小时
      * @param minute 分钟
      * @param second 秒
      * @return 下一次该时刻的LocalDateTime
@@ -115,8 +117,9 @@ public class DateTimeUtil {
 
     /**
      * 获取下一个到达指定周几的时间点：若本周该周几的指定时刻尚未过去则返回本周，否则返回下周同一周几。
-     * @param day 参数为周几 1 2 3 4 5 6 7
-     * @param hour 小时
+     *
+     * @param day    参数为周几 1 2 3 4 5 6 7
+     * @param hour   小时
      * @param minute 分钟
      * @param second 秒
      * @return 下一次该周几该时刻的LocalDateTime对象
@@ -140,8 +143,9 @@ public class DateTimeUtil {
 
     /**
      * 获取下一个到达指定日期的时间点：若本月该日的指定时刻尚未过去则返回本月，否则返回下月同一日（下月无该日时取月末）。
-     * @param day 天参数为1-31
-     * @param hour 小时
+     *
+     * @param day    天参数为1-31
+     * @param hour   小时
      * @param minute 分钟
      * @param second 秒
      * @return 下一次该日该时刻的LocalDateTime对象
@@ -169,11 +173,11 @@ public class DateTimeUtil {
     }
 
     /**
-     *
      * 获取指定周期下一个时间点
+     *
      * @param intervalValue 1
-     * @param intervalUnit 单位hours 或者minutes
-     * @param second 秒
+     * @param intervalUnit  单位hours 或者minutes
+     * @param second        秒
      */
     public static LocalDateTime getSameDayNextInterval(String intervalValue, String intervalUnit, int second) {
         int interval = Integer.parseInt(intervalValue);

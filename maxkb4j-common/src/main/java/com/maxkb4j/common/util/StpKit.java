@@ -14,21 +14,21 @@ public class StpKit {
     /**
      * Admin 后台管理员
      */
-    public static final StpLogic ADMIN = new StpLogicJwtForStateless(LoginType.ADMIN){
+    public static final StpLogic ADMIN = new StpLogicJwtForStateless(LoginType.ADMIN) {
         // 重写 StpLogic 类下的 `splicingKeyTokenName` 函数，返回一个与 `StpUtil` 不同的token名称, 防止冲突
         @Override
         public String splicingKeyTokenName() {
-            return super.splicingKeyTokenName() + "-"+LoginType.ADMIN;
+            return super.splicingKeyTokenName() + "-" + LoginType.ADMIN;
         }
     };
     /**
      * User 前台普通用户
      */
-    public static final StpLogic USER = new StpLogicJwtForStateless(LoginType.USER){
+    public static final StpLogic USER = new StpLogicJwtForStateless(LoginType.USER) {
         // 重写 StpLogic 类下的 `splicingKeyTokenName` 函数，返回一个与 `StpUtil` 不同的token名称, 防止冲突
         @Override
         public String splicingKeyTokenName() {
-            return super.splicingKeyTokenName() + "-"+LoginType.USER;
+            return super.splicingKeyTokenName() + "-" + LoginType.USER;
         }
     };
 

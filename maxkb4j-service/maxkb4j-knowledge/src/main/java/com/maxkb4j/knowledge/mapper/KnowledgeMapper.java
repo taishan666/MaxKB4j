@@ -15,9 +15,9 @@ import java.util.List;
  * @author tarzan
  * @date 2024-12-25 16:00:15
  */
-public interface KnowledgeMapper extends BaseMapper<KnowledgeEntity>{
+public interface KnowledgeMapper extends BaseMapper<KnowledgeEntity> {
 
     IPage<KnowledgeVO> pageList(Page<KnowledgeVO> page, @Param("query") KnowledgeQuery query);
 
-    List<KnowledgeListVO> listKnowledge(@Param("query")  KnowledgeQuery query);
+    List<KnowledgeListVO> listKnowledge(@Param("query") KnowledgeQuery query);
 }

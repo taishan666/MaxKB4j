@@ -109,9 +109,9 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * <p>构建完成后会调用 {@link #onImageContentsBuilt} 钩子，子类可覆盖该钩子
      * 记录额外的节点详情（如 ImageUnderstand 节点记录 imageList）。</p>
      *
-     * @param workflow        工作流上下文
-     * @param node            节点实例
-     * @param imageFieldList  图片字段引用路径列表
+     * @param workflow       工作流上下文
+     * @param node           节点实例
+     * @param imageFieldList 图片字段引用路径列表
      * @return 图片列表，加载失败时返回空列表
      */
     protected List<Content> buildImageContents(IWorkflow workflow, AbsNode node, List<String> imageFieldList) {
@@ -136,8 +136,8 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * 图片内容构建完成后的钩子，默认空实现。
      * 子类可覆盖以记录额外详情（如 ImageUnderstand 节点写入 imageList）。
      *
-     * @param node        节点实例
-     * @param imageFiles  已加载的图片文件列表
+     * @param node       节点实例
+     * @param imageFiles 已加载的图片文件列表
      */
     protected void onImageContentsBuilt(AbsNode node, List<OssFile> imageFiles) {
         // 默认空实现
@@ -149,10 +149,10 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * 处理聊天响应：提取推理内容、记录 Token 使用情况、清理工具渲染标签，
      * 并构造 {@link NodeResult}。
      *
-     * @param response      聊天响应
-     * @param answer        累积的答案文本
-     * @param node          节点实例
-     * @param errorMessage  错误信息（可为空）
+     * @param response     聊天响应
+     * @param answer       累积的答案文本
+     * @param node         节点实例
+     * @param errorMessage 错误信息（可为空）
      * @return 节点执行结果
      */
     protected NodeResult handleChatResponse(ChatResponse response, String answer, AbsNode node, String errorMessage) {
@@ -177,7 +177,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      */
     protected void emitMessage(IWorkflow workflow, AbsNode node, String content, String reasoning) {
         if (workflow instanceof IChatWorkflow chatWorkflow) {
-            ChatParams chatParams=chatWorkflow.getChatParams();
+            ChatParams chatParams = chatWorkflow.getChatParams();
             ChatMessageVO vo = node.toChatMessageVO(
                     chatParams.getChatId(),
                     chatParams.getChatRecordId(),
@@ -212,10 +212,10 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * 无工具的节点（如 ImageUnderstand）只需传入 {@code toolOutputEnable=false}，
      * 钩子方法将不会被触发。</p>
      *
-     * @param options                流式选项（isResult、reasoningContentEnable、toolOutputEnable）
-     * @param tokenStream            Token 流
-     * @param workflow               工作流上下文
-     * @param node                   节点实例
+     * @param options     流式选项（isResult、reasoningContentEnable、toolOutputEnable）
+     * @param tokenStream Token 流
+     * @param workflow    工作流上下文
+     * @param node        节点实例
      * @return 节点执行结果的 CompletableFuture
      */
     protected CompletableFuture<NodeResult> writeContextStreamAsync(StreamOptions options, TokenStream tokenStream, IWorkflow workflow, AbsNode node) {
@@ -245,11 +245,11 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
                         answerTexts.add(content);
                     }
                 })
-                .onIntermediateResponse((ChatResponse intermediateResponse) -> System.out.println("onIntermediateResponse:"+intermediateResponse))
+                .onIntermediateResponse((ChatResponse intermediateResponse) -> System.out.println("onIntermediateResponse:" + intermediateResponse))
                 .onUnmappedRawEvent((Object rawEvent) -> log.info("onUnmappedRawEvent:{}", rawEvent))
                 .onCompleteResponse(response -> {
                     String answer = String.join("", answerTexts);
-                    if (options.isResult() ) {
+                    if (options.isResult()) {
                         setAnswerText(node, answer);
                     }
                     // 写入详情
@@ -294,9 +294,9 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
     /**
      * 流式执行选项，封装 {@link #writeContextStreamAsync} 所需的开关参数。
      *
-     * @param isResult                当前节点是否为结果节点
-     * @param reasoningContentEnable  是否输出推理内容
-     * @param toolOutputEnable        是否输出工具执行消息
+     * @param isResult               当前节点是否为结果节点
+     * @param reasoningContentEnable 是否输出推理内容
+     * @param toolOutputEnable       是否输出工具执行消息
      */
     protected record StreamOptions(boolean isResult, boolean reasoningContentEnable, boolean toolOutputEnable) {
         /**

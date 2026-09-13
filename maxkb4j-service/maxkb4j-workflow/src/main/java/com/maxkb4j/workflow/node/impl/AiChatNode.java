@@ -1,4 +1,5 @@
 package com.maxkb4j.workflow.node.impl;
+
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
@@ -11,14 +12,15 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @Slf4j
 @NodeCreatorType(NodeType.AI_CHAT)
 public class AiChatNode extends AbsNode {
 
-    public AiChatNode(String id,JSONObject properties) {
-        super(id,properties);
+    public AiChatNode(String id, JSONObject properties) {
+        super(id, properties);
     }
 
     @Override

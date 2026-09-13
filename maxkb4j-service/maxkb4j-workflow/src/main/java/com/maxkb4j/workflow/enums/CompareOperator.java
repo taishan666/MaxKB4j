@@ -115,10 +115,6 @@ public enum CompareOperator {
         return cmp != null && cmp <= 0;
     });
 
-    private final String code;
-    private final String description;
-    private final BiPredicate<Object, Object> predicate;
-
     /**
      * Static map for O(1) code-based lookup
      */
@@ -129,6 +125,10 @@ public enum CompareOperator {
                 .collect(Collectors.toUnmodifiableMap(CompareOperator::getCode, Function.identity()));
     }
 
+    private final String code;
+    private final String description;
+    private final BiPredicate<Object, Object> predicate;
+
     /**
      * Get CompareOperator by code with O(1) lookup
      *
@@ -137,17 +137,6 @@ public enum CompareOperator {
      */
     public static CompareOperator fromCode(String code) {
         return code == null ? null : CODE_MAP.get(code);
-    }
-
-    /**
-     * Execute the comparison.
-     *
-     * @param sourceValue the source value to compare
-     * @param targetValue the target value to compare against
-     * @return the comparison result
-     */
-    public boolean compare(Object sourceValue, Object targetValue) {
-        return predicate.test(sourceValue, targetValue);
     }
 
     /**
@@ -206,5 +195,16 @@ public enum CompareOperator {
             return str.length();
         }
         return 0;
+    }
+
+    /**
+     * Execute the comparison.
+     *
+     * @param sourceValue the source value to compare
+     * @param targetValue the target value to compare against
+     * @return the comparison result
+     */
+    public boolean compare(Object sourceValue, Object targetValue) {
+        return predicate.test(sourceValue, targetValue);
     }
 }

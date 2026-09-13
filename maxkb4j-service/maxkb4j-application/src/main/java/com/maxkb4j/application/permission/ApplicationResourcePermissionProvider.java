@@ -36,8 +36,8 @@ public class ApplicationResourcePermissionProvider implements IResourcePermissio
 
     @Override
     public IPage<UserResourcePermissionVO> pageResource(int current, int size, String name,
-                                                       Map<String, String> permissionMap,
-                                                       Set<String> permissionFilter) {
+                                                        Map<String, String> permissionMap,
+                                                        Set<String> permissionFilter) {
         return ResourcePermissionQuerySupport.pageResource(
                 new Page<>(current, size), applicationMapper,
                 ApplicationEntity::getName, ApplicationEntity::getId,

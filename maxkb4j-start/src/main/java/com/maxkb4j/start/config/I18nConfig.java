@@ -37,10 +37,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Configuration
 public class I18nConfig {
 
-    /** 系统支持的语言列表 */
+    /**
+     * 系统支持的语言列表
+     */
     public static final List<Locale> SUPPORTED_LOCALES = List.of(Locale.SIMPLIFIED_CHINESE, Locale.US);
 
-    /** 默认语言：简体中文 */
+    /**
+     * 默认语言：简体中文
+     */
     public static final Locale DEFAULT_LOCALE = Locale.SIMPLIFIED_CHINESE;
 
     @Bean

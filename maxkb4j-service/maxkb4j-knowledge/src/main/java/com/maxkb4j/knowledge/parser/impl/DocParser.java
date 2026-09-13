@@ -86,7 +86,7 @@ public class DocParser implements DocumentParser {
             }
         };
         // 自定义 EmbeddedDocumentExtractor
-        parseContext.set(EmbeddedDocumentExtractor.class,embeddedDocumentExtractor);
+        parseContext.set(EmbeddedDocumentExtractor.class, embeddedDocumentExtractor);
         // ✅ 正确创建 ToXMLContentHandler
         ToXMLContentHandler handler = new ToXMLContentHandler();
         // 解析文档为 XHTML
@@ -114,7 +114,7 @@ public class DocParser implements DocumentParser {
             if (node instanceof TextNode) {
                 String html = node.outerHtml();
                 String text = StringEscapeUtils.unescapeHtml4(html);
-                if (!text.isEmpty()&&!"\n".equals(text)) {
+                if (!text.isEmpty() && !"\n".equals(text)) {
                     md.append(text);
                 }
             } else if (node instanceof Element child) {

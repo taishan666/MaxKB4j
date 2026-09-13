@@ -1,4 +1,5 @@
 package com.maxkb4j.workflow.node.impl;
+
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
@@ -10,13 +11,14 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.SPEECH_TO_TEXT)
 public class SpeechToTextNode extends AbsNode {
 
-    public SpeechToTextNode(String id,JSONObject properties) {
-        super(id,properties);
+    public SpeechToTextNode(String id, JSONObject properties) {
+        super(id, properties);
     }
 
     @Override

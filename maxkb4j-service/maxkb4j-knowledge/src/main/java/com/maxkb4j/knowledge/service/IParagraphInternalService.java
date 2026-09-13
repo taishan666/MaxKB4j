@@ -21,7 +21,8 @@ public interface IParagraphInternalService extends IParagraphService, IService<P
 
     /**
      * 查询指定知识库下 isActive=false 的段落 ID，供检索时排除。
-     * @param knowledgeIds 知识库 ID 列表
+     *
+     * @param knowledgeIds  知识库 ID 列表
      * @param excludeDocIds 需要排除的文档 ID（可选）
      * @return 非激活段落 ID 列表
      */
@@ -35,7 +36,7 @@ public interface IParagraphInternalService extends IParagraphService, IService<P
 
     Boolean batchGenerateRelated(String knowledgeId, String docId, GenerateProblemDTO dto);
 
-    boolean adjustPosition(String knowledgeId, String documentId, String paragraphId,Integer newPosition,  Integer targetIndex);
+    boolean adjustPosition(String knowledgeId, String documentId, String paragraphId, Integer newPosition, Integer targetIndex);
 
     void updateStatusById(String id, int type, int status);
 

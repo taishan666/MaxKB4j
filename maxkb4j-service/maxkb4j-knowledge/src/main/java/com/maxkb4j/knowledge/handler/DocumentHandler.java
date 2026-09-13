@@ -48,7 +48,7 @@ public class DocumentHandler {
      * 处理ZIP格式的QA文件
      */
     public List<DocumentSimple> processZipQaFile(MultipartFile zipFile) throws IOException {
-        List<DocumentSimple> docs =new ArrayList<>();
+        List<DocumentSimple> docs = new ArrayList<>();
         try (InputStream fis = zipFile.getInputStream(); ZipArchiveInputStream zipIn = new ZipArchiveInputStream(fis)) {
             ArchiveEntry entry;
             while ((entry = zipIn.getNextEntry()) != null) {
@@ -214,11 +214,11 @@ public class DocumentHandler {
                         .setTrim(true)
                         .get();
                 CSVParser csvParser = csvFormat.parse(reader);
-                List<String> headerNames =csvParser.getHeaderNames();
+                List<String> headerNames = csvParser.getHeaderNames();
                 for (CSVRecord record : csvParser) {
                     List<String> row = new ArrayList<>();
                     for (String headerName : headerNames) {
-                        row.add(headerName+":"+record.get(headerName));
+                        row.add(headerName + ":" + record.get(headerName));
                     }
                     ParagraphSimple paragraph = ParagraphSimple.builder()
                             .title("")
@@ -235,11 +235,13 @@ public class DocumentHandler {
             // === 原有 Excel 逻辑保持不变 ===
             EasyExcel.read(new ByteArrayInputStream(bytes), new AnalysisEventListener<Map<Integer, String>>() {
                 Map<Integer, String> headMap = new LinkedHashMap<>();
+
                 // 表头信息会在此方法中获取
                 @Override
                 public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
                     this.headMap = headMap;
                 }
+
                 // 每一行数据都会调用此方法
                 @Override
                 public void invoke(Map<Integer, String> data, AnalysisContext context) {
@@ -247,7 +249,7 @@ public class DocumentHandler {
                     List<String> row = new ArrayList<>();
                     for (Integer i : data.keySet()) {
                         String value = data.get(i) == null ? "" : data.get(i);
-                        row.add(headMap.get(i)+":"+value);
+                        row.add(headMap.get(i) + ":" + value);
                     }
                     ParagraphSimple paragraph = ParagraphSimple.builder()
                             .title("")

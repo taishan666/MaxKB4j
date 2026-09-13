@@ -24,7 +24,9 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class SkillFileCodec {
 
-    /** OSS 文件 ID 格式（24 位十六进制）：旧版导出的 .mk 中 SKILL 工具 code 为该格式 */
+    /**
+     * OSS 文件 ID 格式（24 位十六进制）：旧版导出的 .mk 中 SKILL 工具 code 为该格式
+     */
     private static final Pattern OSS_FILE_ID_PATTERN = Pattern.compile("^[0-9a-f]{24}$");
 
     private static final String SKILL_FILE_SUFFIX = ".zip";
@@ -63,8 +65,8 @@ public class SkillFileCodec {
     /**
      * 导入还原：将 Base64 编码解码为文件字节并上传至 OSS，返回新的文件 ID
      *
-     * @param toolName       工具名称（用于异常提示与生成存储文件名）
-     * @param base64Content  文件字节的 Base64 编码
+     * @param toolName      工具名称（用于异常提示与生成存储文件名）
+     * @param base64Content 文件字节的 Base64 编码
      * @return 上传后的 OSS 文件 ID
      */
     public String restore(String toolName, String base64Content) {

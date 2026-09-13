@@ -1,4 +1,5 @@
 package com.maxkb4j.model.provider;
+
 import com.maxkb4j.model.annotation.ModelProviderType;
 import org.springframework.stereotype.Component;
 
@@ -7,6 +8,7 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 
 import java.util.List;
+
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 /**
@@ -31,7 +33,7 @@ public class XunFeiModelProvider extends OpenAiModelProvider {
     }
 
     @Override
-    public String getDefaultBaseUrl(){
+    public String getDefaultBaseUrl() {
         return BASE_URL;
     }
 }

@@ -53,13 +53,14 @@ public class OpenAiModelProvider extends AbsModelProvider {
     );
 
 
-    public String getDefaultBaseUrl(){
+    public String getDefaultBaseUrl() {
         return BASE_URL;
     }
 
-    public String getBaseUrl(String baseUrl){
-        return StringUtils.isNotBlank(baseUrl)?baseUrl:getDefaultBaseUrl();
+    public String getBaseUrl(String baseUrl) {
+        return StringUtils.isNotBlank(baseUrl) ? baseUrl : getDefaultBaseUrl();
     }
+
     @Override
     public List<BaseField> getChatModelParamsForm() {
         return new OpenAiChatModelParams().toForm();
@@ -74,7 +75,6 @@ public class OpenAiModelProvider extends AbsModelProvider {
     public List<ModelInfo> getModelList() {
         return MODEL_INFOS;
     }
-
 
 
     @Override
@@ -108,7 +108,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
                 .customParameters(params)
                 .sendThinking(true)
                 .returnThinking(true)
-               // .strictJsonSchema(true)
+                // .strictJsonSchema(true)
                 .build();
     }
 

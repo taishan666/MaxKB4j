@@ -15,10 +15,10 @@ public abstract class AbsSearchDatasetStep extends AbsStep {
         ApplicationVO application = manage.application;
         String problemText = manage.chatParams.getMessage();
         String paddingProblemText = (String) manage.context.get("paddingProblemText");
-        Boolean reChat =  manage.chatParams.getReChat();
-        List<String> knowledgeIds= application.getKnowledgeIds();
+        Boolean reChat = manage.chatParams.getReChat();
+        List<String> knowledgeIds = application.getKnowledgeIds();
         KnowledgeSetting datasetSetting = application.getKnowledgeSetting();
-        List<ParagraphRagVO> paragraphList = execute(knowledgeIds,datasetSetting, problemText, paddingProblemText, reChat,manage);
+        List<ParagraphRagVO> paragraphList = execute(knowledgeIds, datasetSetting, problemText, paddingProblemText, reChat, manage);
         manage.context.put("paragraphList", paragraphList);
     }
 

@@ -145,27 +145,28 @@ public class KnowledgeExportHandler {
 
     /**
      * 导出知识库ZIP包（包含knowledge.json和knowledge.xlsx）
-     * @param docs 文档列表
-     * @param knowledgeName 知识库名称
-     * @param knowledgeDesc 知识库描述
-     * @param knowledgeType 知识库类型
-     * @param meta 元数据
-     * @param fileSizeLimit 文件大小限制
+     *
+     * @param docs           文档列表
+     * @param knowledgeName  知识库名称
+     * @param knowledgeDesc  知识库描述
+     * @param knowledgeType  知识库类型
+     * @param meta           元数据
+     * @param fileSizeLimit  文件大小限制
      * @param fileCountLimit 文件数量限制
-     * @param response HTTP响应
+     * @param response       HTTP响应
      * @throws IOException IO异常
      */
     public void exportKnowledgeZip(List<DocumentEntity> docs, String knowledgeName, String knowledgeDesc,
                                    Integer knowledgeType, JSONObject meta, Integer fileSizeLimit,
                                    Integer fileCountLimit, HttpServletResponse response) throws IOException {
         setZipResponseHeader(response, knowledgeName);
-        
+
         // 先在内存中生成 Excel
         ByteArrayOutputStream excelBuffer = new ByteArrayOutputStream();
         writeMultiSheetExcel(excelBuffer, docs);
         byte[] excelBytes = excelBuffer.toByteArray();
         excelBuffer.close();
-        
+
         // 构建 knowledge.json
         JSONObject knowledgeJson = new JSONObject();
         knowledgeJson.put("name", knowledgeName);
@@ -176,7 +177,7 @@ public class KnowledgeExportHandler {
         knowledgeJson.put("fileCountLimit", fileCountLimit != null ? fileCountLimit : 50);
         knowledgeJson.put("tags", new JSONArray());
         byte[] jsonBytes = knowledgeJson.toJSONString().getBytes(StandardCharsets.UTF_8);
-        
+
         // 创建 ZIP 并写入响应
         ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream());
         try {
@@ -184,7 +185,7 @@ public class KnowledgeExportHandler {
             zipOut.putNextEntry(new ZipEntry("knowledge.json"));
             zipOut.write(jsonBytes);
             zipOut.closeEntry();
-            
+
             // 添加 knowledge.xlsx
             zipOut.putNextEntry(new ZipEntry("knowledge.xlsx"));
             zipOut.write(excelBytes);

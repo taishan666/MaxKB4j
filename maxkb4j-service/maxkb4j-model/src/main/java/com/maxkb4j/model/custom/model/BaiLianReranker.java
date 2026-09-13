@@ -12,6 +12,7 @@ import dev.langchain4j.model.scoring.ScoringModel;
 import lombok.Data;
 
 import java.util.List;
+
 @Data
 public class BaiLianReranker implements ScoringModel {
 

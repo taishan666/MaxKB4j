@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
-public class UserVO  {
+public class UserVO {
 
     private String id;
     private String email;
@@ -21,6 +21,6 @@ public class UserVO  {
     private Boolean isActive;
     private String source;
     private String language;
-    private Map<String,List<String>>roleWorkspace;
+    private Map<String, List<String>> roleWorkspace;
     private Date createTime;
 }

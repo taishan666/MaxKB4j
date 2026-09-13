@@ -32,13 +32,13 @@ public class UserController {
     private final IUserInternalService userService;
 
     @GetMapping("user/profile")
-    public R<UserProfileVO> getUserProfile(@CurrentUserId String userId){
+    public R<UserProfileVO> getUserProfile(@CurrentUserId String userId) {
         return R.data(userService.getUserProfileById(userId));
     }
 
-    @SaCheckRole(type= LoginType.ADMIN,value = {RoleConst.ADMIN, RoleConst.USER},mode = SaMode.OR)
+    @SaCheckRole(type = LoginType.ADMIN, value = {RoleConst.ADMIN, RoleConst.USER}, mode = SaMode.OR)
     @GetMapping("/user/list")
-    public R<List<UserNameVO>> userList(){
+    public R<List<UserNameVO>> userList() {
         return R.data(userService.listActiveUserNames());
     }
 
@@ -57,7 +57,7 @@ public class UserController {
         return R.status(userService.sendEmailCode(email, I18nUtil.get("email.subject.modify.password")));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = {RoleConst.ADMIN, RoleConst.USER},mode = SaMode.OR)
+    @SaCheckRole(type = LoginType.ADMIN, value = {RoleConst.ADMIN, RoleConst.USER}, mode = SaMode.OR)
     @PostMapping("/user/current/reset_password")
     public R<Boolean> resetPassword(@Valid @RequestBody PasswordDTO dto) {
         return R.status(userService.resetPassword(dto));

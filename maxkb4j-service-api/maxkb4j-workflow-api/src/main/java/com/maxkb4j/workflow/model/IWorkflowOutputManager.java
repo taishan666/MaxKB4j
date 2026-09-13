@@ -17,10 +17,12 @@ public interface IWorkflowOutputManager {
      * 发送消息到响应式 Sink（知识库工作流不输出）。
      */
     void emit(ChatMessageVO message);
+
     /**
      * 获取工作流运行后所有节点回答。
      */
     List<Answer> getAnswers(String chatRecordId);
+
     /**
      * 获取工作流运行后节点运行时详情 JSON。
      */

@@ -108,7 +108,9 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
         return this.removeById(id);
     }
 
-    /** 完整字段版本：供需要 code / initParams / inputFieldList 等执行所需信息的场景使用。 */
+    /**
+     * 完整字段版本：供需要 code / initParams / inputFieldList 等执行所需信息的场景使用。
+     */
     public List<ToolItemVO> listTools(String folderId, String scope, String[] toolTypeList) {
         ToolQuery query = new ToolQuery();
         query.setFolderId(folderId);
@@ -121,10 +123,12 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
         return baseMapper.listTools(query);
     }
 
-    /** 轻量字段版本：供前端列表展示使用。 */
+    /**
+     * 轻量字段版本：供前端列表展示使用。
+     */
     public List<ToolListVO> toolList(String scope, String toolType) {
-        LambdaQueryWrapper<ToolEntity> wrapper = buildListWrapper( scope)
-                .eq(StringUtils.isNotBlank(toolType),ToolEntity::getToolType, toolType)
+        LambdaQueryWrapper<ToolEntity> wrapper = buildListWrapper(scope)
+                .eq(StringUtils.isNotBlank(toolType), ToolEntity::getToolType, toolType)
                 .select(
                         ToolEntity::getId,
                         ToolEntity::getName,
@@ -148,7 +152,9 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
         return assembleHandler.assemble(this.getById(dto.getId()));
     }
 
-    /** 获取工具详情。 */
+    /**
+     * 获取工具详情。
+     */
     public ToolVO getVoById(String id) {
         return assembleHandler.assemble(this.getById(id));
     }
@@ -179,10 +185,10 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void saveOrUpdateBatch(List<ToolDTO> toolDTOList,String userId) {
+    public void saveOrUpdateBatch(List<ToolDTO> toolDTOList, String userId) {
         // .mk 导入的 SKILL 工具 code 为文件字节的 Base64 编码，先还原为 OSS 文件 ID
         importExportHandler.restoreSkillFiles(toolDTOList);
-        List<ToolEntity> toolEntities= BeanUtil.copyList(toolDTOList, ToolEntity.class);
+        List<ToolEntity> toolEntities = BeanUtil.copyList(toolDTOList, ToolEntity.class);
         // 工具可能来自 .mk 模板，DTO 携带的是模板作者的 userId，需重置为当前导入用户，
         // 否则 tool.user_id 指向不存在的用户，违反 tool_user_id_fk_user_id 外键约束。
         toolEntities.forEach(e -> {
@@ -210,7 +216,9 @@ public class ToolServiceImpl extends ServiceImpl<ToolMapper, ToolEntity> impleme
         return result;
     }
 
-    /** 构造列表查询通用条件（含权限过滤与排序，select 字段由上层指定）。 */
+    /**
+     * 构造列表查询通用条件（含权限过滤与排序，select 字段由上层指定）。
+     */
     private LambdaQueryWrapper<ToolEntity> buildListWrapper(String scope) {
         LambdaQueryWrapper<ToolEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ToolEntity::getIsActive, ToolConstants.Status.ACTIVE);

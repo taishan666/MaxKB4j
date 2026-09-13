@@ -16,5 +16,5 @@ public class KnowledgeListVO {
     private String embeddingModelId;
     private String nickname;
     private Date createTime;
-    private String resourceType="knowledge";
+    private String resourceType = "knowledge";
 }

@@ -25,7 +25,8 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 class KnowledgeWorkflowTest {
 
     private AbsNode node(String id, String type) {
-        AbsNode node = new AbsNode(id, new JSONObject()) {};
+        AbsNode node = new AbsNode(id, new JSONObject()) {
+        };
         node.setType(type);
         return node;
     }
@@ -63,7 +64,8 @@ class KnowledgeWorkflowTest {
     @Test
     void startNodes_excludesNonDataSourceNodes() {
         AbsNode knowledgeBaseNode = node("kb1", NodeType.KNOWLEDGE_BASE.getKey());
-        AbsNode nullTypeNode = new AbsNode("nt1", new JSONObject()) {};
+        AbsNode nullTypeNode = new AbsNode("nt1", new JSONObject()) {
+        };
         AbsNode dataSourceNode = node("ds1", NodeType.DATA_SOURCE_LOCAL.getKey());
         KnowledgeWorkflow workflow = workflow(
                 List.of(knowledgeBaseNode, nullTypeNode, dataSourceNode),

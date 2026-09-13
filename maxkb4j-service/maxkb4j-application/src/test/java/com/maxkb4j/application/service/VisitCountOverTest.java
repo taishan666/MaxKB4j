@@ -43,26 +43,6 @@ class VisitCountOverTest {
     private ApplicationChatUserStatsMapper statsMapper;
     private ApplicationChatUserStatsService statsService;
 
-    @BeforeEach
-    void setUpStatsService() {
-        statsMapper = mock(ApplicationChatUserStatsMapper.class);
-        statsService = new ApplicationChatUserStatsService();
-        ReflectionTestUtils.setField(statsService, "baseMapper", statsMapper);
-    }
-
-    private ApplicationChatServiceImpl newChatService(ApplicationChatUserStatsService statsServiceMock,
-                                                      IApplicationAccessTokenInternalService accessTokenService) {
-        return new ApplicationChatServiceImpl(
-                mock(IApplicationChatRecordInternalService.class),
-                mock(IApplicationInternalService.class),
-                statsServiceMock,
-                accessTokenService,
-                mock(ApplicationVersionService.class),
-                mock(PostResponseHandler.class),
-                mock(TaskExecutor.class),
-                mock(ApplicationChatShareLinkMapper.class));
-    }
-
     private static ChatState.ChatStateBuilder chatState() {
         return ChatState.builder()
                 .appId("app-1")
@@ -85,6 +65,26 @@ class VisitCountOverTest {
         token.setApplicationId("app-1");
         token.setAccessNum(accessNum);
         return token;
+    }
+
+    @BeforeEach
+    void setUpStatsService() {
+        statsMapper = mock(ApplicationChatUserStatsMapper.class);
+        statsService = new ApplicationChatUserStatsService();
+        ReflectionTestUtils.setField(statsService, "baseMapper", statsMapper);
+    }
+
+    private ApplicationChatServiceImpl newChatService(ApplicationChatUserStatsService statsServiceMock,
+                                                      IApplicationAccessTokenInternalService accessTokenService) {
+        return new ApplicationChatServiceImpl(
+                mock(IApplicationChatRecordInternalService.class),
+                mock(IApplicationInternalService.class),
+                statsServiceMock,
+                accessTokenService,
+                mock(ApplicationVersionService.class),
+                mock(PostResponseHandler.class),
+                mock(TaskExecutor.class),
+                mock(ApplicationChatShareLinkMapper.class));
     }
 
     // ==================== ensureStatsExists：并发下只建一行 ====================

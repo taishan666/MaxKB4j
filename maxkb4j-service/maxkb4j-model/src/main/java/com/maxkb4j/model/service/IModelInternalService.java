@@ -22,9 +22,9 @@ import java.util.List;
  */
 public interface IModelInternalService extends IModelService, IService<ModelEntity> {
 
-    List<ModelVO> models(ModelQuery  query);
+    List<ModelVO> models(ModelQuery query);
 
-    List<ModelListVO> modelList(ModelQuery  query);
+    List<ModelListVO> modelList(ModelQuery query);
 
     boolean createModel(ModelEntity model);
 

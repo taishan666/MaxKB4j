@@ -8,13 +8,14 @@ import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeCreatorType(NodeType.START)
 public class StartNode extends AbsNode {
 
-    public StartNode(String id,JSONObject properties) {
-        super(id,properties);
+    public StartNode(String id, JSONObject properties) {
+        super(id, properties);
     }
 
     @Override
@@ -24,18 +25,18 @@ public class StartNode extends AbsNode {
         context.put(NodeField.DOCUMENT, detail.get(NodeField.DOCUMENT_LIST));
         context.put(NodeField.AUDIO, detail.get(NodeField.AUDIO_LIST));
         context.put(NodeField.OTHER, detail.get(NodeField.OTHER_LIST));
-        JSONArray globalFields= (JSONArray) detail.get(ChatField.GLOBAL_FIELDS);
+        JSONArray globalFields = (JSONArray) detail.get(ChatField.GLOBAL_FIELDS);
         for (int i = 0; i < globalFields.size(); i++) {
-            JSONObject globalField=globalFields.getJSONObject(i);
-            String key=globalField.getString(VariableField.KEY);
-            Object value=globalField.get(VariableField.VALUE);
+            JSONObject globalField = globalFields.getJSONObject(i);
+            String key = globalField.getString(VariableField.KEY);
+            Object value = globalField.get(VariableField.VALUE);
             workflow.getGlobalContext().put(key, value);
         }
-        JSONArray chatFields= (JSONArray) detail.get(ChatField.CHAT_FIELDS);
+        JSONArray chatFields = (JSONArray) detail.get(ChatField.CHAT_FIELDS);
         for (int i = 0; i < chatFields.size(); i++) {
-            JSONObject chatField=chatFields.getJSONObject(i);
-            String key=chatField.getString(VariableField.KEY);
-            Object value=chatField.get(VariableField.VALUE);
+            JSONObject chatField = chatFields.getJSONObject(i);
+            String key = chatField.getString(VariableField.KEY);
+            Object value = chatField.get(VariableField.VALUE);
             workflow.getChatContext().put(key, value);
         }
     }

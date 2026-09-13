@@ -1,4 +1,5 @@
 package com.maxkb4j.workflow.node.impl;
+
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 
@@ -9,31 +10,32 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 
 @NodeCreatorType(NodeType.VARIABLE_AGGREGATE)
 public class VariableAggregationNode extends AbsNode {
-    public VariableAggregationNode(String id,JSONObject properties) {
-        super(id,properties);
+    public VariableAggregationNode(String id, JSONObject properties) {
+        super(id, properties);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        List<Group> groupList= (List<Group>) detail.get(NodeField.GROUP_LIST);
+        List<Group> groupList = (List<Group>) detail.get(NodeField.GROUP_LIST);
         for (Group group : groupList) {
             context.put(group.getField(), group.getValue());
         }
     }
 
     @Data
-    public static class NodeParams{
+    public static class NodeParams {
         private String strategy;
         private List<Group> groupList;
     }
 
     @Data
-    public static class Group{
+    public static class Group {
         private String id;
         private String label;
         private String field;
@@ -42,7 +44,7 @@ public class VariableAggregationNode extends AbsNode {
     }
 
     @Data
-    public static class Variable{
+    public static class Variable {
         private String nodeName;
         private String field;
         private Object value;

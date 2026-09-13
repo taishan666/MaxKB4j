@@ -13,29 +13,29 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 /**
-  * @author tarzan
-  * @date 2025-01-10 11:46:06
-  */
+ * @author tarzan
+ * @date 2025-01-10 11:46:06
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName(value = "application_chat_record",autoResultMap = true)
+@TableName(value = "application_chat_record", autoResultMap = true)
 public class ApplicationChatRecordEntity extends BaseEntity {
-	private String voteStatus;
-	private String voteReason;
-	private String voteOtherContent;
-	private String problemText;
-	private String answerText;
-	private Integer messageTokens;
-	private Integer answerTokens;
-	private Integer cost;
-	@TableField(typeHandler = JSONBTypeHandler.class)
-	private JSONObject details;
-	@TableField(typeHandler = StringListTypeHandler.class)
-	private List<String> improveParagraphIdList;
-	private Float runTime;
-	private Integer index;
-	private String chatId;
-	@TableField(typeHandler = JSONBTypeHandler.class)
-	private JSONArray answerTextList;
+    private String voteStatus;
+    private String voteReason;
+    private String voteOtherContent;
+    private String problemText;
+    private String answerText;
+    private Integer messageTokens;
+    private Integer answerTokens;
+    private Integer cost;
+    @TableField(typeHandler = JSONBTypeHandler.class)
+    private JSONObject details;
+    @TableField(typeHandler = StringListTypeHandler.class)
+    private List<String> improveParagraphIdList;
+    private Float runTime;
+    private Integer index;
+    private String chatId;
+    @TableField(typeHandler = JSONBTypeHandler.class)
+    private JSONArray answerTextList;
 
 }

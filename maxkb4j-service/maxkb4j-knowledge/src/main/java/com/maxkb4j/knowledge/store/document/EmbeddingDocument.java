@@ -30,11 +30,15 @@ public class EmbeddingDocument {
     private String knowledgeId;
     private String documentId;
 
-    /** 全文索引字段，写入前由 {@link com.maxkb4j.knowledge.util.Tokenizer#segment} 分词 */
+    /**
+     * 全文索引字段，写入前由 {@link com.maxkb4j.knowledge.util.Tokenizer#segment} 分词
+     */
     @TextIndexed
     private String content;
 
-    /** MongoDB textScore 命中得分，仅在聚合检索时回填 */
+    /**
+     * MongoDB textScore 命中得分，仅在聚合检索时回填
+     */
     @TextScore
     private Double score;
 }

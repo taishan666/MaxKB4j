@@ -19,6 +19,7 @@
 - 大模型：DeepSeek V3.2；
 - 知识库：各类学习资料；
 - 提示词示例：生成整张试卷提示词；
+
 ```提示词
 
 # 角色
@@ -51,4 +52,5 @@
   <img src="https://maxkb-apps-1323865188.cos.ap-shanghai.myqcloud.com/学生知识点自测.png">
 
 ## 4. 学生知识点自测应用效果
+
 <img src="https://maxkb-apps-1323865188.cos.ap-shanghai.myqcloud.com/学生知识点自测.gif">
