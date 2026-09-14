@@ -19,7 +19,6 @@ import dev.langchain4j.model.output.TokenUsage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import static com.alibaba.dashscope.embeddings.TextEmbedding.Models.TEXT_EMBEDDING_V1;
 import static com.alibaba.dashscope.embeddings.TextEmbedding.Models.TEXT_EMBEDDING_V2;
@@ -32,15 +31,13 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
     private final String modelName;
     private final MultiModalEmbedding embedding;
     private final QwenEmbeddingModel qwenEmbeddingModel;
-    private final Consumer<MultiModalEmbeddingParam.MultiModalEmbeddingParamBuilder<?, ?>> multiModalEmbeddingParamCustomizer = (p) -> {
-    };
 
     public QwenMultiModalEmbeddingModel(String baseUrl, String apiKey, String modelName, Integer dimension) {
         if (Utils.isNullOrBlank(apiKey)) {
             throw new IllegalArgumentException(
                     "DashScope api key must be defined. Reference: https://www.alibabacloud.com/help/en/model-studio/get-api-key");
         }
-        this.modelName = Utils.isNullOrBlank(modelName) ? QwenModelName.TEXT_EMBEDDING_V3 : modelName;
+        this.modelName = Utils.isNullOrBlank(modelName) ? QwenModelName.TEXT_EMBEDDING_V4 : modelName;
         this.apiKey = apiKey;
         this.dimension = ensureDimension(this.modelName, dimension);
         this.embedding = new MultiModalEmbedding();
@@ -91,16 +88,15 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
             int tokenCount = 0;
             for (EmbeddingInput input : request.inputs()) {
                 List<MultiModalEmbeddingItemBase> contents = toContents(input);
-                MultiModalEmbeddingParam.MultiModalEmbeddingParamBuilder<?, ?> builder = MultiModalEmbeddingParam.builder()
-                        .apiKey(this.apiKey)
+                MultiModalEmbeddingParam param = MultiModalEmbeddingParam.builder()
                         .model(this.modelName)
-                        .contents(contents);
-                if (dimension != null) {
-                    builder.parameter("dimension", dimension);
-                }
+                        .apiKey(this.apiKey)
+                        .contents(contents)
+                        .parameter("enable_fusion",true)
+                        .parameter("dimension", dimension)
+                        .build();
                 try {
-                    this.multiModalEmbeddingParamCustomizer.accept(builder);
-                    MultiModalEmbeddingResult generationResult = this.embedding.call(builder.build());
+                    MultiModalEmbeddingResult generationResult = this.embedding.call(param);
                     Embedding embedding = toEmbedding(generationResult.getOutput());
                     embeddings.add(embedding);
                     tokenCount = tokenCount + generationResult.getUsage().getInputTokens();
