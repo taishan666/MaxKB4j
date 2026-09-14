@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.annotation.ModelProviderType;
 import com.maxkb4j.model.base.STTModel;
 import com.maxkb4j.model.base.TTSModel;
-import com.maxkb4j.model.custom.model.BaiLianImageModel;
-import com.maxkb4j.model.custom.model.BaiLianReranker;
-import com.maxkb4j.model.custom.model.BaiLianSTTModel;
-import com.maxkb4j.model.custom.model.BaiLianTTSModel;
+import com.maxkb4j.model.custom.model.*;
 import com.maxkb4j.model.custom.params.*;
 import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.model.enums.ModelType;
@@ -15,6 +12,7 @@ import com.maxkb4j.model.form.BaseField;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.community.model.dashscope.QwenModelName;
 import dev.langchain4j.community.model.dashscope.WanxModelName;
+import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
 import org.springframework.stereotype.Component;
@@ -68,6 +66,16 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
     @Override
     public List<ModelInfo> getModelList() {
         return MODEL_INFOS;
+    }
+
+    @Override
+    public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
+        return QwenMultiModalEmbeddingModel.builder()
+                .baseUrl(getBaseUrl(credential.getBaseUrl()))
+                .apiKey(credential.getApiKey())
+                .modelName(modelName)
+                .dimension(getIntParam(params, ParamKey.DIMENSIONS))
+                .build();
     }
 
     @Override
