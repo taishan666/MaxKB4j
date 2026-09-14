@@ -5,12 +5,12 @@ import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
-import com.maxkb4j.knowledge.store.impl.support.MarkdownImageResolver;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ContentType;
+import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -35,6 +35,8 @@ import javax.sql.DataSource;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metadataKey;
 
@@ -56,13 +58,12 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
     private static final String META_DOCUMENT_ID = "documentId";
     private static final String META_SOURCE_ID = "sourceId";
     private static final String META_SOURCE_TYPE = "sourceType";
+    /**
+     * 从Markdown文本中提取所有图片URL
+     */
+    private static final Pattern MD_IMAGE_PATTERN = Pattern.compile("!\\[[^]]*]\\(([^)\\s]+)(?:\\s+\"[^\"]*\")?\\)");
     private final KnowledgeModelService knowledgeModelService;
     private final DataSource dataSource;
-    /**
-     * Markdown 图片解析器：负责把段落中的图片下载并转成 Base64 {@code ImageContent}，
-     * 该职责与向量存储本身无关，故剥离为独立组件。
-     */
-    private final MarkdownImageResolver markdownImageResolver;
     /**
      * 按 embedding 维度缓存 PgVectorEmbeddingStore 实例。
      * <p>原先的 {@code public static HashMap} 既线程不安全，又因 {@code getOrDefault} 而从未真正缓存（每次新建）。
@@ -141,7 +142,25 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         for (int attempt = 1; attempt <= retryTimes; attempt++) {
             try {
                 List<TextSegment> textSegments = batch.stream().map(this::toTextSegment).toList();
-                List<EmbeddingInput> inputs = buildEmbeddingInputs(textSegments, contentTypes);
+                List<EmbeddingInput> inputs = new ArrayList<>();
+                if (contentTypes.contains(ContentType.IMAGE)) {
+                    textSegments.forEach(segment -> {
+                        String text = segment.text();
+                        inputs.add(EmbeddingInput.from(TextContent.from(text)));
+                    });
+                } else {
+                    textSegments.forEach(segment -> {
+                        String text = segment.text();
+                        List<Content> contents = new ArrayList<>();
+                        contents.add(TextContent.from(text));
+                        List<String> imageUrls = extractImageUrls(text);
+                        for (String imageUrl : imageUrls) {
+                            System.out.println(imageUrl);
+                            contents.add(ImageContent.from(imageUrl, "image/png"));
+                        }
+                        inputs.add(EmbeddingInput.from(contents));
+                    });
+                }
                 EmbeddingResponse res = model.embed(EmbeddingRequest.builder().inputs(inputs).build());
                 store.addAll(res.embeddings(), textSegments);
                 return;
@@ -159,30 +178,21 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         }
     }
 
-    /**
-     * 按模型支持的内容类型构造 embedding 输入。
-     * <p>保持原有分支语义：模型声明支持 {@link ContentType#IMAGE} 时仅送文本，
-     * 否则在文本之外附带由 {@link MarkdownImageResolver} 解析出的图片内容。</p>
-     *
-     * @param textSegments 待写入的文本段落
-     * @param contentTypes 模型支持的内容类型集合
-     * @return 与 {@code textSegments} 顺序一致的 embedding 输入列表
-     */
-    private List<EmbeddingInput> buildEmbeddingInputs(List<TextSegment> textSegments, Set<ContentType> contentTypes) {
-        List<EmbeddingInput> inputs = new ArrayList<>(textSegments.size());
-        boolean imageSupported = contentTypes.contains(ContentType.IMAGE);
-        for (TextSegment segment : textSegments) {
-            String text = segment.text();
-            if (imageSupported) {
-                inputs.add(EmbeddingInput.from(TextContent.from(text)));
-            } else {
-                List<Content> contents = new ArrayList<>();
-                contents.add(TextContent.from(text));
-                contents.addAll(markdownImageResolver.resolveImageContents(text));
-                inputs.add(EmbeddingInput.from(contents));
-            }
+    private List<String> extractImageUrls(String markdownText) {
+        List<String> urls = new ArrayList<>();
+        if (markdownText == null || markdownText.isEmpty()) {
+            return urls;
         }
-        return inputs;
+        Matcher matcher = MD_IMAGE_PATTERN.matcher(markdownText);
+        while (matcher.find()) {
+            String url = matcher.group(1).trim();
+            // 去除可能包裹的尖括号 <url>
+            if (url.startsWith("<") && url.endsWith(">")) {
+                url = url.substring(1, url.length() - 1);
+            }
+            urls.add(url);
+        }
+        return urls;
     }
 
     /**
