@@ -134,7 +134,7 @@ java -jar maxkb4j-start/target/maxkb4j-start.jar
 | 后端    | Java 21、Spring Boot 3、虚拟线程、Sa-Token               |
 | AI 框架 | LangChain4j 1.x、Docling 文档解析                      |
 | 存储    | PostgreSQL 15 + pgvector、MongoDB 6.0+、Caffeine 缓存 |
-| 前端    | Vue 3、Node.js v20.16.0                            |
+| 前端    | Element Plus、Vue 3、Node.js v20.16.0               |
 | 脚本沙箱  | groovy-sandbox                                    |
 
 ```

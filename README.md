@@ -137,13 +137,13 @@ servers, no proxy needed, auto-scaling).
 
 ## 🛠 Tech Stack & Project Structure
 
-| Category       | Tech                                                   |
-|:---------------|:-------------------------------------------------------|
-| Backend        | Java 21, Spring Boot 3, Virtual Threads, Sa-Token      |
-| AI framework   | LangChain4j 1.x, Docling document parsing              |
-| Storage        | PostgreSQL 15 + pgvector, MongoDB 6.0+, Caffeine cache |
-| Frontend       | Vue 3, Node.js v20.16.0                                |
-| Script sandbox | groovy-sandbox                                         |
+| Category       | Tech                                                    |
+|:---------------|:--------------------------------------------------------|
+| Backend        | Java 21, Spring Boot 3, Virtual Threads, Sa-Token       |
+| AI framework   | LangChain4j 1.x, Docling document parsing               |
+| Storage        | PostgreSQL 15 + pgvector, MongoDB 6.0+, Caffeine cache  |
+| Frontend       | Element Plus,Vue 3, Node.js v20.16.0                    |
+| Script sandbox | groovy-sandbox                                          |
 
 ```
 MaxKB4j/

@@ -21,10 +21,13 @@ import org.bouncycastle.util.io.pem.PemWriter;
 
 import javax.crypto.Cipher;
 import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.security.*;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -52,6 +55,11 @@ public class RSAUtil {
      * RSA 密钥长度
      */
     private static final int KEY_SIZE = 2048;
+    /**
+     * OAEP(SHA-256) 填充开销：2 * hLen + 2 = 2 * 32 + 2 = 66 字节。
+     * 单个 RSA 块可加密的最大明文长度 = 密钥字节数 - 该开销（2048 位密钥即 256 - 66 = 190 字节）。
+     */
+    private static final int OAEP_SHA256_PADDING_OVERHEAD = 66;
     /**
      * BouncyCastle 提供者名称
      */
@@ -126,7 +134,10 @@ public class RSAUtil {
     public static String encrypt(String plainText, PublicKey publicKey) throws Exception {
         Cipher cipher = Cipher.getInstance(TRANSFORMATION_OAEP);
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        return byteToBase64(cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8)));
+        byte[] data = plainText.getBytes(StandardCharsets.UTF_8);
+        // 单块最大明文长度 = 密钥字节数 - OAEP 填充开销，超过则分段加密
+        int maxBlock = getKeyByteSize(publicKey) - OAEP_SHA256_PADDING_OVERHEAD;
+        return byteToBase64(processInChunks(cipher, data, maxBlock));
     }
 
     public static String encrypt(String plainText, String publicKey) throws Exception {
@@ -139,16 +150,54 @@ public class RSAUtil {
 
     public static String decrypt(String cipherText, PrivateKey privateKey) throws Exception {
         byte[] data = Base64.getDecoder().decode(cipherText);
+        // 单个密文块长度 = 密钥字节数，超过则分段解密
+        int blockSize = getKeyByteSize(privateKey);
         try {
             Cipher cipher = Cipher.getInstance(TRANSFORMATION_OAEP);
             cipher.init(Cipher.DECRYPT_MODE, privateKey);
-            return new String(cipher.doFinal(data), StandardCharsets.UTF_8);
+            return new String(processInChunks(cipher, data, blockSize), StandardCharsets.UTF_8);
         } catch (GeneralSecurityException e) {
             // 回退解密历史存量数据
             Cipher legacy = Cipher.getInstance(TRANSFORMATION_LEGACY);
             legacy.init(Cipher.DECRYPT_MODE, privateKey);
-            return new String(legacy.doFinal(data), StandardCharsets.UTF_8);
+            return new String(processInChunks(legacy, data, blockSize), StandardCharsets.UTF_8);
         }
+    }
+
+    /**
+     * 按 blockSize 对数据分段调用 {@link Cipher#doFinal}，以支持超过单个 RSA 块长度的数据。
+     * <p>加密时 blockSize 为单块可加密的最大明文长度；解密时 blockSize 为单个密文块长度。
+     * 单块数据（含历史存量密文）只走一次 doFinal，行为与分段前完全一致，保证向后兼容。</p>
+     */
+    private static byte[] processInChunks(Cipher cipher, byte[] data, int blockSize) throws GeneralSecurityException {
+        if (blockSize <= 0) {
+            throw new IllegalStateException("Invalid RSA block size: " + blockSize);
+        }
+        if (data.length <= blockSize) {
+            return cipher.doFinal(data);
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
+        int offset = 0;
+        while (offset < data.length) {
+            int len = Math.min(blockSize, data.length - offset);
+            byte[] block = cipher.doFinal(data, offset, len);
+            out.write(block, 0, block.length);
+            offset += len;
+        }
+        return out.toByteArray();
+    }
+
+    /**
+     * 计算 RSA 密钥对应的块字节数（模长字节数），无法识别时回退默认密钥长度。
+     */
+    private static int getKeyByteSize(Key key) {
+        if (key instanceof RSAPublicKey) {
+            return (((RSAPublicKey) key).getModulus().bitLength() + 7) >>> 3;
+        }
+        if (key instanceof RSAPrivateKey) {
+            return (((RSAPrivateKey) key).getModulus().bitLength() + 7) >>> 3;
+        }
+        return KEY_SIZE >>> 3;
     }
 
     public static String decrypt(String cipherText, String privateKey) throws Exception {

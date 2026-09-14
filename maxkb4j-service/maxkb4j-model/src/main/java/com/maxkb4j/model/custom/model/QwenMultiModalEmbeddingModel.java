@@ -80,7 +80,7 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
 
     @Override
     public Set<ContentType> supportedContentTypes() {
-        return isMultimodal(modelName) ? Set.of(ContentType.TEXT, ContentType.IMAGE, ContentType.VIDEO) : Set.of(ContentType.TEXT);
+        return isMultimodal(modelName) ? Set.of(ContentType.TEXT, ContentType.IMAGE) : Set.of(ContentType.TEXT);
     }
 
     @Override

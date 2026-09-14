@@ -61,6 +61,18 @@ class RSAUtilTest {
     }
 
     @Test
+    void encryptThenDecrypt_roundTripsDataLongerThanSingleBlock() throws Exception {
+        KeyPair keyPair = RSAUtil.generateRSAKeyPair();
+        // 构造远超单个 RSA 块（OAEP-SHA256 下 190 字节）上限的明文，验证分段加解密
+        String longText = "maxkb4j-credential-".repeat(40);
+        assertThat(longText.getBytes(java.nio.charset.StandardCharsets.UTF_8).length).isGreaterThan(190);
+
+        String cipher = RSAUtil.encrypt(longText, keyPair.getPublic());
+        assertThat(cipher).isNotEqualTo(longText);
+        assertThat(RSAUtil.decrypt(cipher, keyPair.getPrivate())).isEqualTo(longText);
+    }
+
+    @Test
     void importPublicKey_invalidBase64Throws() {
         assertThatThrownBy(() -> RSAUtil.importPublicKey("!!!不是合法Base64!!!"))
                 .isInstanceOf(Exception.class);
