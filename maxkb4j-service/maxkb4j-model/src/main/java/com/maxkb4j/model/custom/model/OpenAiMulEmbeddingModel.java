@@ -1,0 +1,172 @@
+package com.maxkb4j.model.custom.model;
+
+import com.volcengine.ark.runtime.model.multimodalembeddings.MultimodalEmbedding;
+import com.volcengine.ark.runtime.model.multimodalembeddings.MultimodalEmbeddingInput;
+import com.volcengine.ark.runtime.model.multimodalembeddings.MultimodalEmbeddingRequest;
+import com.volcengine.ark.runtime.model.multimodalembeddings.MultimodalEmbeddingResult;
+import com.volcengine.ark.runtime.service.ArkService;
+import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.message.Content;
+import dev.langchain4j.data.message.ContentType;
+import dev.langchain4j.data.message.ImageContent;
+import dev.langchain4j.data.message.TextContent;
+import dev.langchain4j.http.client.HttpClientBuilder;
+import dev.langchain4j.internal.Utils;
+import dev.langchain4j.model.embedding.DimensionAwareEmbeddingModel;
+import dev.langchain4j.model.embedding.request.EmbeddingInput;
+import dev.langchain4j.model.embedding.request.EmbeddingParameter;
+import dev.langchain4j.model.embedding.request.EmbeddingRequest;
+import dev.langchain4j.model.embedding.request.EmbeddingRequestParameters;
+import dev.langchain4j.model.embedding.response.EmbeddingResponse;
+import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
+import dev.langchain4j.model.output.TokenUsage;
+import okhttp3.ConnectionPool;
+import okhttp3.Dispatcher;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+public class OpenAiMulEmbeddingModel extends DimensionAwareEmbeddingModel {
+    private final String modelName;
+    private final ArkService service;
+    private final OpenAiEmbeddingModel embeddingModel;
+
+
+    public OpenAiMulEmbeddingModel(Builder builder) {
+        if (Utils.isNullOrBlank(builder.apiKey)) {
+            throw new IllegalArgumentException(
+                    "DashScope api key must be defined. Reference: https://www.alibabacloud.com/help/en/model-studio/get-api-key");
+        }
+        this.modelName=builder.modelName;
+        super.dimension = builder.dimension;
+        ConnectionPool connectionPool = new ConnectionPool(5, 1, TimeUnit.SECONDS);
+        this.service = ArkService.builder().dispatcher(new Dispatcher()).connectionPool(connectionPool).apiKey(builder.apiKey).build();
+        this.embeddingModel=OpenAiEmbeddingModel.builder()
+                .httpClientBuilder(builder.httpClientBuilder)
+                .baseUrl(builder.baseUrl)
+                .apiKey(builder.apiKey)
+                .modelName(builder.modelName)
+                .dimensions(builder.dimension)
+                .build();
+    }
+
+    private static boolean isMultimodal(String modelName) {
+        return modelName != null && (modelName.contains("-vl-") || modelName.contains("-version-") || modelName.endsWith("-version"));
+    }
+
+    private static Embedding toEmbedding(MultimodalEmbedding multimodalEmbedding) {
+        List<Float> vector = Optional.ofNullable(multimodalEmbedding)
+                .map(MultimodalEmbedding::getEmbedding)
+                .orElse(List.of())
+                .stream()
+                .map(Double::floatValue)
+                .collect(Collectors.toList());
+        if (vector.isEmpty()) {
+            throw new IllegalArgumentException("Multi-modal embedding response contains no embedding vector");
+        }
+        return Embedding.from(vector);
+    }
+
+
+    public static OpenAiMulEmbeddingModel.Builder builder() {
+        return new OpenAiMulEmbeddingModel.Builder();
+    }
+
+    @Override
+    public Set<EmbeddingParameter<?>> supportedParameters() {
+        return Set.of(EmbeddingRequestParameters.INPUT_TYPE, EmbeddingRequestParameters.DIMENSIONS);
+    }
+
+    @Override
+    public Set<ContentType> supportedContentTypes() {
+        return isMultimodal(modelName) ? Set.of(ContentType.TEXT, ContentType.IMAGE, ContentType.VIDEO) : Set.of(ContentType.TEXT);
+    }
+
+    @Override
+    public EmbeddingResponse doEmbed(EmbeddingRequest request) {
+        boolean multimodal = isMultimodal(modelName);
+        if (multimodal) {
+            List<Embedding> embeddings = new ArrayList<>();
+            int tokenCount = 0;
+            for (EmbeddingInput input : request.inputs()) {
+                List<MultimodalEmbeddingInput> inputs = toContents(input);
+                MultimodalEmbeddingRequest multiModalEmbeddingRequest = MultimodalEmbeddingRequest.builder()
+                        .model(this.modelName)
+                        .input(inputs)
+                        .build();
+                MultimodalEmbeddingResult res = service.createMultiModalEmbeddings(multiModalEmbeddingRequest);
+                Embedding embedding = toEmbedding(res.getData());
+                embeddings.add(embedding);
+                tokenCount = (int) (tokenCount + res.getUsage().getTotalTokens());
+            }
+            return EmbeddingResponse.builder().modelName(this.modelName).embeddings(embeddings).tokenUsage(new TokenUsage(tokenCount)).build();
+        }
+        return embeddingModel.doEmbed(request);
+    }
+
+    private List<MultimodalEmbeddingInput> toContents(EmbeddingInput input) {
+        List<MultimodalEmbeddingInput> inputs = new ArrayList<>();
+        List<Content> inputContents = input.contents();
+        for (Content inputContent : inputContents) {
+            if (inputContent instanceof ImageContent imageContent) {
+                inputs.add(MultimodalEmbeddingInput.builder().type("image_url").imageUrl(
+                        new MultimodalEmbeddingInput.MultiModalEmbeddingContentPartImageURL(
+                                imageContent.image().base64Data()
+                        )
+                ).build());
+            }
+            if (inputContent instanceof TextContent textContent) {
+                inputs.add(MultimodalEmbeddingInput.builder().type("text").text(textContent.text()).build());
+            }
+        }
+        return inputs;
+
+    }
+
+    public static class Builder {
+
+        private HttpClientBuilder httpClientBuilder;
+        private String baseUrl;
+        private String apiKey;
+        private String modelName;
+        private Integer dimension;
+
+        public Builder() {
+            // This is public so it can be extended
+            // By default with Lombok it becomes package private
+        }
+
+        public OpenAiMulEmbeddingModel.Builder httpClientBuilder(HttpClientBuilder httpClientBuilder) {
+            this.httpClientBuilder = httpClientBuilder;
+            return this;
+        }
+
+        public OpenAiMulEmbeddingModel.Builder baseUrl(String baseUrl) {
+            this.baseUrl = baseUrl;
+            return this;
+        }
+
+        public OpenAiMulEmbeddingModel.Builder apiKey(String apiKey) {
+            this.apiKey = apiKey;
+            return this;
+        }
+
+        public OpenAiMulEmbeddingModel.Builder modelName(String modelName) {
+            this.modelName = modelName;
+            return this;
+        }
+
+        public OpenAiMulEmbeddingModel.Builder dimension(Integer dimension) {
+            this.dimension = dimension;
+            return this;
+        }
+
+        public OpenAiMulEmbeddingModel build() {
+            return new OpenAiMulEmbeddingModel(this);
+        }
+    }
+}

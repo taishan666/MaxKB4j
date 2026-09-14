@@ -6,6 +6,7 @@ import com.maxkb4j.model.annotation.ModelProviderType;
 import com.maxkb4j.model.base.STTModel;
 import com.maxkb4j.model.base.TTSModel;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
+import com.maxkb4j.model.custom.model.OpenAiMulEmbeddingModel;
 import com.maxkb4j.model.custom.model.OpenAiSTTModel;
 import com.maxkb4j.model.custom.model.OpenAiTTSModel;
 import com.maxkb4j.model.custom.params.OpenAiChatModelParams;
@@ -19,9 +20,7 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiImageModel;
-import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -100,7 +99,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
 
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
-        return OpenAiStreamingChatModel.builder()
+        return OpenAiMulEmbeddingModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
@@ -114,7 +113,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
 
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
-        return OpenAiEmbeddingModel.builder()
+        return OpenAiVersionEmbeddingModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())

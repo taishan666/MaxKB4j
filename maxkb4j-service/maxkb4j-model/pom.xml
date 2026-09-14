@@ -83,6 +83,11 @@
             <artifactId>langchain4j-local-ai</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.volcengine</groupId>
+            <artifactId>volcengine-java-sdk-ark-runtime</artifactId>
+            <version>LATEST</version>
+        </dependency>
+        <dependency>
             <groupId>org</groupId>
             <artifactId>jaudiotagger</artifactId>
         </dependency>

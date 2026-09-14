@@ -5,12 +5,12 @@ import com.maxkb4j.knowledge.consts.SourceType;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
 import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
+import com.maxkb4j.knowledge.store.impl.support.MarkdownImageResolver;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.message.Content;
 import dev.langchain4j.data.message.ContentType;
-import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -32,15 +32,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.sql.DataSource;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metadataKey;
 
@@ -62,17 +56,13 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
     private static final String META_DOCUMENT_ID = "documentId";
     private static final String META_SOURCE_ID = "sourceId";
     private static final String META_SOURCE_TYPE = "sourceType";
-    /**
-     * 从Markdown文本中提取所有图片URL
-     */
-    private static final Pattern MD_IMAGE_PATTERN = Pattern.compile("!\\[[^]]*]\\(([^)\\s]+)(?:\\s+\"[^\"]*\")?\\)");
-    /**
-     * 下载图片用于转 Base64 Data URI 时的连接/读取超时（毫秒）。
-     */
-    private static final int IMAGE_CONNECT_TIMEOUT_MS = 5000;
-    private static final int IMAGE_READ_TIMEOUT_MS = 10000;
     private final KnowledgeModelService knowledgeModelService;
     private final DataSource dataSource;
+    /**
+     * Markdown 图片解析器：负责把段落中的图片下载并转成 Base64 {@code ImageContent}，
+     * 该职责与向量存储本身无关，故剥离为独立组件。
+     */
+    private final MarkdownImageResolver markdownImageResolver;
     /**
      * 按 embedding 维度缓存 PgVectorEmbeddingStore 实例。
      * <p>原先的 {@code public static HashMap} 既线程不安全，又因 {@code getOrDefault} 而从未真正缓存（每次新建）。
@@ -85,11 +75,6 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
     private int retryTimes = 3;
     @Value("${vector.store.retry-delay-ms:1000}")
     private int retryDelayMs = 1000;
-    /**
-     * 项目服务端口，用于将相对图片路径拼接为可访问的完整地址。
-     */
-    @Value("${server.port:8080}")
-    private int serverPort = 8080;
 
     /**
      * 将 langchain4j 归一化到 {@code [0,1]} 的相似度还原为 {@code [-1,1]} 的余弦相似度，
@@ -156,27 +141,7 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         for (int attempt = 1; attempt <= retryTimes; attempt++) {
             try {
                 List<TextSegment> textSegments = batch.stream().map(this::toTextSegment).toList();
-                List<EmbeddingInput> inputs = new ArrayList<>();
-                if (contentTypes.contains(ContentType.IMAGE)) {
-                    textSegments.forEach(segment -> {
-                        String text = segment.text();
-                        inputs.add(EmbeddingInput.from(TextContent.from(text)));
-                    });
-                } else {
-                    textSegments.forEach(segment -> {
-                        String text = segment.text();
-                        List<Content> contents = new ArrayList<>();
-                        contents.add(TextContent.from(text));
-                        List<String> imageUrls = extractImageUrls(text);
-                        for (String imageUrl : imageUrls) {
-                            ImageContent imageContent = toBase64ImageContent(imageUrl);
-                            if (imageContent != null) {
-                                contents.add(imageContent);
-                            }
-                        }
-                        inputs.add(EmbeddingInput.from(contents));
-                    });
-                }
+                List<EmbeddingInput> inputs = buildEmbeddingInputs(textSegments, contentTypes);
                 EmbeddingResponse res = model.embed(EmbeddingRequest.builder().inputs(inputs).build());
                 store.addAll(res.embeddings(), textSegments);
                 return;
@@ -194,144 +159,30 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         }
     }
 
-    private List<String> extractImageUrls(String markdownText) {
-        List<String> urls = new ArrayList<>();
-        if (markdownText == null || markdownText.isEmpty()) {
-            return urls;
-        }
-        Matcher matcher = MD_IMAGE_PATTERN.matcher(markdownText);
-        while (matcher.find()) {
-            String url = matcher.group(1).trim();
-            // 去除可能包裹的尖括号 <url>
-            if (url.startsWith("<") && url.endsWith(">")) {
-                url = url.substring(1, url.length() - 1);
-            }
-            urls.add(url);
-        }
-        return urls;
-    }
-
     /**
-     * 下载图片并将其转换为 Base64 编码的 Data URI，封装进 {@link ImageContent}。
-     * <p>{@link ImageContent#from(String, String)} 会以 {@code data:<mimeType>;base64,<data>}
-     * 的形式保存，从而避免下游模型直接访问外链图片。</p>
+     * 按模型支持的内容类型构造 embedding 输入。
+     * <p>保持原有分支语义：模型声明支持 {@link ContentType#IMAGE} 时仅送文本，
+     * 否则在文本之外附带由 {@link MarkdownImageResolver} 解析出的图片内容。</p>
      *
-     * @param imageUrl 图片地址（http/https 外链，或已经是 data: 形式的 Data URI）
-     * @return 转换后的 {@link ImageContent}；下载或解析失败时返回 {@code null}
+     * @param textSegments 待写入的文本段落
+     * @param contentTypes 模型支持的内容类型集合
+     * @return 与 {@code textSegments} 顺序一致的 embedding 输入列表
      */
-    private ImageContent toBase64ImageContent(String imageUrl) {
-        if (StringUtils.isBlank(imageUrl)) {
-            return null;
-        }
-        // 已经是 Base64 Data URI，直接解析复用
-        if (imageUrl.startsWith("data:")) {
-            return parseDataUri(imageUrl);
-        }
-        // 相对路径拼接为完整的本机服务地址
-        String fullUrl = resolveFullUrl(imageUrl);
-        try {
-            URL url = URI.create(fullUrl).toURL();
-            URLConnection connection = url.openConnection();
-            connection.setConnectTimeout(IMAGE_CONNECT_TIMEOUT_MS);
-            connection.setReadTimeout(IMAGE_READ_TIMEOUT_MS);
-            byte[] bytes;
-            String contentType;
-            try (InputStream in = connection.getInputStream()) {
-                bytes = in.readAllBytes();
-                contentType = connection.getContentType();
-            }
-            String mimeType = resolveMimeType(contentType, fullUrl);
-            String base64Data = Base64.getEncoder().encodeToString(bytes);
-            return ImageContent.from(base64Data, mimeType);
-        } catch (Exception e) {
-            log.warn("Failed to download image for base64 encoding: {}, cause: {}", fullUrl, e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * 将图片地址解析为可访问的完整 URL。
-     * <p>若已经是 {@code http://} / {@code https://} 绝对地址则原样返回；
-     * 否则视为相对访问路径，使用 {@code 127.0.0.1} 加项目服务端口拼接。</p>
-     */
-    private String resolveFullUrl(String imageUrl) {
-        String trimmed = imageUrl.trim();
-        String lower = trimmed.toLowerCase(Locale.ROOT);
-        if (lower.startsWith("http://") || lower.startsWith("https://")) {
-            return trimmed;
-        }
-        String path = trimmed.startsWith("./") ? trimmed.substring(1) :trimmed;
-        return "http://127.0.0.1:" + serverPort + path;
-    }
-
-    /**
-     * 解析形如 {@code data:image/png;base64,xxxx} 的 Data URI 为 {@link ImageContent}。
-     */
-    private ImageContent parseDataUri(String dataUri) {
-        try {
-            int commaIdx = dataUri.indexOf(',');
-            if (commaIdx < 0) {
-                return null;
-            }
-            String meta = dataUri.substring(5, commaIdx); // 去掉 "data:" 前缀
-            String base64Data = dataUri.substring(commaIdx + 1);
-            String mimeType = "image/png";
-            int semicolonIdx = meta.indexOf(';');
-            if (semicolonIdx > 0) {
-                mimeType = meta.substring(0, semicolonIdx);
-            } else if (!meta.isBlank()) {
-                mimeType = meta;
-            }
-            return ImageContent.from(base64Data, mimeType);
-        } catch (Exception e) {
-            log.warn("Failed to parse data uri for image content, cause: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * 优先使用响应头 Content-Type，缺失或为通用二进制流时回退到按 URL 扩展名猜测。
-     */
-    private String resolveMimeType(String contentType, String imageUrl) {
-        if (StringUtils.isNotBlank(contentType)
-                && !"application/octet-stream".equalsIgnoreCase(contentType.trim())) {
-            int semicolonIdx = contentType.indexOf(';');
-            return semicolonIdx > 0 ? contentType.substring(0, semicolonIdx).trim() : contentType.trim();
-        }
-        return guessMimeTypeFromUrl(imageUrl);
-    }
-
-    /**
-     * 根据 URL 路径扩展名猜测图片 MIME 类型，无法识别时默认 {@code image/png}。
-     */
-    private String guessMimeTypeFromUrl(String imageUrl) {
-        String path = imageUrl;
-        int queryIdx = path.indexOf('?');
-        if (queryIdx > 0) {
-            path = path.substring(0, queryIdx);
-        }
-        int dotIdx = path.lastIndexOf('.');
-        if (dotIdx > 0 && dotIdx < path.length() - 1) {
-            String ext = path.substring(dotIdx + 1).toLowerCase(Locale.ROOT);
-            switch (ext) {
-                case "jpg":
-                case "jpeg":
-                    return "image/jpeg";
-                case "png":
-                    return "image/png";
-                case "gif":
-                    return "image/gif";
-                case "webp":
-                    return "image/webp";
-                case "bmp":
-                    return "image/bmp";
-                case "svg":
-                    return "image/svg+xml";
-                default:
-                    break;
+    private List<EmbeddingInput> buildEmbeddingInputs(List<TextSegment> textSegments, Set<ContentType> contentTypes) {
+        List<EmbeddingInput> inputs = new ArrayList<>(textSegments.size());
+        boolean imageSupported = contentTypes.contains(ContentType.IMAGE);
+        for (TextSegment segment : textSegments) {
+            String text = segment.text();
+            if (imageSupported) {
+                inputs.add(EmbeddingInput.from(TextContent.from(text)));
+            } else {
+                List<Content> contents = new ArrayList<>();
+                contents.add(TextContent.from(text));
+                contents.addAll(markdownImageResolver.resolveImageContents(text));
+                inputs.add(EmbeddingInput.from(contents));
             }
         }
-        return "image/png";
+        return inputs;
     }
 
     /**
