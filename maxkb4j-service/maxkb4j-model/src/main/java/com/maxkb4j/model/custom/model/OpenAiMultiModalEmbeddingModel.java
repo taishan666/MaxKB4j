@@ -30,13 +30,13 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class OpenAiMulEmbeddingModel extends DimensionAwareEmbeddingModel {
+public class OpenAiMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
     private final String modelName;
     private final ArkService service;
     private final OpenAiEmbeddingModel embeddingModel;
 
 
-    public OpenAiMulEmbeddingModel(Builder builder) {
+    public OpenAiMultiModalEmbeddingModel(Builder builder) {
         if (Utils.isNullOrBlank(builder.apiKey)) {
             throw new IllegalArgumentException(
                     "DashScope api key must be defined. Reference: https://www.alibabacloud.com/help/en/model-studio/get-api-key");
@@ -72,8 +72,8 @@ public class OpenAiMulEmbeddingModel extends DimensionAwareEmbeddingModel {
     }
 
 
-    public static OpenAiMulEmbeddingModel.Builder builder() {
-        return new OpenAiMulEmbeddingModel.Builder();
+    public static OpenAiMultiModalEmbeddingModel.Builder builder() {
+        return new OpenAiMultiModalEmbeddingModel.Builder();
     }
 
     @Override
@@ -140,33 +140,33 @@ public class OpenAiMulEmbeddingModel extends DimensionAwareEmbeddingModel {
             // By default with Lombok it becomes package private
         }
 
-        public OpenAiMulEmbeddingModel.Builder httpClientBuilder(HttpClientBuilder httpClientBuilder) {
+        public OpenAiMultiModalEmbeddingModel.Builder httpClientBuilder(HttpClientBuilder httpClientBuilder) {
             this.httpClientBuilder = httpClientBuilder;
             return this;
         }
 
-        public OpenAiMulEmbeddingModel.Builder baseUrl(String baseUrl) {
+        public OpenAiMultiModalEmbeddingModel.Builder baseUrl(String baseUrl) {
             this.baseUrl = baseUrl;
             return this;
         }
 
-        public OpenAiMulEmbeddingModel.Builder apiKey(String apiKey) {
+        public OpenAiMultiModalEmbeddingModel.Builder apiKey(String apiKey) {
             this.apiKey = apiKey;
             return this;
         }
 
-        public OpenAiMulEmbeddingModel.Builder modelName(String modelName) {
+        public OpenAiMultiModalEmbeddingModel.Builder modelName(String modelName) {
             this.modelName = modelName;
             return this;
         }
 
-        public OpenAiMulEmbeddingModel.Builder dimension(Integer dimension) {
+        public OpenAiMultiModalEmbeddingModel.Builder dimension(Integer dimension) {
             this.dimension = dimension;
             return this;
         }
 
-        public OpenAiMulEmbeddingModel build() {
-            return new OpenAiMulEmbeddingModel(this);
+        public OpenAiMultiModalEmbeddingModel build() {
+            return new OpenAiMultiModalEmbeddingModel(this);
         }
     }
 }

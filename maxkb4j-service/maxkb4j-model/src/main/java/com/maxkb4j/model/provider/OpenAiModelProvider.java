@@ -6,7 +6,7 @@ import com.maxkb4j.model.annotation.ModelProviderType;
 import com.maxkb4j.model.base.STTModel;
 import com.maxkb4j.model.base.TTSModel;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
-import com.maxkb4j.model.custom.model.OpenAiMulEmbeddingModel;
+import com.maxkb4j.model.custom.model.OpenAiMultiModalEmbeddingModel;
 import com.maxkb4j.model.custom.model.OpenAiSTTModel;
 import com.maxkb4j.model.custom.model.OpenAiTTSModel;
 import com.maxkb4j.model.custom.params.OpenAiChatModelParams;
@@ -99,7 +99,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
 
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
-        return OpenAiMulEmbeddingModel.builder()
+        return OpenAiMultiModalEmbeddingModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())

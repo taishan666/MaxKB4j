@@ -5,7 +5,6 @@ import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.alibaba.dashscope.exception.UploadFileException;
 import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
 import dev.langchain4j.community.model.dashscope.QwenModelName;
-import dev.langchain4j.community.model.dashscope.spi.QwenEmbeddingModelBuilderFactory;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.message.*;
 import dev.langchain4j.internal.Utils;
@@ -26,7 +25,6 @@ import java.util.stream.Collectors;
 
 import static com.alibaba.dashscope.embeddings.TextEmbedding.Models.TEXT_EMBEDDING_V1;
 import static com.alibaba.dashscope.embeddings.TextEmbedding.Models.TEXT_EMBEDDING_V2;
-import static dev.langchain4j.spi.ServiceHelper.loadFactories;
 
 
 public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
@@ -78,11 +76,8 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
         return dimension;
     }
 
-    public static QwenEmbeddingModel.QwenEmbeddingModelBuilder builder() {
-        for (QwenEmbeddingModelBuilderFactory factory : loadFactories(QwenEmbeddingModelBuilderFactory.class)) {
-            return factory.get();
-        }
-        return new QwenEmbeddingModel.QwenEmbeddingModelBuilder();
+    public static QwenMultiModalEmbeddingModel.Builder builder() {
+        return new QwenMultiModalEmbeddingModel.Builder();
     }
 
     @Override
