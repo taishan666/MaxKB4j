@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -24,7 +26,9 @@ import java.io.IOException;
  * 后端接口、文件下载与静态资源一律放行，交给 Spring MVC / 静态资源处理器。
  * 另外，index.html 以相对路径（./assets/**）引用构建产物，当 SPA 在深层路由刷新时
  * 浏览器会把相对路径解析到当前路由下（如 /admin/&lt;路由&gt;/assets/x.js），
- * 这类请求会被重定向回规范地址 /admin/assets/x.js，避免静态资源 404 导致白屏。</p>
+ * 这类请求会被重定向回规范地址 /admin/assets/x.js，避免静态资源 404 导致白屏。
+ * 重定向前会做存在性校验：原始地址本身是真实存在的静态资源（如 /admin/tool/wecom/icon.png）
+ * 时直接放行，仅当原始地址不存在而规范地址存在时才还原，避免误伤深层静态资源。</p>
  *
  * @author tarzan
  */
@@ -59,6 +63,21 @@ public class SpaForwardFilter extends OncePerRequestFilter {
     private static final String[] API_DOC_PATHS = {
             "/doc.html", "/webjars/", "/v3/api-docs", "/swagger-ui"
     };
+
+    /**
+     * Spring Boot 默认静态资源目录（本项目构建产物与图标位于 classpath:/static/）
+     */
+    private static final String[] STATIC_LOCATIONS = {
+            "classpath:/META-INF/resources/", "classpath:/resources/", "classpath:/static/", "classpath:/public/"
+    };
+
+    /**
+     * 静态资源存在性校验用的资源加载器。
+     * 直接实例化而不注入 Spring 容器中的 ResourceLoader Bean（避免与 gridFsTemplate 等
+     * 同类型 Bean 产生注入歧义），使用本类类加载器即可正确解析应用 classpath。
+     */
+    private final ResourceLoader resourceLoader =
+            new DefaultResourceLoader(SpaForwardFilter.class.getClassLoader());
 
     @Override
     protected boolean shouldNotFilter(@NotNull HttpServletRequest request) {
@@ -112,6 +131,11 @@ public class SpaForwardFilter extends OncePerRequestFilter {
      * {@code /chat/favicon.ico}。仅当末段带扩展名（确为静态文件）时才还原，
      * 避免误伤末段无扩展名的正常 SPA 路由。</p>
      *
+     * <p>注意：还原前会校验静态资源存在性。若请求地址本身就是真实存在的静态资源
+     * （如 {@code /admin/tool/wecom/icon.png}），直接返回 {@code null} 放行，
+     * 交由静态资源处理器响应；仅当请求地址不存在而还原地址存在时才重定向，
+     * 避免把真实的深层静态资源误重定向到不存在的根级地址。</p>
+     *
      * <p>不属于上述错位请求时返回 {@code null}。</p>
      */
     private String resolveRouteRelativeAsset(String uri) {
@@ -129,8 +153,7 @@ public class SpaForwardFilter extends OncePerRequestFilter {
         // 错位地址（/chat/{route}/assets/x.css）才还原，避免落到下方根级文件分支被误剥 assets 段。
         int assetsIndex = uri.indexOf("/assets/");
         if (assetsIndex >= 0) {
-            String canonical = prefix + uri.substring(assetsIndex);
-            return canonical.equals(uri) ? null : canonical;
+            return restoreIfMisplaced(uri, prefix + uri.substring(assetsIndex));
         }
 
         // 应用根级文件（如 favicon.ico）：深层路由下错位请求，还原到 prefix + /文件名
@@ -139,10 +162,38 @@ public class SpaForwardFilter extends OncePerRequestFilter {
         if (lastSlash > 0) {
             String fileName = rest.substring(lastSlash + 1);
             if (fileName.contains(".")) {
-                return prefix + "/" + fileName;
+                return restoreIfMisplaced(uri, prefix + "/" + fileName);
             }
         }
         return null;
+    }
+
+    /**
+     * 判断错位静态资源请求是否需要还原：请求地址已是真实存在的静态资源时放行；
+     * 仅当请求地址不存在而规范地址存在时才返回规范地址用于重定向
+     */
+    private String restoreIfMisplaced(String uri, String canonical) {
+        if (canonical.equals(uri) || staticResourceExists(uri)) {
+            return null;
+        }
+        return staticResourceExists(canonical) ? canonical : null;
+    }
+
+    /**
+     * 检查指定 URI 是否为 classpath 下真实存在的静态资源
+     */
+    private boolean staticResourceExists(String uri) {
+        String path = uri.startsWith("/") ? uri.substring(1) : uri;
+        for (String location : STATIC_LOCATIONS) {
+            try {
+                if (resourceLoader.getResource(location + path).exists()) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+                // 非法路径等异常按不存在处理
+            }
+        }
+        return false;
     }
 
     @Override

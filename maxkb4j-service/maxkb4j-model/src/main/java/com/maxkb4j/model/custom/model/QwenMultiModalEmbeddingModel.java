@@ -6,50 +6,40 @@ import com.alibaba.dashscope.exception.UploadFileException;
 import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
 import dev.langchain4j.community.model.dashscope.QwenModelName;
 import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.message.*;
+import dev.langchain4j.data.message.Content;
+import dev.langchain4j.data.message.ImageContent;
+import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.internal.Utils;
 import dev.langchain4j.model.embedding.DimensionAwareEmbeddingModel;
 import dev.langchain4j.model.embedding.request.EmbeddingInput;
-import dev.langchain4j.model.embedding.request.EmbeddingParameter;
-import dev.langchain4j.model.embedding.request.EmbeddingRequest;
-import dev.langchain4j.model.embedding.request.EmbeddingRequestParameters;
-import dev.langchain4j.model.embedding.response.EmbeddingResponse;
-import dev.langchain4j.model.output.TokenUsage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static com.alibaba.dashscope.embeddings.TextEmbedding.Models.TEXT_EMBEDDING_V1;
 import static com.alibaba.dashscope.embeddings.TextEmbedding.Models.TEXT_EMBEDDING_V2;
 
 
-public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
-
+public class QwenMultiModalEmbeddingModel extends AbstractMultiModalEmbeddingModel {
 
     private final String apiKey;
-    private final String modelName;
     private final MultiModalEmbedding embedding;
     private final QwenEmbeddingModel qwenEmbeddingModel;
 
     public QwenMultiModalEmbeddingModel(String baseUrl, String apiKey, String modelName, Integer dimension) {
+        super(Utils.isNullOrBlank(modelName) ? QwenModelName.TEXT_EMBEDDING_V4 : modelName);
         if (Utils.isNullOrBlank(apiKey)) {
             throw new IllegalArgumentException(
                     "DashScope api key must be defined. Reference: https://www.alibabacloud.com/help/en/model-studio/get-api-key");
         }
-        this.modelName = Utils.isNullOrBlank(modelName) ? QwenModelName.TEXT_EMBEDDING_V4 : modelName;
         this.apiKey = apiKey;
         this.dimension = ensureDimension(this.modelName, dimension);
         this.embedding = new MultiModalEmbedding();
         this.qwenEmbeddingModel = new QwenEmbeddingModel(baseUrl, apiKey, modelName, dimension);
     }
 
-    private static boolean isMultimodal(String modelName) {
-        return modelName != null && (modelName.contains("-vl-") || modelName.contains("-vision-") || modelName.endsWith("-vision"));
-    }
-
     private static Embedding toEmbedding(MultiModalEmbeddingOutput output) {
-        List<MultiModalEmbeddingResultItem> embeddings=output.getEmbeddings();
+        List<MultiModalEmbeddingResultItem> embeddings = output.getEmbeddings();
         if (embeddings.isEmpty()) {
             throw new IllegalArgumentException("Multi-modal embedding response contains no embedding vector");
         }
@@ -71,42 +61,28 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
     }
 
     @Override
-    public Set<EmbeddingParameter<?>> supportedParameters() {
-        return Set.of(EmbeddingRequestParameters.INPUT_TYPE, EmbeddingRequestParameters.DIMENSIONS);
+    protected DimensionAwareEmbeddingModel textEmbeddingModel() {
+        return qwenEmbeddingModel;
     }
 
     @Override
-    public Set<ContentType> supportedContentTypes() {
-        return isMultimodal(modelName) ? Set.of(ContentType.TEXT, ContentType.IMAGE) : Set.of(ContentType.TEXT);
-    }
-
-    @Override
-    public EmbeddingResponse doEmbed(EmbeddingRequest request) {
-        boolean multimodal = isMultimodal(modelName);
-        if (multimodal) {
-            List<Embedding> embeddings = new ArrayList<>();
-            int tokenCount = 0;
-            for (EmbeddingInput input : request.inputs()) {
-                List<MultiModalEmbeddingItemBase> contents = toContents(input);
-                MultiModalEmbeddingParam param = MultiModalEmbeddingParam.builder()
-                        .model(this.modelName)
-                        .apiKey(this.apiKey)
-                        .contents(contents)
-                        .parameter("enable_fusion",true)
-                        .parameter("dimension", dimension)
-                        .build();
-                try {
-                    MultiModalEmbeddingResult generationResult = this.embedding.call(param);
-                    Embedding embedding = toEmbedding(generationResult.getOutput());
-                    embeddings.add(embedding);
-                    tokenCount = tokenCount + generationResult.getUsage().getInputTokens();
-                } catch (NoApiKeyException | UploadFileException e) {
-                    throw new IllegalArgumentException(e);
-                }
-            }
-            return EmbeddingResponse.builder().modelName(this.modelName).embeddings(embeddings).tokenUsage(new TokenUsage(tokenCount)).build();
+    protected EmbeddingResult embedMultimodal(EmbeddingInput input) {
+        List<MultiModalEmbeddingItemBase> contents = toContents(input);
+        MultiModalEmbeddingParam param = MultiModalEmbeddingParam.builder()
+                .model(this.modelName)
+                .apiKey(this.apiKey)
+                .contents(contents)
+                .parameter("enable_fusion", true)
+                .parameter("dimension", dimension)
+                .build();
+        try {
+            MultiModalEmbeddingResult generationResult = this.embedding.call(param);
+            Embedding embedding = toEmbedding(generationResult.getOutput());
+            int tokenCount = generationResult.getUsage().getInputTokens();
+            return new EmbeddingResult(embedding, tokenCount);
+        } catch (NoApiKeyException | UploadFileException e) {
+            throw new IllegalArgumentException(e);
         }
-        return qwenEmbeddingModel.doEmbed(request);
     }
 
     private List<MultiModalEmbeddingItemBase> toContents(EmbeddingInput input) {
@@ -114,18 +90,15 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
         List<Content> inputContents = input.contents();
         for (Content inputContent : inputContents) {
             if (inputContent instanceof ImageContent imageContent) {
-                contents.add(new MultiModalEmbeddingItemImage(imageContent.image().base64Data()));
-            }
-            if (inputContent instanceof VideoContent videoContent) {
-                contents.add(new MultiModalEmbeddingItemImage(videoContent.video().base64Data()));
+                contents.add(new MultiModalEmbeddingItemImage(toBase64ImageUrl(imageContent.image())));
             }
             if (inputContent instanceof TextContent textContent) {
                 contents.add(new MultiModalEmbeddingItemText(textContent.text()));
             }
         }
         return contents;
-
     }
+
 
     public static class Builder {
 

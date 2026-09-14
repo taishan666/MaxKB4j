@@ -7,55 +7,42 @@ import com.volcengine.ark.runtime.model.multimodalembeddings.MultimodalEmbedding
 import com.volcengine.ark.runtime.service.ArkService;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.message.Content;
-import dev.langchain4j.data.message.ContentType;
 import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.internal.Utils;
 import dev.langchain4j.model.embedding.DimensionAwareEmbeddingModel;
 import dev.langchain4j.model.embedding.request.EmbeddingInput;
-import dev.langchain4j.model.embedding.request.EmbeddingParameter;
-import dev.langchain4j.model.embedding.request.EmbeddingRequest;
-import dev.langchain4j.model.embedding.request.EmbeddingRequestParameters;
-import dev.langchain4j.model.embedding.response.EmbeddingResponse;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
-import dev.langchain4j.model.output.TokenUsage;
 import okhttp3.ConnectionPool;
 import okhttp3.Dispatcher;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class OpenAiMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
-    private final String modelName;
+public class OpenAiMultiModalEmbeddingModel extends AbstractMultiModalEmbeddingModel {
+
     private final ArkService service;
     private final OpenAiEmbeddingModel embeddingModel;
 
-
     public OpenAiMultiModalEmbeddingModel(Builder builder) {
+        super(builder.modelName);
         if (Utils.isNullOrBlank(builder.apiKey)) {
-            throw new IllegalArgumentException(
-                    "DashScope api key must be defined. Reference: https://www.alibabacloud.com/help/en/model-studio/get-api-key");
+            throw new IllegalArgumentException("OpenAi api key must be defined.");
         }
-        this.modelName=builder.modelName;
         super.dimension = builder.dimensions;
         ConnectionPool connectionPool = new ConnectionPool(5, 1, TimeUnit.SECONDS);
         this.service = ArkService.builder().dispatcher(new Dispatcher()).connectionPool(connectionPool).apiKey(builder.apiKey).build();
-        this.embeddingModel=OpenAiEmbeddingModel.builder()
+        this.embeddingModel = OpenAiEmbeddingModel.builder()
                 .httpClientBuilder(builder.httpClientBuilder)
                 .baseUrl(builder.baseUrl)
                 .apiKey(builder.apiKey)
                 .modelName(builder.modelName)
                 .dimensions(builder.dimensions)
                 .build();
-    }
-
-    private static boolean isMultimodal(String modelName) {
-        return modelName != null && (modelName.contains("-vl-") || modelName.contains("-vision-") || modelName.endsWith("-vision"));
     }
 
     private static Embedding toEmbedding(MultimodalEmbedding multimodalEmbedding) {
@@ -71,42 +58,27 @@ public class OpenAiMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel
         return Embedding.from(vector);
     }
 
-
     public static OpenAiMultiModalEmbeddingModel.Builder builder() {
         return new OpenAiMultiModalEmbeddingModel.Builder();
     }
 
     @Override
-    public Set<EmbeddingParameter<?>> supportedParameters() {
-        return Set.of(EmbeddingRequestParameters.INPUT_TYPE, EmbeddingRequestParameters.DIMENSIONS);
+    protected DimensionAwareEmbeddingModel textEmbeddingModel() {
+        return embeddingModel;
     }
 
     @Override
-    public Set<ContentType> supportedContentTypes() {
-        return isMultimodal(modelName) ? Set.of(ContentType.TEXT, ContentType.IMAGE) : Set.of(ContentType.TEXT);
-    }
-
-    @Override
-    public EmbeddingResponse doEmbed(EmbeddingRequest request) {
-        boolean multimodal = isMultimodal(modelName);
-        if (multimodal) {
-            List<Embedding> embeddings = new ArrayList<>();
-            int tokenCount = 0;
-            for (EmbeddingInput input : request.inputs()) {
-                List<MultimodalEmbeddingInput> inputs = toContents(input);
-                MultimodalEmbeddingRequest multiModalEmbeddingRequest = MultimodalEmbeddingRequest.builder()
-                        .model(this.modelName)
-                        .dimensions(this.dimension)
-                        .input(inputs)
-                        .build();
-                MultimodalEmbeddingResult res = service.createMultiModalEmbeddings(multiModalEmbeddingRequest);
-                Embedding embedding = toEmbedding(res.getData());
-                embeddings.add(embedding);
-                tokenCount = (int) (tokenCount + res.getUsage().getTotalTokens());
-            }
-            return EmbeddingResponse.builder().modelName(this.modelName).embeddings(embeddings).tokenUsage(new TokenUsage(tokenCount)).build();
-        }
-        return embeddingModel.doEmbed(request);
+    protected EmbeddingResult embedMultimodal(EmbeddingInput input) {
+        List<MultimodalEmbeddingInput> inputs = toContents(input);
+        MultimodalEmbeddingRequest multiModalEmbeddingRequest = MultimodalEmbeddingRequest.builder()
+                .model(this.modelName)
+                .dimensions(this.dimension)
+                .input(inputs)
+                .build();
+        MultimodalEmbeddingResult res = service.createMultiModalEmbeddings(multiModalEmbeddingRequest);
+        Embedding embedding = toEmbedding(res.getData());
+        int tokenCount = (int) (res.getUsage().getTotalTokens());
+        return new EmbeddingResult(embedding, tokenCount);
     }
 
     private List<MultimodalEmbeddingInput> toContents(EmbeddingInput input) {
@@ -116,7 +88,7 @@ public class OpenAiMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel
             if (inputContent instanceof ImageContent imageContent) {
                 inputs.add(MultimodalEmbeddingInput.builder().type("image_url").imageUrl(
                         new MultimodalEmbeddingInput.MultiModalEmbeddingContentPartImageURL(
-                                imageContent.image().base64Data()
+                                toBase64ImageUrl(imageContent.image())
                         )
                 ).build());
             }
@@ -125,8 +97,9 @@ public class OpenAiMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel
             }
         }
         return inputs;
-
     }
+
+
 
     public static class Builder {
 

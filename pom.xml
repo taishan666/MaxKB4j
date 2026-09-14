@@ -60,6 +60,7 @@
         <ofdrw.version>2.2.3</ofdrw.version>
         <jaudiotagger.version>2.0.3</jaudiotagger.version>
         <httpclient.version>4.5.14</httpclient.version>
+        <volcengine-ark.version>2.0.27</volcengine-ark.version>
     </properties>
     <modules>
         <module>maxkb4j-common</module>
@@ -551,6 +552,12 @@
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>${httpclient.version}</version>
+            </dependency>
+            <!-- 火山引擎方舟 Ark Runtime SDK：多模态向量模型使用 -->
+            <dependency>
+                <groupId>com.volcengine</groupId>
+                <artifactId>volcengine-java-sdk-ark-runtime</artifactId>
+                <version>${volcengine-ark.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
