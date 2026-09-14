@@ -42,7 +42,7 @@ public class OpenAiMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel
                     "DashScope api key must be defined. Reference: https://www.alibabacloud.com/help/en/model-studio/get-api-key");
         }
         this.modelName=builder.modelName;
-        super.dimension = builder.dimension;
+        super.dimension = builder.dimensions;
         ConnectionPool connectionPool = new ConnectionPool(5, 1, TimeUnit.SECONDS);
         this.service = ArkService.builder().dispatcher(new Dispatcher()).connectionPool(connectionPool).apiKey(builder.apiKey).build();
         this.embeddingModel=OpenAiEmbeddingModel.builder()
@@ -50,7 +50,7 @@ public class OpenAiMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel
                 .baseUrl(builder.baseUrl)
                 .apiKey(builder.apiKey)
                 .modelName(builder.modelName)
-                .dimensions(builder.dimension)
+                .dimensions(builder.dimensions)
                 .build();
     }
 
@@ -96,6 +96,7 @@ public class OpenAiMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel
                 List<MultimodalEmbeddingInput> inputs = toContents(input);
                 MultimodalEmbeddingRequest multiModalEmbeddingRequest = MultimodalEmbeddingRequest.builder()
                         .model(this.modelName)
+                        .dimensions(this.dimension)
                         .input(inputs)
                         .build();
                 MultimodalEmbeddingResult res = service.createMultiModalEmbeddings(multiModalEmbeddingRequest);
@@ -133,7 +134,7 @@ public class OpenAiMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel
         private String baseUrl;
         private String apiKey;
         private String modelName;
-        private Integer dimension;
+        private Integer dimensions;
 
         public Builder() {
             // This is public so it can be extended
@@ -160,8 +161,8 @@ public class OpenAiMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel
             return this;
         }
 
-        public OpenAiMultiModalEmbeddingModel.Builder dimension(Integer dimension) {
-            this.dimension = dimension;
+        public OpenAiMultiModalEmbeddingModel.Builder dimensions(Integer dimensions) {
+            this.dimensions = dimensions;
             return this;
         }
 

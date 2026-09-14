@@ -102,6 +102,9 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
                         .apiKey(this.apiKey)
                         .model(this.modelName)
                         .contents(contents);
+                if (dimension != null) {
+                    builder.parameter("dimension", dimension);
+                }
                 try {
                     this.multiModalEmbeddingParamCustomizer.accept(builder);
                     MultiModalEmbeddingResult generationResult = this.embedding.call(builder.build());
