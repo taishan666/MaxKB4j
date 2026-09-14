@@ -42,14 +42,14 @@
 
 | 能力                           | 说明                                                                                                  |
 |:-----------------------------|:----------------------------------------------------------------------------------------------------|
-| 🔍 知识库问答                     | 上传 PDF / Word / TXT / Markdown 等文档或自动爬取网页，自动完成分段 → 向量化 → 入库 → 构建 RAG，显著减少大模型幻觉                      |
+| 🔍 知识库问答                     | 上传 PDF / Word / TXT / Markdown 等文档或自动爬取网页，自动完成分段 → 向量化 → 入库 → 构建 RAG，显著减少大模型幻觉；支持文档内图片融合向量化，实现图文混合检索 |
 | 🧠 Advanced RAG / AgenticRAG | 向量、全文、混合多路召回 + Reranker 重排序；结合意图识别、条件分支，由智能体动态决策检索路径，支持多跳问答                                         |
 | ⚙️ 可视化工作流                    | 低代码编排 30+ 种节点：条件分支、循环、变量聚合、NL2SQL、表单、HTTP 请求、MCP 等，支持多轮与长期记忆                                        |
 | 🤝 多 Agent 协作                | 多角色智能体（数据分析师、代码审查员、客服专员…）并行 / 串行协同，任务自动拆解、分派与汇总，共享记忆总线                                              |
 | ⏰ 触发器                        | Cron 定时任务 + Webhook 事件回调，实现智能体与工具无人值守自动化（自动生成日报、CRM 线索触发画像分析等）                                      |
 | 🌐 模型中立                      | 私有模型（Ollama / Xorbits Inference / LocalAI）与国内外公有模型：通义千问、DeepSeek、豆包、混元、GLM、Kimi、GPT、Claude、Gemini 等 |
 | 🧩 无缝集成                      | RESTful API、iframe / Web SDK 嵌入组件、OpenAI 兼容对话接口、stream_http MCP 接入方式，5 分钟接入现有系统                     |
-| 🎙️ 多模态                      | ASR 语音识别、TTS 语音合成、OCR 图像识别、Stable Diffusion 图像生成                                                    |
+| 🎙️ 多模态                      | **多模态融合向量**：文档中文本与图片融合为统一向量，支持以文搜图、以图搜文的跨模态检索（阿里云百炼 / 火山方舟视觉向量模型）；ASR 语音识别、TTS 语音合成、OCR 图像识别、Stable Diffusion 图像生成 |
 | 🔒 权限与安全                     | 基于 Sa-Token 的细粒度权限（应用 / 知识库 / 工具 / 模型）、审计日志、groovy-sandbox 脚本沙箱                                     |
 | 🌱 生态扩展                      | 数十种预置 Agent 模板（客服助手、数据分析师、代码导师等）；插件化工具市场：MySQL / PostgreSQL / MongoDB 连接器、飞书 / 钉钉 / 企业微信集成、联网搜索工具   |
 
@@ -63,6 +63,7 @@
 | 可视化工作流 + 多 Agent 协作  |              ✅              |      ✅      |   ⚠️   |     ⚠️     |   ⚠️    |
 | 触发器（Cron / Webhook）  |              ✅              |      ✅      |   ⚠️   |     ⚠️     |   ⚠️    |
 | 多模态（ASR / TTS / OCR） |              ✅              |     ⚠️      |   ✅    |     ⚠️     |    ✅    |
+| 图文融合向量检索（以文搜图 / 以图搜文） |              ✅              |     ⚠️      |   ⚠️   |     ⚠️     |    ⚠️    |
 | MCP 协议 / OpenAI 兼容接口 |              ✅              |      ✅      |   ✅    |     ✅      |    ✅    |
 
 > 说明：上表为能力取向对比，供选型参考；具体效果建议结合自身场景通过在线 Demo 实测。
@@ -132,7 +133,7 @@ java -jar maxkb4j-start/target/maxkb4j-start.jar
 | 类别    | 技术                                                |
 |:------|:--------------------------------------------------|
 | 后端    | Java 21、Spring Boot 3、虚拟线程、Sa-Token               |
-| AI 框架 | LangChain4j 1.x、Docling 文档解析                      |
+| AI 框架 | LangChain4j 1.x、Docling 文档解析、火山方舟 Ark SDK |
 | 存储    | PostgreSQL 15 + pgvector、MongoDB 6.0+、Caffeine 缓存 |
 | 前端    | Element Plus、Vue 3、Node.js v20.16.0               |
 | 脚本沙箱  | groovy-sandbox                                    |

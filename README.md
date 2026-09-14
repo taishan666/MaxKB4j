@@ -42,14 +42,14 @@ Enterprises face four common challenges when adopting LLM applications, and MaxK
 
 | Capability                   | Description                                                                                                                                                                                                         |
 |:-----------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 🔍 Knowledge Base Q&A        | Upload PDF / Word / TXT / Markdown files or crawl web pages; automatic chunking → vectorization → storage → RAG pipeline, significantly reducing hallucinations                                                     |
+| 🔍 Knowledge Base Q&A        | Upload PDF / Word / TXT / Markdown files or crawl web pages; automatic chunking → vectorization → storage → RAG pipeline, significantly reducing hallucinations; in-document images are fused into vectors for image-text hybrid retrieval                              |
 | 🧠 Advanced RAG / AgenticRAG | Vector, full-text, and hybrid multi-route retrieval + Reranker re-ranking; agents dynamically decide retrieval paths with intent recognition and conditional branches, supporting multi-hop Q&A                     |
 | ⚙️ Visual Workflow           | Low-code orchestration with 30+ node types: conditional branches, loops, variable aggregation, NL2SQL, forms, HTTP requests, MCP, etc.; multi-turn and long-term memory                                             |
 | 🤝 Multi-Agent Collaboration | Multiple role-specific agents (data analyst, code reviewer, customer service agent…) work in parallel or sequence; tasks are decomposed, dispatched, and aggregated automatically via a shared memory bus           |
 | ⏰ Triggers                   | Cron scheduled tasks + Webhook event callbacks for unattended automation (daily report generation, CRM-lead-triggered persona analysis, etc.)                                                                       |
 | 🌐 Model-Agnostic            | Private models via Ollama / Xorbits Inference / LocalAI; public models: Qwen, DeepSeek, Doubao, Hunyuan, GLM, Kimi, GPT, Claude, Gemini, and more                                                                   |
 | 🧩 Seamless Integration      | RESTful API, iframe / Web SDK embedding, OpenAI-compatible chat API, and stream_http MCP agent integration — connect within 5 minutes                                                                               |
-| 🎙️ Multimodal               | ASR speech recognition, TTS speech synthesis, OCR image recognition, Stable Diffusion image generation                                                                                                              |
+| 🎙️ Multimodal               | **Multimodal fusion embedding** — text and images in documents are fused into unified vectors, enabling text-to-image and image-to-text retrieval (Aliyun Bailian / Volcengine Ark vision embedding models); ASR speech recognition, TTS speech synthesis, OCR image recognition, Stable Diffusion image generation |
 | 🔒 Security & Permissions    | Fine-grained permissions (application / knowledge base / tool / model) based on Sa-Token; audit logs; groovy-sandbox for safe script execution                                                                      |
 | 🌱 Ecosystem Extensions      | Dozens of pre-built agent templates (customer service assistant, data analyst, code mentor…); plugin marketplace: MySQL / PostgreSQL / MongoDB connectors, Feishu / DingTalk / WeCom integrations, web search tools |
 
@@ -63,6 +63,7 @@ Enterprises face four common challenges when adopting LLM applications, and MaxK
 | Visual workflow + Multi-Agent        |              ✅              |      ✅      |   ⚠️   |     ⚠️     |   ⚠️    |
 | Triggers (Cron / Webhook)            |              ✅              |      ✅      |   ⚠️   |     ⚠️     |   ⚠️    |
 | Multimodal (ASR / TTS / OCR)         |              ✅              |     ⚠️      |   ✅    |     ⚠️     |    ✅    |
+| Text + image fusion embedding        |              ✅              |     ⚠️      |   ⚠️   |     ⚠️     |    ⚠️    |
 | MCP protocol / OpenAI-compatible API |              ✅              |      ✅      |   ✅    |     ✅      |    ✅    |
 
 > Note: this table is a capability-orientation comparison for selection reference. Evaluate with your own scenarios via
@@ -140,7 +141,7 @@ servers, no proxy needed, auto-scaling).
 | Category       | Tech                                                    |
 |:---------------|:--------------------------------------------------------|
 | Backend        | Java 21, Spring Boot 3, Virtual Threads, Sa-Token       |
-| AI framework   | LangChain4j 1.x, Docling document parsing               |
+| AI framework   | LangChain4j 1.x, Docling document parsing, Volcengine Ark SDK |
 | Storage        | PostgreSQL 15 + pgvector, MongoDB 6.0+, Caffeine cache  |
 | Frontend       | Element Plus,Vue 3, Node.js v20.16.0                    |
 | Script sandbox | groovy-sandbox                                          |
