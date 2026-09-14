@@ -18,10 +18,8 @@ import dev.langchain4j.model.output.TokenUsage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static com.alibaba.dashscope.embeddings.TextEmbedding.Models.TEXT_EMBEDDING_V1;
 import static com.alibaba.dashscope.embeddings.TextEmbedding.Models.TEXT_EMBEDDING_V2;
@@ -45,25 +43,20 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
         this.modelName = Utils.isNullOrBlank(modelName) ? QwenModelName.TEXT_EMBEDDING_V3 : modelName;
         this.apiKey = apiKey;
         this.dimension = ensureDimension(this.modelName, dimension);
-        this.embedding = Utils.isNullOrBlank(baseUrl) ? new MultiModalEmbedding() : new MultiModalEmbedding(baseUrl);
+        this.embedding = new MultiModalEmbedding();
         this.qwenEmbeddingModel = new QwenEmbeddingModel(baseUrl, apiKey, modelName, dimension);
     }
 
     private static boolean isMultimodal(String modelName) {
-        return modelName != null && (modelName.contains("-vl-") || modelName.contains("-version-") || modelName.endsWith("-version"));
+        return modelName != null && (modelName.contains("-vl-") || modelName.contains("-vision-") || modelName.endsWith("-vision"));
     }
 
     private static Embedding toEmbedding(MultiModalEmbeddingOutput output) {
-        List<Float> vector = Optional.ofNullable(output)
-                .map(MultiModalEmbeddingOutput::getEmbedding)
-                .orElse(List.of())
-                .stream()
-                .map(Double::floatValue)
-                .collect(Collectors.toList());
-        if (vector.isEmpty()) {
+        List<MultiModalEmbeddingResultItem> embeddings=output.getEmbeddings();
+        if (embeddings.isEmpty()) {
             throw new IllegalArgumentException("Multi-modal embedding response contains no embedding vector");
         }
-        return Embedding.from(vector);
+        return Embedding.from(embeddings.getFirst().getEmbedding().stream().map(Double::floatValue).toList());
     }
 
     private static Integer ensureDimension(String modelName, Integer dimension) {
@@ -110,7 +103,7 @@ public class QwenMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel {
                     MultiModalEmbeddingResult generationResult = this.embedding.call(builder.build());
                     Embedding embedding = toEmbedding(generationResult.getOutput());
                     embeddings.add(embedding);
-                    tokenCount = tokenCount + generationResult.getUsage().getTotalUsage();
+                    tokenCount = tokenCount + generationResult.getUsage().getInputTokens();
                 } catch (NoApiKeyException | UploadFileException e) {
                     throw new IllegalArgumentException(e);
                 }

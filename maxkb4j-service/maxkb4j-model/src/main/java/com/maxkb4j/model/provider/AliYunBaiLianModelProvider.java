@@ -30,6 +30,12 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
 
     private static final String BASE_URL = BaseUrl.ALI_YUN_BAI_LIAN;
 
+    /**
+     * OpenAI 兼容模式地址后缀，需要转换为 DashScope 原生地址后缀
+     */
+    private static final String COMPATIBLE_MODE_SUFFIX = "/compatible-mode/v1";
+    private static final String NATIVE_SUFFIX = "/api/v1";
+
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(ModelName.QWEN_3_7_PLUS, "", ModelType.LLM),
             new ModelInfo(ModelName.QWEN_3_6_PLUS, "", ModelType.LLM),
@@ -62,6 +68,32 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
         return BASE_URL;
     }
 
+    /**
+     * 获取 DashScope 原生 SDK 使用的 baseUrl
+     * <p>
+     * DashScope 原生 SDK（TextEmbedding / MultiModalEmbedding 等）会把 baseUrl 作为前缀，
+     * 拼接 {@code /services/{taskGroup}/{task}/{function}} 得到最终请求地址，因此必须使用
+     * {@code .../api/v1} 形式。
+     * <p>
+     * 而本 Provider 默认保存/展示的是 OpenAI 兼容模式地址 {@code .../compatible-mode/v1}，
+     * 若直接传给原生 SDK，实际请求会落到
+     * {@code .../compatible-mode/v1/services/embeddings/text-embedding/text-embedding}，
+     * 网关返回 {@code 404 Not Found}。此方法负责把兼容模式地址归一化为原生地址。
+     *
+     * @param baseUrl 用户配置或默认的 baseUrl（可能是 OpenAI 兼容模式地址）
+     * @return DashScope 原生 SDK 可直接使用的 baseUrl
+     */
+    public String getDashScopeBaseUrl(String baseUrl) {
+        String url = getBaseUrl(baseUrl);
+        // 去掉末尾斜杠，避免拼接出 //services
+        while (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
+        }
+        if (url.endsWith(COMPATIBLE_MODE_SUFFIX)) {
+            url = url.substring(0, url.length() - COMPATIBLE_MODE_SUFFIX.length()) + NATIVE_SUFFIX;
+        }
+        return url;
+    }
 
     @Override
     public List<ModelInfo> getModelList() {
@@ -71,7 +103,7 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return QwenMultiModalEmbeddingModel.builder()
-                .baseUrl(getBaseUrl(credential.getBaseUrl()))
+                .baseUrl(getDashScopeBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .dimension(getIntParam(params, ParamKey.DIMENSIONS))

@@ -9,7 +9,6 @@ import com.maxkb4j.knowledge.vo.TextChunkVO;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.message.Content;
-import dev.langchain4j.data.message.ContentType;
 import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.data.segment.TextSegment;
@@ -32,7 +31,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.sql.DataSource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
@@ -138,30 +140,21 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
      */
     private void processBatchWithRetry(EmbeddingModel model, EmbeddingStore<TextSegment> store, List<EmbeddingEntity> batch) {
         Exception lastException = null;
-        Set<ContentType> contentTypes = model.supportedContentTypes();
         for (int attempt = 1; attempt <= retryTimes; attempt++) {
             try {
                 List<TextSegment> textSegments = batch.stream().map(this::toTextSegment).toList();
                 List<EmbeddingInput> inputs = new ArrayList<>();
-                if (contentTypes.contains(ContentType.IMAGE)) {
-                    textSegments.forEach(segment -> {
-                        String text = segment.text();
-                        inputs.add(EmbeddingInput.from(TextContent.from(text)));
-                    });
-                } else {
-                    textSegments.forEach(segment -> {
-                        String text = segment.text();
-                        List<Content> contents = new ArrayList<>();
-                        contents.add(TextContent.from(text));
-                        List<String> imageUrls = extractImageUrls(text);
-                        for (String imageUrl : imageUrls) {
-                            System.out.println(imageUrl);
-                            contents.add(ImageContent.from(imageUrl, "image/png"));
-                        }
-                        inputs.add(EmbeddingInput.from(contents));
-                    });
-                }
-                EmbeddingResponse res = model.embed(EmbeddingRequest.builder().inputs(inputs).build());
+                textSegments.forEach(segment -> {
+                    String text = segment.text();
+                    List<Content> contents = new ArrayList<>();
+                    contents.add(TextContent.from(text));
+                    List<String> imageUrls = extractImageUrls(text);
+                    for (String imageUrl : imageUrls) {
+                        contents.add(ImageContent.from(imageUrl, "image/png"));
+                    }
+                    inputs.add(EmbeddingInput.from(contents));
+                });
+                EmbeddingResponse res = model.doEmbed(EmbeddingRequest.builder().inputs(inputs).build());
                 store.addAll(res.embeddings(), textSegments);
                 return;
             } catch (Exception e) {

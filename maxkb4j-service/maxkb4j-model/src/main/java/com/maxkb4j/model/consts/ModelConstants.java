@@ -54,7 +54,15 @@ public interface ModelConstants {
      */
     interface BaseUrl {
         String OPENAI = "https://api.openai.com/v1";
+        /**
+         * 阿里百炼 OpenAI 兼容模式地址，用于 ChatModel / ImageModel 等 OpenAI 协议客户端
+         */
         String ALI_YUN_BAI_LIAN = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+        /**
+         * 阿里百炼 DashScope 原生协议地址，用于 TextEmbedding / MultiModalEmbedding / Reranker 等
+         * DashScope 原生 SDK 客户端（SDK 会在其后拼接 /services/{taskGroup}/{task}/{function}）
+         */
+        String ALI_YUN_BAI_LIAN_NATIVE = "https://dashscope.aliyuncs.com/api/v1";
         String ANTHROPIC = "https://api.anthropic.com";
         String DEEP_SEEK = "https://api.deepseek.com/v1";
         String KIMI = "https://api.moonshot.cn/v1";

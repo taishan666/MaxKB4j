@@ -55,7 +55,7 @@ public class OpenAiMultiModalEmbeddingModel extends DimensionAwareEmbeddingModel
     }
 
     private static boolean isMultimodal(String modelName) {
-        return modelName != null && (modelName.contains("-vl-") || modelName.contains("-version-") || modelName.endsWith("-version"));
+        return modelName != null && (modelName.contains("-vl-") || modelName.contains("-vision-") || modelName.endsWith("-vision"));
     }
 
     private static Embedding toEmbedding(MultimodalEmbedding multimodalEmbedding) {
