@@ -47,14 +47,22 @@ public class GlobalExceptionHandler {
     public R<String> handleNotLogin(NotLoginException e, HttpServletResponse response) {
         log.error("未登录异常: {}", e.getMessage());
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
-        return R.fail(401, e.getMessage());
+        return R.fail(500, e.getMessage());
     }
 
     @ExceptionHandler(UserIdentityException.class)
     @ResponseBody
     public R<String> handleException(UserIdentityException e, HttpServletResponse response) {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
-        return R.fail(401, e.getMessage());
+        return R.fail(500, e.getMessage());
+    }
+
+    @ExceptionHandler(SaJwtException.class)
+    @ResponseBody
+    public R<String> handleSaJwtException(SaJwtException e, HttpServletResponse response) {
+        log.error("SaJwt 异常: {}", e.getMessage());
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
+        return R.fail(500, e.getMessage());
     }
 
     @ExceptionHandler(NotPermissionException.class)
@@ -64,15 +72,6 @@ public class GlobalExceptionHandler {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 设置HTTP状态码为403
         return R.fail(403, e.getMessage());
     }
-
-    @ExceptionHandler(SaJwtException.class)
-    @ResponseBody
-    public R<String> handleSaJwtException(SaJwtException e, HttpServletResponse response) {
-        log.error("SaJwt 异常: {}", e.getMessage());
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
-        return R.fail(401, e.getMessage());
-    }
-
 
     @ExceptionHandler(BadPaddingException.class)
     @ResponseBody

@@ -49,7 +49,12 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/chat/api/historical_conversation/clear");
         // 用户身份解析（填充 UserContext，供业务层获取当前用户；order=1 保证晚于 authInterceptor 解析 USER 会话）
         registry.addInterceptor(userIdentityInterceptor)
-                .addPathPatterns("/**")
+                .addPathPatterns("/admin/api/**","/chat/api/**")
+                .excludePathPatterns("/admin/api/profile",
+                        "/admin/api/user/login",
+                        "/admin/api/user/captcha",
+                        "/admin/api/user/send_email",
+                        "/admin/api/user/check_code")
                 .order(1);
     }
 

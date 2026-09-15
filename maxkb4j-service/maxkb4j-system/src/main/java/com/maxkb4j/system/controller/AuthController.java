@@ -35,8 +35,8 @@ public class AuthController {
     private final PasswordService passwordService;
 
     @PostMapping("/user/login")
-    public R<String> login(@Valid @RequestBody UserLoginDTO dto, HttpServletRequest request) {
-        return R.data(userService.login(dto, request));
+    public R<Map<String,String>> login(@Valid @RequestBody UserLoginDTO dto, HttpServletRequest request) {
+        return R.data(Map.of("token",userService.login(dto, request)));
     }
 
     @GetMapping("/user/captcha")

@@ -48,7 +48,7 @@ public class UserIdentityInterceptor implements HandlerInterceptor {
             }
         } catch (Exception e) {
             // 身份解析失败不应影响请求处理,降级为"未登录"上下文
-            log.debug("解析用户身份失败,降级为未登录: {}", e.getMessage());
+            log.error("解析用户身份失败,降级为未登录: {}", e.getMessage());
         }
         return true;
     }

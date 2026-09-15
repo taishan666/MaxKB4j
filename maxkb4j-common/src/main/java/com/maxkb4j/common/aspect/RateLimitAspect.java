@@ -97,8 +97,6 @@ public class RateLimitAspect {
         try {
             Object adminId = StpKit.ADMIN.getLoginIdDefaultNull();
             if (adminId != null) return "admin:" + adminId;
-            Object userId = StpKit.USER.getLoginIdDefaultNull();
-            if (userId != null) return "user:" + userId;
         } catch (Exception ignored) {
         }
         return "ip:" + resolveClientIp();
