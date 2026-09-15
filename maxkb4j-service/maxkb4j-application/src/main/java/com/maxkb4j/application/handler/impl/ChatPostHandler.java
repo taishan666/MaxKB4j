@@ -84,7 +84,7 @@ public class ChatPostHandler implements PostResponseHandler {
         chatRecordEntity.setChatId(chatParams.getChatId());
         chatRecordEntity.setProblemText(chatParams.getMessage());
         chatRecordEntity.setAnswerTextList(chatResponse.getAnswerTextList());
-        chatRecordEntity.setAnswerText("");
+        chatRecordEntity.setAnswerText(chatResponse.getAnswer());
         chatRecordEntity.setDetails(chatResponse.getRunDetails());
         chatRecordEntity.setImproveParagraphIdList(List.of());
         chatRecordEntity.setMessageTokens(messageTokens);
