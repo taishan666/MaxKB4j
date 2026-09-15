@@ -10,11 +10,13 @@ import com.maxkb4j.application.vo.ApplicationAccessTokenVO;
 import com.maxkb4j.application.vo.ApplicationListVO;
 import com.maxkb4j.application.vo.ApplicationStatisticsVO;
 import com.maxkb4j.application.vo.ApplicationVO;
+import com.maxkb4j.common.annotation.RateLimit;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.MessageDTO;
 import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.common.enums.RateLimitKeyType;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.tool.service.IToolService;
 import com.maxkb4j.tool.vo.McpToolVO;
@@ -57,6 +59,7 @@ public class ApplicationController {
         return R.data(applicationService.listApps(folderId));
     }
 
+    @RateLimit(limit = 5, window = 10, keyType = RateLimitKeyType.USER)
     @SaCheckPerm(PermissionEnum.APPLICATION_CREATE)
     @PostMapping("/application")
     public R<ApplicationVO> createApp(@Valid @RequestBody ApplicationDTO application) {

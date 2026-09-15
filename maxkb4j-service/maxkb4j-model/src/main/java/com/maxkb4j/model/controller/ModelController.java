@@ -1,10 +1,12 @@
 package com.maxkb4j.model.controller;
 
 import com.alibaba.fastjson.JSONArray;
+import com.maxkb4j.common.annotation.RateLimit;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.common.enums.RateLimitKeyType;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.core.support.permission.DataPermissionSupport;
 import com.maxkb4j.model.dto.ModelCreateDTO;
@@ -36,6 +38,7 @@ public class ModelController {
     private final IModelInternalService modelService;
     private final DataPermissionSupport dataPermissionSupport;
 
+    @RateLimit(limit = 5, window = 10, keyType = RateLimitKeyType.USER)
     @SaCheckPerm(PermissionEnum.MODEL_CREATE)
     @PostMapping(ApiPath.MODEL)
     public R<Boolean> createModel(@Valid @RequestBody ModelCreateDTO dto) {

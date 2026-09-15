@@ -2,11 +2,13 @@ package com.maxkb4j.tool.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.annotation.CurrentUserId;
+import com.maxkb4j.common.annotation.RateLimit;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.MessageDTO;
 import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.common.enums.RateLimitKeyType;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.tool.consts.ToolConstants;
@@ -61,6 +63,7 @@ public class ToolController {
         return R.data(Map.of("shared_tools", List.of(), "tools", toolService.toolList(scope, toolType)));
     }
 
+    @RateLimit(limit = 5, window = 10, keyType = RateLimitKeyType.USER)
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)
     @PostMapping("/tool/{templateId}/add_internal_tool")
     public R<ToolVO> addInternalTool(@PathVariable String templateId, @RequestBody ToolSaveDTO dto, @CurrentUserId String userId) {
@@ -81,6 +84,7 @@ public class ToolController {
         return R.data(BeanUtil.copy(entity, ToolVO.class));
     }
 
+    @RateLimit(limit = 5, window = 10, keyType = RateLimitKeyType.USER)
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)
     @PostMapping("/tool")
     public R<ToolVO> toolLib(@RequestBody ToolSaveDTO dto, @CurrentUserId String userId) {

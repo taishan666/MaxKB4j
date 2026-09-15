@@ -3,9 +3,11 @@ package com.maxkb4j.knowledge.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.maxkb4j.common.annotation.RateLimit;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.enums.RateLimitKeyType;
 import com.maxkb4j.model.form.BaseField;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.util.BeanUtil;
@@ -68,6 +70,7 @@ public class KnowledgeController {
         return R.data(ke == null ? null : BeanUtil.copy(ke, KnowledgeVO.class));
     }
 
+    @RateLimit(limit = 5, window = 10, keyType = RateLimitKeyType.USER)
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/web")
     public R<KnowledgeVO> createKnowledgeWeb(@RequestBody WebKnowledgeDTO knowledge) {

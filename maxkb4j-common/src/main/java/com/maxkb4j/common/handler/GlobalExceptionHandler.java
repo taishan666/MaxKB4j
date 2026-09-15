@@ -202,6 +202,15 @@ public class GlobalExceptionHandler {
         return R.fail(1002, e.getMessage());
     }
 
+    /**
+     * 接口限流超出，返回 HTTP 429 Too Many Requests
+     */
+    @ExceptionHandler(RateLimitExceededException.class)
+    @ResponseBody
+    public R<String> handleRateLimitExceeded(RateLimitExceededException e, HttpServletResponse response) {
+        response.setStatus(429);
+        return R.fail(429, e.getMessage());
+    }
 
     @ExceptionHandler(AuthenticationException.class)
     @ResponseBody
