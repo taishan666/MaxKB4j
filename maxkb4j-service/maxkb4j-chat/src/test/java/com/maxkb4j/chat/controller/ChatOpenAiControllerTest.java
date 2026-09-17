@@ -3,6 +3,7 @@ package com.maxkb4j.chat.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.dto.ApplicationApiKeyDTO;
 import com.maxkb4j.application.dto.ChatResponse;
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.application.service.IApplicationApiKeyService;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.chat.filter.ChatCompletionsStreamRoutingFilter;
@@ -18,7 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import reactor.core.publisher.Sinks;
 
 import java.util.List;
 
@@ -83,8 +83,8 @@ class ChatOpenAiControllerTest {
     @Test
     void streamTrue_wildcardAccept_routesToSse() throws Exception {
         doAnswer(invocation -> {
-            Sinks.Many<ChatMessageVO> sink = invocation.getArgument(2);
-            sink.tryEmitError(new RateLimitException("rate limit hit"));
+            ResultCallback<ChatMessageVO> callback = invocation.getArgument(2);
+            callback.onError(new RateLimitException("rate limit hit"));
             return null;
         })
                 .when(chatService).chatMessageAsync(any(ChatParams.class), any(ChatState.class), any());
@@ -122,8 +122,8 @@ class ChatOpenAiControllerTest {
     @Test
     void streamTrue_conflictingJsonAccept_stillStreams() throws Exception {
         doAnswer(invocation -> {
-            Sinks.Many<ChatMessageVO> sink = invocation.getArgument(2);
-            sink.tryEmitError(new RateLimitException("rate limit hit"));
+            ResultCallback<ChatMessageVO> callback = invocation.getArgument(2);
+            callback.onError(new RateLimitException("rate limit hit"));
             return null;
         })
                 .when(chatService).chatMessageAsync(any(ChatParams.class), any(ChatState.class), any());

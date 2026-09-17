@@ -3,13 +3,13 @@ package com.maxkb4j.application.controller;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.application.service.IApplicationChatInternalService;
-import com.maxkb4j.common.api.R;
-import com.maxkb4j.common.constant.LoginType;
-import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatState;
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.annotation.CurrentUserId;
+import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.constant.LoginType;
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.util.WebUtil;
@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
 
 
 /**
@@ -48,25 +47,25 @@ public class ChatMessageController {
                 .ipAddress(WebUtil.getIP())
                 .debug(true)
                 .build();
-        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
-        ResultCallback<ChatMessageVO> callback= new ResultCallback<>() {
-            @Override
-            public void onEvent(ChatMessageVO message) {
-                sink.tryEmitNext(message);
-            }
+        return Flux.create(sink -> {
+            ResultCallback<ChatMessageVO> callback= new ResultCallback<>() {
+                @Override
+                public void onEvent(ChatMessageVO message) {
+                    sink.next(message);
+                }
 
-            @Override
-            public void onComplete() {
-                sink.tryEmitComplete();
-            }
+                @Override
+                public void onComplete() {
+                    sink.complete();
+                }
 
-            @Override
-            public void onError(Throwable e) {
-                sink.tryEmitError(e);
-            }
-        };
-        // 异步执行业务逻辑
-        chatService.chatMessageAsync(params, chatState, callback);
-        return sink.asFlux();
+                @Override
+                public void onError(Throwable e) {
+                    sink.error(e);
+                }
+            };
+            // 异步执行业务逻辑
+            chatService.chatMessageAsync(params, chatState, callback);
+        });
     }
 }

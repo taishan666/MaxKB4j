@@ -12,7 +12,11 @@ import com.maxkb4j.chat.dto.OpenAIChatCompletionResponse;
 import com.maxkb4j.chat.dto.OpenAIMessage;
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.dto.*;
+import com.maxkb4j.common.domain.dto.ChatInfo;
+import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatRecordDTO;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
@@ -33,7 +37,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Tag(name = "MaxKB4J兼容 OpenAI API 格式")
 @RestController
@@ -42,11 +48,18 @@ import java.util.UUID;
 @Slf4j
 public class ChatOpenAiController {
 
+    private static final String DEFAULT_MODEL_NAME = "gpt-5.4";
+    private static final String DONE_SIGNAL = "[DONE]";
+    private static final String ROLE_USER = "user";
+    private static final String ROLE_ASSISTANT = "assistant";
+    /**
+     * 相邻信号间的空闲超时：超时后流按错误收尾，避免连接无限挂起。
+     */
+    private static final Duration STREAM_IDLE_TIMEOUT = Duration.ofMinutes(10);
+
     private final IApplicationChatService chatService;
 
     private final IApplicationApiKeyService apiKeyService;
-
-    private final String DEFAULT_MODEL_NAME = "gpt-5.4";
 
     /**
      * 取 messages 中最后一个 user 消息之前的 user/assistant 轮次，转换为内部聊天记录；
@@ -54,60 +67,68 @@ public class ChatOpenAiController {
      */
     static List<ChatRecordDTO> buildHistoryRecords(List<OpenAIMessage> messages) {
         List<ChatRecordDTO> history = new ArrayList<>();
-        if (messages == null || messages.size() < 2) {
+        if (messages == null) {
             return history;
         }
-        int lastUserIndex = -1;
-        for (int i = messages.size() - 1; i >= 0; i--) {
-            OpenAIMessage msg = messages.get(i);
-            if (msg != null && "user".equals(msg.getRole())) {
-                lastUserIndex = i;
-                break;
-            }
-        }
-        if (lastUserIndex <= 0) {
-            return history;
-        }
-        for (int i = 0; i < lastUserIndex; i++) {
-            OpenAIMessage msg = messages.get(i);
-            if (msg == null || !"user".equals(msg.getRole())) {
+        OpenAIMessage pendingUserMessage = null;
+        for (OpenAIMessage message : messages) {
+            if (message == null) {
                 continue;
             }
-            String answer = "";
-            for (int j = i + 1; j < messages.size(); j++) {
-                OpenAIMessage next = messages.get(j);
-                if (next != null && "assistant".equals(next.getRole())) {
-                    answer = next.getContent();
-                    break;
+            if (ROLE_USER.equals(message.getRole())) {
+                // 上一条 user 未得到回答：按空回答落一条记录，保持轮次完整
+                if (pendingUserMessage != null) {
+                    history.add(newRecord(pendingUserMessage, null));
                 }
+                pendingUserMessage = message;
+            } else if (ROLE_ASSISTANT.equals(message.getRole()) && pendingUserMessage != null) {
+                history.add(newRecord(pendingUserMessage, message));
+                pendingUserMessage = null;
             }
-            ChatRecordDTO record = new ChatRecordDTO();
-            record.setProblemText(msg.getContent());
-            record.setAnswerText(answer);
-            history.add(record);
         }
+        // 循环结束后仍挂起的 user 消息即当前问题，不纳入历史
         return history;
+    }
+
+    private static ChatRecordDTO newRecord(OpenAIMessage problem, OpenAIMessage answer) {
+        ChatRecordDTO record = new ChatRecordDTO();
+        record.setProblemText(problem.getContent());
+        record.setAnswerText(answer != null ? answer.getContent() : "");
+        return record;
     }
 
     @Operation(summary = "聊天对话", description = "兼容 OpenAI Chat Completions API 格式")
     @PostMapping(value = "/{appId}/chat/completions", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> chatCompletionStream(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
-        authenticate();
+        authenticate(appId);
         PreparedChat prepared = prepareChat(appId, request);
         return handleStreamResponse(request, prepared.params(), prepared.chatState());
     }
 
     @Operation(summary = "聊天对话", description = "兼容 OpenAI Chat Completions API 格式")
     @PostMapping(value = "/{appId}/chat/completions", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<OpenAIChatCompletionResponse> chatCompletionSync(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
-        authenticate();
+    public ResponseEntity<String> chatCompletionSync(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
+        authenticate(appId);
         PreparedChat prepared = prepareChat(appId, request);
         return handleSyncResponse(request, prepared.params(), prepared.chatState());
     }
 
     /**
+     * 通过 Authorization Bearer secretKey 认证；API Key 按应用签发，
+     * 须与路径中的 appId 匹配，防止跨应用越权调用。
+     */
+    private void authenticate(String appId) {
+        String secretKey = WebUtil.getTokenValue();
+        ApplicationApiKeyDTO apiKey = apiKeyService.getBySecretKey(secretKey);
+        if (apiKey == null || !Boolean.TRUE.equals(apiKey.getIsActive())
+                || !Objects.equals(apiKey.getApplicationId(), appId)) {
+            throw new ApiException("chat.token.invalid.or.disabled");
+        }
+    }
+
+    /**
      * Prepare the shared request context: open a chat session, seed conversation history,
-     * and build ChatParams / ChatState / the callback and flux used by the business execution.
+     * and build ChatParams / ChatState used by the business execution.
      */
     private PreparedChat prepareChat(String appId, OpenAIChatCompletionRequest request) {
         String chatId = chatService.chatOpen(appId, false);
@@ -122,17 +143,6 @@ public class ChatOpenAiController {
                 .debug(false)
                 .build();
         return new PreparedChat(params, chatState);
-    }
-
-    /**
-     * Authenticate the request via the Authorization Bearer secretKey.
-     */
-    private void authenticate() {
-        String secretKey = WebUtil.getTokenValue();
-        ApplicationApiKeyDTO apiKey = apiKeyService.getBySecretKey(secretKey);
-        if (apiKey == null || !Boolean.TRUE.equals(apiKey.getIsActive())) {
-            throw new ApiException("chat.token.invalid.or.disabled");
-        }
     }
 
     /**
@@ -152,9 +162,21 @@ public class ChatOpenAiController {
      */
     private Flux<ServerSentEvent<String>> handleStreamResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatState) {
         String completionId = generateCompletionId();
-        String model = StringUtils.isNotBlank(request.getModel()) ? request.getModel() : DEFAULT_MODEL_NAME;
+        String model = resolveModelName(request);
         Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
-        ResultCallback<ChatMessageVO> callback = new ResultCallback<>() {
+        // 异步执行业务逻辑；订阅前的消息由 sink 缓冲
+        chatService.chatMessageAsync(params, chatState, buildSinkCallback(sink));
+
+        return sink.asFlux()
+                .timeout(STREAM_IDLE_TIMEOUT)
+                .map(chatMessage -> toChunkEvent(completionId, model, chatMessage))
+                .concatWithValues(doneEvent())
+                .doOnError(error -> log.error("OpenAI 兼容接口流式响应异常", error))
+                .onErrorResume(e -> Flux.just(errorEvent(e), doneEvent()));
+    }
+
+    private ResultCallback<ChatMessageVO> buildSinkCallback(Sinks.Many<ChatMessageVO> sink) {
+        return new ResultCallback<>() {
             @Override
             public void onEvent(ChatMessageVO message) {
                 sink.tryEmitNext(message);
@@ -170,63 +192,25 @@ public class ChatOpenAiController {
                 sink.tryEmitError(e);
             }
         };
-        // 异步执行业务逻辑
-        chatService.chatMessageAsync(params, chatState, callback);
-
-        return sink.asFlux()
-                .timeout(Duration.ofMinutes(10))
-                .map(chatMessage -> {
-                    OpenAIChatCompletionResponse chunk = OpenAIChatCompletionResponse.createChunk(
-                            completionId,
-                            model,
-                            0,
-                            chatMessage.getContent(),
-                            Boolean.TRUE.equals(chatMessage.getIsEnd()) ? "stop" : null
-                    );
-                    return ServerSentEvent.<String>builder()
-                            .data(toJson(chunk))
-                            .build();
-                })
-                .concatWith(Flux.just(
-                        ServerSentEvent.<String>builder()
-                                .data("[DONE]")
-                                .build()
-                ))
-                .doOnError(error -> log.error("Stream error: {}", error.getMessage(), error))
-                .onErrorResume(e -> Flux.just(
-                        ServerSentEvent.<String>builder()
-                                .data(toJson(Map.of(
-                                        "error", Map.of(
-                                                "message", buildErrorMessage(e),
-                                                "type", "server_error"
-                                        )
-                                )))
-                                .build(),
-                        ServerSentEvent.<String>builder()
-                                .data("[DONE]")
-                                .build()
-                ));
     }
 
     /**
      * 处理同步响应
      */
-    private ResponseEntity<OpenAIChatCompletionResponse> handleSyncResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatState) {
+    private ResponseEntity<String> handleSyncResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatState) {
         ChatResponse chatResponse = chatService.chatMessage(params, chatState, null);
-        String completionId = generateCompletionId();
-        String model = StringUtils.isNotBlank(request.getModel()) ? request.getModel() : DEFAULT_MODEL_NAME;
-
         OpenAIChatCompletionResponse response = OpenAIChatCompletionResponse.createCompletion(
-                completionId,
-                model,
+                generateCompletionId(),
+                resolveModelName(request),
                 chatResponse.getAnswer(),
                 chatResponse.getMessageTokens(),
                 chatResponse.getAnswerTokens()
         );
-
+        // 与流式路径一致使用 fastjson 序列化，保证 finish_reason / prompt_tokens 等
+        // snake_case 字段输出符合 OpenAI 规范（Spring 默认的 Jackson 不识别 @JSONField）
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(response);
+                .body(toJson(response));
     }
 
     /**
@@ -239,10 +223,50 @@ public class ChatOpenAiController {
             return;
         }
         ChatInfo chatInfo = ChatCache.get(chatId);
-        if (chatInfo != null) {
-            chatInfo.setChatRecordList(history);
-            ChatCache.put(chatId, chatInfo);
+        if (chatInfo == null) {
+            log.warn("会话缓存未命中，丢弃请求携带的历史消息 chatId={}", chatId);
+            return;
         }
+        // ChatInfo.chatRecordList 供流水线异步线程并发读写，必须保持 CopyOnWriteArrayList，
+        // 不能整体 set 覆盖；缓存持有的是同一引用，追加后无需重新 put
+        List<ChatRecordDTO> chatRecordList = chatInfo.getChatRecordList();
+        if (chatRecordList != null) {
+            chatRecordList.addAll(history);
+        } else {
+            chatInfo.setChatRecordList(new CopyOnWriteArrayList<>(history));
+        }
+    }
+
+    private ServerSentEvent<String> toChunkEvent(String completionId, String model, ChatMessageVO chatMessage) {
+        OpenAIChatCompletionResponse chunk = OpenAIChatCompletionResponse.createChunk(
+                completionId,
+                model,
+                0,
+                chatMessage.getContent(),
+                Boolean.TRUE.equals(chatMessage.getIsEnd()) ? "stop" : null
+        );
+        return sse(toJson(chunk));
+    }
+
+    private ServerSentEvent<String> errorEvent(Throwable e) {
+        return sse(toJson(Map.of(
+                "error", Map.of(
+                        "message", buildErrorMessage(e),
+                        "type", "server_error"
+                )
+        )));
+    }
+
+    private ServerSentEvent<String> doneEvent() {
+        return sse(DONE_SIGNAL);
+    }
+
+    private ServerSentEvent<String> sse(String data) {
+        return ServerSentEvent.<String>builder().data(data).build();
+    }
+
+    private String resolveModelName(OpenAIChatCompletionRequest request) {
+        return StringUtils.isNotBlank(request.getModel()) ? request.getModel() : DEFAULT_MODEL_NAME;
     }
 
     private String buildErrorMessage(Throwable throwable) {

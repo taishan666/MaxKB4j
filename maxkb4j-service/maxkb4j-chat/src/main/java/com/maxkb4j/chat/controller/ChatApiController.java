@@ -35,7 +35,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
-import reactor.core.publisher.Sinks;
+import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.util.Map;
@@ -109,26 +109,26 @@ public class ChatApiController {
                 .debug(false)
                 .build();
         if (Boolean.TRUE.equals(params.getStream())) {
-            Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
-            ResultCallback<ChatMessageVO> callback= new ResultCallback<>() {
-                @Override
-                public void onEvent(ChatMessageVO message) {
-                    sink.tryEmitNext(message);
-                }
+            return Flux.create(sink -> {
+                ResultCallback<ChatMessageVO> callback= new ResultCallback<>() {
+                    @Override
+                    public void onEvent(ChatMessageVO message) {
+                        sink.next(message);
+                    }
 
-                @Override
-                public void onComplete() {
-                    sink.tryEmitComplete();
-                }
+                    @Override
+                    public void onComplete() {
+                        sink.complete();
+                    }
 
-                @Override
-                public void onError(Throwable e) {
-                    sink.tryEmitError(e);
-                }
-            };
-            // 异步执行业务逻辑
-            chatService.chatMessageAsync(params, chatState, callback);
-            return sink.asFlux();
+                    @Override
+                    public void onError(Throwable e) {
+                        sink.error(e);
+                    }
+                };
+                // 异步执行业务逻辑
+                chatService.chatMessageAsync(params, chatState, callback);
+            });
         } else {
             ChatResponse chatResponse = chatService.chatMessage(params, chatState, null);
             return ResponseEntity.ok()
