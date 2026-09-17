@@ -1,8 +1,8 @@
 package com.maxkb4j.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.dto.Answer;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.vo.Answer;
+import com.maxkb4j.common.domain.vo.ChatMessageVO;
 
 import java.util.List;
 

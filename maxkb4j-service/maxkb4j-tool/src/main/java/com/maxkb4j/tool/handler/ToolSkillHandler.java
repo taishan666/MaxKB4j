@@ -132,7 +132,7 @@ public class ToolSkillHandler {
     public SkillFileVO uploadSkillFile(MultipartFile file) throws IOException {
         byte[] zipBytes = file.getBytes();
         Map<String, String> meta = SkillsToolUtil.parseSkillMeta(zipBytes);
-        String fileId = ossService.storeFile(file);
+        String fileId = ossService.storeFile(file.getBytes(),file.getOriginalFilename(), file.getContentType());
         SkillFileVO vo = new SkillFileVO();
         vo.setFileId(fileId);
         vo.setName(meta.get("name"));

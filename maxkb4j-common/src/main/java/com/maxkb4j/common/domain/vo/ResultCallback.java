@@ -1,4 +1,4 @@
-package com.maxkb4j.application.dto;
+package com.maxkb4j.common.domain.vo;
 
 public abstract class ResultCallback<T>  {
 

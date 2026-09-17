@@ -1,7 +1,7 @@
 package com.maxkb4j.workflow.node;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.dto.Answer;
+import com.maxkb4j.common.domain.vo.Answer;
 import org.junit.jupiter.api.Test;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;

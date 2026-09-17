@@ -1,8 +1,7 @@
 package com.maxkb4j.knowledge.vo;
 
 import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.maxkb4j.common.domain.RagContent;
+import com.maxkb4j.common.domain.vo.RagContent;
 import com.maxkb4j.knowledge.consts.HitHandlingMethod;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,9 +12,7 @@ public class ParagraphRagVO extends RagContent {
     private String id;
     private Boolean isActive;
     private Double similarity;
-    @JsonIgnore
     private String hitHandlingMethod;
-    @JsonIgnore
     private Double directlyReturnSimilarity;
     private String documentId;
     private JSONObject meta;

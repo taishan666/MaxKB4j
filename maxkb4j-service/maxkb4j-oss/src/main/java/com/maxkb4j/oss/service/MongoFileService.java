@@ -48,7 +48,7 @@ public class MongoFileService implements IOssService {
     }
 
     public String uploadAndGetFileUrl(MultipartFile file) throws IOException {
-        String fileId = storeFile(file);
+        String fileId = storeFile(file.getBytes(),file.getOriginalFilename(),file.getContentType());
         return buildFileUrl(fileId);
     }
 

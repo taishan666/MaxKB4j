@@ -2,7 +2,6 @@ package com.maxkb4j.knowledge.dto;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import lombok.Data;
 
 @Data
@@ -18,8 +17,8 @@ public class ParagraphDTO {
     private Integer position;
     private JSONObject meta;
 
-    public ParagraphDTO(String knowledgeId, String documentId, String title, String content, Integer position) {
-        this.id = IdWorker.get32UUID();
+    public ParagraphDTO(String id,String knowledgeId, String documentId, String title, String content, Integer position) {
+        this.id = id;
         this.title = title == null ? "" : title;
         this.content = content == null ? "" : content;
         this.status = "nn0";

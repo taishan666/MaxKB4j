@@ -14,11 +14,6 @@
     <packaging>jar</packaging>
 
     <dependencies>
-        <!-- WebFlux for reactive streams (Project Reactor) -->
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-core</artifactId>
-        </dependency>
         <!-- IApplicationChatService 等接口分页签名使用 IPage -->
         <dependency>
             <groupId>com.baomidou</groupId>

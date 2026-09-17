@@ -96,7 +96,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
 
     @Transactional(rollbackFor = Exception.class)
     public boolean saveParagraphAndProblem(String knowledgeId, String docId, ParagraphAddDTO addDTO) {
-        ParagraphDTO paragraph = new ParagraphDTO(knowledgeId, docId, addDTO.getTitle(), addDTO.getContent(), addDTO.getPosition());
+        ParagraphDTO paragraph = new ParagraphDTO(IdWorker.get32UUID(),knowledgeId, docId, addDTO.getTitle(), addDTO.getContent(), addDTO.getPosition());
         List<ProblemDTO> problemList = addDTO.getProblemList();
         List<String> problems = new ArrayList<>();
         if (!CollectionUtils.isEmpty(problemList)) {

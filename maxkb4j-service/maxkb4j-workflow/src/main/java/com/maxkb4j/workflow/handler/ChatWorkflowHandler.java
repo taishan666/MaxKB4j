@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.handler;
 
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.model.IChatWorkflow;

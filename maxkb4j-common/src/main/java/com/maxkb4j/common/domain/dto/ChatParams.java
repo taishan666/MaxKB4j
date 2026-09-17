@@ -1,5 +1,6 @@
 package com.maxkb4j.common.domain.dto;
 
+import com.maxkb4j.common.domain.vo.ChildNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

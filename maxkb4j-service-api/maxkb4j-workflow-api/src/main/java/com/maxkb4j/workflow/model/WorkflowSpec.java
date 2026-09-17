@@ -1,10 +1,10 @@
 package com.maxkb4j.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.application.dto.ResultCallback;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
+import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.node.INode;
 import com.maxkb4j.workflow.service.WorkflowFactory;

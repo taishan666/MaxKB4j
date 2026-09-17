@@ -40,7 +40,7 @@ public class DocumentSourceFileService {
     public boolean replace(String docId, MultipartFile file) throws IOException {
         DocumentEntity doc = documentService.getById(docId);
         if (doc == null) return false;
-        String fileId = ossService.storeFile(file);
+        String fileId = ossService.storeFile(file.getBytes(),file.getOriginalFilename(),file.getContentType());
         doc.setMeta(new JSONObject(Map.of(META_ALLOW_DOWNLOAD, true, META_SOURCE_FILE_ID, fileId)));
         return documentService.updateById(doc);
     }

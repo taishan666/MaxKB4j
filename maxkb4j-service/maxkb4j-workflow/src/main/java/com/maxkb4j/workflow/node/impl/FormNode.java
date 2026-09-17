@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.node.impl;
 
-import com.maxkb4j.common.domain.dto.Answer;
+import com.maxkb4j.common.domain.vo.Answer;
 import com.maxkb4j.workflow.annotation.NodeCreatorType;
 import com.maxkb4j.workflow.enums.NodeType;
 

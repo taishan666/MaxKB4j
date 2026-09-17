@@ -1,13 +1,13 @@
 package com.maxkb4j.application.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
-import com.maxkb4j.application.dto.ResultCallback;
+import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.application.service.IApplicationChatInternalService;
 import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatSource;

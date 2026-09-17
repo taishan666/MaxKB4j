@@ -1,9 +1,7 @@
 package com.maxkb4j.workflow.model;
 
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
-import reactor.core.publisher.Sinks;
 
 /**
  * 聊天系工作流契约

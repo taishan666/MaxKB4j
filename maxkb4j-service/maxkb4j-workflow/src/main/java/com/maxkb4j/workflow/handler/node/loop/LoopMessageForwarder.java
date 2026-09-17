@@ -1,9 +1,9 @@
 package com.maxkb4j.workflow.handler.node.loop;
 
-import com.maxkb4j.application.dto.ResultCallback;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.vo.ResultCallback;
+import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.ChildNode;
+import com.maxkb4j.common.domain.vo.ChildNode;
 import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.LoopParams;

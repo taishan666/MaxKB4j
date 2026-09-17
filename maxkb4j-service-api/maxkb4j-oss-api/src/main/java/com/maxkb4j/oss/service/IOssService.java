@@ -1,7 +1,6 @@
 package com.maxkb4j.oss.service;
 
 import com.maxkb4j.common.domain.dto.OssFile;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,8 +12,6 @@ public interface IOssService {
     }
 
     OssFile uploadFile(String fileName, byte[] fileBytes);
-
-    String storeFile(MultipartFile file) throws IOException;
 
     String storeFile(byte[] bytes, String fileName, String contentType);
 

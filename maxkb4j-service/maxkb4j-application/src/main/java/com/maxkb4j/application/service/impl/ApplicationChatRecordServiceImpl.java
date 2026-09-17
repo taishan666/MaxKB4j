@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -177,7 +178,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
         List<ApplicationChatRecordEntity> chatRecords = this.lambdaQuery().select(ApplicationChatRecordEntity::getProblemText, ApplicationChatRecordEntity::getAnswerText).in(ApplicationChatRecordEntity::getChatId, dto.getChatIds()).list();
         List<ParagraphDTO> paragraphs = new ArrayList<>();
         for (ApplicationChatRecordEntity e : chatRecords) {
-            ParagraphDTO paragraphDTO = new ParagraphDTO(dto.getKnowledgeId(), dto.getDocumentId(), e.getProblemText(), e.getAnswerText(), null);
+            ParagraphDTO paragraphDTO = new ParagraphDTO(IdWorker.get32UUID(),dto.getKnowledgeId(), dto.getDocumentId(), e.getProblemText(), e.getAnswerText(), null);
             paragraphs.add(paragraphDTO);
         }
         return paragraphService.saveDtoBatch(paragraphs);
@@ -185,7 +186,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
 
     @Transactional(rollbackFor = Exception.class)
     public ApplicationChatRecordEntity improveChatLog(String chatId, String chatRecordId, String knowledgeId, String docId, ChatImproveDTO dto) {
-        ParagraphDTO paragraphDTO = new ParagraphDTO(knowledgeId, docId, dto.getTitle(), dto.getContent(), null);
+        ParagraphDTO paragraphDTO = new ParagraphDTO(IdWorker.get32UUID(),knowledgeId, docId, dto.getTitle(), dto.getContent(), null);
         paragraphService.saveParagraphAndProblem(paragraphDTO, List.of(dto.getProblemText()));
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
         chatRecord.setId(chatRecordId);

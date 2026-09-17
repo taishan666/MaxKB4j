@@ -3,7 +3,7 @@ package com.maxkb4j.application.pipeline.step.chatstep;
 import com.maxkb4j.application.pipeline.AbsStep;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.vo.ApplicationVO;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.common.util.MessageConverter;
 import com.maxkb4j.knowledge.vo.ParagraphRagVO;

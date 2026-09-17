@@ -1,4 +1,4 @@
-package com.maxkb4j.common.domain.dto;
+package com.maxkb4j.common.domain.vo;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
