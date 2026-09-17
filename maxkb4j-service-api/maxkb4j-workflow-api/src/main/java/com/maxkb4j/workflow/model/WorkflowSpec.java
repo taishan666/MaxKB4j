@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.model;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
@@ -8,7 +9,6 @@ import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.node.INode;
 import com.maxkb4j.workflow.service.WorkflowFactory;
 import lombok.Getter;
-import reactor.core.publisher.Sinks;
 
 import java.util.List;
 import java.util.Objects;
@@ -35,7 +35,7 @@ public final class WorkflowSpec {
     // ---- APPLICATION ----
     private final ChatParams chatParams;
     private final ChatState chatState;
-    private final Sinks.Many<ChatMessageVO> sink;
+    private final ResultCallback<ChatMessageVO> callback;
     // ---- KNOWLEDGE ----
     private final KnowledgeParams knowledgeParams;
     // ---- LOOP ----
@@ -48,7 +48,7 @@ public final class WorkflowSpec {
         this.edges = builder.edges;
         this.chatParams = builder.chatParams;
         this.chatState = builder.chatState;
-        this.sink = builder.sink;
+        this.callback = builder.callback;
         this.knowledgeParams = builder.knowledgeParams;
         this.parent = builder.parent;
         this.loopParams = builder.loopParams;
@@ -96,7 +96,7 @@ public final class WorkflowSpec {
         private LoopParams loopParams;
         private ChatParams chatParams;
         private ChatState chatState;
-        private Sinks.Many<ChatMessageVO> sink;
+        private ResultCallback<ChatMessageVO> callback;
         private JSONObject details;
 
         private Builder(Kind kind, List<INode> nodes, List<LfEdge> edges) {
@@ -115,8 +115,8 @@ public final class WorkflowSpec {
             return this;
         }
 
-        public Builder sink(Sinks.Many<ChatMessageVO> sink) {
-            this.sink = sink;
+        public Builder callback(ResultCallback<ChatMessageVO> callback) {
+            this.callback = callback;
             return this;
         }
 

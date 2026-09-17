@@ -9,10 +9,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.builder.ChatServiceBuilder;
-import com.maxkb4j.application.dto.ApplicationChatDTO;
-import com.maxkb4j.application.dto.ChatQueryDTO;
-import com.maxkb4j.application.dto.ChatResponse;
-import com.maxkb4j.application.dto.ShareChatDTO;
+import com.maxkb4j.application.dto.*;
 import com.maxkb4j.application.entity.*;
 import com.maxkb4j.application.enums.ShareLinkType;
 import com.maxkb4j.application.excel.ChatRecordDetailExcel;
@@ -25,11 +22,7 @@ import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.application.vo.ChatRecordDetailVO;
 import com.maxkb4j.application.vo.ShareChatVO;
 import com.maxkb4j.common.cache.ChatCache;
-import com.maxkb4j.common.domain.dto.ChatInfo;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.ChatRecordDTO;
-import com.maxkb4j.common.domain.dto.ChatState;
+import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.common.exception.AccessNumLimitException;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.BeanUtil;
@@ -104,10 +97,10 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         return chatInfo;
     }
 
-    public ChatResponse chatMessage(ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
+    public ChatResponse chatMessage(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback) {
         long startTime = System.currentTimeMillis();
         if (visitCountOver(chatState)) {
-            sink.tryEmitError(new AccessNumLimitException());
+            callback.onError(new AccessNumLimitException());
             return new ChatResponse(List.of(), null);
         }
         ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatState.getAppId());
@@ -121,14 +114,14 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         }
         ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatState.getDebug());
         if (Objects.isNull(application)) {
-            sink.tryEmitError(new ApiException("application.not.found"));
+            callback.onError(new ApiException("application.not.found"));
             return new ChatResponse(List.of(), null);
         }
         IChatService chatService = ChatServiceBuilder.getChatService(application.getType());
-        ChatResponse chatResponse = chatService.chatMessage(application, chatParams, chatState, sink);
+        ChatResponse chatResponse = chatService.chatMessage(application, chatParams, chatState, callback);
         postResponseHandler.handler(chatParams, chatState, chatResponse, startTime);
-        sink.tryEmitNext(new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true));
-        sink.tryEmitComplete();
+        callback.onEvent(new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true));
+        callback.onComplete();
         return chatResponse;
     }
 
@@ -140,18 +133,15 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
      * 约定：下层（pipeline/workflow）不得先向 sink emit 错误再抛异常，否则会重复收尾。
      * </p>
      */
-    public void chatMessageAsync(ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
+    public void chatMessageAsync(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback) {
         CompletableFuture
-                .runAsync(() -> chatMessage(chatParams, chatState, sink), chatTaskExecutor)
+                .runAsync(() -> chatMessage(chatParams, chatState, callback), chatTaskExecutor)
                 .whenComplete((ignored, throwable) -> {
                     if (throwable == null) {
                         return;
                     }
                     log.error("Async chatMessage failed", throwable);
-                    Sinks.EmitResult result = sink.tryEmitError(throwable);
-                    if (result.isFailure()) {
-                        log.debug("SSE sink already terminated, skip error emit: " + result);
-                    }
+                    callback.onError(throwable);
                 });
     }
 

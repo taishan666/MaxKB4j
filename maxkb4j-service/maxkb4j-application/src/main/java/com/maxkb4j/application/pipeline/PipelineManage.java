@@ -2,18 +2,18 @@ package com.maxkb4j.application.pipeline;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.domain.dto.Answer;
-import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.util.MessageConverter;
 import com.maxkb4j.knowledge.vo.ParagraphRagVO;
 import dev.langchain4j.data.message.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
-import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ public class PipelineManage {
     public ApplicationVO application;
     public ChatParams chatParams;
     public ChatState chatState;
-    public Sinks.Many<ChatMessageVO> sink;
+    public ResultCallback<ChatMessageVO> callback;
 
     public PipelineManage(List<AbsStep> stepList) {
         this.stepList = stepList;
@@ -37,7 +37,7 @@ public class PipelineManage {
     }
 
 
-    public Answer run(ApplicationVO application, ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
+    public Answer run(ApplicationVO application, ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback) {
         if (application != null) {
             this.application = application;
         }
@@ -47,8 +47,8 @@ public class PipelineManage {
         if (chatState != null) {
             this.chatState = chatState;
         }
-        if (sink != null) {
-            this.sink = sink;
+        if (callback != null) {
+            this.callback = callback;
         }
         for (AbsStep step : stepList) {
             try {

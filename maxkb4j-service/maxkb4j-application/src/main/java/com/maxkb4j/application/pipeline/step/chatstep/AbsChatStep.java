@@ -31,7 +31,7 @@ public abstract class AbsChatStep extends AbsStep {
         AnswerResult result = resolveAnswer(manage, application, paragraphList, historyMessages);
         // AI 流式回答已在 execute 内部实时推送，此处仅补发非 AI 回答的结束消息
         if (!result.fromAi()) {
-            manage.sink.tryEmitNext(toChatMessageVO(chatId, chatRecordId, result.text(), "", true));
+            emit(manage, chatId, chatRecordId, result.text(), "",true);
         }
         recordResult(manage, result.text(), historyMessages);
     }
@@ -132,6 +132,11 @@ public abstract class AbsChatStep extends AbsStep {
 
     protected abstract String execute(String chatId, String chatRecordId, ApplicationVO application, List<ChatMessage> historyMessages, String userPrompt, PipelineManage manage) throws Exception;
 
+    protected void emit(PipelineManage manage, String chatId, String chatRecordId, String content, String reasoning, boolean nodeIsEnd) {
+        if (manage.callback!=null){
+            manage.callback.onEvent(toChatMessageVO(chatId, chatRecordId, content, reasoning, nodeIsEnd));
+        }
+    }
 
     /**
      * 转换为聊天消息VO

@@ -2,13 +2,13 @@ package com.maxkb4j.application.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.application.dto.ApplicationChatDTO;
+import com.maxkb4j.application.dto.ChatResponse;
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.application.dto.ShareChatDTO;
 import com.maxkb4j.application.vo.ShareChatVO;
-import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.application.dto.ChatResponse;
-import reactor.core.publisher.Sinks;
+import com.maxkb4j.common.domain.dto.ChatState;
 
 import java.util.Map;
 
@@ -16,9 +16,9 @@ public interface IApplicationChatService {
 
     String chatOpen(String appId, boolean debug);
 
-    ChatResponse chatMessage(ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink);
+    ChatResponse chatMessage(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback);
 
-    void chatMessageAsync(ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink);
+    void chatMessageAsync(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback);
 
     Boolean deleteById(String chatId);
 

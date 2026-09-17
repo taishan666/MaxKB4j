@@ -1,15 +1,14 @@
 package com.maxkb4j.application.executor;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.maxkb4j.application.service.IApplicationChatService;
-import com.maxkb4j.common.domain.dto.ChatState;
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.application.dto.ChatResponse;
+import com.maxkb4j.application.service.IApplicationChatService;
+import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.tool.executor.AbsToolExecutor;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
-import reactor.core.publisher.Sinks;
 
 import java.util.Map;
 
@@ -49,7 +48,7 @@ public class AgentExecutor extends AbsToolExecutor {
                 .source(ChatSource.ONLINE)
                 .debug(false)
                 .build();
-        ChatResponse chatResponse = chatService.chatMessage(params, chatState, Sinks.many().unicast().onBackpressureBuffer());
+        ChatResponse chatResponse = chatService.chatMessage(params, chatState, null);
         return chatResponse.getAnswer();
     }
 

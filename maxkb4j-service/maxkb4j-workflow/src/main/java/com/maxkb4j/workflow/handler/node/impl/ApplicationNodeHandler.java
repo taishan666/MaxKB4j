@@ -3,6 +3,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.maxkb4j.application.dto.ChatResponse;
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
@@ -18,7 +19,6 @@ import com.maxkb4j.workflow.node.impl.ApplicationNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Sinks;
 
 import java.util.HashMap;
 import java.util.List;
@@ -80,8 +80,8 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
                     .chatUserType(chatState.getChatUserType())
                     .debug(chatState.getDebug())
                     .build();
-            Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
             AtomicBoolean isInterruptExec = new AtomicBoolean(false);
+       /*     Sinks.Many<ChatMessageVO> appNodeSink = Sinks.many().unicast().onBackpressureBuffer();
             if (Boolean.TRUE.equals(params.getIsResult())) {
                 // 订阅并累积 token，同时发送消息
                 appNodeSink.asFlux().subscribe(e -> {
@@ -99,8 +99,35 @@ public class ApplicationNodeHandler extends AbsNodeHandler {
                             e.getNodeIsEnd());
                     workflow.output().emit(vo);
                 });
-            }
-            ChatResponse chatResponse = chatService.chatMessage(nodeChatParams, nodeContext, appNodeSink);
+
+            }*/
+            ResultCallback<ChatMessageVO> appNodeCallback= new ResultCallback<>() {
+                @Override
+                public void onEvent(ChatMessageVO e) {
+                    if (Boolean.TRUE.equals(params.getIsResult())) {
+                        if (FORM.getKey().equals(e.getNodeType()) || USER_SELECT.getKey().equals(e.getNodeType())) {
+                            isInterruptExec.set(StringUtils.isNotEmpty(e.getContent()));
+                        }
+                        ChildNode childNode = new ChildNode(e.getChatRecordId(), e.getRuntimeNodeId());
+                        ChatMessageVO vo = node.toChatMessageVO(
+                                chatParams.getChatId(),
+                                chatParams.getChatRecordId(),
+                                e.getNodeName(),
+                                e.getContent(),
+                                e.getReasoningContent(),
+                                childNode,
+                                e.getNodeIsEnd());
+                        workflow.output().emit(vo);
+                    }
+                }
+
+                @Override
+                public void onComplete() {}
+
+                @Override
+                public void onError(Throwable e) {}
+            };
+            ChatResponse chatResponse = chatService.chatMessage(nodeChatParams, nodeContext, appNodeCallback);
             // 写入详情
             putDetails(node, Map.of(
                     NodeField.MESSAGE_TOKENS, chatResponse.getMessageTokens(),

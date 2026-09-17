@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.engine.graph;
 
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
@@ -9,7 +10,6 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.node.INode;
 import lombok.Getter;
-import reactor.core.publisher.Sinks;
 
 import java.util.List;
 
@@ -30,13 +30,13 @@ public class ChatWorkflow extends AbstractWorkflow implements IChatWorkflow {
      */
     private final ChatState chatState;
 
-    private final Sinks.Many<ChatMessageVO> sink;
+    private final ResultCallback<ChatMessageVO> callback;
 
     ChatWorkflow(ChatWorkflowBuilder builder) {
         super(compose(builder));
         this.chatParams = builder.chatParams;
         this.chatState = builder.chatState;
-        this.sink = builder.sink;
+        this.callback = builder.callback;
         // 加载节点状态（恢复执行）
         if (builder.restoreState) {
             this.executionAccessor.loadNodeState(this, builder.details,
@@ -51,7 +51,7 @@ public class ChatWorkflow extends AbstractWorkflow implements IChatWorkflow {
         WorkflowExecutionAccessor executionAccessor = new WorkflowExecutionAccessor(
                 builder.configuration, builder.context, builder.navigator);
         WorkflowOutputManager outputManager = new WorkflowOutputManager(
-                builder.configuration, builder.context, builder.sink);
+                builder.configuration, builder.context, builder.callback);
         return new Components(builder.configuration, builder.context, builder.historyManager,
                 executionAccessor, outputManager);
     }

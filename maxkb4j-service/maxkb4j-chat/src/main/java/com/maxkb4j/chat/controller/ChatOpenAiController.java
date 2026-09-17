@@ -4,18 +4,15 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.maxkb4j.application.dto.ApplicationApiKeyDTO;
 import com.maxkb4j.application.dto.ChatResponse;
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.application.service.IApplicationApiKeyService;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.chat.dto.OpenAIChatCompletionRequest;
 import com.maxkb4j.chat.dto.OpenAIChatCompletionResponse;
 import com.maxkb4j.chat.dto.OpenAIMessage;
 import com.maxkb4j.common.cache.ChatCache;
-import com.maxkb4j.common.domain.dto.ChatInfo;
-import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.constant.AppConst;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
-import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.common.domain.dto.ChatState;
+import com.maxkb4j.common.domain.dto.*;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
@@ -97,7 +94,7 @@ public class ChatOpenAiController {
     public Flux<ServerSentEvent<String>> chatCompletionStream(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
         authenticate();
         PreparedChat prepared = prepareChat(appId, request);
-        return handleStreamResponse(request, prepared.params(), prepared.chatState(), prepared.sink());
+        return handleStreamResponse(request, prepared.params(), prepared.chatState());
     }
 
     @Operation(summary = "聊天对话", description = "兼容 OpenAI Chat Completions API 格式")
@@ -105,17 +102,16 @@ public class ChatOpenAiController {
     public ResponseEntity<OpenAIChatCompletionResponse> chatCompletionSync(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
         authenticate();
         PreparedChat prepared = prepareChat(appId, request);
-        return handleSyncResponse(request, prepared.params(), prepared.chatState(), prepared.sink());
+        return handleSyncResponse(request, prepared.params(), prepared.chatState());
     }
 
     /**
      * Prepare the shared request context: open a chat session, seed conversation history,
-     * and build ChatParams / ChatState / the sink used by the business execution.
+     * and build ChatParams / ChatState / the callback and flux used by the business execution.
      */
     private PreparedChat prepareChat(String appId, OpenAIChatCompletionRequest request) {
         String chatId = chatService.chatOpen(appId, false);
         seedConversationHistory(chatId, request);
-        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         ChatParams params = convertToChatParams(request, chatId);
         ChatState chatState = ChatState.builder()
                 .appId(appId)
@@ -125,7 +121,7 @@ public class ChatOpenAiController {
                 .ipAddress(WebUtil.getIP())
                 .debug(false)
                 .build();
-        return new PreparedChat(params, chatState, sink);
+        return new PreparedChat(params, chatState);
     }
 
     /**
@@ -154,11 +150,28 @@ public class ChatOpenAiController {
     /**
      * 处理流式响应
      */
-    private Flux<ServerSentEvent<String>> handleStreamResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
+    private Flux<ServerSentEvent<String>> handleStreamResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatState) {
         String completionId = generateCompletionId();
         String model = StringUtils.isNotBlank(request.getModel()) ? request.getModel() : DEFAULT_MODEL_NAME;
+        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
+        ResultCallback<ChatMessageVO> callback = new ResultCallback<>() {
+            @Override
+            public void onEvent(ChatMessageVO message) {
+                sink.tryEmitNext(message);
+            }
+
+            @Override
+            public void onComplete() {
+                sink.tryEmitComplete();
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                sink.tryEmitError(e);
+            }
+        };
         // 异步执行业务逻辑
-        chatService.chatMessageAsync(params, chatState, sink);
+        chatService.chatMessageAsync(params, chatState, callback);
 
         return sink.asFlux()
                 .timeout(Duration.ofMinutes(10))
@@ -198,8 +211,8 @@ public class ChatOpenAiController {
     /**
      * 处理同步响应
      */
-    private ResponseEntity<OpenAIChatCompletionResponse> handleSyncResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
-        ChatResponse chatResponse = chatService.chatMessage(params, chatState, sink);
+    private ResponseEntity<OpenAIChatCompletionResponse> handleSyncResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatState) {
+        ChatResponse chatResponse = chatService.chatMessage(params, chatState, null);
         String completionId = generateCompletionId();
         String model = StringUtils.isNotBlank(request.getModel()) ? request.getModel() : DEFAULT_MODEL_NAME;
 
@@ -255,6 +268,6 @@ public class ChatOpenAiController {
     /**
      * Shared context for one chat completion request.
      */
-    private record PreparedChat(ChatParams params, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
+    private record PreparedChat(ChatParams params, ChatState chatState) {
     }
 }

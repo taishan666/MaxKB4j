@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.engine.graph;
 
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.engine.*;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -9,7 +10,6 @@ import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.INode;
 import lombok.Getter;
-import reactor.core.publisher.Sinks;
 
 import java.util.List;
 import java.util.Objects;
@@ -38,11 +38,11 @@ public abstract class AbstractLoopWorkflow extends AbstractWorkflow {
      * @param parent 父工作流（复用其上下文与历史管理器）
      * @param nodes  循环内节点列表
      * @param edges  循环内边列表
-     * @param sink   输出 Sink（无输出场景传 null）
+     * @param callback   输出 callback（无输出场景传 null）
      * @return 组件束
      */
     protected static Components composeLoopComponents(AbstractWorkflow parent, List<AbsNode> nodes,
-                                                      List<LfEdge> edges, Sinks.Many<ChatMessageVO> sink) {
+                                                      List<LfEdge> edges, ResultCallback<ChatMessageVO> callback) {
         Objects.requireNonNull(parent, "parent workflow cannot be null");
         WorkflowMode workflowMode = parent.configuration.getWorkflowMode();
         if (WorkflowMode.APPLICATION.equals(workflowMode)) {
@@ -54,7 +54,7 @@ public abstract class AbstractLoopWorkflow extends AbstractWorkflow {
         WorkflowContext sharedContext = new WorkflowContext(parent.workflowContext);
         EdgeNavigator navigator = new EdgeNavigator(edges);
         WorkflowExecutionAccessor executionAccessor = new WorkflowExecutionAccessor(configuration, sharedContext, navigator);
-        WorkflowOutputManager outputManager = new WorkflowOutputManager(configuration, sharedContext, sink);
+        WorkflowOutputManager outputManager = new WorkflowOutputManager(configuration, sharedContext, callback);
         return new Components(configuration, sharedContext, parent.historyManager,
                 executionAccessor, outputManager);
     }

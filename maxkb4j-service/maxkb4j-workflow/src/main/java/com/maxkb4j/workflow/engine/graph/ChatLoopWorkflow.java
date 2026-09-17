@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.engine.graph;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
@@ -10,7 +11,6 @@ import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Sinks;
 
 import java.util.List;
 
@@ -45,8 +45,8 @@ public class ChatLoopWorkflow extends AbstractLoopWorkflow implements IChatWorkf
      * @param details    上次执行的节点详情（可为 null）
      */
     public ChatLoopWorkflow(ChatWorkflow parent, List<AbsNode> nodes, List<LfEdge> edges,
-                            LoopParams loopParams, JSONObject details, Sinks.Many<ChatMessageVO> sink) {
-        super(composeLoopComponents(parent, nodes, edges, sink), loopParams);
+                            LoopParams loopParams, JSONObject details, ResultCallback<ChatMessageVO> callback) {
+        super(composeLoopComponents(parent, nodes, edges, callback), loopParams);
         this.chatParams = parent.getChatParams();
         this.chatState = parent.getChatState();
         if (details != null && !details.isEmpty()) {

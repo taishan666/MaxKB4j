@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.constant.ResourceType;
-import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatSource;
@@ -22,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Sinks;
 
 import java.util.List;
 import java.util.Map;
@@ -116,7 +114,6 @@ public class TriggerTaskExecutor {
         if (StringUtils.isNotBlank(question)) {
             try {
                 String chatId = applicationChatService.chatOpen(appId, true);
-                Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
                 ChatParams chatParams = ChatParams.builder()
                         .message(question)
                         .chatId(chatId)
@@ -125,7 +122,7 @@ public class TriggerTaskExecutor {
                         .appId(appId)
                         .source(ChatSource.TRIGGER)
                         .build();
-                ChatResponse response = applicationChatService.chatMessage(chatParams, chatState, sink);
+                ChatResponse response = applicationChatService.chatMessage(chatParams, chatState, null);
                 float runTime = (System.currentTimeMillis() - startTime) / 1000f;
                 TaskState state = (response != null && response.getAnswers() != null) ? TaskState.SUCCESS : TaskState.FAILURE;
                 JSONObject meta = (response != null) ? response.getRunDetails() : new JSONObject();

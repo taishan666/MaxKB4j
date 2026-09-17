@@ -1,21 +1,20 @@
 package com.maxkb4j.workflow.engine;
 
 import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.common.domain.dto.Answer;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.model.IWorkflowOutputManager;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.INode;
-import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.RuntimeDetailField;
 
 /**
  * 工作流输出管理器
@@ -25,10 +24,10 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
  *
  * @param configuration 工作流配置
  * @param context       工作流上下文
- * @param sink          响应式输出 Sink
+ * @param callback      回调 callback
  */
 public record WorkflowOutputManager(WorkflowConfiguration configuration, WorkflowContext context,
-                                    @JsonIgnore Sinks.Many<ChatMessageVO> sink) implements IWorkflowOutputManager {
+                                    ResultCallback<ChatMessageVO> callback) implements IWorkflowOutputManager {
 
 
     /**
@@ -50,8 +49,8 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
     @Override
     public void emit(ChatMessageVO message) {
         if (needsSink()) {
-            if (sink != null && message != null) {
-                sink.tryEmitNext(message);
+            if (callback != null && message != null) {
+                callback.onEvent(message);
             }
         }
     }

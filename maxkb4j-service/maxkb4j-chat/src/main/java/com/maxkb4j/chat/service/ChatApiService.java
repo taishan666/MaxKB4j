@@ -10,11 +10,10 @@ import com.maxkb4j.application.service.IApplicationChatRecordService;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.application.vo.ApplicationVO;
-import com.maxkb4j.common.domain.dto.ChatState;
-import com.maxkb4j.common.domain.dto.ChatParams;
-import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.chat.dto.McpRequest;
 import com.maxkb4j.chat.dto.McpResponse;
+import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
@@ -26,7 +25,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
-import reactor.core.publisher.Sinks;
 
 import java.util.HashMap;
 import java.util.List;
@@ -165,7 +163,7 @@ public class ChatApiService {
                             .source(ChatSource.API_CALL)
                             .debug(false)
                             .build();
-                    ChatResponse chatResponse = chatService.chatMessage(params, chatState, Sinks.many().unicast().onBackpressureBuffer());
+                    ChatResponse chatResponse = chatService.chatMessage(params, chatState, null);
                     Map<String, Object> content = Map.of("type", "text", "text", chatResponse.getAnswer());
                     resp.result = Map.of("content", List.of(content));
                 }

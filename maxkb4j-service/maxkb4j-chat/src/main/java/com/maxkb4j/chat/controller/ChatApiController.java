@@ -98,7 +98,7 @@ public class ChatApiController {
     public Object chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         String userId = StpKit.USER.getLoginIdAsString();
         String appId = (String) StpKit.USER.getExtra("applicationId");
-        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
+
         params.setChatId(chatId);
         ChatState chatState = ChatState.builder()
                 .appId(appId)
@@ -109,11 +109,28 @@ public class ChatApiController {
                 .debug(false)
                 .build();
         if (Boolean.TRUE.equals(params.getStream())) {
+            Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
+            ResultCallback<ChatMessageVO> callback= new ResultCallback<>() {
+                @Override
+                public void onEvent(ChatMessageVO message) {
+                    sink.tryEmitNext(message);
+                }
+
+                @Override
+                public void onComplete() {
+                    sink.tryEmitComplete();
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                    sink.tryEmitError(e);
+                }
+            };
             // 异步执行业务逻辑
-            chatService.chatMessageAsync(params, chatState, sink);
+            chatService.chatMessageAsync(params, chatState, callback);
             return sink.asFlux();
         } else {
-            ChatResponse chatResponse = chatService.chatMessage(params, chatState, sink);
+            ChatResponse chatResponse = chatService.chatMessage(params, chatState, null);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .body(R.data(chatResponse));

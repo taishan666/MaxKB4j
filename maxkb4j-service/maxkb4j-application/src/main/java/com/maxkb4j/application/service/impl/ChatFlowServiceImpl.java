@@ -2,6 +2,7 @@ package com.maxkb4j.application.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.dto.ChatResponse;
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.application.service.IChatService;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.domain.dto.Answer;
@@ -10,14 +11,13 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.workflow.logic.LogicFlow;
 import com.maxkb4j.workflow.model.IWorkflow;
+import com.maxkb4j.workflow.model.WorkflowSpec;
 import com.maxkb4j.workflow.node.INode;
 import com.maxkb4j.workflow.service.INodeCreator;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import com.maxkb4j.workflow.service.WorkflowFactory;
-import com.maxkb4j.workflow.model.WorkflowSpec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Sinks;
 
 import java.util.List;
 import java.util.Objects;
@@ -31,13 +31,13 @@ public class ChatFlowServiceImpl implements IChatService {
     private final WorkflowFactory workflowFactory;
 
     @Override
-    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, ChatState chatState, Sinks.Many<ChatMessageVO> sink) {
+    public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback) {
         LogicFlow logicFlow = LogicFlow.newInstance(application.getWorkFlow());
         List<INode> nodes = logicFlow.getNodes().stream().map(nodeCreator::createNode).filter(Objects::nonNull).toList();
         IWorkflow workflow = workflowFactory.create(WorkflowSpec.application(nodes, logicFlow.getEdges())
                 .chatParams(chatParams)
                 .chatState(chatState)
-                .sink(sink)
+                .callback(callback)
                 .build());
         workFlowActuator.execute(workflow);
         JSONObject details = workflow.output().runtimeDetails();

@@ -45,7 +45,7 @@ public class WorkflowFactoryImpl implements WorkflowFactory {
         return ChatWorkflowBuilder.create(WorkflowMode.APPLICATION, engineNodes(spec), spec.getEdges())
                 .chatParams(spec.getChatParams())
                 .chatState(spec.getChatState())
-                .sink(spec.getSink())
+                .callback(spec.getCallback())
                 .build();
     }
 
@@ -60,7 +60,7 @@ public class WorkflowFactoryImpl implements WorkflowFactory {
         IWorkflow parent = spec.getParent();
         if (parent instanceof ChatWorkflow chatParent) {
             return new ChatLoopWorkflow(chatParent, engineNodes(spec), spec.getEdges(),
-                    spec.getLoopParams(), spec.getDetails(), spec.getSink());
+                    spec.getLoopParams(), spec.getDetails(), spec.getCallback());
         }
         if (parent instanceof KnowledgeWorkflow knowledgeParent) {
             return new KnowledgeLoopWorkflow(knowledgeParent, engineNodes(spec), spec.getEdges(), spec.getLoopParams());

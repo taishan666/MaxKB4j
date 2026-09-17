@@ -133,7 +133,7 @@ public class ChatStep extends AbsChatStep {
         // 完成后释放线程；超时置 cancelled 后各回调不再向 sink 推送
         tokenStream.onPartialThinking(thinking -> {
                     if (reasoningEnable && !cancelled.get()) {
-                        emit(manage, chatId, chatRecordId, "", thinking.text());
+                        emit(manage, chatId, chatRecordId, "", thinking.text(),false);
                         reasoningTexts.add(thinking.text());
                     }
                 })
@@ -141,12 +141,12 @@ public class ChatStep extends AbsChatStep {
                     if (cancelled.get()) {
                         return;
                     }
-                    emit(manage, chatId, chatRecordId, text, "");
+                    emit(manage, chatId, chatRecordId, text, "",false);
                     answerTexts.add(text);
                 })
                 .beforeToolExecution(toolExecute -> {
                     if (toolOutputEnable && !cancelled.get()) {
-                        emit(manage, chatId, chatRecordId, toolFormatterService.format(toolExecute), "");
+                        emit(manage, chatId, chatRecordId, toolFormatterService.format(toolExecute), "",false);
                     }
                 })
                 .onToolExecuted(toolExecute -> {
@@ -154,7 +154,7 @@ public class ChatStep extends AbsChatStep {
                         return;
                     }
                     String toolText = toolFormatterService.format(toolExecute);
-                    emit(manage, chatId, chatRecordId, toolText, "");
+                    emit(manage, chatId, chatRecordId, toolText, "",false);
                     answerTexts.add(toolText);
                 })
                 .onCompleteResponse(future::complete)
@@ -179,9 +179,7 @@ public class ChatStep extends AbsChatStep {
         }
     }
 
-    private void emit(PipelineManage manage, String chatId, String chatRecordId, String content, String reasoning) {
-        manage.sink.tryEmitNext(toChatMessageVO(chatId, chatRecordId, content, reasoning, false));
-    }
+
 
     // ==================== 结果落库 ====================
 

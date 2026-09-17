@@ -166,7 +166,7 @@ public class LoopIterationRunner {
         // 统一经工厂构建循环子工作流，隔离 Chat/Knowledge 变体细节
         WorkflowSpec.Builder spec = WorkflowSpec.loop(workflow, nodes, logicFlow.getEdges(), loopParams)
                 .details(ctx.getCurrentDetails());
-        subscription.ifPresent(s -> spec.sink(s.getSink()));
+        subscription.ifPresent(s -> spec.callback(s.getCallback()));
         IWorkflow loopWorkflow = workflowFactory.create(spec.build());
 
         workFlowActuator.execute(loopWorkflow);

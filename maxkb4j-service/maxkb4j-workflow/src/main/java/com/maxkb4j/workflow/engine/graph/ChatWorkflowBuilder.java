@@ -1,15 +1,18 @@
 package com.maxkb4j.workflow.engine.graph;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.domain.dto.ChatState;
-import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
+import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
-import com.maxkb4j.workflow.engine.*;
+import com.maxkb4j.common.domain.dto.ChatState;
+import com.maxkb4j.workflow.engine.EdgeNavigator;
+import com.maxkb4j.workflow.engine.HistoryManager;
+import com.maxkb4j.workflow.engine.WorkflowConfiguration;
+import com.maxkb4j.workflow.engine.WorkflowContext;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.node.AbsNode;
-import reactor.core.publisher.Sinks.Many;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +47,7 @@ public class ChatWorkflowBuilder {
     // ==================== 可选参数 ====================
     ChatParams chatParams;
     ChatState chatState;
-    Many<ChatMessageVO> sink;
+    ResultCallback<ChatMessageVO> callback;
     JSONObject details;
     String currentNodeId;
     Map<String, Object> currentNodeData;
@@ -105,13 +108,13 @@ public class ChatWorkflowBuilder {
     }
 
     /**
-     * 设置响应式输出 Sink
+     * 设置响应式输出 callback
      *
-     * @param sink Sink 实例
+     * @param callback callback 实例
      * @return this
      */
-    public ChatWorkflowBuilder sink(Many<ChatMessageVO> sink) {
-        this.sink = sink;
+    public ChatWorkflowBuilder callback(ResultCallback<ChatMessageVO> callback) {
+        this.callback = callback;
         return this;
     }
 

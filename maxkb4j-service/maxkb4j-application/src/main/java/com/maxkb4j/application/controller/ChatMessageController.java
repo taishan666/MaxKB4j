@@ -1,6 +1,7 @@
 package com.maxkb4j.application.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.application.service.IApplicationChatInternalService;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.LoginType;
@@ -39,7 +40,6 @@ public class ChatMessageController {
     @SaCheckLogin(type = LoginType.ADMIN)
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params, @CurrentUserId String userId) {
-        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         params.setChatId(chatId);
         ChatState chatState = ChatState.builder()
                 .chatUserId(userId)
@@ -48,8 +48,25 @@ public class ChatMessageController {
                 .ipAddress(WebUtil.getIP())
                 .debug(true)
                 .build();
+        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
+        ResultCallback<ChatMessageVO> callback= new ResultCallback<>() {
+            @Override
+            public void onEvent(ChatMessageVO message) {
+                sink.tryEmitNext(message);
+            }
+
+            @Override
+            public void onComplete() {
+                sink.tryEmitComplete();
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                sink.tryEmitError(e);
+            }
+        };
         // 异步执行业务逻辑
-        chatService.chatMessageAsync(params, chatState, sink);
+        chatService.chatMessageAsync(params, chatState, callback);
         return sink.asFlux();
     }
 }

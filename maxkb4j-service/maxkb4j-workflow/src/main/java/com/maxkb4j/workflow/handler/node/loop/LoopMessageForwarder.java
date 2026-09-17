@@ -1,5 +1,6 @@
 package com.maxkb4j.workflow.handler.node.loop;
 
+import com.maxkb4j.application.dto.ResultCallback;
 import com.maxkb4j.common.domain.dto.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChildNode;
@@ -10,15 +11,12 @@ import com.maxkb4j.workflow.node.AbsNode;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Sinks;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.maxkb4j.workflow.enums.NodeType.FORM;
-import static com.maxkb4j.workflow.enums.NodeType.LOOP_BREAK;
-import static com.maxkb4j.workflow.enums.NodeType.USER_SELECT;
 import static com.maxkb4j.workflow.consts.WorkflowConstants.LoopField;
+import static com.maxkb4j.workflow.enums.NodeType.*;
 
 /**
  * 循环消息转发器
@@ -48,16 +46,24 @@ public class LoopMessageForwarder {
         if (!(workflow instanceof IChatWorkflow)) {
             return Optional.empty();
         }
-        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
         AtomicReference<ChildNode> childNodeRef = new AtomicReference<>(null);
-        sink.asFlux().subscribe(message -> {
-            if (isBreakSignal(message)) {
-                ctx.isInterrupted.set(true);
-            } else {
-                handleLoopMessage(message, loopParams, ctx, childNodeRef, workflow, node);
+        ResultCallback<ChatMessageVO> callback = new ResultCallback<>() {
+            @Override
+            public void onEvent(ChatMessageVO message) {
+                if (isBreakSignal(message)) {
+                    ctx.isInterrupted.set(true);
+                } else {
+                    handleLoopMessage(message, loopParams, ctx, childNodeRef, workflow, node);
+                }
             }
-        });
-        return Optional.of(new LoopSubscription(sink, childNodeRef));
+
+            @Override
+            public void onComplete() {}
+
+            @Override
+            public void onError(Throwable e) {}
+        };
+        return Optional.of(new LoopSubscription(callback, childNodeRef));
     }
 
     /**
@@ -126,16 +132,16 @@ public class LoopMessageForwarder {
     }
 
     /**
-     * 一次迭代的输出订阅句柄：持有子工作流 Sink 与最新子节点引用
+     * 一次迭代的输出订阅句柄：持有子工作流 callback 与最新子节点引用
      */
     @Getter
     public static final class LoopSubscription {
 
-        private final Sinks.Many<ChatMessageVO> sink;
+        private final ResultCallback<ChatMessageVO> callback;
         private final AtomicReference<ChildNode> childNodeRef;
 
-        private LoopSubscription(Sinks.Many<ChatMessageVO> sink, AtomicReference<ChildNode> childNodeRef) {
-            this.sink = sink;
+        private LoopSubscription(ResultCallback<ChatMessageVO> callback, AtomicReference<ChildNode> childNodeRef) {
+            this.callback = callback;
             this.childNodeRef = childNodeRef;
         }
 
