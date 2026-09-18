@@ -2,11 +2,11 @@ package com.maxkb4j.workflow.engine;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.vo.ChatMessageVO;
+import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.node.AbsNode;
 import org.junit.jupiter.api.Test;
-import reactor.core.publisher.Sinks;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
- * 回归测试:工作流输出管理器(响应式输出判定、运行时详情聚合、Sink 安全发射)。
+ * 回归测试:工作流输出管理器(响应式输出判定、运行时详情聚合、回调安全发射)。
  */
 class WorkflowOutputManagerTest {
 
@@ -56,40 +56,40 @@ class WorkflowOutputManagerTest {
 
     @Test
     void emit_whenNeedsSink_emitsToSink() {
-        Sinks.Many<ChatMessageVO> sink = mock();
+        ResultCallback<ChatMessageVO> callback = mock();
         WorkflowContext ctx = new WorkflowContext();
         WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of());
-        WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, sink);
+        WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, callback);
         ChatMessageVO message = new ChatMessageVO("chat-1", "rec-1", true);
 
         manager.emit(message);
 
-        verify(sink).tryEmitNext(message);
+        verify(callback).onEvent(message);
     }
 
     @Test
     void emit_whenNotNeedsSink_skipsEmit() {
-        Sinks.Many<ChatMessageVO> sink = mock();
+        ResultCallback<ChatMessageVO> callback = mock();
         WorkflowContext ctx = new WorkflowContext();
         WorkflowConfiguration configuration = config(WorkflowMode.KNOWLEDGE, List.of());
-        WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, sink);
+        WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, callback);
         ChatMessageVO message = new ChatMessageVO("chat-1", "rec-1", true);
 
         manager.emit(message);
 
-        verify(sink, never()).tryEmitNext(any());
+        verify(callback, never()).onEvent(any());
     }
 
     @Test
     void emit_nullMessage_skipsSafely() {
-        Sinks.Many<ChatMessageVO> sink = mock();
+        ResultCallback<ChatMessageVO> callback = mock();
         WorkflowContext ctx = new WorkflowContext();
         WorkflowConfiguration configuration = config(WorkflowMode.APPLICATION, List.of());
-        WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, sink);
+        WorkflowOutputManager manager = new WorkflowOutputManager(configuration, ctx, callback);
 
         manager.emit(null);
 
-        verify(sink, never()).tryEmitNext(any());
+        verify(callback, never()).onEvent(any());
     }
 
     @Test
