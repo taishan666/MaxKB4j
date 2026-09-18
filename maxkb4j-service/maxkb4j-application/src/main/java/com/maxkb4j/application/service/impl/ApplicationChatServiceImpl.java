@@ -105,6 +105,11 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
             return new ChatResponse(List.of(), null);
         }
         ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatState.getAppId());
+        ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatState.getDebug());
+        if (Objects.isNull(application)) {
+            callback.onError(new ApiException("application.not.found"));
+            return new ChatResponse(List.of(), null);
+        }
         List<ChatRecordDTO> historyChatRecordList = chatInfo.getChatRecordList();
         chatState.setHistoryChatRecords(historyChatRecordList);
         if (StringUtils.isNotBlank(chatParams.getChatRecordId())) {
@@ -112,11 +117,6 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
             chatState.setChatRecord(chatRecord);
         } else {
             chatParams.setChatRecordId(IdWorker.get32UUID());
-        }
-        ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatState.getDebug());
-        if (Objects.isNull(application)) {
-            callback.onError(new ApiException("application.not.found"));
-            return new ChatResponse(List.of(), null);
         }
         IChatService chatService = ChatServiceBuilder.getChatService(application.getType());
         ChatResponse chatResponse = chatService.chatMessage(application, chatParams, chatState, callback);

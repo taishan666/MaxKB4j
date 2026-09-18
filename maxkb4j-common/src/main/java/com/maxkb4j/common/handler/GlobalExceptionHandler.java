@@ -41,18 +41,25 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+
+    /**
+     * 处理 @RequestParam/@PathVariable 约束违反异常（@Validated 触发）
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseBody
+    public R<String> handleConstraintViolationException(ConstraintViolationException e) {
+        String message = e.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining("; "));
+        log.warn("约束违反异常: {}", message);
+        return R.fail(400, message);
+    }
+
     // 捕获未登录异常
     @ExceptionHandler(NotLoginException.class)
     @ResponseBody
     public R<String> handleNotLogin(NotLoginException e, HttpServletResponse response) {
         log.error("未登录异常: {}", e.getMessage());
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
-        return R.fail(500, e.getMessage());
-    }
-
-    @ExceptionHandler(UserIdentityException.class)
-    @ResponseBody
-    public R<String> handleException(UserIdentityException e, HttpServletResponse response) {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
         return R.fail(500, e.getMessage());
     }
@@ -65,13 +72,44 @@ public class GlobalExceptionHandler {
         return R.fail(500, e.getMessage());
     }
 
+
     @ExceptionHandler(NotPermissionException.class)
     @ResponseBody
     public R<String> handleException(NotPermissionException e, HttpServletResponse response) {
         log.error("无此权限异常: {}", e.getMessage(), e);
         response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 设置HTTP状态码为403
-        return R.fail(403, e.getMessage());
+        return R.fail(500, e.getMessage());
     }
+
+
+    /**
+     * 处理静态资源不存在异常（NoResourceFoundException）
+     * 浏览器请求了不存在的静态资源（前端版本更新后的旧哈希资源、扫描器探测等），
+     * 属于正常 404，仅记录 warn 日志并返回 404，不应按未知异常打印堆栈、返回 500
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseBody
+    public R<String> handleNoResourceFoundException(NoResourceFoundException e, HttpServletResponse response) {
+        log.warn("静态资源不存在: {}", e.getResourcePath());
+        response.setStatus(HttpServletResponse.SC_NOT_FOUND);// 设置HTTP状态码为404
+        return R.fail(500, e.getMessage());
+    }
+
+    @ExceptionHandler(UserIdentityException.class)
+    @ResponseBody
+    public R<String> handleException(UserIdentityException e, HttpServletResponse response) {
+        response.setStatus(460); // 设置HTTP状态码为401
+        log.error("用户身份异常: {}", e.getMessage(), e);
+        return R.fail(500, e.getMessage());
+    }
+
+    @ExceptionHandler(AccessNumLimitException.class)
+    @ResponseBody
+    public R<String> handleException(AccessNumLimitException e, HttpServletResponse response) {
+        response.setStatus(461); // 设置HTTP状态码为461
+        return R.fail(500, e.getMessage());
+    }
+
 
     @ExceptionHandler(BadPaddingException.class)
     @ResponseBody
@@ -105,7 +143,7 @@ public class GlobalExceptionHandler {
      * 这些是正常的客户端行为，不应作为 ERROR 打印完整堆栈。
      */
     @ExceptionHandler(IOException.class)
-    public void handleClientAbort(IOException e, HttpServletResponse response) throws IOException {
+    public void handleClientAbort(IOException e, HttpServletResponse response) {
         if (isClientAbortException(e)) {
             log.debug("Client aborted connection: {}", e.getMessage());
             return;
@@ -152,19 +190,6 @@ public class GlobalExceptionHandler {
         return R.fail(500, e.getMessage());
     }
 
-    /**
-     * 处理 @RequestParam/@PathVariable 约束违反异常（@Validated 触发）
-     */
-    @ExceptionHandler(ConstraintViolationException.class)
-    @ResponseBody
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public R<String> handleConstraintViolationException(ConstraintViolationException e) {
-        String message = e.getConstraintViolations().stream()
-                .map(ConstraintViolation::getMessage)
-                .collect(Collectors.joining("; "));
-        log.warn("约束违反异常: {}", message);
-        return R.fail(500, message);
-    }
 
     @ExceptionHandler(ApiException.class)
     @ResponseBody
@@ -191,15 +216,9 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleException(AccessException e) {
         log.error("禁止访问异常: {}", e.getMessage(), e);
-        return R.fail(403, e.getMessage());
+        return R.fail(500, e.getMessage());
     }
 
-    @ExceptionHandler(AccessNumLimitException.class)
-    @ResponseBody
-    public R<String> handleException(AccessNumLimitException e, HttpServletResponse response) {
-        response.setStatus(461); // 设置HTTP状态码为461
-        return R.fail(1002, e.getMessage());
-    }
 
     /**
      * 接口限流超出，返回 HTTP 429 Too Many Requests
@@ -208,7 +227,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleRateLimitExceeded(RateLimitExceededException e, HttpServletResponse response) {
         response.setStatus(429);
-        return R.fail(429, e.getMessage());
+        return R.fail(500, e.getMessage());
     }
 
     @ExceptionHandler(AuthenticationException.class)
@@ -253,18 +272,6 @@ public class GlobalExceptionHandler {
         return R.fail(500, I18nUtil.get("model.name.not.found"));
     }
 
-    /**
-     * 处理静态资源不存在异常（NoResourceFoundException）
-     * 浏览器请求了不存在的静态资源（前端版本更新后的旧哈希资源、扫描器探测等），
-     * 属于正常 404，仅记录 warn 日志并返回 404，不应按未知异常打印堆栈、返回 500
-     */
-    @ExceptionHandler(NoResourceFoundException.class)
-    @ResponseBody
-    public R<String> handleNoResourceFoundException(NoResourceFoundException e, HttpServletResponse response) {
-        log.warn("静态资源不存在: {}", e.getResourcePath());
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        return R.fail(404, e.getMessage());
-    }
 
     @ExceptionHandler(RuntimeException.class)
     @ResponseBody
