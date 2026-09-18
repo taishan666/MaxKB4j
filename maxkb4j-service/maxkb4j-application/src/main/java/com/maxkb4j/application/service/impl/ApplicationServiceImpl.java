@@ -1,6 +1,5 @@
 package com.maxkb4j.application.service.impl;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -11,6 +10,7 @@ import com.maxkb4j.application.dto.*;
 import com.maxkb4j.application.entity.ApplicationAccessTokenEntity;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.entity.ApplicationVersionEntity;
+import com.maxkb4j.application.enums.AppType;
 import com.maxkb4j.application.mapper.ApplicationMapper;
 import com.maxkb4j.application.service.*;
 import com.maxkb4j.application.util.WorkFlowNodes;
@@ -32,8 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
-
-import static com.maxkb4j.workflow.enums.NodeType.BASE;
 
 /**
  * 应用服务实现：聚焦应用自身的增删改查、发布与详情查询编排。
@@ -62,19 +60,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     private final ApplicationCascadeDeleteService cascadeDeleteService;
     private final ApplicationModelService applicationModelService;
 
-    private static JSONObject findBaseNode(JSONObject workFlow) {
-        JSONArray nodes = WorkFlowNodes.getNodes(workFlow);
-        if (nodes == null) {
-            return null;
-        }
-        for (int i = 0; i < nodes.size(); i++) {
-            JSONObject node = nodes.getJSONObject(i);
-            if (node != null && BASE.getKey().equals(node.getString("type"))) {
-                return node;
-            }
-        }
-        return null;
-    }
+
 
     private static String getTemplateDownloadUrl(JSONObject workFlowTemplate) {
         return workFlowTemplate == null ? null : workFlowTemplate.getString("downloadUrl");
@@ -141,17 +127,24 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     }
 
     @Transactional(rollbackFor = Exception.class)
-    protected ApplicationVO createAppFromTemplate(String downloadUrl, ApplicationDTO application) {
+    protected ApplicationVO createAppFromTemplate(String downloadUrl, ApplicationDTO dto) {
         MaxKb4J maxKb4j = mkImportService.loadClasspathTemplate(downloadUrl);
         ApplicationEntity app = maxKb4j.getApplication();
         app.setId(null);
-        app.setName(application.getName());
-        app.setDesc(application.getDesc());
-        if (StringUtils.isNotBlank(application.getIcon())) {
-            app.setIcon(application.getIcon());
+        app.setName(dto.getName());
+        app.setDesc(dto.getDesc());
+        if(AppType.WORK_FLOW.name().equals(app.getType())){
+            JSONObject baseNode = WorkFlowNodes.findBaseNode(app.getWorkFlow());
+            if (baseNode != null) {
+                JSONObject nodeData=WorkFlowNodes.getNodeData(baseNode);
+                nodeData.put("name",dto.getName());
+                nodeData.put("desc",dto.getDesc());
+            }
         }
-        mkImportService.normalizeForImport(app, maxKb4j.getToolList());
-        this.saveOrUpdateApp(app);
+        if (StringUtils.isNotBlank(dto.getIcon())) {
+            app.setIcon(dto.getIcon());
+        }
+        this.upsertMk(app,maxKb4j.getToolList());
         applicationResourceMappingService.saveResourceMappings(app);
         return BeanUtil.copy(app, ApplicationVO.class);
     }
@@ -166,7 +159,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public boolean saveOrUpdateApp(ApplicationEntity application) {
+    protected boolean saveOrUpdateApp(ApplicationEntity application) {
         applicationModelService.normalizeAppModels(application);
         if (application.getId() == null) {
             if (StringUtils.isBlank(application.getFolderId())) {
@@ -269,7 +262,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
      * 从工作流基础节点同步应用基础配置。
      */
     private void syncFromBaseNode(ApplicationDTO appDTO) {
-        JSONObject baseNode = findBaseNode(appDTO.getWorkFlow());
+        JSONObject baseNode = WorkFlowNodes.findBaseNode(appDTO.getWorkFlow());
         if (baseNode == null) {
             return;
         }
