@@ -4,82 +4,53 @@ import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.model.IChatWorkflow;
-import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+/**
+ * Handler for chat workflows (chat and chat-loop): streams node lifecycle events
+ * as chat messages to the workflow sink.
+ */
 @Slf4j
 @Component
-public class ChatWorkflowHandler extends AbsWorkflowHandler {
+public class ChatWorkflowHandler extends AbsWorkflowHandler<IChatWorkflow> {
 
     public ChatWorkflowHandler(NodeCenter nodeCenter,
                                ExceptionResolverChain exceptionResolverChain) {
-        super(nodeCenter, exceptionResolverChain);
+        super(IChatWorkflow.class, nodeCenter, exceptionResolverChain);
     }
 
     @Override
-    public boolean canHandle(IWorkflow workflow) {
-        // ChatWorkflowHandler 处理所有聊天系工作流（ChatWorkflow 与聊天循环工作流）
-        return (workflow instanceof IChatWorkflow);
+    public void onNodeStart(IChatWorkflow workflow, AbsNode node) {
+        emit(workflow, node, "", false);
     }
 
     @Override
-    protected void onNodeStart(IWorkflow workflow, AbsNode node) {
-        if (workflow instanceof IChatWorkflow chatWorkflow) {
-            ChatParams chatParams = chatWorkflow.getChatParams();
-            ChatMessageVO nodeStartVo = node.toChatMessageVO(
-                    chatParams.getChatId(),
-                    chatParams.getChatRecordId(),
-                    "",
-                    "",
-                    null,
-                    false);
-            workflow.output().emit(nodeStartVo);
-        }
+    public void onNodeSuccess(IChatWorkflow workflow, AbsNode node, NodeResult result) {
+        emit(workflow, node, node.getAnswerText(), true);
     }
 
     @Override
-    protected void onNodeSuccess(IWorkflow workflow, AbsNode node, NodeResult result) {
-        if (workflow instanceof IChatWorkflow chatWorkflow) {
-            ChatParams chatParams = chatWorkflow.getChatParams();
-            ChatMessageVO nodeEndVo = node.toChatMessageVO(
-                    chatParams.getChatId(),
-                    chatParams.getChatRecordId(),
-                    node.getAnswerText(),
-                    "",
-                    null,
-                    true);
-            workflow.output().emit(nodeEndVo);
-        }
-    }
-
-    @Override
-    protected void handleNodeError(IWorkflow workflow, AbsNode node, Exception ex) {
-        super.handleNodeError(workflow, node, ex);
-        emitErrorToSink(workflow, node, ex);
+    public void onNodeError(IChatWorkflow workflow, AbsNode node, Exception ex) {
+        super.onNodeError(workflow, node, ex);
+        emit(workflow, node, String.format("Exception: %s", ex.getMessage()), true);
     }
 
     /**
-     * Sends an error message to the workflow's sink if applicable.
-     *
-     * @param workflow the workflow context
-     * @param node     the node that failed
-     * @param ex       the exception that occurred
+     * Wraps the node state into a chat message and emits it to the workflow sink.
      */
-    protected void emitErrorToSink(IWorkflow workflow, AbsNode node, Exception ex) {
-        if (workflow instanceof IChatWorkflow chatWorkflow) {
-            ChatParams chatParams = chatWorkflow.getChatParams();
-            ChatMessageVO errMessage = node.toChatMessageVO(
-                    chatParams.getChatId(),
-                    chatParams.getChatRecordId(),
-                    String.format("Exception: %s", ex.getMessage()),
-                    "",
-                    null,
-                    true);
-            workflow.output().emit(errMessage);
-        }
+    private void emit(IChatWorkflow workflow, AbsNode node, String content, boolean nodeIsEnd) {
+        ChatParams chatParams = workflow.getChatParams();
+        ChatMessageVO message = node.toChatMessageVO(
+                chatParams.getChatId(),
+                chatParams.getChatRecordId(),
+                content,
+                "",
+                null,
+                nodeIsEnd);
+        workflow.output().emit(message);
     }
 }
