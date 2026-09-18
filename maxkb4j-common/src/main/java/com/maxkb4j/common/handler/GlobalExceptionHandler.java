@@ -266,6 +266,13 @@ public class GlobalExceptionHandler {
         return R.fail(404, e.getMessage());
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    @ResponseBody
+    public R<String> handleException(RuntimeException e) {
+        log.error("运行时异常", e);
+        return R.fail(500, I18nUtil.get("common.system.error"));
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseBody
     public R<String> handleException(Exception e) {

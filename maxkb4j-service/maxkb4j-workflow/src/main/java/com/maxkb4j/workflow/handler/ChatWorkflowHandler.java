@@ -9,21 +9,15 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.Executor;
-
-import static com.maxkb4j.workflow.consts.WorkflowConstants.BeanName;
 
 @Slf4j
 @Component
 public class ChatWorkflowHandler extends AbsWorkflowHandler {
 
     public ChatWorkflowHandler(NodeCenter nodeCenter,
-                               @Qualifier(BeanName.WORKFLOW_TASK_EXECUTOR) Executor workflowTaskExecutor,
                                ExceptionResolverChain exceptionResolverChain) {
-        super(nodeCenter, workflowTaskExecutor, exceptionResolverChain);
+        super(nodeCenter, exceptionResolverChain);
     }
 
     @Override

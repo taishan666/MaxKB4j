@@ -57,6 +57,8 @@ public interface WorkflowConstants {
         String DIRECTLY_RETURN = "directlyReturn";
         String IS_HIT_HANDLING_METHOD_LIST = "isHitHandlingMethodList";
         String IS_INTERRUPT_EXEC = "is_interrupt_exec";
+        String ENABLE_EXCEPTION = "enableException";
+        String EXCEPTION = "exception";
     }
 
     /**

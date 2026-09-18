@@ -8,13 +8,9 @@ import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
 import com.maxkb4j.workflow.service.KnowledgeWorkflowStateListener;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.concurrent.Executor;
-
-import static com.maxkb4j.workflow.consts.WorkflowConstants.BeanName;
 
 @Slf4j
 @Component
@@ -23,10 +19,9 @@ public class KnowledgeWorkflowHandler extends AbsWorkflowHandler {
     private final Optional<KnowledgeWorkflowStateListener> stateListener;
 
     public KnowledgeWorkflowHandler(NodeCenter nodeCenter,
-                                    @Qualifier(BeanName.WORKFLOW_TASK_EXECUTOR) Executor workflowTaskExecutor,
                                     ExceptionResolverChain exceptionResolverChain,
                                     Optional<KnowledgeWorkflowStateListener> stateListener) {
-        super(nodeCenter, workflowTaskExecutor, exceptionResolverChain);
+        super(nodeCenter, exceptionResolverChain);
         this.stateListener = stateListener;
     }
 
