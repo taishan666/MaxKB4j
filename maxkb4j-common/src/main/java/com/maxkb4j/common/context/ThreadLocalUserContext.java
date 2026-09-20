@@ -1,6 +1,6 @@
 package com.maxkb4j.common.context;
 
-import com.maxkb4j.common.exception.UserIdentityException;
+import cn.dev33.satoken.jwt.exception.SaJwtException;
 import com.maxkb4j.common.interceptor.UserIdentityInterceptor;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +40,7 @@ public class ThreadLocalUserContext implements UserContext {
     public String getUserId() {
         UserIdentity identity = HOLDER.get();
         if (identity == null) {
-            throw new UserIdentityException("当前线程未解析到登录身份");
+            throw new SaJwtException("当前线程未解析到登录身份");
         }
         return identity.userId();
     }
@@ -49,7 +49,7 @@ public class ThreadLocalUserContext implements UserContext {
     public String getTokenValue() {
         UserIdentity identity = HOLDER.get();
         if (identity == null) {
-            throw new UserIdentityException("当前线程未解析到登录身份");
+            throw new SaJwtException("当前线程未解析到登录身份");
         }
         return identity.tokenValue();
     }

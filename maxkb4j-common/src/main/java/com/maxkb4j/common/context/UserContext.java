@@ -20,7 +20,6 @@ public interface UserContext {
     /**
      * 当前用户ID。
      *
-     * @throws com.maxkb4j.common.exception.UserIdentityException 当前线程未解析到登录身份时
      */
     String getUserId();
 

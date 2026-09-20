@@ -99,7 +99,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleException(UserIdentityException e, HttpServletResponse response) {
         response.setStatus(460); // 设置HTTP状态码为401
-        log.error("用户身份异常: {}", e.getMessage(), e);
+        log.error("用户身份鉴定异常: {}", e.getMessage(), e);
         return R.fail(500, e.getMessage());
     }
 
@@ -107,6 +107,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleException(AccessNumLimitException e, HttpServletResponse response) {
         response.setStatus(461); // 设置HTTP状态码为461
+        log.error("用户对话次数超过限制异常: {}", e.getMessage(), e);
         return R.fail(500, e.getMessage());
     }
 
