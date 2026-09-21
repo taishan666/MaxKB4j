@@ -12,29 +12,24 @@ import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.workflow.logic.LogicFlow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.WorkflowSpec;
-import com.maxkb4j.workflow.node.INode;
-import com.maxkb4j.workflow.service.INodeCreator;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import com.maxkb4j.workflow.service.WorkflowFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Objects;
 
 @RequiredArgsConstructor
 @Component
 public class ChatFlowServiceImpl implements IChatService {
 
     private final IWorkFlowActuator workFlowActuator;
-    private final INodeCreator nodeCreator;
     private final WorkflowFactory workflowFactory;
 
     @Override
     public ChatResponse chatMessage(ApplicationVO application, ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback) {
         LogicFlow logicFlow = LogicFlow.newInstance(application.getWorkFlow());
-        List<INode> nodes = logicFlow.getNodes().stream().map(nodeCreator::createNode).filter(Objects::nonNull).toList();
-        IWorkflow workflow = workflowFactory.create(WorkflowSpec.application(nodes, logicFlow.getEdges())
+        IWorkflow workflow = workflowFactory.create(WorkflowSpec.application(logicFlow)
                 .chatParams(chatParams)
                 .chatState(chatState)
                 .callback(callback)

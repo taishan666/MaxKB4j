@@ -6,10 +6,13 @@ import com.maxkb4j.workflow.engine.graph.ChatWorkflow;
 import com.maxkb4j.workflow.engine.graph.ChatWorkflowBuilder;
 import com.maxkb4j.workflow.engine.graph.KnowledgeLoopWorkflow;
 import com.maxkb4j.workflow.engine.graph.KnowledgeWorkflow;
+import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.model.IWorkflow;
-import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.workflow.service.WorkflowFactory;
 import com.maxkb4j.workflow.model.WorkflowSpec;
+import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.service.INodeCreator;
+import com.maxkb4j.workflow.service.WorkflowFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,11 +27,16 @@ import java.util.Objects;
  *   <li>引擎内部（循环节点处理器）同样经本工厂派生循环子工作流，
  *       Chat/Knowledge 循环变体的差异被收敛在此处</li>
  * </ul>
+ * APPLICATION/KNOWLEDGE 规格直接携带 {@code LogicFlow} 解析模型，
+ * LfNode 到引擎节点的转换（经 {@link INodeCreator}，含无法识别节点的过滤）收敛在本工厂。
  * 具体图类的 instanceof 判断仅存在于本工厂内——这正是工厂的职责边界：
  * 新增变体时只需扩展此处与 {@link WorkflowSpec.Kind}，调用方零改动。</p>
  */
 @Component
+@RequiredArgsConstructor
 public class WorkflowFactoryImpl implements WorkflowFactory {
+
+    private final INodeCreator nodeCreator;
 
     @Override
     public IWorkflow create(WorkflowSpec spec) {
@@ -42,7 +50,7 @@ public class WorkflowFactoryImpl implements WorkflowFactory {
     }
 
     private IWorkflow createApplication(WorkflowSpec spec) {
-        return ChatWorkflowBuilder.create(WorkflowMode.APPLICATION, engineNodes(spec), spec.getEdges())
+        return ChatWorkflowBuilder.create(WorkflowMode.APPLICATION, engineNodes(spec), edges(spec))
                 .chatParams(spec.getChatParams())
                 .chatState(spec.getChatState())
                 .callback(spec.getCallback())
@@ -50,7 +58,7 @@ public class WorkflowFactoryImpl implements WorkflowFactory {
     }
 
     private IWorkflow createKnowledge(WorkflowSpec spec) {
-        return new KnowledgeWorkflow(engineNodes(spec), spec.getEdges(), spec.getKnowledgeParams());
+        return new KnowledgeWorkflow(engineNodes(spec), edges(spec), spec.getKnowledgeParams());
     }
 
     /**
@@ -59,22 +67,37 @@ public class WorkflowFactoryImpl implements WorkflowFactory {
     private IWorkflow createLoop(WorkflowSpec spec) {
         IWorkflow parent = spec.getParent();
         if (parent instanceof ChatWorkflow chatParent) {
-            return new ChatLoopWorkflow(chatParent, engineNodes(spec), spec.getEdges(),
+            return new ChatLoopWorkflow(chatParent, engineNodes(spec), edges(spec),
                     spec.getLoopParams(), spec.getDetails(), spec.getCallback());
         }
         if (parent instanceof KnowledgeWorkflow knowledgeParent) {
-            return new KnowledgeLoopWorkflow(knowledgeParent, engineNodes(spec), spec.getEdges(), spec.getLoopParams());
+            return new KnowledgeLoopWorkflow(knowledgeParent, engineNodes(spec), edges(spec), spec.getLoopParams());
         }
         throw new IllegalArgumentException(
                 "Unsupported loop parent workflow: " + (parent != null ? parent.getClass().getName() : "null"));
     }
 
     /**
-     * 将契约节点收窄为引擎节点：节点经 {@code INodeCreator} 创建，运行时必为 {@link AbsNode}。
+     * 将规格转换为引擎节点列表：节点经 {@code INodeCreator} 创建，运行时必为 {@link AbsNode}，
+     * 无法识别的节点（返回 null）被过滤。
      */
     private List<AbsNode> engineNodes(WorkflowSpec spec) {
-        return spec.getNodes().stream()
+        if (spec.getKind() == WorkflowSpec.Kind.LOOP) {
+            return spec.getNodes().stream()
+                    .map(AbsNode.class::cast)
+                    .toList();
+        }
+        return spec.getLogicFlow().getNodes().stream()
+                .map(nodeCreator::createNode)
+                .filter(Objects::nonNull)
                 .map(AbsNode.class::cast)
                 .toList();
+    }
+
+    /**
+     * 获取规格对应的边列表：LOOP 取派生节点配套的边，其余取 LogicFlow 解析的边。
+     */
+    private List<LfEdge> edges(WorkflowSpec spec) {
+        return spec.getKind() == WorkflowSpec.Kind.LOOP ? spec.getEdges() : spec.getLogicFlow().getEdges();
     }
 }
