@@ -16,5 +16,17 @@ public class KnowledgeSetting {
     private Float similarity;
     private Boolean fallbackEnable;
     private String fallbackResponse;
+    /**
+     * 是否启用检索结果重排（rerank）；开启后召回超采样，由 RerankStep 精排截断。
+     */
+    private Boolean rerankEnable;
+    /**
+     * 重排模型 ID（ScoringModel）；缺省时 rerankEnable 不生效。
+     */
+    private String rerankModelId;
+    /**
+     * 重排后保留的条数；缺省回退 topN。
+     */
+    private Integer rerankTopN;
 
 }

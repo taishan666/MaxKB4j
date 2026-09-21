@@ -8,11 +8,11 @@ import com.maxkb4j.knowledge.service.IDocumentInternalService;
 import com.maxkb4j.knowledge.store.IDataStore;
 import com.maxkb4j.knowledge.vo.TextChunkVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Unified data retriever that supports multiple search modes
@@ -21,11 +21,6 @@ import java.util.Map;
 @Component
 public class DataRetriever {
 
-    private static final Map<String, SearchMode> SEARCH_MODE_MAP = Map.of(
-            SearchType.EMBEDDING, SearchMode.VECTOR,
-            SearchType.FULL_TEXT, SearchMode.FULL_TEXT,
-            SearchType.HYBRID, SearchMode.HYBRID
-    );
     private final IDataStore vectorStore;
     private final IDataStore fullTextStore;
     private final IDataStore compositeStore;
@@ -46,26 +41,38 @@ public class DataRetriever {
 
     public List<TextChunkVO> search(List<String> knowledgeIds, List<String> excludeParagraphIds,
                                     String keyword, int maxResults, float minScore, String searchMode) {
+        SearchMode mode = resolveMode(searchMode);
         SearchRequest request = new SearchRequest();
         request.setKnowledgeIds(knowledgeIds);
         request.setExcludeParagraphIds(excludeParagraphIds);
         request.setQuery(keyword);
         request.setTopK(maxResults);
         request.setMinScore(minScore);
-        request.setMode(SEARCH_MODE_MAP.get(searchMode));
+        request.setMode(mode);
         List<String> excludeDocIds = documentService.getNoActiveDocIds(knowledgeIds);
         if (CollectionUtils.isNotEmpty(excludeDocIds)) {
             request.setExcludeDocumentIds(excludeDocIds);
         }
-        return searchOrchestrator.search(getStore(searchMode), request);
+        return searchOrchestrator.search(getStore(mode), request);
     }
 
-    private IDataStore getStore(String searchMode) {
-        return switch (searchMode) {
-            case SearchType.EMBEDDING -> vectorStore;
-            case SearchType.FULL_TEXT -> fullTextStore;
-            case SearchType.HYBRID -> compositeStore;
-            default -> throw new IllegalArgumentException("Unknown search mode: " + searchMode);
+    /**
+     * 解析检索模式字符串为枚举；空值或未知值兜底为向量检索，避免 NPE 导致整次检索失败。
+     */
+    private SearchMode resolveMode(String searchMode) {
+        String mode = StringUtils.defaultIfBlank(searchMode, SearchType.EMBEDDING);
+        return switch (mode) {
+            case SearchType.FULL_TEXT -> SearchMode.FULL_TEXT;
+            case SearchType.HYBRID -> SearchMode.HYBRID;
+            default -> SearchMode.VECTOR;
+        };
+    }
+
+    private IDataStore getStore(SearchMode mode) {
+        return switch (mode) {
+            case SearchMode.FULL_TEXT -> fullTextStore;
+            case SearchMode.HYBRID -> compositeStore;
+            default -> vectorStore;
         };
     }
 }

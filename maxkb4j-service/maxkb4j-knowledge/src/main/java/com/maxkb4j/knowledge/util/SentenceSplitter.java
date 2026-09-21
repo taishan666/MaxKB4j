@@ -19,6 +19,26 @@ public class SentenceSplitter {
      * @return 分段后的列表
      */
     public static List<String> split(String text, int limit, Locale locale) {
+        return split(text, limit, locale, 0);
+    }
+
+    /**
+     * 使用 BreakIterator 按句子分割并按 limit 合并为段落，相邻段落回填 overlap 字符的句子上下文。
+     *
+     * @param text    输入文本
+     * @param limit   每段最大字符数（>0）
+     * @param overlap 相邻段落重叠的字符数上限（<=0 表示不重叠）
+     * @return 分段后的列表
+     */
+    public static List<String> split(String text, int limit, int overlap) {
+        return split(text, limit, Locale.getDefault(), overlap);
+    }
+
+    /**
+     * @param locale 语言区域
+     * @param overlap 相邻段落重叠的字符数上限（<=0 表示不重叠）
+     */
+    public static List<String> split(String text, int limit, Locale locale, int overlap) {
         if (text == null || text.isEmpty()) {
             return new ArrayList<>();
         }
@@ -44,17 +64,10 @@ public class SentenceSplitter {
             start = end;
             end = sentenceIter.next();
         }
-        // Step 3: 合并为段落
-        List<String> paragraphs = TextSplitter.mergeChunksIntoParts(sentences, limit, "");
+        // Step 3: 合并为段落（带 overlap 回填）
+        List<String> paragraphs = TextSplitter.mergeChunksIntoParts(sentences, limit, "", overlap);
         // Step 4: 还原占位符为原始图片
         return restoreImagesFromPlaceholders(paragraphs, placeholderToImage);
-    }
-
-    /**
-     * 重载方法：使用默认 Locale
-     */
-    public static List<String> split(String text, int limit) {
-        return split(text, limit, Locale.getDefault());
     }
 
     /**

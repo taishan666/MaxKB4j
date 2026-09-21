@@ -6,6 +6,7 @@ import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.chatstep.AbsChatStep;
 import com.maxkb4j.application.pipeline.step.generatehumanmessagestep.AbsGenerateHumanMessageStep;
+import com.maxkb4j.application.pipeline.step.rerankstep.AbsRerankStep;
 import com.maxkb4j.application.pipeline.step.resetproblemstep.AbsResetProblemStep;
 import com.maxkb4j.application.pipeline.step.searchdatasetstep.AbsSearchDatasetStep;
 import com.maxkb4j.application.service.IChatService;
@@ -28,6 +29,7 @@ public class ChatSimpleServiceImpl implements IChatService {
 
     private final AbsResetProblemStep resetProblemStep;
     private final AbsSearchDatasetStep searchDatasetStep;
+    private final AbsRerankStep rerankStep;
     private final AbsGenerateHumanMessageStep generateHumanMessageStep;
     private final AbsChatStep chatStep;
 
@@ -40,6 +42,8 @@ public class ChatSimpleServiceImpl implements IChatService {
                 pipelineManageBuilder.addStep(resetProblemStep);
             }
             pipelineManageBuilder.addStep(searchDatasetStep);
+            // rerank 未启用时该 step 为空操作，直接注册不影响既有行为
+            pipelineManageBuilder.addStep(rerankStep);
         }
         pipelineManageBuilder.addStep(generateHumanMessageStep);
         pipelineManageBuilder.addStep(chatStep);

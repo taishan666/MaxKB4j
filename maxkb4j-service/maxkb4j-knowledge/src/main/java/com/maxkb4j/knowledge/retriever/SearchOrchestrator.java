@@ -11,16 +11,14 @@ import com.maxkb4j.knowledge.vo.TextChunkVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 检索编排器：承担原先泄漏进各 store 的检索策略——
@@ -29,8 +27,9 @@ import java.util.Set;
  * <p>store 层因此退化为纯持久化端口（{@link IDataStore#searchBySource}），不再依赖任何 service，
  * 原构造期循环依赖（store 与 service 互相注入、用 {@code ObjectProvider} 兜底）随之消除。</p>
  *
- * <p>编排顺序：先解析排除段落 ID 填入 {@link SearchRequest}，再分别按段落、问题来源取原始命中，
- * 把问题命中经 problem_paragraph 映射为段落，最后合并去重并截断到 topK。</p>
+ * <p>编排顺序：先解析排除段落 ID 填入 {@link SearchRequest}，再按召回放大后的 topK
+ * 分别取段落、问题两路原始命中，把问题命中经 problem_paragraph 映射为段落，
+ * 最后合并去重并截断回原始 topK。</p>
  */
 @Slf4j
 @Component
@@ -41,20 +40,32 @@ public class SearchOrchestrator {
     private final IProblemParagraphService problemParagraphService;
 
     /**
+     * 召回放大系数：双路召回阶段按 {@code topK * multiplier} 向 store 多取候选，
+     * 合并去重后再统一截断回 topK，避免两类过早截断造成的漏召回：
+     * 1) store 层 minScore 过滤发生在 topK 截断之后，导致有效结果不足 topK；
+     * 2) 段落路与问题路各自截断后才合并，交叉去重吃掉候选。
+     */
+    @Value("${knowledge.search.recall-multiplier:3}")
+    private int recallMultiplier = 3;
+
+    /**
      * 在指定 store 上执行双路召回编排。
+     * <p>注：request 由 {@code DataRetriever} 每次调用新建，这里就地放大 topK 是安全的。</p>
      *
      * @param store 由调用方按检索模式选定的后端（vector / fullText / composite）
      */
     public List<TextChunkVO> search(IDataStore store, SearchRequest request) {
-        if (shouldShortCircuit(request)) {
+        if (shouldShortCircuit(request) || request.getTopK() <= 0) {
             return Collections.emptyList();
         }
         resolveExcludeParagraphIds(request);
 
+        int topK = request.getTopK();
+        request.setTopK(topK * Math.max(recallMultiplier, 1));
+
         List<TextChunkVO> results = new ArrayList<>(store.searchBySource(request, SourceType.PARAGRAPH));
-        List<TextChunkVO> problemHits = store.searchBySource(request, SourceType.PROBLEM);
-        results.addAll(mapProblemsToParagraphs(problemHits));
-        return dedupAndRank(results, request.getTopK());
+        results.addAll(mapProblemsToParagraphs(store.searchBySource(request, SourceType.PROBLEM)));
+        return dedupAndRank(results, topK);
     }
 
     private boolean shouldShortCircuit(SearchRequest request) {
@@ -108,45 +119,35 @@ public class SearchOrchestrator {
     }
 
     /**
-     * 对原始检索结果按 paragraphId 做去重 + 排序 + 截断：
-     * 1) 先按 paragraphId 累加 totalScore（用于同分时的 tiebreaker）
-     * 2) 按 score 降序排序
-     * 3) 每个 paragraphId 仅保留 score 最高的一条
-     * 4) 同 score 的条目按 paragraphId 累计总分降序
-     * 5) 截断到 topK
+     * 对原始检索结果按 paragraphId 去重 + 排序 + 截断到 topK：
+     * 1) 按 sourceId 聚合出单条最高分 score 与累计总分 totalScore；
+     * 2) 按 score 降序排序，同分时按 totalScore 降序（多路/多次命中的段落优先）；
+     * 3) 截断到 topK。
      */
     private List<TextChunkVO> dedupAndRank(List<TextChunkVO> raw, int topK) {
-        if (raw == null || raw.isEmpty()) {
+        if (CollectionUtils.isEmpty(raw) || topK <= 0) {
             return Collections.emptyList();
         }
-
-        Map<String, Double> totalScoreByParagraphId = new HashMap<>();
-        for (TextChunkVO result : raw) {
-            totalScoreByParagraphId.merge(result.getSourceId(), result.getScore(), Double::sum);
+        // value: [该 sourceId 的最高分, 该 sourceId 的累计总分]
+        Map<String, double[]> scoreById = new HashMap<>();
+        for (TextChunkVO chunk : raw) {
+            double score = chunk.getScore() == null ? 0D : chunk.getScore();
+            scoreById.compute(chunk.getSourceId(), (id, acc) -> {
+                if (acc == null) {
+                    return new double[]{score, score};
+                }
+                acc[1] += score;
+                acc[0] = Math.max(acc[0], score);
+                return acc;
+            });
         }
-
-        List<TextChunkVO> sorted = new ArrayList<>(raw);
-        sorted.sort(Comparator.comparingDouble(TextChunkVO::getScore).reversed());
-
-        List<TextChunkVO> distinct = new ArrayList<>();
-        Set<String> seen = new HashSet<>();
-        for (TextChunkVO item : sorted) {
-            if (seen.add(item.getSourceId())) {
-                distinct.add(item);
-            }
-        }
-
-        distinct.sort((a, b) -> {
-            int scoreCompare = Double.compare(b.getScore(), a.getScore());
-            if (scoreCompare != 0) {
-                return scoreCompare;
-            }
-            double totalA = totalScoreByParagraphId.getOrDefault(a.getSourceId(), 0.0);
-            double totalB = totalScoreByParagraphId.getOrDefault(b.getSourceId(), 0.0);
-            return Double.compare(totalB, totalA);
-        });
-
-        int end = Math.min(topK, distinct.size());
-        return distinct.subList(0, end);
+        return scoreById.entrySet().stream()
+                .sorted((a, b) -> {
+                    int byBest = Double.compare(b.getValue()[0], a.getValue()[0]);
+                    return byBest != 0 ? byBest : Double.compare(b.getValue()[1], a.getValue()[1]);
+                })
+                .limit(topK)
+                .map(e -> new TextChunkVO(e.getKey(), e.getValue()[0]))
+                .toList();
     }
 }

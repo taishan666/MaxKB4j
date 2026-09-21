@@ -5,6 +5,7 @@ import com.maxkb4j.common.util.BatchUtil;
 import com.maxkb4j.knowledge.listener.DocumentIndexListener;
 import com.maxkb4j.knowledge.listener.ParagraphIndexListener;
 import com.maxkb4j.knowledge.consts.SourceType;
+import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.entity.EmbeddingEntity;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.store.IDataStore;
@@ -78,6 +79,12 @@ public class ParagraphIndexBatchExecutor {
             documentService.updateStatusById(docId, INDEX_TYPE, STATUS_COMPLETED);
             return;
         }
+        if (embeddingModel == null) {
+            // 未配置嵌入模型：文档回退待处理状态，交由重试流程在配置修复后拾起
+            documentService.updateStatusById(docId, INDEX_TYPE, STATUS_PENDING);
+            log.warn("知识库 {} 未配置嵌入模型，文档 {} 索引跳过", knowledgeId, docId);
+            return;
+        }
 
         log.info("开始--->文档索引: {}", docId);
         documentService.updateStatusById(docId, INDEX_TYPE, STATUS_PROCESSING);
@@ -119,9 +126,12 @@ public class ParagraphIndexBatchExecutor {
             compositeStore.deleteByParagraphIds(knowledgeId, ids);
         });
 
+        // 上下文增强嵌入：短块脱离文档语境后向量区分度低，前缀「文档名 | 标题路径」
+        // 为每块补足来源语境，避免不同文档中的同名术语相互混淆
+        String documentName = resolveDocumentName(docId);
         List<EmbeddingEntity> embeddingEntities = new ArrayList<>(paragraphs.size());
         for (ParagraphEntity paragraph : paragraphs) {
-            String title = StringUtils.defaultString(paragraph.getTitle());
+            String title = StringUtils.trimToEmpty(paragraph.getTitle());
             String content = StringUtils.defaultString(paragraph.getContent());
             // 标题与内容均为空白的段落没有可检索信号，跳过以省去无效的向量化与全文写入
             if (StringUtils.isBlank(title) && StringUtils.isBlank(content)) {
@@ -132,7 +142,7 @@ public class ParagraphIndexBatchExecutor {
                     .documentId(docId)
                     .sourceId(paragraph.getId())
                     .sourceType(SourceType.PARAGRAPH)
-                    .content(title + content)
+                    .content(buildEmbeddingText(documentName, title, content))
                     .build());
         }
 
@@ -142,6 +152,40 @@ public class ParagraphIndexBatchExecutor {
         compositeStore.upsert(embeddingModel, embeddingEntities);
         log.info("批量索引完成，共处理 {} 个嵌入实体", embeddingEntities.size());
         return embeddingEntities.size();
+    }
+
+    /**
+     * 组装上下文增强的嵌入输入：{@code 文档名 | 标题路径\n标题+正文}。
+     * <p>文档名或标题缺失时退化为 {@code 标题+正文}，与旧格式兼容。</p>
+     */
+    private static String buildEmbeddingText(String documentName, String title, String content) {
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.isNotBlank(documentName)) {
+            sb.append(documentName);
+        }
+        if (StringUtils.isNotBlank(title)) {
+            if (!sb.isEmpty()) {
+                sb.append(" | ");
+            }
+            sb.append(title);
+        }
+        if (!sb.isEmpty()) {
+            sb.append("\n");
+        }
+        return sb.append(title).append(content).toString();
+    }
+
+    /**
+     * 查询文档名用于嵌入前缀；文档已删除时返回空串（段落残留的重建索引场景）。
+     */
+    private String resolveDocumentName(String docId) {
+        try {
+            DocumentEntity document = documentService.getById(docId);
+            return document == null ? "" : StringUtils.trimToEmpty(document.getName());
+        } catch (Exception e) {
+            log.warn("查询文档名失败，嵌入输入退化为标题+正文: docId={}, cause: {}", docId, e.getMessage());
+            return "";
+        }
     }
 
     /**

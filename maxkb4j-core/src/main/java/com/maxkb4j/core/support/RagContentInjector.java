@@ -3,25 +3,33 @@ package com.maxkb4j.core.support;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.PropertyFilter;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.maxkb4j.common.domain.vo.RagContent;
 import dev.langchain4j.internal.Utils;
 import dev.langchain4j.model.input.Prompt;
 import dev.langchain4j.model.input.PromptTemplate;
 import org.apache.commons.lang3.StringUtils;
 
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * 将检索命中的段落内容注入到用户问题中，拼装成带上下文的 Prompt。
  *
- * <p>通过 {@link RagContent} 最小契约与具体业务 VO 解耦，不依赖任何业务模块。
+ * <p>通过 {@link RagContent} 最小契约与具体业务 VO 解耦，不依赖任何业务模块。</p>
  */
 public class RagContentInjector {
-    public static final PromptTemplate DEFAULT_PROMPT_TEMPLATE = PromptTemplate.from("question:\n{{userMessage}}\nanswer using the following json information:\n{{contents}}\nOutput Requirements:\nIf the knowledge base content contains image URLs, they must be output in the following Markdown format exactly as they are. ! [](image address)");
+
+    public static final PromptTemplate DEFAULT_PROMPT_TEMPLATE = PromptTemplate.from("""
+            Answer the question based on the numbered knowledge base contents below.
+            question:
+            {{userMessage}}
+            answer using the following json information:
+            {{contents}}
+            Output Requirements:
+            1. Answer ONLY using the provided contents. If they are insufficient to answer the question, state that explicitly instead of inventing information.
+            2. Cite the reference ids (e.g. [1] [2]) next to the corresponding statements in your answer.
+            3. If the knowledge base content contains image URLs, they must be output in the following Markdown format exactly as they are. ! [](image address)""");
+
     private final PromptTemplate promptTemplate;
 
     public RagContentInjector() {
@@ -39,7 +47,6 @@ public class RagContentInjector {
         return this.createPrompt(problemText, contents, maxCharNumber).text();
     }
 
-
     private Prompt createPrompt(String problemText, List<? extends RagContent> contents, int maxCharNumber) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("userMessage", problemText);
@@ -47,76 +54,67 @@ public class RagContentInjector {
         return this.promptTemplate.apply(variables);
     }
 
-
-    public String formatJson1(List<? extends RagContent> contents, int maxCharNumber) {
-        List<RagContent> ragContents = new ArrayList<>();
-        int charNumber = 0;
-        for (RagContent content : contents) {
-            String text = content.getTitle() + content.getContent() + content.getDocumentName();
-            charNumber = charNumber + text.length();
-            if (charNumber > maxCharNumber) {
-                break;
-            }
-            ragContents.add(content);
-        }
-        // 获取 RagContent 自身声明的所有字段名
-        Set<String> allowedFields = Arrays.stream(RagContent.class.getDeclaredFields())
-                .map(Field::getName)
-                .collect(Collectors.toSet());
-
-        PropertyFilter filter = (object, name, value) -> {
-            // 只序列化 RagContent 中声明的字段
-            return allowedFields.contains(name);
-        };
-        return JSON.toJSONString(ragContents, filter, SerializerFeature.PrettyFormat);
-    }
-
+    /**
+     * 将命中内容序列化为带引用编号的紧凑 JSON：
+     * 按文档分组（保持命中顺序）、组内按 position 升序、每条分配全局递增的 id 供答案引用。
+     *
+     * <p>预算（maxCharNumber）控制 title+content 的总字符数：放不下整条时对最后一条做
+     * 字符级截断而非整块丢弃，提高预算利用率；紧凑序列化（无缩进）较 PrettyFormat
+     * 节省约 30% 的无效 token。</p>
+     */
     public String formatJson(List<? extends RagContent> contents, int maxCharNumber) {
-        // 1. 字符数截断（保持原有逻辑，但避免拼接字符串产生的额外开销）
-        List<RagContent> truncated = new ArrayList<>();
-        int charCount = 0;
+        Map<String, List<RagContent>> byDocument = new LinkedHashMap<>();
         for (RagContent content : contents) {
-            // 直接累加长度，避免 title + content 创建新字符串
-            int len = (content.getTitle() == null ? 0 : content.getTitle().length())
-                    + (content.getContent() == null ? 0 : content.getContent().length());
-            if (charCount + len > maxCharNumber) {
-                break;
-            }
-            charCount += len;
-            truncated.add(content);
+            byDocument.computeIfAbsent(StringUtils.defaultString(content.getDocumentName()), k -> new ArrayList<>()).add(content);
         }
 
-        // 2. 分组 + 组内排序 + 构建JSON 一体化处理
-        JSONArray result = truncated.stream()
-                .collect(Collectors.groupingBy(
-                        c -> Optional.ofNullable(c.getDocumentName()).orElse(""),
-                        LinkedHashMap::new,
-                        Collectors.toList()
-                ))
-                .entrySet().stream()
-                .map(entry -> {
-                    // 组内按 position 升序，null 排最后
-                    JSONArray contentArray = entry.getValue().stream()
-                            .sorted(Comparator.comparing(
-                                    RagContent::getPosition,
-                                    Comparator.nullsLast(Comparator.naturalOrder())
-                            ))
-                            .map(e -> {
-                                JSONObject obj = new JSONObject();
-                                obj.put("title", e.getTitle());
-                                obj.put("content", e.getContent());
-                                obj.put("position", e.getPosition());
-                                return obj;
-                            })
-                            .collect(Collectors.toCollection(JSONArray::new)); // 直接收集为JSONArray
-                    JSONObject group = new JSONObject();
-                    group.put("documentName", entry.getKey());
-                    group.put("contents", contentArray);
-                    return group;
-                })
-                .collect(Collectors.toCollection(JSONArray::new));
-
-        return JSON.toJSONString(result, SerializerFeature.PrettyFormat);
+        JSONArray groups = new JSONArray();
+        int budget = maxCharNumber;
+        int citation = 0;
+        boolean exhausted = budget <= 0;
+        for (Map.Entry<String, List<RagContent>> entry : byDocument.entrySet()) {
+            if (exhausted) {
+                break;
+            }
+            JSONArray contentArray = new JSONArray();
+            List<RagContent> sorted = entry.getValue().stream()
+                    .sorted(Comparator.comparing(RagContent::getPosition, Comparator.nullsLast(Comparator.naturalOrder())))
+                    .toList();
+            for (RagContent content : sorted) {
+                if (budget <= 0) {
+                    exhausted = true;
+                    break;
+                }
+                String title = StringUtils.defaultString(content.getTitle());
+                String body = StringUtils.defaultString(content.getContent());
+                int len = title.length() + body.length();
+                if (len > budget) {
+                    // 预算不足：title 优先保留，正文截断到剩余预算后停止
+                    int bodyBudget = budget - title.length();
+                    if (bodyBudget > 0) {
+                        body = body.substring(0, bodyBudget);
+                    } else {
+                        title = title.substring(0, budget);
+                        body = "";
+                    }
+                    len = budget;
+                }
+                budget -= len;
+                JSONObject obj = new JSONObject(true);
+                obj.put("id", ++citation);
+                obj.put("title", title);
+                obj.put("content", body);
+                obj.put("position", content.getPosition());
+                contentArray.add(obj);
+            }
+            if (!contentArray.isEmpty()) {
+                JSONObject group = new JSONObject(true);
+                group.put("documentName", entry.getKey());
+                group.put("contents", contentArray);
+                groups.add(group);
+            }
+        }
+        return JSON.toJSONString(groups);
     }
 
     public String format(List<? extends RagContent> contents, int maxCharNumber) {

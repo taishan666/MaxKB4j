@@ -5,10 +5,8 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.searchdatasetstep.AbsSearchDatasetStep;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
-import com.maxkb4j.knowledge.service.IKnowledgeService;
 import com.maxkb4j.knowledge.service.IRetrieveService;
 import com.maxkb4j.knowledge.vo.ParagraphRagVO;
-import com.maxkb4j.model.service.IModelProviderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -17,57 +15,31 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class SearchDatasetStep extends AbsSearchDatasetStep {
 
+    /**
+     * rerank 开启时的召回超采样倍数：多召回候选交给 RerankStep 精排筛选，
+     * 避免粗排名次截断把 rerank 后本应入选的段落挡在门外。
+     */
+    private static final int RERANK_RECALL_MULTIPLIER = 3;
+
     private final IRetrieveService retrieveService;
-    private final IKnowledgeService knowledgeService;
-    private final IModelProviderService modelFactory;
     private final TaskExecutor taskExecutor;
 
     @Override
     protected List<ParagraphRagVO> execute(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat, PipelineManage manage) {
         long startTime = System.currentTimeMillis();
         List<ParagraphRagVO> paragraphList = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(knowledgeIds)) {
-    /*        if(Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())){
-                ApplicationVO application = manage.application;
-                String modelId = application.getModelId();
-                JSONObject modelParams = application.getModelParamsSetting();
-                ChatModel chatModel = modelFactory.buildChatModel(modelId,modelParams);
-                RouterAssistant assistant = AiServiceFactory.builder(RouterAssistant.class)
-                        .chatModel(chatModel)
-                        .build();
-                List<String> options=new ArrayList<>();
-                List<KnowledgeSimple> knowledgeList =knowledgeService.listSimpleKnowledgeByIds(knowledgeIds);
-                Map<String, String> idToClassification=new HashMap<>();
-                for (int i = 0; i < knowledgeList.size(); i++) {
-                    KnowledgeSimple knowledge=knowledgeList.get(i);
-                    int id = i + 1;
-                    options.add(id+ ":" + knowledge.getName()+"("+knowledge.getDesc()+")");
-                    idToClassification.put(String.valueOf(id), knowledge.getId());
-                }
-                Result<List<String>> result = assistant.route(String.join("\n", options), problemText);
-                List<String> classificationIds = result.content();
-                for (String classificationId : classificationIds) {
-                    if (!idToClassification.containsKey(classificationId)){
-                         String knowledgeId = idToClassification.get(classificationId);
-                         if (knowledgeId != null){
-                             knowledgeIds.remove(knowledgeId);
-                         }
-                    }
-                }
-                TokenUsage tokenUsage=result.tokenUsage();
-                super.context.put("messageTokens", tokenUsage.inputTokenCount());
-                super.context.put("answerTokens", tokenUsage.outputTokenCount());
-            }*/
-            if (!Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())) {
-                List<String> excludeParagraphIds = reChat ? manage.getExcludeParagraphIds(problemText) : List.of();
-                paragraphList = retrieval(knowledgeIds, datasetSetting, problemText, paddingProblemText, reChat, excludeParagraphIds);
-            }
+        if (CollectionUtils.isNotEmpty(knowledgeIds) && !Boolean.TRUE.equals(datasetSetting.getOnDemandEnable())) {
+            List<String> excludeParagraphIds = reChat ? manage.getExcludeParagraphIds(problemText) : List.of();
+            paragraphList = retrieval(knowledgeIds, datasetSetting, problemText, paddingProblemText, excludeParagraphIds);
         }
         log.info("dataset search 耗时 {} ms", System.currentTimeMillis() - startTime);
         super.context.put("paragraphList", paragraphList);
@@ -75,33 +47,40 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
         return paragraphList;
     }
 
-    protected List<ParagraphRagVO> retrieval(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, Boolean reChat, List<String> excludeParagraphIds) {
+    protected List<ParagraphRagVO> retrieval(List<String> knowledgeIds, KnowledgeSetting datasetSetting, String problemText, String paddingProblemText, List<String> excludeParagraphIds) {
+        // rerank 开启时召回超采样：多取候选留给 RerankStep 精排截断；未开启时维持 topN
+        int recallN = resolveRecallNumber(datasetSetting);
         List<CompletableFuture<List<ParagraphRagVO>>> futureList = new ArrayList<>();
-        CompletableFuture<List<ParagraphRagVO>> future = CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(problemText, knowledgeIds, excludeParagraphIds, datasetSetting), taskExecutor);
-        futureList.add(future);
+        futureList.add(CompletableFuture.supplyAsync(
+                () -> retrieveService.paragraphSearch(problemText, knowledgeIds, excludeParagraphIds, datasetSetting, recallN), taskExecutor));
+        // 问题优化（改写）结果与原文并行召回
         if (StringUtils.isNotBlank(paddingProblemText) && !problemText.equals(paddingProblemText)) {
-            futureList.add(CompletableFuture.supplyAsync(() -> retrieveService.paragraphSearch(paddingProblemText, knowledgeIds, excludeParagraphIds, datasetSetting)));
+            futureList.add(CompletableFuture.supplyAsync(
+                    () -> retrieveService.paragraphSearch(paddingProblemText, knowledgeIds, excludeParagraphIds, datasetSetting, recallN), taskExecutor));
         }
-        List<ParagraphRagVO> paragraphList = futureList.stream().flatMap(f -> f.join().stream()).toList();
-        //当有优化的问题时
-        if (paragraphList.size() > datasetSetting.getTopN()) {
-            Map<String, ParagraphRagVO> map = new LinkedHashMap<>();
-            //融合排序
-            for (ParagraphRagVO paragraph : paragraphList) {
-                if (map.containsKey(paragraph.getId())) {
-                    if (map.get(paragraph.getId()).getSimilarity() < paragraph.getSimilarity()) {
-                        map.put(paragraph.getId(), paragraph);
-                    }
-                } else {
-                    map.put(paragraph.getId(), paragraph);
-                }
-            }
-            List<ParagraphRagVO> results = new ArrayList<>(map.values());
-            results.sort(Comparator.comparing(ParagraphRagVO::getSimilarity).reversed());
-            int endIndex = Math.min(datasetSetting.getTopN(), results.size());
-            return results.subList(0, endIndex);
-        }
-        return paragraphList;
+        // 多路查询结果融合：同一 paragraphId 保留最高 similarity，避免重复段落挤占名额
+        Comparator<ParagraphRagVO> bySimilarity = Comparator.comparing(ParagraphRagVO::getSimilarity,
+                Comparator.nullsFirst(Comparator.naturalOrder()));
+        List<ParagraphRagVO> results = new ArrayList<>(futureList.stream()
+                .flatMap(f -> f.join().stream())
+                .collect(Collectors.toMap(
+                        ParagraphRagVO::getId,
+                        Function.identity(),
+                        BinaryOperator.maxBy(bySimilarity),
+                        LinkedHashMap::new))
+                .values());
+        results.sort(bySimilarity.reversed());
+        return results.size() <= recallN ? results : results.subList(0, recallN);
+    }
+
+    /**
+     * 召回条数：rerank 开启（含模型配置）时 topN × {@link #RERANK_RECALL_MULTIPLIER}，否则 topN。
+     */
+    private static int resolveRecallNumber(KnowledgeSetting setting) {
+        int topN = setting.getTopN() == null ? Integer.MAX_VALUE : setting.getTopN();
+        boolean rerankEnabled = Boolean.TRUE.equals(setting.getRerankEnable())
+                && StringUtils.isNotBlank(setting.getRerankModelId());
+        return rerankEnabled && topN != Integer.MAX_VALUE ? topN * RERANK_RECALL_MULTIPLIER : topN;
     }
 
 

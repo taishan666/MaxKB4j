@@ -26,11 +26,16 @@ public class ParagraphRetriever implements IRetrieveService {
 
     @Override
     public List<ParagraphRagVO> paragraphSearch(String question, List<String> knowledgeIds, List<String> excludeParagraphIds, KnowledgeSetting datasetSetting) {
+        return paragraphSearch(question, knowledgeIds, excludeParagraphIds, datasetSetting, null);
+    }
+
+    @Override
+    public List<ParagraphRagVO> paragraphSearch(String question, List<String> knowledgeIds, List<String> excludeParagraphIds, KnowledgeSetting datasetSetting, Integer topNumber) {
         DataSearchDTO dto = new DataSearchDTO();
         dto.setQueryText(question);
         dto.setSearchMode(datasetSetting.getSearchMode());
         dto.setSimilarity(datasetSetting.getSimilarity());
-        dto.setTopNumber(datasetSetting.getTopN());
+        dto.setTopNumber(topNumber != null ? topNumber : datasetSetting.getTopN());
         dto.setExcludeParagraphIds(excludeParagraphIds);
         return paragraphSearch(knowledgeIds, dto);
     }

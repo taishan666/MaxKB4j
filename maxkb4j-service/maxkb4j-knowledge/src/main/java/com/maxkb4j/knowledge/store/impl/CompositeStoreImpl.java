@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -77,14 +76,14 @@ public class CompositeStoreImpl extends BaseStoreImpl {
     }
 
     /**
-     * 同时检索向量库与全文库的同一来源类型，按 sourceId 取较高分融合后排序截断到 topK。
+     * 同时检索向量库与全文库的同一来源类型，按 RRF（Reciprocal Rank Fusion）融合后排序截断到 topK。
      * 任意一路检索异常会被降级为空列表，另一路结果仍然返回。
      */
     @Override
     public List<TextChunkVO> searchBySource(SearchRequest request, int sourceType) {
         CompletableFuture<List<TextChunkVO>> vectorFuture = safeSearchAsync(vectorStore, request, sourceType, "vector");
         CompletableFuture<List<TextChunkVO>> fullTextFuture = safeSearchAsync(fullTextStore, request, sourceType, "fullText");
-        return mergeByMaxScore(vectorFuture.join(), fullTextFuture.join(), request.getTopK());
+        return mergeByRrf(vectorFuture.join(), fullTextFuture.join(), request.getTopK());
     }
 
     /**
@@ -116,19 +115,44 @@ public class CompositeStoreImpl extends BaseStoreImpl {
     }
 
     /**
-     * 按 sourceId 取两路结果中的较高 score，按 score 降序后截断到 topK。
+     * RRF 平滑常数，取业界惯例 60。
      */
-    private List<TextChunkVO> mergeByMaxScore(List<TextChunkVO> vectorHits, List<TextChunkVO> fullTextHits, int topK) {
-        Map<String, Double> maxScoreByParagraphId = new LinkedHashMap<>();
-        for (List<TextChunkVO> hits : List.of(vectorHits, fullTextHits)) {
-            for (TextChunkVO hit : hits) {
-                maxScoreByParagraphId.merge(hit.getSourceId(), hit.getScore(), Math::max);
-            }
+    private static final int RRF_K = 60;
+
+    /**
+     * Reciprocal Rank Fusion 融合两路命中：{@code score(d) = Σ 1/(k + rank_route(d))}。
+     *
+     * <p>RRF 只依赖名次不依赖分值，规避了向量路（归一化余弦）与全文路（归一化 textScore）
+     * 分数量纲不一致导致的排序失真——原先按两路取 max 融合，单一后端的分值尺度主导排序，
+     * hybrid 效果常不如单路。两路同时命中的段落天然获得名次加成。</p>
+     *
+     * <p>返回条目的 score 采用两路中的最高归一化分（[0,1] 量纲）：minScore 阈值过滤
+     * 已在各子路内完成（同量纲语义正确），下游的命中直答阈值与前端展示分数保持原有语义。</p>
+     */
+    private List<TextChunkVO> mergeByRrf(List<TextChunkVO> vectorHits, List<TextChunkVO> fullTextHits, int topK) {
+        // value: [rrf 累计名次分, 两路最高归一化分]
+        Map<String, double[]> fused = new LinkedHashMap<>();
+        accumulateRrf(vectorHits, fused);
+        accumulateRrf(fullTextHits, fused);
+        return fused.entrySet().stream()
+                .sorted(Comparator.comparingDouble((Map.Entry<String, double[]> e) -> e.getValue()[0]).reversed())
+                .limit(Math.max(topK, 0))
+                .map(e -> new TextChunkVO(e.getKey(), e.getValue()[1]))
+                .toList();
+    }
+
+    /**
+     * 单路命中按名次累计 RRF 分；路内列表已按分数降序（store 层保证）。
+     */
+    private static void accumulateRrf(List<TextChunkVO> hits, Map<String, double[]> fused) {
+        if (hits == null) {
+            return;
         }
-        List<TextChunkVO> merged = new ArrayList<>(maxScoreByParagraphId.size());
-        maxScoreByParagraphId.forEach((paragraphId, score) -> merged.add(new TextChunkVO(paragraphId, score)));
-        merged.sort(Comparator.comparing(TextChunkVO::getScore).reversed());
-        int end = Math.min(topK, merged.size());
-        return merged.subList(0, end);
+        for (int i = 0; i < hits.size(); i++) {
+            TextChunkVO hit = hits.get(i);
+            double[] acc = fused.computeIfAbsent(hit.getSourceId(), id -> new double[2]);
+            acc[0] += 1.0 / (RRF_K + i + 1);
+            acc[1] = Math.max(acc[1], hit.getScore() == null ? 0D : hit.getScore());
+        }
     }
 }

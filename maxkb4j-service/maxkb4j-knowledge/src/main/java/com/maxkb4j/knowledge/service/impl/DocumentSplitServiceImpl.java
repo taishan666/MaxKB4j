@@ -8,6 +8,7 @@ import com.maxkb4j.knowledge.util.TextSplitter;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
 import org.jetbrains.annotations.NotNull;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -30,25 +31,14 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
     // 统一标题正则：一次匹配所有 h1~h6 标题，替代原来 6 次扫描
     private static final Pattern UNIFIED_HEADING_PATTERN = Pattern.compile("(?m)^((#{1,6})\\s+(.+))$");
 
-    private static final String[] DEFAULT_PATTERNS = {
-            "(?<=^)# .*|(?<=\\n)# .*",
-            "(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*",
-            "(?<=\\n)(?<!#)### (?!#).*|(?<=^)(?<!#)### (?!#).*",
-            "(?<=\\n)(?<!#)#### (?!#).*|(?<=^)(?<!#)#### (?!#).*",
-            "(?<=\\n)(?<!#)##### (?!#).*|(?<=^)(?<!#)##### (?!#).*",
-            "(?<=\\n)(?<!#)###### (?!#).*|(?<=^)(?<!#)###### (?!#).*"
-    };
-
-    // 预编译 DEFAULT_PATTERNS，避免 recursive 中循环内重复编译
-    private static final Pattern[] COMPILED_DEFAULT_PATTERNS;
     private static final int DEFAULT_LIMIT = 512;
 
-    static {
-        COMPILED_DEFAULT_PATTERNS = new Pattern[DEFAULT_PATTERNS.length];
-        for (int i = 0; i < DEFAULT_PATTERNS.length; i++) {
-            COMPILED_DEFAULT_PATTERNS[i] = Pattern.compile(DEFAULT_PATTERNS[i]);
-        }
-    }
+    /**
+     * 相邻分块重叠比例（百分比）。重叠上限 = limit * overlapPercent / 100，
+     * 缓解跨块边界信息丢失；设为 0 关闭重叠。
+     */
+    @Value("${knowledge.split.overlap-percent:10}")
+    private int overlapPercent = 10;
 
     private static String buildTitleFromStack(String[] headingStack) {
         // 格式与原 recursive 一致："" + " " + heading → " Introduction Background"
@@ -84,7 +74,11 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
         return result.trim();
     }
 
-    public static List<ParagraphSimple> splitContentPreserveTable(ParagraphSimple part, int limit) {
+    /**
+     * 对超长内容切分，表格块整体保留；表格自身超长时按行分组切分并复制表头行，
+     * 非表格文本按句子合并切分并回填 overlap 上下文。
+     */
+    public List<ParagraphSimple> splitContentPreserveTable(ParagraphSimple part, int limit) {
         String content = part.getContent();
 
         if (StringUtils.isBlank(content)) {
@@ -104,12 +98,9 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
         for (String seg : segments) {
             if (seg.startsWith("{{TABLE}}") && seg.endsWith("{{/TABLE}}")) {
                 String tableContent = seg.substring("{{TABLE}}".length(), seg.length() - "{{/TABLE}}".length());
-                result.add(ParagraphSimple.builder()
-                        .title(part.getTitle())
-                        .content(tableContent)
-                        .build());
+                result.addAll(splitTable(part.getTitle(), tableContent, limit));
             } else {
-                List<String> texts = SentenceSplitter.split(seg, limit);
+                List<String> texts = SentenceSplitter.split(seg, limit, overlapOf(limit));
                 for (String text : texts) {
                     if (StringUtils.isNotBlank(text)) {
                         result.add(ParagraphSimple.builder()
@@ -122,6 +113,49 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
         }
 
         return result;
+    }
+
+    /**
+     * 表格块切分：不超长时整体保留；超长时按数据行分组，每个子块复制表头行（首行 +
+     * 可选的 |---| 分隔行），避免切块后丢失列语义导致"列值与列名对不上"的召回损失。
+     */
+    private static List<ParagraphSimple> splitTable(String title, String tableContent, int limit) {
+        ParagraphSimple whole = ParagraphSimple.builder().title(title).content(tableContent).build();
+        if (tableContent.length() <= limit) {
+            return Collections.singletonList(whole);
+        }
+        List<String> lines = Arrays.asList(tableContent.split("\n"));
+        if (lines.size() <= 2) {
+            // 行数太少（无法既保留表头又切分），整体保留
+            return Collections.singletonList(whole);
+        }
+        // 表头 = 首行 + 可选分隔行
+        int headerCount = lines.get(1).contains("---") ? 2 : 1;
+        int headerLen = headerCount == 2 ? lines.get(0).length() + lines.get(1).length() + 2 : lines.get(0).length() + 1;
+
+        List<ParagraphSimple> result = new ArrayList<>();
+        List<String> group = new ArrayList<>(lines.subList(0, headerCount));
+        int groupLen = headerLen;
+        for (String line : lines.subList(headerCount, lines.size())) {
+            if (group.size() > headerCount && groupLen + line.length() + 1 > limit) {
+                result.add(ParagraphSimple.builder().title(title).content(String.join("\n", group)).build());
+                group = new ArrayList<>(lines.subList(0, headerCount));
+                groupLen = headerLen;
+            }
+            group.add(line);
+            groupLen += line.length() + 1;
+        }
+        if (group.size() > headerCount) {
+            result.add(ParagraphSimple.builder().title(title).content(String.join("\n", group)).build());
+        }
+        return result;
+    }
+
+    /**
+     * 相邻分块的重叠字符数上限。
+     */
+    private int overlapOf(int limit) {
+        return Math.max(0, limit * overlapPercent / 100);
     }
 
     /**
@@ -186,10 +220,10 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
     public List<ParagraphSimple> smartSplit(String text) {
         List<ParagraphSimple> result = new ArrayList<>();
 
-        // 阶段1：按标题切分（跳过6次正则扫描，无标题时直接作为整体）
-        boolean hasHeadings = text.contains("\n\n#");
+        // 阶段1：按标题切分（单次正则扫描检测；行首锚定，覆盖文档以标题开头、
+        // 标题前仅单个换行等场景，原先 contains("\n\n#") 会漏检导致全文丢失标题上下文）
         List<ParagraphSimple> parts;
-        if (!hasHeadings) {
+        if (!UNIFIED_HEADING_PATTERN.matcher(text).find()) {
             // 无标题：跳过正则扫描，整体作为一段
             parts = Collections.singletonList(ParagraphSimple.builder().title("").content(text).build());
         } else {
@@ -271,19 +305,14 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
             return Collections.emptyList();
         }
 
-        // 使用预编译 pattern（DEFAULT_PATTERNS 用缓存，自定义 patterns 按需编译）
-        Pattern[] compiledPatterns;
-        if (patterns == DEFAULT_PATTERNS) {
-            compiledPatterns = COMPILED_DEFAULT_PATTERNS;
-        } else {
-            compiledPatterns = new Pattern[patterns.length];
-            for (int i = 0; i < patterns.length; i++) {
-                if (patterns[i] != null && !patterns[i].isEmpty()) {
-                    try {
-                        compiledPatterns[i] = Pattern.compile(patterns[i]);
-                    } catch (PatternSyntaxException e) {
-                        throw new ApiException("knowledge.split.pattern.invalid", patterns[i]);
-                    }
+        // 编译自定义 patterns（非法正则抛业务异常）
+        Pattern[] compiledPatterns = new Pattern[patterns.length];
+        for (int i = 0; i < patterns.length; i++) {
+            if (patterns[i] != null && !patterns[i].isEmpty()) {
+                try {
+                    compiledPatterns[i] = Pattern.compile(patterns[i]);
+                } catch (PatternSyntaxException e) {
+                    throw new ApiException("knowledge.split.pattern.invalid", patterns[i]);
                 }
             }
         }
