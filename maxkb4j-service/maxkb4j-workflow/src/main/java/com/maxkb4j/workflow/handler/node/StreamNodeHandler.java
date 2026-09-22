@@ -52,8 +52,6 @@ public abstract class StreamNodeHandler extends AbsNodeHandler {
      * 以当前节点身份重新包装消息内容，并携带子节点引用（chatRecordId + runtimeNodeId）
      * 供前端关联子会话。
      *
-     * <p>本方法只负责消息转发，不产生任何副作用；交互中断的判定请使用 {@link #isInterruptMessage}。</p>
-     *
      * @param message  子工作流产生的原始消息
      * @param workflow 主工作流上下文
      * @param node     当前节点实例
