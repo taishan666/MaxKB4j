@@ -18,6 +18,7 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.INode;
 import com.maxkb4j.workflow.node.impl.ApplicationNode;
+import com.maxkb4j.workflow.util.NodeChatMessageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.TaskExecutor;
@@ -88,9 +89,12 @@ public class ApplicationNodeHandler extends StreamNodeHandler {
         AtomicBoolean isInterruptExec = new AtomicBoolean(false);
         ResultCallback<ChatMessageVO> appNodeCallback = new ResultCallback<>() {
             @Override
-            public void onEvent(ChatMessageVO e) {
+            public void onEvent(ChatMessageVO message) {
                 if (Boolean.TRUE.equals(params.getIsResult())) {
-                    emitMessage(e,chatParams.getChatId(),chatParams.getChatRecordId(),isInterruptExec,chatWorkflow,node);
+                    if (NodeChatMessageUtil.isInterruptMessage(message)) {
+                        isInterruptExec.set(true);
+                    }
+                    emitChildMessage(message, chatWorkflow, node);
                 }
             }
 

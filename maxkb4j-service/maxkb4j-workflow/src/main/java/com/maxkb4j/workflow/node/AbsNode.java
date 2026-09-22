@@ -2,9 +2,6 @@ package com.maxkb4j.workflow.node;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.vo.Answer;
-import com.maxkb4j.common.domain.vo.ChatMessageVO;
-import com.maxkb4j.common.domain.vo.ChildNode;
-import com.maxkb4j.common.util.MessageConverter;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.util.NodeIdGenerator;
@@ -117,43 +114,6 @@ public abstract class AbsNode implements INode {
                     .build());
         }
         return List.of();
-    }
-
-    /**
-     * 转换为聊天消息VO
-     * 使用 MessageConverter 工具类
-     *
-     * @param chatId           聊天ID
-     * @param chatRecordId     聊天记录ID
-     * @param content          消息内容
-     * @param reasoningContent 推理内容
-     * @param childNode        子节点
-     * @param nodeIsEnd        节点是否结束
-     * @return 聊天消息VO
-     */
-    public ChatMessageVO toChatMessageVO(String chatId, String chatRecordId, String nodeName, String content, String reasoningContent, ChildNode childNode, boolean nodeIsEnd) {
-        String realNodeId = this.getRuntimeNodeId();
-        if (childNode != null) {
-            realNodeId = childNode.getRuntimeNodeId();
-        }
-        if (nodeName == null) {
-            nodeName = this.getNodeName();
-        }
-        return MessageConverter.toChatMessageVO(
-                chatId,
-                chatRecordId,
-                this.getId(),
-                nodeName,
-                content,
-                reasoningContent,
-                this.getUpNodeIdList(),
-                this.getRuntimeNodeId(),
-                realNodeId,
-                this.getType(),
-                this.getViewType(),
-                childNode,
-                nodeIsEnd,
-                false);
     }
 
 }

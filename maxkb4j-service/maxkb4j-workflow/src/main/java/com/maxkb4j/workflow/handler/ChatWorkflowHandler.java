@@ -8,6 +8,7 @@ import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.registry.NodeCenter;
+import com.maxkb4j.workflow.util.NodeChatMessageUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -48,12 +49,11 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler<IChatWorkflow> {
      */
     private void emit(IChatWorkflow workflow, AbsNode node, String content, boolean nodeIsEnd) {
         ChatParams chatParams = workflow.getChatParams();
-        ChatMessageVO message = node.toChatMessageVO(
-                chatParams.getChatId(),
-                chatParams.getChatRecordId(),
-                node.getNodeName(),
+        ChatMessageVO message = NodeChatMessageUtil.buildChatMessage(
+                chatParams,
                 content,
                 "",
+                node,
                 null,
                 nodeIsEnd);
         workflow.output().emit(message);

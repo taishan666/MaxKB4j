@@ -7,13 +7,13 @@ import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.node.AbsNode;
-import org.apache.commons.lang3.StringUtils;
+import com.maxkb4j.workflow.util.NodeChatMessageUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.LoopField;
-import static com.maxkb4j.workflow.enums.NodeType.*;
+import static com.maxkb4j.workflow.enums.NodeType.LOOP_BREAK;
 
 /**
  * 循环消息转发器
@@ -39,8 +39,8 @@ public class LoopMessageForwarder {
      * @return 订阅句柄
      */
     Optional<ResultCallback<ChatMessageVO>> buildCallback(IWorkflow workflow, LoopParams loopParams,
-                                         LoopExecutionContext ctx, AbsNode node) {
-        if (!(workflow instanceof IChatWorkflow)) {
+                                                          LoopExecutionContext ctx, AbsNode node) {
+        if (!(workflow instanceof IChatWorkflow chatWorkflow)) {
             return Optional.empty();
         }
         ResultCallback<ChatMessageVO> callback = new ResultCallback<>() {
@@ -49,15 +49,17 @@ public class LoopMessageForwarder {
                 if (isBreakSignal(message)) {
                     ctx.isInterrupted.set(true);
                 } else {
-                    handleLoopMessage(message, loopParams, ctx, workflow, node);
+                    handleLoopMessage(message, loopParams, ctx, chatWorkflow, node);
                 }
             }
 
             @Override
-            public void onComplete() {}
+            public void onComplete() {
+            }
 
             @Override
-            public void onError(Throwable e) {}
+            public void onError(Throwable e) {
+            }
         };
         return Optional.of(callback);
     }
@@ -72,38 +74,19 @@ public class LoopMessageForwarder {
     /**
      * 处理循环消息
      */
-    private void handleLoopMessage(ChatMessageVO message, LoopParams loopParams, LoopExecutionContext ctx, IWorkflow workflow, AbsNode node) {
-        String nodeType = message.getNodeType();
+    private void handleLoopMessage(ChatMessageVO message, LoopParams loopParams, LoopExecutionContext ctx, IChatWorkflow chatWorkflow, AbsNode node) {
         // 表单和用户选择节点需要中断
-        if (FORM.getKey().equals(nodeType) || USER_SELECT.getKey().equals(nodeType)) {
-            if (StringUtils.isNotBlank(message.getContent())) {
-                ctx.isInterrupted.set(true);
-            }
+        if (NodeChatMessageUtil.isInterruptMessage(message)) {
+            ctx.isInterrupted.set(true);
         }
         // 更新子节点引用
         String runtimeNodeId = message.getRuntimeNodeId() + "_" + loopParams.getIndex();
-        ChildNode childNode=new ChildNode(message.getChatRecordId(), runtimeNodeId);
+        ChildNode childNode = new ChildNode(message.getChatRecordId(), runtimeNodeId);
 
         // 转发消息到主工作流
-        emitLoopMessageVO(message, workflow, node, childNode);
-    }
-
-    /**
-     * 构建循环消息VO并转发到主工作流
-     */
-    private void emitLoopMessageVO(ChatMessageVO message, IWorkflow workflow,
-                                   AbsNode node, ChildNode childNode) {
-        ChatMessageVO vo = node.toChatMessageVO(
-                message.getChatId(),
-                message.getChatRecordId(),
-                message.getNodeName(),
-                message.getContent(),
-                message.getReasoningContent(),
-                childNode,
-                message.getNodeIsEnd());
-        vo.setNodeType(message.getNodeType());
-        vo.setViewType(message.getViewType());
-        workflow.output().emit(vo);
+        ChatMessageVO vo = NodeChatMessageUtil.buildChatMessage(chatWorkflow.getChatParams(), message.getContent(), message.getReasoningContent(), node, childNode, message.getNodeIsEnd());
+        vo.setNodeName(message.getNodeName());
+        chatWorkflow.output().emit(vo);
     }
 
 }
