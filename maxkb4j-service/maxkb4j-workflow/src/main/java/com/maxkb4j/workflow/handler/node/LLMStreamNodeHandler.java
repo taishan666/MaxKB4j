@@ -2,16 +2,13 @@ package com.maxkb4j.workflow.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.OssFile;
-import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.util.MimeTypeUtils;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AiChatMemory;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
-import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
@@ -161,31 +158,6 @@ public abstract class LLMStreamNodeHandler extends StreamNodeHandler {
         ));
     }
 
-    // ==================== 流式消息发送 ====================
-
-    /**
-     * 构造 {@link ChatMessageVO} 并通过工作流输出流发送。
-     *
-     * @param workflow  工作流上下文
-     * @param node      节点实例
-     * @param content   消息内容
-     * @param reasoning 推理内容
-     */
-    protected void emitMessage(IWorkflow workflow, AbsNode node, String content, String reasoning) {
-        if (workflow instanceof IChatWorkflow chatWorkflow) {
-            ChatParams chatParams = chatWorkflow.getChatParams();
-            ChatMessageVO vo = node.toChatMessageVO(
-                    chatParams.getChatId(),
-                    chatParams.getChatRecordId(),
-                    node.getNodeName(),
-                    content,
-                    reasoning,
-                    null,
-                    false
-            );
-            workflow.output().emit(vo);
-        }
-    }
 
     // ==================== 异步流式写入 ====================
 
