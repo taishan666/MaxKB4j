@@ -11,6 +11,7 @@ import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.base.STTModel;
 import com.maxkb4j.model.base.TTSModel;
 import com.maxkb4j.model.vo.ModelInfo;
+import com.maxkb4j.model.props.ModelHttpProperties;
 import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClientBuilder;
@@ -25,7 +26,9 @@ import dev.langchain4j.model.image.DisabledImageModel;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.scoring.ScoringModel;
 import dev.langchain4j.service.AiServices;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.VirtualThreadTaskExecutor;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import reactor.core.publisher.Flux;
@@ -39,15 +42,40 @@ import java.util.Optional;
  */
 public abstract class AbsModelProvider {
 
+    private static final long DEFAULT_CONNECT_TIMEOUT = 60_000;
+    private static final long DEFAULT_READ_TIMEOUT = 1_800_000;
+
+    @Autowired(required = false)
+    private ModelHttpProperties modelHttpProperties;
+
     private SpringRestClientBuilder springRestClientBuilder;
+
+    /**
+     * 构建带超时配置的请求工厂。
+     * <p>
+     * 超时可通过配置 {@code maxkb.model.http.connect-timeout / read-timeout} 调整，设为 0 表示不限制。
+     * 注意 readTimeout 是流式响应中两次数据之间的最大等待间隔，思考/推理类模型在
+     * 生成前可能长时间不返回任何 SSE 数据，该值过小会触发 Read timed out。
+     */
+    protected ClientHttpRequestFactory createRequestFactory() {
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        long connectTimeout = modelHttpProperties != null
+                ? modelHttpProperties.getConnectTimeout() : DEFAULT_CONNECT_TIMEOUT;
+        long readTimeout = modelHttpProperties != null
+                ? modelHttpProperties.getReadTimeout() : DEFAULT_READ_TIMEOUT;
+        if (connectTimeout > 0) {
+            requestFactory.setConnectTimeout((int) connectTimeout);
+        }
+        if (readTimeout > 0) {
+            requestFactory.setReadTimeout((int) readTimeout);
+        }
+        return requestFactory;
+    }
 
     protected synchronized HttpClientBuilder getHttpClientBuilder() {
         if (springRestClientBuilder == null) {
-            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-            requestFactory.setConnectTimeout(60_000);
-            requestFactory.setReadTimeout(600_000);
             RestClient.Builder restClientBuilder = RestClient.builder()
-                    .requestFactory(requestFactory);
+                    .requestFactory(createRequestFactory());
             this.springRestClientBuilder = SpringRestClient.builder()
                     .restClientBuilder(restClientBuilder)
                     .streamingRequestExecutor(new VirtualThreadTaskExecutor());

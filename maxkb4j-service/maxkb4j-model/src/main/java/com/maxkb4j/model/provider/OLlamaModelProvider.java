@@ -48,11 +48,13 @@ public class OLlamaModelProvider extends AbsModelProvider {
     );
 
     /**
-     * 重写父类方法，为 Ollama 提供 UTF-8 编码支持的 HTTP 客户端
+     * 重写父类方法，为 Ollama 提供 UTF-8 编码支持的 HTTP 客户端，
+     * 并复用统一的超时配置（maxkb.model.http.*）
      */
     @Override
     protected HttpClientBuilder getHttpClientBuilder() {
         RestClient.Builder restClientBuilder = RestClient.builder()
+                .requestFactory(createRequestFactory())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE + Http.CHARSET_UTF_8)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
 

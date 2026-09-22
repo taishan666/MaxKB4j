@@ -77,6 +77,16 @@ decorator:
       log-format: "\ntime:%(executionTime) || sql:%(sql)\n"
       enable-logging: false
 
+# 模型 HTTP 客户端配置（对所有模型供应商生效）
+maxkb:
+  model:
+    http:
+      # 建立连接超时（毫秒），0 表示不限制
+      connect-timeout: ${MODEL_CONNECT_TIMEOUT:60000}
+      # 流式(SSE)响应两次数据之间的读超时（毫秒），0 表示不限制。
+      # 思考/推理类模型生成前可能长时间无数据返回，超时过小会导致 Read timed out 中断流式输出
+      read-timeout: ${MODEL_READ_TIMEOUT:1800000}
+
 system:
   default-username: admin
   # 默认管理员口令：未配置时首次启动自动生成随机口令并打印到日志（见 UserServiceImpl.createDefaultAdminUser）
