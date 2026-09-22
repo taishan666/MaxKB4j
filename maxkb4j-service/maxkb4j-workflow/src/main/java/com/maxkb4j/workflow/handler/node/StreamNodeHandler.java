@@ -52,14 +52,14 @@ public abstract class StreamNodeHandler extends AbsNodeHandler {
         }
     }
 
-    protected void emitMessage(ChatMessageVO message, AtomicBoolean isInterruptExec, IWorkflow workflow, AbsNode node) {
+    protected void emitMessage(ChatMessageVO message,String chatId,String chatRecordId,AtomicBoolean isInterruptExec, IWorkflow workflow, AbsNode node) {
         if (FORM.getKey().equals(message.getNodeType()) || USER_SELECT.getKey().equals(message.getNodeType())) {
             isInterruptExec.set(StringUtils.isNotEmpty(message.getContent()));
         }
         ChildNode childNode = new ChildNode(message.getChatRecordId(), message.getRuntimeNodeId());
         ChatMessageVO vo = node.toChatMessageVO(
-                message.getChatId(),
-                message.getChatRecordId(),
+                chatId,
+                chatRecordId,
                 node.getNodeName(),
                 message.getContent(),
                 message.getReasoningContent(),

@@ -90,7 +90,7 @@ public class ApplicationNodeHandler extends StreamNodeHandler {
             @Override
             public void onEvent(ChatMessageVO e) {
                 if (Boolean.TRUE.equals(params.getIsResult())) {
-                    emitMessage(e,isInterruptExec,chatWorkflow,node);
+                    emitMessage(e,chatParams.getChatId(),chatParams.getChatRecordId(),isInterruptExec,chatWorkflow,node);
                 }
             }
 
