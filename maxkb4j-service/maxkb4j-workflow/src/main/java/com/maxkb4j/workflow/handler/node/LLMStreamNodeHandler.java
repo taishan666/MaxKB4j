@@ -2,9 +2,9 @@ package com.maxkb4j.workflow.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.OssFile;
+import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.util.MimeTypeUtils;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AiChatMemory;
@@ -55,19 +55,14 @@ import static org.springframework.web.util.UriUtils.extractFileExtension;
  * <p>子类仍需自行实现 {@link #doExecuteAsync}（构建 Assistant 并启动流）、
  */
 @Slf4j
-public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
+public abstract class LLMStreamNodeHandler extends StreamNodeHandler {
 
     protected final IModelProviderService modelFactory;
     protected final IOssService ossService;
 
-    protected AbstractChatStreamNodeHandler(IModelProviderService modelFactory, IOssService ossService) {
+    protected LLMStreamNodeHandler(IModelProviderService modelFactory, IOssService ossService) {
         this.modelFactory = modelFactory;
         this.ossService = ossService;
-    }
-
-    @Override
-    protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
-        throw new UnsupportedOperationException("Streaming node uses async execution via doExecuteAsync");
     }
 
     // ==================== Assistant construction ====================
@@ -182,6 +177,7 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
             ChatMessageVO vo = node.toChatMessageVO(
                     chatParams.getChatId(),
                     chatParams.getChatRecordId(),
+                    node.getNodeName(),
                     content,
                     reasoning,
                     null,
@@ -229,27 +225,29 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
         List<String> reasoningTexts = new CopyOnWriteArrayList<>();
         CompletableFuture<NodeResult> resultFuture = new CompletableFuture<>();
         tokenStream.onPartialThinking(thinking -> {
+                    reasoningTexts.add(thinking.text());
                     if (options.isResult() && options.reasoningContentEnable()) {
                         emitMessage(workflow, node, "", thinking.text());
-                        reasoningTexts.add(thinking.text());
                     }
                 }).beforeToolExecution(toolExecute -> {
+                    String toolMessage = onBeforeToolExecution(toolExecute, workflow, node);
                     if (options.isResult() && options.toolOutputEnable()) {
-                        onBeforeToolExecution(toolExecute, workflow, node);
+                        emitMessage(workflow, node, toolMessage, toolMessage);
                     }
                 })
                 .onToolExecuted(toolExecute -> {
+                    String toolMessage = onToolExecuted(toolExecute, workflow, node);
+                    answerTexts.add(toolMessage);
                     if (options.isResult() && options.toolOutputEnable()) {
-                        String toolMessage = onToolExecuted(toolExecute, workflow, node);
                         if (toolMessage != null && !toolMessage.isEmpty()) {
-                            answerTexts.add(toolMessage);
+                            emitMessage(workflow, node, toolMessage, toolMessage);
                         }
                     }
                 })
                 .onPartialResponse(content -> {
+                    answerTexts.add(content);
                     if (options.isResult()) {
                         emitMessage(workflow, node, content, "");
-                        answerTexts.add(content);
                     }
                 })
                 .onCompleteResponse(response -> resultFuture.complete(handleChatResponse(response.tokenUsage(), reasoningTexts,answerTexts, node))).onError(resultFuture::completeExceptionally)
@@ -265,8 +263,9 @@ public abstract class AbstractChatStreamNodeHandler extends AbsNodeHandler {
      * @param workflow    工作流上下文
      * @param node        节点实例
      */
-    protected void onBeforeToolExecution(BeforeToolExecution toolExecute, IWorkflow workflow, AbsNode node) {
+    protected String onBeforeToolExecution(BeforeToolExecution toolExecute, IWorkflow workflow, AbsNode node) {
         // 默认空实现
+        return "";
     }
 
     /**

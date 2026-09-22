@@ -47,6 +47,7 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler<IChatWorkflow> {
         ChatMessageVO message = node.toChatMessageVO(
                 chatParams.getChatId(),
                 chatParams.getChatRecordId(),
+                node.getNodeName(),
                 content,
                 "",
                 null,

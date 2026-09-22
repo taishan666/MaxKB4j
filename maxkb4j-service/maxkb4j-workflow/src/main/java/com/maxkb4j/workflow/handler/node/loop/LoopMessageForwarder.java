@@ -102,6 +102,7 @@ public class LoopMessageForwarder {
             ChatMessageVO vo = node.toChatMessageVO(
                     chatParams.getChatId(),
                     chatParams.getChatRecordId(),
+                    node.getNodeName(),
                     "",
                     "",
                     null,

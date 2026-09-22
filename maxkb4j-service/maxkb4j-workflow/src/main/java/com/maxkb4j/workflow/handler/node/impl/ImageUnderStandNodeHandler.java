@@ -7,10 +7,10 @@ import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractChatStreamNodeHandler;
+import com.maxkb4j.workflow.handler.node.LLMStreamNodeHandler;
+import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
-import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.ImageUnderstandNode;
 import dev.langchain4j.data.message.ChatMessage;
@@ -23,12 +23,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.ChatField;
+import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 
 @Slf4j
 @NodeHandlerType(NodeType.IMAGE_UNDERSTAND)
 @Component
-public class ImageUnderStandNodeHandler extends AbstractChatStreamNodeHandler {
+public class ImageUnderStandNodeHandler extends LLMStreamNodeHandler {
 
     public ImageUnderStandNodeHandler(IModelProviderService modelFactory, IOssService ossService) {
         super(modelFactory, ossService);

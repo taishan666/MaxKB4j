@@ -9,7 +9,7 @@ import com.maxkb4j.tool.service.IToolFormatterService;
 import com.maxkb4j.tool.service.IToolProviderService;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
-import com.maxkb4j.workflow.handler.node.AbstractChatStreamNodeHandler;
+import com.maxkb4j.workflow.handler.node.LLMStreamNodeHandler;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.ModelConfig;
 import com.maxkb4j.workflow.model.NodeResult;
@@ -35,7 +35,7 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 @Slf4j
 @NodeHandlerType(NodeType.AI_CHAT)
 @Component
-public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
+public class LLMNodeHandler extends LLMStreamNodeHandler {
 
     private final IToolProviderService toolProviderService;
     private final IToolFormatterService toolFormatterService;
@@ -86,9 +86,8 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
      * 工具执行前钩子：输出工具执行前的格式化消息。
      */
     @Override
-    protected void onBeforeToolExecution(BeforeToolExecution toolExecute, IWorkflow workflow, AbsNode node) {
-        String toolMessage = toolFormatterService.format(toolExecute);
-        emitMessage(workflow, node, toolMessage, "");
+    protected String onBeforeToolExecution(BeforeToolExecution toolExecute, IWorkflow workflow, AbsNode node) {
+        return toolFormatterService.format(toolExecute);
     }
 
     /**
@@ -96,9 +95,7 @@ public class LLMNodeHandler extends AbstractChatStreamNodeHandler {
      */
     @Override
     protected String onToolExecuted(ToolExecution toolExecute, IWorkflow workflow, AbsNode node) {
-        String toolMessage = toolFormatterService.format(toolExecute);
-        emitMessage(workflow, node, toolMessage, "");
-        return toolMessage;
+        return toolFormatterService.format(toolExecute);
     }
 
     private void recordNodeDetails(AbsNode node, String systemPrompt, List<ChatMessage> historyMessages,
