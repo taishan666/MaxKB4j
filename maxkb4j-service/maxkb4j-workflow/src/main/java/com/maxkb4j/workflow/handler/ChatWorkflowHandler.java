@@ -2,6 +2,7 @@ package com.maxkb4j.workflow.handler;
 
 import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.exception.ExceptionResolverChain;
 import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
@@ -26,6 +27,9 @@ public class ChatWorkflowHandler extends AbsWorkflowHandler<IChatWorkflow> {
     @Override
     public void onNodeStart(IChatWorkflow workflow, AbsNode node) {
         emit(workflow, node, "", false);
+        if(NodeType.LOOP.getKey().equals(node.getType())){
+            emit(workflow, node, "", true);
+        }
     }
 
     @Override

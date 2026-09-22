@@ -90,24 +90,6 @@ public class LoopMessageForwarder {
     }
 
     /**
-     * 发送迭代边界标记（迭代开始/结束）
-     */
-    public void emitIteration(IWorkflow workflow, AbsNode node, boolean nodeIsEnd) {
-        if (workflow instanceof IChatWorkflow chatWorkflow) {
-            ChatParams chatParams = chatWorkflow.getChatParams();
-            ChatMessageVO vo = node.toChatMessageVO(
-                    chatParams.getChatId(),
-                    chatParams.getChatRecordId(),
-                    node.getNodeName(),
-                    "",
-                    "",
-                    null,
-                    nodeIsEnd);
-            workflow.output().emit(vo);
-        }
-    }
-
-    /**
      * 构建循环消息VO并转发到主工作流
      */
     private void emitLoopMessageVO(ChatMessageVO message, IWorkflow workflow,
