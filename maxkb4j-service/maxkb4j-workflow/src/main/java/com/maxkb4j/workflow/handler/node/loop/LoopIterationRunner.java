@@ -4,20 +4,21 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.vo.ResultCallback;
-import com.maxkb4j.workflow.builder.NodeBuilder;
 import com.maxkb4j.workflow.logic.LogicFlow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.LoopParams;
+import com.maxkb4j.workflow.model.WorkflowSpec;
 import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.workflow.node.INode;
 import com.maxkb4j.workflow.node.impl.LoopNode;
 import com.maxkb4j.workflow.service.IWorkFlowActuator;
 import com.maxkb4j.workflow.service.WorkflowFactory;
-import com.maxkb4j.workflow.model.WorkflowSpec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
@@ -43,7 +44,6 @@ public class LoopIterationRunner {
     private static final int MAX_INFINITE_LOOP_COUNT = 1000;
 
     private final IWorkFlowActuator workFlowActuator;
-    private final NodeBuilder nodeBuilder;
     private final WorkflowFactory workflowFactory;
     private final LoopMessageForwarder messageForwarder;
 
@@ -156,17 +156,14 @@ public class LoopIterationRunner {
                                         JSONObject loopBody, LoopExecutionContext ctx) {
         // 构建循环体子图
         LogicFlow logicFlow = LogicFlow.newInstance(loopBody);
-        List<INode> nodes = logicFlow.getNodes().stream()
-                .map(lfNode -> (INode) nodeBuilder.getNode(lfNode))
-                .filter(Objects::nonNull)
-                .toList();
+
         LoopParams loopParams = new LoopParams(ctx.currentIndex, items.get(ctx.currentIndex));
 
         // chat 系订阅子工作流输出（knowledge 系返回 empty，无输出流）
         Optional<ResultCallback<ChatMessageVO>> optional = messageForwarder.buildCallback(workflow, loopParams, ctx, node);
 
         // 统一经工厂构建循环子工作流，隔离 Chat/Knowledge 变体细节
-        WorkflowSpec.Builder spec = WorkflowSpec.loop(workflow, nodes, logicFlow.getEdges(), loopParams)
+        WorkflowSpec.Builder spec = WorkflowSpec.loop(workflow, logicFlow, loopParams)
                 .details(ctx.getCurrentDetails());
         optional.ifPresent(spec::callback);
         IWorkflow loopWorkflow = workflowFactory.create(spec.build());

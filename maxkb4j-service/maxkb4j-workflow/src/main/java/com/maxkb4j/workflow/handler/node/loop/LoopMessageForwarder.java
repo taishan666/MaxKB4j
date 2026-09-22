@@ -1,6 +1,5 @@
 package com.maxkb4j.workflow.handler.node.loop;
 
-import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.vo.ChildNode;
 import com.maxkb4j.common.domain.vo.ResultCallback;
@@ -94,20 +93,17 @@ public class LoopMessageForwarder {
      */
     private void emitLoopMessageVO(ChatMessageVO message, IWorkflow workflow,
                                    AbsNode node, ChildNode childNode) {
-        if (workflow instanceof IChatWorkflow chatWorkflow) {
-            ChatParams chatParams = chatWorkflow.getChatParams();
-            ChatMessageVO vo = node.toChatMessageVO(
-                    chatParams.getChatId(),
-                    chatParams.getChatRecordId(),
-                    message.getNodeName(),
-                    message.getContent(),
-                    message.getReasoningContent(),
-                    childNode,
-                    message.getNodeIsEnd());
-            vo.setNodeType(message.getNodeType());
-            vo.setViewType(message.getViewType());
-            workflow.output().emit(vo);
-        }
+        ChatMessageVO vo = node.toChatMessageVO(
+                message.getChatId(),
+                message.getChatRecordId(),
+                message.getNodeName(),
+                message.getContent(),
+                message.getReasoningContent(),
+                childNode,
+                message.getNodeIsEnd());
+        vo.setNodeType(message.getNodeType());
+        vo.setViewType(message.getViewType());
+        workflow.output().emit(vo);
     }
 
 }

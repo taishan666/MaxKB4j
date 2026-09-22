@@ -5,13 +5,10 @@ import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.vo.ResultCallback;
-import com.maxkb4j.workflow.logic.LfEdge;
 import com.maxkb4j.workflow.logic.LogicFlow;
-import com.maxkb4j.workflow.node.INode;
 import com.maxkb4j.workflow.service.WorkflowFactory;
 import lombok.Getter;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -34,9 +31,6 @@ public final class WorkflowSpec {
     private final Kind kind;
     // ---- APPLICATION / KNOWLEDGE ----
     private final LogicFlow logicFlow;
-    // ---- LOOP ----
-    private final List<INode> nodes;
-    private final List<LfEdge> edges;
     // ---- APPLICATION ----
     private final ChatParams chatParams;
     private final ChatState chatState;
@@ -50,8 +44,6 @@ public final class WorkflowSpec {
     private WorkflowSpec(Builder builder) {
         this.kind = builder.kind;
         this.logicFlow = builder.logicFlow;
-        this.nodes = builder.nodes;
-        this.edges = builder.edges;
         this.chatParams = builder.chatParams;
         this.chatState = builder.chatState;
         this.callback = builder.callback;
@@ -78,8 +70,8 @@ public final class WorkflowSpec {
     /**
      * 循环子工作流规格（变体由父工作流决定，节点列表由调用方派生）
      */
-    public static Builder loop(IWorkflow parent, List<INode> nodes, List<LfEdge> edges, LoopParams loopParams) {
-        return new Builder(Kind.LOOP, nodes, edges).parent(parent).loopParams(loopParams);
+    public static Builder loop(IWorkflow parent, LogicFlow logicFlow, LoopParams loopParams) {
+        return new Builder(Kind.LOOP, logicFlow).parent(parent).loopParams(loopParams);
     }
 
     /**
@@ -96,8 +88,6 @@ public final class WorkflowSpec {
 
         private final Kind kind;
         private final LogicFlow logicFlow;
-        private final List<INode> nodes;
-        private final List<LfEdge> edges;
         private KnowledgeParams knowledgeParams;
         private IWorkflow parent;
         private LoopParams loopParams;
@@ -109,16 +99,8 @@ public final class WorkflowSpec {
         private Builder(Kind kind, LogicFlow logicFlow) {
             this.kind = Objects.requireNonNull(kind, "kind cannot be null");
             this.logicFlow = Objects.requireNonNull(logicFlow, "logicFlow cannot be null");
-            this.nodes = null;
-            this.edges = null;
         }
 
-        private Builder(Kind kind, List<INode> nodes, List<LfEdge> edges) {
-            this.kind = Objects.requireNonNull(kind, "kind cannot be null");
-            this.nodes = Objects.requireNonNull(nodes, "nodes cannot be null");
-            this.edges = Objects.requireNonNull(edges, "edges cannot be null");
-            this.logicFlow = null;
-        }
 
         public Builder chatParams(ChatParams chatParams) {
             this.chatParams = chatParams;

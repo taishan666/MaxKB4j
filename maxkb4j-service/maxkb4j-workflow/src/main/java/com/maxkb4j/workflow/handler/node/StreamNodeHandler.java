@@ -60,11 +60,13 @@ public abstract class StreamNodeHandler extends AbsNodeHandler {
         ChatMessageVO vo = node.toChatMessageVO(
                 message.getChatId(),
                 message.getChatRecordId(),
-                message.getNodeName(),
+                node.getNodeName(),
                 message.getContent(),
                 message.getReasoningContent(),
                 childNode,
                 message.getNodeIsEnd());
+        vo.setNodeType(message.getNodeType());
+        vo.setViewType(message.getViewType());
         workflow.output().emit(vo);
     }
 

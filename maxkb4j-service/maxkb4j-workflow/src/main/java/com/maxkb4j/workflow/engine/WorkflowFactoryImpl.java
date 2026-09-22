@@ -82,11 +82,6 @@ public class WorkflowFactoryImpl implements WorkflowFactory {
      * 无法识别的节点（返回 null）被过滤。
      */
     private List<AbsNode> engineNodes(WorkflowSpec spec) {
-        if (spec.getKind() == WorkflowSpec.Kind.LOOP) {
-            return spec.getNodes().stream()
-                    .map(AbsNode.class::cast)
-                    .toList();
-        }
         return spec.getLogicFlow().getNodes().stream()
                 .map(nodeCreator::createNode)
                 .filter(Objects::nonNull)
@@ -98,6 +93,6 @@ public class WorkflowFactoryImpl implements WorkflowFactory {
      * 获取规格对应的边列表：LOOP 取派生节点配套的边，其余取 LogicFlow 解析的边。
      */
     private List<LfEdge> edges(WorkflowSpec spec) {
-        return spec.getKind() == WorkflowSpec.Kind.LOOP ? spec.getEdges() : spec.getLogicFlow().getEdges();
+        return spec.getLogicFlow().getEdges();
     }
 }
