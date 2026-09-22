@@ -1,7 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.common.domain.dto.ChatParams;
@@ -31,8 +30,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
-import static com.maxkb4j.workflow.enums.NodeType.FORM;
-import static com.maxkb4j.workflow.enums.NodeType.USER_SELECT;
 
 
 @Slf4j
@@ -93,10 +90,7 @@ public class ApplicationNodeHandler extends StreamNodeHandler {
             @Override
             public void onEvent(ChatMessageVO e) {
                 if (Boolean.TRUE.equals(params.getIsResult())) {
-                    if (FORM.getKey().equals(e.getNodeType()) || USER_SELECT.getKey().equals(e.getNodeType())) {
-                        isInterruptExec.set(StringUtils.isNotEmpty(e.getContent()));
-                    }
-                    emitMessage(e,chatWorkflow,node);
+                    emitMessage(e,isInterruptExec,chatWorkflow,node);
                 }
             }
 

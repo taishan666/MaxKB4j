@@ -8,6 +8,12 @@ import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.maxkb4j.workflow.enums.NodeType.FORM;
+import static com.maxkb4j.workflow.enums.NodeType.USER_SELECT;
 
 /**
  * 子类仍需自行实现 {@link #doExecuteAsync}（构建 Assistant 并启动流）、
@@ -46,7 +52,10 @@ public abstract class StreamNodeHandler extends AbsNodeHandler {
         }
     }
 
-    protected void emitMessage(ChatMessageVO message, IWorkflow workflow, AbsNode node) {
+    protected void emitMessage(ChatMessageVO message, AtomicBoolean isInterruptExec, IWorkflow workflow, AbsNode node) {
+        if (FORM.getKey().equals(message.getNodeType()) || USER_SELECT.getKey().equals(message.getNodeType())) {
+            isInterruptExec.set(StringUtils.isNotEmpty(message.getContent()));
+        }
         ChildNode childNode = new ChildNode(message.getChatRecordId(), message.getRuntimeNodeId());
         ChatMessageVO vo = node.toChatMessageVO(
                 message.getChatId(),
