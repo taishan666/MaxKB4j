@@ -8,7 +8,6 @@ import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.common.domain.vo.ChatMessageVO;
-import com.maxkb4j.common.domain.vo.ChildNode;
 import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -97,16 +96,7 @@ public class ApplicationNodeHandler extends StreamNodeHandler {
                     if (FORM.getKey().equals(e.getNodeType()) || USER_SELECT.getKey().equals(e.getNodeType())) {
                         isInterruptExec.set(StringUtils.isNotEmpty(e.getContent()));
                     }
-                    ChildNode childNode = new ChildNode(e.getChatRecordId(), e.getRuntimeNodeId());
-                    ChatMessageVO vo = node.toChatMessageVO(
-                            chatParams.getChatId(),
-                            chatParams.getChatRecordId(),
-                            e.getNodeName(),
-                            e.getContent(),
-                            e.getReasoningContent(),
-                            childNode,
-                            e.getNodeIsEnd());
-                    workflow.output().emit(vo);
+                    emitMessage(e,chatWorkflow,node);
                 }
             }
 

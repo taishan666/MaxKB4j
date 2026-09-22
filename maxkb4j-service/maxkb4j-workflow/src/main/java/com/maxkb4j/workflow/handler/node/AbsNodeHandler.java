@@ -101,8 +101,8 @@ public abstract class AbsNodeHandler implements INodeHandler {
      * Reads the interrupt flag written by loop control nodes.
      */
     protected boolean getInterruptFlag(INode node) {
-        Object flag = node.getDetail().get(NodeField.IS_INTERRUPT_EXEC);
-        return Boolean.TRUE.equals(flag);
+        Object isInterruptExec = node.getDetail().get(NodeField.IS_INTERRUPT_EXEC);
+        return Boolean.TRUE.equals(isInterruptExec);
     }
 
     // ==================== reference helpers ====================

@@ -2,6 +2,7 @@ package com.maxkb4j.workflow.handler.node;
 
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.vo.ChatMessageVO;
+import com.maxkb4j.common.domain.vo.ChildNode;
 import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
@@ -43,6 +44,19 @@ public abstract class StreamNodeHandler extends AbsNodeHandler {
             );
             workflow.output().emit(vo);
         }
+    }
+
+    protected void emitMessage(ChatMessageVO message, IWorkflow workflow, AbsNode node) {
+        ChildNode childNode = new ChildNode(message.getChatRecordId(), message.getRuntimeNodeId());
+        ChatMessageVO vo = node.toChatMessageVO(
+                message.getChatId(),
+                message.getChatRecordId(),
+                message.getNodeName(),
+                message.getContent(),
+                message.getReasoningContent(),
+                childNode,
+                message.getNodeIsEnd());
+        workflow.output().emit(vo);
     }
 
 }

@@ -1,19 +1,17 @@
 package com.maxkb4j.workflow.handler.node.loop;
 
-import com.maxkb4j.common.domain.vo.ResultCallback;
-import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.vo.ChildNode;
+import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.LoopParams;
 import com.maxkb4j.workflow.node.AbsNode;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.LoopField;
 import static com.maxkb4j.workflow.enums.NodeType.*;
@@ -41,19 +39,18 @@ public class LoopMessageForwarder {
      * @param node       循环节点（消息组装用）
      * @return 订阅句柄
      */
-    Optional<LoopSubscription> subscribe(IWorkflow workflow, LoopParams loopParams,
+    Optional<ResultCallback<ChatMessageVO>> buildCallback(IWorkflow workflow, LoopParams loopParams,
                                          LoopExecutionContext ctx, AbsNode node) {
         if (!(workflow instanceof IChatWorkflow)) {
             return Optional.empty();
         }
-        AtomicReference<ChildNode> childNodeRef = new AtomicReference<>(null);
         ResultCallback<ChatMessageVO> callback = new ResultCallback<>() {
             @Override
             public void onEvent(ChatMessageVO message) {
                 if (isBreakSignal(message)) {
                     ctx.isInterrupted.set(true);
                 } else {
-                    handleLoopMessage(message, loopParams, ctx, childNodeRef, workflow, node);
+                    handleLoopMessage(message, loopParams, ctx, workflow, node);
                 }
             }
 
@@ -63,7 +60,7 @@ public class LoopMessageForwarder {
             @Override
             public void onError(Throwable e) {}
         };
-        return Optional.of(new LoopSubscription(callback, childNodeRef));
+        return Optional.of(callback);
     }
 
     /**
@@ -76,8 +73,7 @@ public class LoopMessageForwarder {
     /**
      * 处理循环消息
      */
-    private void handleLoopMessage(ChatMessageVO message, LoopParams loopParams, LoopExecutionContext ctx,
-                                   AtomicReference<ChildNode> childNodeRef, IWorkflow workflow, AbsNode node) {
+    private void handleLoopMessage(ChatMessageVO message, LoopParams loopParams, LoopExecutionContext ctx, IWorkflow workflow, AbsNode node) {
         String nodeType = message.getNodeType();
         // 表单和用户选择节点需要中断
         if (FORM.getKey().equals(nodeType) || USER_SELECT.getKey().equals(nodeType)) {
@@ -87,10 +83,10 @@ public class LoopMessageForwarder {
         }
         // 更新子节点引用
         String runtimeNodeId = message.getRuntimeNodeId() + "_" + loopParams.getIndex();
-        childNodeRef.set(new ChildNode(message.getChatRecordId(), runtimeNodeId));
+        ChildNode childNode=new ChildNode(message.getChatRecordId(), runtimeNodeId);
 
         // 转发消息到主工作流
-        emitLoopMessageVO(message, workflow, node, childNodeRef.get());
+        emitLoopMessageVO(message, workflow, node, childNode);
     }
 
     /**
@@ -132,19 +128,4 @@ public class LoopMessageForwarder {
         }
     }
 
-    /**
-     * 一次迭代的输出订阅句柄：持有子工作流 callback 与最新子节点引用
-     */
-    @Getter
-    public static final class LoopSubscription {
-
-        private final ResultCallback<ChatMessageVO> callback;
-        private final AtomicReference<ChildNode> childNodeRef;
-
-        private LoopSubscription(ResultCallback<ChatMessageVO> callback, AtomicReference<ChildNode> childNodeRef) {
-            this.callback = callback;
-            this.childNodeRef = childNodeRef;
-        }
-
-    }
 }

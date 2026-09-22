@@ -2,6 +2,8 @@ package com.maxkb4j.workflow.handler.node.loop;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.common.domain.vo.ChatMessageVO;
+import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.workflow.builder.NodeBuilder;
 import com.maxkb4j.workflow.logic.LogicFlow;
 import com.maxkb4j.workflow.model.IWorkflow;
@@ -161,18 +163,18 @@ public class LoopIterationRunner {
         LoopParams loopParams = new LoopParams(ctx.currentIndex, items.get(ctx.currentIndex));
 
         // chat 系订阅子工作流输出（knowledge 系返回 empty，无输出流）
-        Optional<LoopMessageForwarder.LoopSubscription> subscription = messageForwarder.subscribe(workflow, loopParams, ctx, node);
+        Optional<ResultCallback<ChatMessageVO>> optional = messageForwarder.buildCallback(workflow, loopParams, ctx, node);
 
         // 统一经工厂构建循环子工作流，隔离 Chat/Knowledge 变体细节
         WorkflowSpec.Builder spec = WorkflowSpec.loop(workflow, nodes, logicFlow.getEdges(), loopParams)
                 .details(ctx.getCurrentDetails());
-        subscription.ifPresent(s -> spec.callback(s.getCallback()));
+        optional.ifPresent(spec::callback);
         IWorkflow loopWorkflow = workflowFactory.create(spec.build());
 
         workFlowActuator.execute(loopWorkflow);
 
         // 发送单次结束标记
-        subscription.ifPresent(s -> messageForwarder.emitIteration(workflow, node, false));
+        optional.ifPresent(s -> messageForwarder.emitIteration(workflow, node, false));
         // 更新状态
         updateIterationState(node, loopWorkflow, ctx);
     }
