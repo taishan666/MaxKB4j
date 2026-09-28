@@ -158,6 +158,10 @@ workflow:
       match: 条件节点未匹配到任何分支
 
 knowledge:
+  document:
+    source:
+      file:
+        missing: 文件不存在，仅支持手动上传的文档
   split:
     pattern:
       invalid: 分段正则表达式无效：{0}

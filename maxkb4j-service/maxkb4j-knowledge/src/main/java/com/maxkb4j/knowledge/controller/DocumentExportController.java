@@ -4,6 +4,7 @@ import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.knowledge.service.DocumentExportService;
 import com.maxkb4j.knowledge.service.DocumentSourceFileService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DocumentExportController {
 
-    private static final String SOURCE_FILE_MISSING = "文件不存在, 仅支持手动上传的文档";
+    private static final String SOURCE_FILE_MISSING = "knowledge.document.source.file.missing";
 
     private final DocumentExportService documentExportService;
     private final DocumentSourceFileService documentSourceFileService;
@@ -57,13 +58,13 @@ public class DocumentExportController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DOWNLOAD)
     @GetMapping("/knowledge/{id}/document/{docId}/download_source_file")
     public R<String> downloadSourceFile(@PathVariable String id, @PathVariable String docId, HttpServletResponse response) throws IOException {
-        return documentSourceFileService.download(docId, response) ? R.success() : R.fail(SOURCE_FILE_MISSING);
+        return documentSourceFileService.download(docId, response) ? R.success() : R.fail(I18nUtil.get(SOURCE_FILE_MISSING));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_REPLACE)
     @PostMapping("/knowledge/{id}/document/{docId}/replace_source_file")
     public R<String> replaceSourceFile(@PathVariable String id, @PathVariable String docId, MultipartFile file) throws IOException {
-        return documentSourceFileService.replace(docId, file) ? R.success() : R.fail(SOURCE_FILE_MISSING);
+        return documentSourceFileService.replace(docId, file) ? R.success() : R.fail(I18nUtil.get(SOURCE_FILE_MISSING));
     }
 
 }

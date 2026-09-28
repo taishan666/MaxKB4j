@@ -158,6 +158,10 @@ workflow:
       match: The condition node did not match any branch
 
 knowledge:
+  document:
+    source:
+      file:
+        missing: File does not exist. Only manually uploaded documents are supported.
   split:
     pattern:
       invalid: "Invalid split pattern: {0}"
