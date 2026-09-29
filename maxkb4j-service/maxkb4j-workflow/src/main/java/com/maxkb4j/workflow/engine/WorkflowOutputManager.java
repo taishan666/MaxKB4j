@@ -36,7 +36,7 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
      *
      * @return 是否需要输出
      */
-    public boolean needsSink() {
+    public boolean needsOut() {
         WorkflowMode mode = configuration.getWorkflowMode();
         return mode == WorkflowMode.APPLICATION || mode == WorkflowMode.APPLICATION_LOOP;
     }
@@ -48,7 +48,7 @@ public record WorkflowOutputManager(WorkflowConfiguration configuration, Workflo
      */
     @Override
     public void emit(ChatMessageVO message) {
-        if (needsSink()) {
+        if (needsOut()) {
             if (callback != null && message != null) {
                 callback.onEvent(message);
             }

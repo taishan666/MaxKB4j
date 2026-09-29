@@ -71,14 +71,10 @@ public class NodeChainRunner<W extends IWorkflow> {
         for (INode entry : nodeList) {
             // 契约节点在引擎内统一为 AbsNode（INode 的引擎实现）
             AbsNode node = (AbsNode) entry;
-            try {
-                if (NodeStatus.READY.getStatus() == node.getStatus()) {
-                    scheduledNodes.add(new ScheduledNode(node, lifecycleExecutor.execute(workflow, node)));
-                } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
-                    scheduledNodes.add(new ScheduledNode(node, lifecycleExecutor.skip(workflow, node)));
-                }
-            } catch (Exception e) {
-                lifecycleExecutor.reportError(workflow, node, e);
+            if (NodeStatus.READY.getStatus() == node.getStatus()) {
+                scheduledNodes.add(new ScheduledNode(node, lifecycleExecutor.execute(workflow, node)));
+            } else if (NodeStatus.SKIP.getStatus() == node.getStatus()) {
+                scheduledNodes.add(new ScheduledNode(node, lifecycleExecutor.skip(workflow, node)));
             }
         }
         return scheduledNodes;
