@@ -91,12 +91,15 @@ public abstract class AbsWorkflowHandler<W extends IWorkflow>
 
     /**
      * Node scheduling or execution failed: resolves the exception through the
-     * {@link ExceptionResolverChain} and marks the node ERROR.
+     * {@link ExceptionResolverChain}, marks the node ERROR and records the
+     * exception message into the node (exposed as {@code errMessage} in
+     * runtime details).
      */
     @Override
     public void onNodeError(W workflow, AbsNode node, Exception ex) {
         exceptionResolverChain.resolve(workflow, node, ex);
         node.setStatus(NodeStatus.ERROR.getStatus());
+        node.setErrMessage(ex.getMessage());
     }
 
     /**
