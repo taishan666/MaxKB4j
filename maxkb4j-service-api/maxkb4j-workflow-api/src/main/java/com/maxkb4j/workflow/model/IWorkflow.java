@@ -93,15 +93,6 @@ public interface IWorkflow {
      * @return 字段值，引用非法时返回 null
      */
     Object getReferenceField(List<String> reference);
-
-    /**
-     * 获取引用字段值（类型化引用）。
-     *
-     * @param reference 类型化节点引用，null 时返回 null
-     * @return 字段值
-     */
-    Object getReferenceField(NodeReference reference);
-
     /**
      * 获取字段值。
      *
@@ -122,8 +113,4 @@ public interface IWorkflow {
      */
     INode getNode(String nodeId);
 
-    /**
-     * 获取节点执行超时时间（分钟），与 TimeUnit.MINUTES 配合使用。
-     */
-    long getNodeExecutionTimeoutMinutes();
 }

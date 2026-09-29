@@ -42,13 +42,6 @@ public class WorkflowConfiguration {
     private final Map<String, AbsNode> nodeMap;
 
     /**
-     * 节点执行超时时间（分钟）
-     * 默认 10 分钟
-     * 注意：字段名以 Minutes 结尾，单位为分钟，调用方需使用 TimeUnit.MINUTES
-     */
-    private final long nodeExecutionTimeoutMinutes = 10;
-
-    /**
      * 构造器
      *
      * @param workflowMode 工作流模式

@@ -160,17 +160,6 @@ public abstract class AbstractWorkflow implements IWorkflow {
     }
 
     /**
-     * 获取引用字段值（类型化引用）
-     *
-     * @param reference 类型化节点引用
-     * @return 字段值
-     */
-    @Override
-    public Object getReferenceField(NodeReference reference) {
-        return workflowContext.getReferenceField(reference);
-    }
-
-    /**
      * 获取字段值
      *
      * @param value  字段值或引用路径
@@ -191,17 +180,6 @@ public abstract class AbstractWorkflow implements IWorkflow {
     @Override
     public AbsNode getNode(String nodeId) {
         return configuration.getNode(nodeId);
-    }
-
-    /**
-     * 获取节点执行超时时间（分钟）
-     * 返回值与 TimeUnit.MINUTES 配合使用
-     *
-     * @return 超时时间（分钟）
-     */
-    @Override
-    public long getNodeExecutionTimeoutMinutes() {
-        return configuration.getNodeExecutionTimeoutMinutes();
     }
 
     /**

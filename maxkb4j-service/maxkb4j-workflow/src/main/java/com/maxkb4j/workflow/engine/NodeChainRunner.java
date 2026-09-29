@@ -40,7 +40,8 @@ public class NodeChainRunner<W extends IWorkflow> {
         if (nodeList == null || nodeList.isEmpty()) {
             return;
         }
-        long timeoutMinutes = workflow.getNodeExecutionTimeoutMinutes();
+        //节点执行超时时间（分钟）默认 10 分钟
+        long timeoutMinutes = 10;
         for (ScheduledNode scheduled : schedule(workflow, nodeList)) {
             AbsNode node = scheduled.node();
             try {

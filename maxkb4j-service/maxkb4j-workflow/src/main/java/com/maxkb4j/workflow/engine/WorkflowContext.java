@@ -96,17 +96,11 @@ public class WorkflowContext implements IWorkflowContext {
                 .orElse(null);
     }
 
-    @Override
     public Object getReferenceField(NodeReference reference) {
         if (reference == null) {
             return null;
         }
         return variableResolver.getReferenceField(reference.nodeId(), reference.field());
-    }
-
-    @Override
-    public Object getReferenceField(String nodeId, String key) {
-        return variableResolver.getReferenceField(nodeId, key);
     }
 
     @Override
@@ -117,11 +111,6 @@ public class WorkflowContext implements IWorkflowContext {
                     .orElse(value);
         }
         return value;
-    }
-
-    @Override
-    public INode getExecutedNode(String nodeId) {
-        return nodeContext.stream().filter(node -> node.getId().equals(nodeId)).findFirst().orElse(null);
     }
 
 }

@@ -42,19 +42,6 @@ public interface IWorkflowContext {
     Object getReferenceField(List<String> reference);
 
     /**
-     * 获取引用字段值（类型化引用）。
-     *
-     * @param reference 类型化节点引用，null 时返回 null
-     * @return 字段值
-     */
-    Object getReferenceField(NodeReference reference);
-
-    /**
-     * 获取引用字段值（nodeId 为节点 ID 或作用域名 global/chat/loop）。
-     */
-    Object getReferenceField(String nodeId, String key);
-
-    /**
      * 获取字段值。
      *
      * @param value  字段值或引用路径
@@ -62,12 +49,6 @@ public interface IWorkflowContext {
      * @return 实际字段值
      */
     Object getFieldValue(Object value, String source);
-
-    /**
-     * 获取已执行节点（按 nodeId）。
-     */
-    INode getExecutedNode(String nodeId);
-
     /**
      * 全局变量上下文。
      */
