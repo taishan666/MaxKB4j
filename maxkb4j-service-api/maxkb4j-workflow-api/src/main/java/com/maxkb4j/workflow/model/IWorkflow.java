@@ -36,10 +36,6 @@ public interface IWorkflow {
      */
     IWorkflowContext context();
 
-    /**
-     * 执行访问器。
-     */
-    IWorkflowExecutionAccessor execution();
 
     /**
      * 全局变量上下文。
@@ -70,6 +66,12 @@ public interface IWorkflow {
      * @return 历史消息列表
      */
     List<ChatMessage> getHistoryMessages(int dialogueNumber, String dialogueType, String runtimeNodeId);
+
+
+    /**
+     * 执行访问器。
+     */
+    IWorkflowExecutionAccessor execution();
 
     /**
      * 渲染提示词模板。

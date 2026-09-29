@@ -74,8 +74,8 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
     private void resetVariable(List<VariableAggregationNode.Variable> variableList, IWorkflow workflow) {
         for (VariableAggregationNode.Variable e : variableList) {
             String nodeId = e.getVariable().getFirst();
-            INode lfNode = workflow.getNode(nodeId);
-            String nodeName = lfNode == null ? "未知节点" : lfNode.getProperties().getString(RuntimeDetailField.NODE_NAME);
+            INode node = workflow.getNode(nodeId);
+            String nodeName = node == null ? "未知节点" : node.getNodeName();
             e.setNodeName(nodeName == null ? "未知节点" : nodeName);
             String field = e.getVariable().get(1);
             Object value = workflow.getReferenceField(e.getVariable());
