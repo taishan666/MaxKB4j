@@ -16,9 +16,9 @@
   <a href="https://openjdk.org/projects/jdk/21/"><img src="https://img.shields.io/badge/Java-21%2B-green" alt="Java21plus"></a>
   <a href="https://spring.io/projects/spring-boot"><img src="https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen" alt="SpringBoot3"></a>
   <a href="https://github.com/langchain4j/langchain4j"><img src="https://img.shields.io/badge/LangChain4j-1.x-green" alt="LangChain4j"></a>
-  <a href="https://gitee.com/taisan/MaxKB4j"><img src="https://img.shields.io/gitee/stars/taisan/MaxKB4j?style=social&label=Gitee%20Stars" alt="GiteeStars"></a>
-  <a href="https://gitee.com/taisan/MaxKB4j/commits/master"><img src="https://img.shields.io/gitee/last-commit/taisan/MaxKB4j" alt="LastCommit"></a><br/>
-  [<a href="/README_CN.md">中文（简体）</a>] | [<a href="/README.md">English</a>]
+  <a href="https://gitee.com/taisan/MaxKB4j"><img src="https://gitee.com/taisan/MaxKB4j/badge/star.svg" alt="GiteeStars"></a>
+  <a href="https://gitee.com/taisan/MaxKB4j/members"><img src="https://gitee.com/taisan/MaxKB4j/badge/fork.svg" alt="GiteeForks"></a><br/>
+  [<a href="README_CN.md">中文（简体）</a>] | [<a href="README.md">English</a>]
 </p>
 
 <p align="center">
