@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
  * <ul>
  *   <li>{@link #emitMessage} —— 以当前节点身份直接发送流式内容片段</li>
  *   <li>{@link #emitChildMessage} —— 转发子应用/子工作流产生的消息（自动包装子节点引用）</li>
- *   <li>{@link #isInterruptMessage} —— 判定消息是否为交互中断信号（表单/用户选择）</li>
  * </ul>
  *
  * <p>子类需实现 {@link #doExecuteAsync} 启动流式执行；非聊天系工作流的消息发送会被静默忽略。</p>
