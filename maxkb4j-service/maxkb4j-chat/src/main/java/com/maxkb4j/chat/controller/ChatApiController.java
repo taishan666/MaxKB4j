@@ -163,12 +163,14 @@ public class ChatApiController {
     @Hidden
     @GetMapping("/historical_conversation/{chatId}/record/{chatRecordId}")
     public R<ApplicationChatRecordVO> historicalConversation(@PathVariable String chatId, @PathVariable String chatRecordId) {
+        chatApiService.checkChatOwner(chatId);
         return R.data(chatRecordService.getChatRecordInfo(chatId, chatRecordId));
     }
 
     @Hidden
     @PutMapping("/historical_conversation/{chatId}")
     public R<Boolean> updateConversation(@PathVariable String chatId, @RequestBody ApplicationChatDTO chatDTO) {
+        chatApiService.checkChatOwner(chatId);
         chatDTO.setId(chatId);
         return R.status(chatService.updateDtoById(chatDTO));
     }
@@ -176,6 +178,7 @@ public class ChatApiController {
     @Hidden
     @DeleteMapping("/historical_conversation/{chatId}")
     public R<Boolean> deleteConversation(@PathVariable String chatId) {
+        chatApiService.checkChatOwner(chatId);
         return R.status(chatService.deleteById(chatId));
     }
 
@@ -188,12 +191,14 @@ public class ChatApiController {
     @Hidden
     @GetMapping("/historical_conversation_record/{chatId}/{current}/{size}")
     public R<IPage<ApplicationChatRecordVO>> historicalConversationRecord(@PathVariable String chatId, @PathVariable int current, @PathVariable int size) {
+        chatApiService.checkChatOwner(chatId);
         return R.data(chatRecordService.chatRecordPage(chatId, current, size));
     }
 
     @Hidden
     @PutMapping("/vote/chat/{chatId}/chat_record/{chatRecordId}")
     public R<Boolean> updateConversation(@PathVariable String chatId, @PathVariable String chatRecordId, @RequestBody ApplicationChatRecordDTO chatRecord) {
+        chatApiService.checkChatOwner(chatId);
         return R.status(chatApiService.updateConversation(chatId, chatRecordId, chatRecord));
     }
 
@@ -237,6 +242,8 @@ public class ChatApiController {
     @Hidden
     @PostMapping("/{id}/chat/{chatId}/share_chat")
     public R<Map<String, String>> shareChat(@PathVariable String id, @PathVariable String chatId, @Valid @RequestBody ShareChatDTO dto) {
+        // 仅允许会话属主为当前用户所属应用创建分享链接，防止分享他人会话内容
+        chatApiService.checkChatOwner(chatId);
         return R.data(chatService.shareChat(id, chatId, dto));
     }
 

@@ -83,6 +83,18 @@ public class ChatApiService {
         return chatService.clear(appId, userId);
     }
 
+    /**
+     * 校验会话属于当前聊天用户，防止越权读取/修改/删除他人会话（IDOR）。
+     */
+    public void checkChatOwner(String chatId) {
+        String appId = (String) StpKit.USER.getExtra("applicationId");
+        String userId = StpKit.USER.getLoginIdAsString();
+        if (StringUtils.isBlank(appId) || StringUtils.isBlank(userId)
+                || !chatService.isOwnedBy(chatId, appId, userId)) {
+            throw new ApiException("common.record.not.exists");
+        }
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public boolean updateConversation(String chatId, String chatRecordId, ApplicationChatRecordDTO chatRecord) {
         chatRecord.setChatId(chatId);

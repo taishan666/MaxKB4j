@@ -40,13 +40,21 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(localeInterceptor)
                 .addPathPatterns("/**")
                 .order(Integer.MIN_VALUE);
-        // 拦截聊天所有请求
+        // 拦截聊天所有请求（默认全部要求携带合法的聊天令牌/应用API Key），
+        // 仅放行真正的公开入口，防止会话改删、记录查询、投票、语音等接口被匿名访问
         registry.addInterceptor(authInterceptor)
-                .addPathPatterns("/chat/api/application/profile")
-                .addPathPatterns("/chat/api/open")
-                .addPathPatterns("/chat/api/chat_message/{chatId}")
-                .addPathPatterns("/chat/api/historical_conversation/{current}/{size}")
-                .addPathPatterns("/chat/api/historical_conversation/clear");
+                .addPathPatterns("/chat/api/**")
+                .excludePathPatterns(
+                        // 匿名令牌换取入口，内部自行校验 accessToken
+                        "/chat/api/auth/anonymous",
+                        // 登录前获取应用的鉴权方式配置
+                        "/chat/api/profile",
+                        // 公开的第三方嵌入脚本
+                        "/chat/api/embed",
+                        // MCP 协议端点，控制器内部已校验应用 API Key
+                        "/chat/api/mcp",
+                        // 公开分享链接查看（仅返回用户明确分享的记录）
+                        "/chat/api/share/{id}");
         // 用户身份解析（填充 UserContext，供业务层获取当前用户；order=1 保证晚于 authInterceptor 解析 USER 会话）
         registry.addInterceptor(userIdentityInterceptor)
                 .addPathPatterns("/admin/api/**","/chat/api/**")

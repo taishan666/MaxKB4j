@@ -223,7 +223,8 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
                 .count() > 0;
     }
 
-    private boolean isOwnedBy(String chatId, String appId, String userId) {
+    @Override
+    public boolean isOwnedBy(String chatId, String appId, String userId) {
         return this.lambdaQuery()
                 .eq(ApplicationChatEntity::getId, chatId)
                 .eq(ApplicationChatEntity::getApplicationId, appId)

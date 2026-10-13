@@ -28,6 +28,11 @@ public interface IApplicationChatService {
 
     boolean updateDtoById(ApplicationChatDTO applicationChatDTO);
 
+    /**
+     * 判断会话是否属于指定应用下的指定用户（用于防止越权访问他人会话）
+     */
+    boolean isOwnedBy(String chatId, String appId, String userId);
+
 
     Map<String, String> shareChat(String id, String chatId, ShareChatDTO dto);
 
