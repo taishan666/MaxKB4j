@@ -96,7 +96,7 @@ public class ChatApiController {
     @Operation(summary = "聊天对话", description = "聊天对话")
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")
-    public Object chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
+    public Object chatMessage(@PathVariable String chatId, @Valid @RequestBody ChatParams params) {
         String userId = StpKit.USER.getLoginIdAsString();
         String appId = (String) StpKit.USER.getExtra("applicationId");
 
@@ -157,6 +157,9 @@ public class ChatApiController {
     @Hidden
     @GetMapping("/historical_conversation/{current}/{size}")
     public R<IPage<ApplicationChatDTO>> historicalConversation(@PathVariable int current, @PathVariable int size) {
+        // 分页 size 上限，防止单请求拉全表
+        int maxSize = 100;
+        size = Math.min(size, maxSize);
         return R.data(chatApiService.historicalConversation(current, size));
     }
 
@@ -191,6 +194,9 @@ public class ChatApiController {
     @Hidden
     @GetMapping("/historical_conversation_record/{chatId}/{current}/{size}")
     public R<IPage<ApplicationChatRecordVO>> historicalConversationRecord(@PathVariable String chatId, @PathVariable int current, @PathVariable int size) {
+        // 分页 size 上限，防止单请求拉全表
+        int maxSize = 100;
+        size = Math.min(size, maxSize);
         chatApiService.checkChatOwner(chatId);
         return R.data(chatRecordService.chatRecordPage(chatId, current, size));
     }

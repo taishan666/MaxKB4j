@@ -2,6 +2,7 @@ package com.maxkb4j.application.pipeline.step.rerankstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.rerankstep.AbsRerankStep;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
 import com.maxkb4j.knowledge.vo.ParagraphRagVO;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -98,7 +100,8 @@ public class RerankStep extends AbsRerankStep {
     }
 
     @Override
-    public JSONObject getDetails() {
+    public JSONObject getDetails(PipelineManage manage) {
+        Map<String, Object> context = stepContext(manage);
         JSONObject details = new JSONObject(true);
         details.put("step_type", "rerank_step");
         details.put("paragraphList", context.get("paragraphList"));

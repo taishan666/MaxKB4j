@@ -193,7 +193,7 @@ public abstract class LLMStreamNodeHandler extends StreamNodeHandler {
                 NodeField.IS_RESULT, options.isResult(),
                 NodeField.REASONING_CONTENT_ENABLE, options.reasoningContentEnable()
         ));
-        List<String> answerTexts = new ArrayList<>();
+        List<String> answerTexts = new CopyOnWriteArrayList<>();
         List<String> reasoningTexts = new CopyOnWriteArrayList<>();
         CompletableFuture<NodeResult> resultFuture = new CompletableFuture<>();
         tokenStream.onPartialThinking(thinking -> {

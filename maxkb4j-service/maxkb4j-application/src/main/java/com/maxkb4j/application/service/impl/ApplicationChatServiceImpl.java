@@ -106,14 +106,16 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
 
     public ChatResponse chatMessage(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback) {
         long startTime = System.currentTimeMillis();
+        // 非流式对话 / MCP tools/call 等调用方不传 callback，归一化为空回调，避免链路中 NPE
+        ResultCallback<ChatMessageVO> safeCallback = callback != null ? callback : ResultCallback.noop();
         if (visitCountOver(chatState)) {
-            callback.onError(new AccessNumLimitException());
+            safeCallback.onError(new AccessNumLimitException());
             return new ChatResponse(List.of(), null);
         }
         ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatState.getAppId());
         ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatState.getDebug());
         if (Objects.isNull(application)) {
-            callback.onError(new ApiException("application.not.found"));
+            safeCallback.onError(new ApiException("application.not.found"));
             return new ChatResponse(List.of(), null);
         }
         List<ChatRecordDTO> historyChatRecordList = chatInfo.getChatRecordList();
@@ -125,10 +127,10 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
             chatParams.setChatRecordId(IdWorker.get32UUID());
         }
         IChatService chatService = ChatServiceBuilder.getChatService(application.getType());
-        ChatResponse chatResponse = chatService.chatMessage(application, chatParams, chatState, callback);
+        ChatResponse chatResponse = chatService.chatMessage(application, chatParams, chatState, safeCallback);
         postResponseHandler.handler(chatParams, chatState, chatResponse, startTime);
-        callback.onEvent(new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true));
-        callback.onComplete();
+        safeCallback.onEvent(new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true));
+        safeCallback.onComplete();
         return chatResponse;
     }
 
@@ -141,14 +143,15 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
      * </p>
      */
     public void chatMessageAsync(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback) {
+        ResultCallback<ChatMessageVO> safeCallback = callback != null ? callback : ResultCallback.noop();
         CompletableFuture
-                .runAsync(() -> chatMessage(chatParams, chatState, callback), chatTaskExecutor)
+                .runAsync(() -> chatMessage(chatParams, chatState, safeCallback), chatTaskExecutor)
                 .whenComplete((ignored, throwable) -> {
                     if (throwable == null) {
                         return;
                     }
                     log.error("Async chatMessage failed", throwable);
-                    callback.onError(throwable);
+                    safeCallback.onError(throwable);
                 });
     }
 
@@ -209,8 +212,11 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean deleteByApplicationId(String appId, String chatId) {
         if (belongsToApp(chatId, appId)) {
+            // 先删关联的 chat_record，避免孤儿记录
+            chatRecordService.lambdaUpdate().eq(ApplicationChatRecordEntity::getChatId, chatId).remove();
             return this.removeById(chatId);
         }
         return false;
@@ -254,7 +260,20 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean clear(String appId, String userId) {
+        // 先查出所有待删除的 chatId，避免孤儿记录
+        List<String> chatIds = this.lambdaQuery()
+                .select(ApplicationChatEntity::getId)
+                .eq(ApplicationChatEntity::getApplicationId, appId)
+                .eq(ApplicationChatEntity::getChatUserId, userId)
+                .list()
+                .stream()
+                .map(ApplicationChatEntity::getId)
+                .toList();
+        if (!chatIds.isEmpty()) {
+            chatRecordService.lambdaUpdate().in(ApplicationChatRecordEntity::getChatId, chatIds).remove();
+        }
         LambdaQueryWrapper<ApplicationChatEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatEntity::getApplicationId, appId).eq(ApplicationChatEntity::getChatUserId, userId);
         return this.remove(wrapper);

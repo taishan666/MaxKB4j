@@ -39,7 +39,7 @@ public class ToolNodeHandler extends AbsNodeHandler {
         // 使用辅助方法写入详情
         putDetail(node, NodeField.PARAMS, inputParams);
         if (Boolean.TRUE.equals(params.getIsResult())) {
-            setAnswerText(node, result.toString());
+            setAnswerText(node, result != null ? result.toString() : "");
         }
         Map<String, Object> nodeVariable = new HashMap<>();
         if (result instanceof Map<?, ?> resultMap) {

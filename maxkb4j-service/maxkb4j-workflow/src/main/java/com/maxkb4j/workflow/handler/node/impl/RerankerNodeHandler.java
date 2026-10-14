@@ -53,7 +53,15 @@ public class RerankerNodeHandler extends AbsNodeHandler {
             Response<List<Double>> response = rerankerModel.scoreAll(textSegments, question);
             List<Double> scores = response.content();
 
+            if (scores == null || scores.isEmpty()) {
+                log.warn("Reranker returned no scores");
+                return new NodeResult(Map.of(NodeField.RESULT_LIST, resultList, NodeField.RESULT, ""));
+            }
+            int scoreSize = scores.size();
             for (int i = 0; i < textSegments.size(); i++) {
+                if (i >= scoreSize) {
+                    break; // scores 与 textSegments 长度不一致时安全截断
+                }
                 Double score = scores.get(i);
                 TextSegment textSegment = textSegments.get(i);
                 Map<String, Object> metadata = textSegment.metadata().toMap();

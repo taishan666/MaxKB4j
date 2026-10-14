@@ -42,8 +42,8 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
             paragraphList = retrieval(knowledgeIds, datasetSetting, problemText, paddingProblemText, excludeParagraphIds);
         }
         log.info("dataset search 耗时 {} ms", System.currentTimeMillis() - startTime);
-        super.context.put("paragraphList", paragraphList);
-        super.context.put("problemText", problemText);
+        stepContext(manage).put("paragraphList", paragraphList);
+        stepContext(manage).put("problemText", problemText);
         return paragraphList;
     }
 
@@ -85,7 +85,8 @@ public class SearchDatasetStep extends AbsSearchDatasetStep {
 
 
     @Override
-    public JSONObject getDetails() {
+    public JSONObject getDetails(PipelineManage manage) {
+        Map<String, Object> context = stepContext(manage);
         JSONObject details = new JSONObject(true);
         details.put("step_type", "search_step");
         details.put("paragraphList", context.get("paragraphList"));

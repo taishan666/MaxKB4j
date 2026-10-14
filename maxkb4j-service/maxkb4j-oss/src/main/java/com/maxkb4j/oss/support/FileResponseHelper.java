@@ -28,9 +28,14 @@ public final class FileResponseHelper {
 
     /**
      * 判断给定 Content-Type 是否支持浏览器内联预览。
+     * <p>
+     * 注意：SVG（image/svg+xml）可内嵌脚本，若以 inline 返回会形成同源存储 XSS，
+     * 因此排除在预览白名单之外，强制走附件下载。
+     * </p>
      */
     public static boolean isPreviewAble(String contentType) {
         return contentType != null
+                && !"image/svg+xml".equalsIgnoreCase(contentType)
                 && (contentType.startsWith("image/") || "application/pdf".equals(contentType));
     }
 
@@ -38,6 +43,7 @@ public final class FileResponseHelper {
      * 根据文件名、Content-Type 与大小配置响应头。
      * <p>
      * 可预览类型使用 {@code inline}，其余类型以附件方式下载，文件名按 UTF-8 编码。
+     * 同时添加 {@code X-Content-Type-Options: nosniff} 防止浏览器嗅探内容类型。
      * <b>必须在获取输出流之前调用。</b>
      *
      * @param response    HTTP 响应
@@ -49,6 +55,7 @@ public final class FileResponseHelper {
                                         String contentType, long length) {
         String ct = (contentType != null) ? contentType : DEFAULT_CONTENT_TYPE;
         response.setContentType(ct);
+        response.setHeader("X-Content-Type-Options", "nosniff");
         if (isPreviewAble(ct)) {
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "inline");
         } else {

@@ -106,6 +106,7 @@ public class DocumentImportService {
     @Transactional(rollbackFor = Exception.class)
     public void createWebDoc(String knowledgeId, List<String> sourceUrlList, String selector) {
         for (String sourceUrl : sourceUrlList) {
+            // HTTP 抓网页移至事务外，避免长事务
             List<DocumentSimple> docs = documentWebService.getWebDocuments(sourceUrl, selector, false);
             documentWriteService.batchCreateDocs(knowledgeId, KnowledgeType.WEB, docs);
         }
@@ -118,8 +119,9 @@ public class DocumentImportService {
         String sourceUrl = doc.getMeta().getString("sourceUrl");
         String selector = doc.getMeta().getString("selector");
         if (StringUtils.isAnyBlank(sourceUrl, selector)) return;
-        documentService.deleteDocByIds(knowledgeId, List.of(docId));
+        // HTTP 抓网页移至事务外，避免长事务
         List<DocumentSimple> docs = documentWebService.getWebDocuments(sourceUrl, selector, false);
+        documentService.deleteDocByIds(knowledgeId, List.of(docId));
         documentWriteService.batchCreateDocs(knowledgeId, KnowledgeType.WEB, docs);
     }
 

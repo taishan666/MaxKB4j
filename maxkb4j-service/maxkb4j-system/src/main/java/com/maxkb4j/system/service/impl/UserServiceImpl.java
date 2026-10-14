@@ -162,20 +162,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
     @Transactional(rollbackFor = Exception.class)
     public boolean createUser(UserEntity user) {
-        long usernameNum = this.lambdaQuery().eq(UserEntity::getUsername, user.getUsername()).count();
-        if (usernameNum > 0) {
-            throw new ApiException("user.username.exists");
-        }
-        long emailNum = this.lambdaQuery().eq(UserEntity::getEmail, user.getEmail()).count();
-        if (emailNum > 0) {
-            throw new ApiException("user.email.exists");
-        }
+        // 先尝试插入，利用数据库唯一约束兜底，避免并发竞态
         user.setRole(RoleConst.USER);
         user.setIsActive(true);
         user.setSource(UserSource.LOCAL);
         user.setLanguage(StringUtils.defaultIfBlank(user.getLanguage(), UserLanguage.ZH_CN));
         user.setPassword(passwordService.encode(user.getPassword()));
-        return save(user);
+        try {
+            return save(user);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            // 唯一键冲突，解析并抛出友好提示
+            if (e.getMessage() != null && e.getMessage().contains("username")) {
+                throw new ApiException("user.username.exists");
+            }
+            if (e.getMessage() != null && e.getMessage().contains("email")) {
+                throw new ApiException("user.email.exists");
+            }
+            throw new ApiException("user.create.failed");
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -263,10 +267,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     }
 
     public Boolean sendEmailCode(String email, String subject) {
+        // 发送频控，防止无限轰炸
+        if (!authCodeCache.canSend(email)) {
+            throw new ApiException("auth.code.send.too.frequent");
+        }
         Context context = new Context();
         String code = generateCode();
         context.setVariable("code", code);
         authCodeCache.put(email, code);
+        authCodeCache.recordSend(email);
         try {
             emailService.sendMessage(email, subject, "email_template", context);
         } catch (MessagingException e) {
@@ -277,7 +286,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
     public boolean checkCode(String email, String code) {
         String codeCache = authCodeCache.getIfPresent(email);
-        return Objects.equals(codeCache, code);
+        boolean isValid = Objects.equals(codeCache, code);
+        // 验证成功后使验证码失效，防止重放攻击
+        if (isValid) {
+            authCodeCache.invalidate(email);
+        }
+        return isValid;
     }
 
     private String generateCode() {

@@ -86,6 +86,7 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
         if (model.getModelParamsForm() == null) {
             model.setModelParamsForm(new JSONArray());
         }
+        // LLM 远程校验移出事务，避免长事务占死数据库连接
         AbsModelProvider modelProvider = providerRegistry.get(model.getProvider());
         JSONObject params = extractDefaultModelParams(model.getModelParamsForm());
         modelProvider.modelIsValid(model.getModelType(), model.getModelName(), model.getCredential(), params);

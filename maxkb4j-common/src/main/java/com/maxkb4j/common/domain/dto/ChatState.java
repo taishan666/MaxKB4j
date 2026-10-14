@@ -59,7 +59,13 @@ public class ChatState {
     private ChatRecordDTO chatRecord;
 
     public String getChatUserId() {
-        return StringUtils.isBlank(chatUserId) ? IdWorker.get32UUID() : chatUserId;
+        if (StringUtils.isBlank(chatUserId)) {
+            // 首次访问时生成并写回字段，保证同一 ChatState 生命周期内所有调用方
+            // （访问统计、对话记录持久化等）拿到同一个 chatUserId，
+            // 避免每次调用生成新 UUID 导致统计与记录错乱
+            chatUserId = IdWorker.get32UUID();
+        }
+        return chatUserId;
     }
 
     public ChatUserType getChatUserType() {

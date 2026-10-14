@@ -72,9 +72,14 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
         }
 
         for (Image image : outImages) {
-            String imageMd = "![" + prompt + "](" + image.url() + ")";
+            if (image == null || image.url() == null) {
+                log.warn("Image or image URL is null, skipping");
+                continue;
+            }
+            String imageUrlStr = image.url().toString();
+            String imageMd = "![" + prompt + "](" + imageUrlStr + ")";
             answerTexts.add(imageMd);
-            imageUrls.add(image.url().toString());
+            imageUrls.add(imageUrlStr);
         }
 
         if (params.getIsResult()) {

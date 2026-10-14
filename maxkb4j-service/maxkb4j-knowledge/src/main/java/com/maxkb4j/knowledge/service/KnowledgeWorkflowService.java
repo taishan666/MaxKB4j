@@ -159,11 +159,18 @@ public class KnowledgeWorkflowService {
         List<DocumentEntity> documents = documentService.lambdaQuery()
                 .select(DocumentEntity::getId)
                 .eq(DocumentEntity::getKnowledgeId, knowledgeId).list();
-        documentService.embedByDocIds(knowledgeId, documents.stream().map(DocumentEntity::getId).toList(), List.of("0", "1", "2", "3", "n"));
+        List<String> docIds = documents.stream().map(DocumentEntity::getId).toList();
         List<ProblemEntity> problems = problemService.lambdaQuery()
                 .select(ProblemEntity::getId)
                 .eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
-        problemService.reIndexBatch(knowledgeId, problems.stream().map(ProblemEntity::getId).toList());
+        List<String> problemIds = problems.stream().map(ProblemEntity::getId).toList();
+        // 异步执行知识库重嵌，避免请求线程阻塞超时
+        CompletableFuture.runAsync(() -> {
+            documentService.embedByDocIds(knowledgeId, docIds, List.of("0", "1", "2", "3", "n"));
+            if (!problemIds.isEmpty()) {
+                problemService.reIndexBatch(knowledgeId, problemIds);
+            }
+        }, workflowTaskExecutor);
         return true;
     }
 

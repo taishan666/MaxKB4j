@@ -33,7 +33,7 @@ public abstract class AbsRerankStep extends AbsStep {
         }
         List<ParagraphRagVO> reranked = execute(manage.chatParams.getMessage(), setting, paragraphList);
         manage.context.put("paragraphList", reranked);
-        context.put("paragraphList", reranked);
+        stepContext(manage).put("paragraphList", reranked);
     }
 
     protected abstract List<ParagraphRagVO> execute(String question, KnowledgeSetting setting, List<ParagraphRagVO> paragraphList);

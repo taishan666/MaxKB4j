@@ -48,12 +48,29 @@ public class SkillsToolUtil {
             throw new ApiException("tool.skill.zip.extract.failed");
         }
 
+        // ZIP 炸弹防护：限制解压条目数和总解压大小
+        final int MAX_ENTRY_COUNT = 1000;
+        final long MAX_UNCOMPRESSED_SIZE = 100 * 1024 * 1024; // 100MB
+        long totalUncompressedSize = 0;
+        int entryCount = 0;
+
         String rootFolderName = null;
         Set<String> topLevelFolders = new HashSet<>();
         Set<String> topLevelFiles = new HashSet<>();
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
+                entryCount++;
+                if (entryCount > MAX_ENTRY_COUNT) {
+                    throw new ApiException("tool.skill.zip.too.many.entries");
+                }
+                long entrySize = entry.getSize();
+                if (entrySize > 0) {
+                    totalUncompressedSize += entrySize;
+                    if (totalUncompressedSize > MAX_UNCOMPRESSED_SIZE) {
+                        throw new ApiException("tool.skill.zip.size.exceeded");
+                    }
+                }
                 String entryName = entry.getName();
                 int separatorIndex = entryName.indexOf('/');
                 if (separatorIndex > 0) {

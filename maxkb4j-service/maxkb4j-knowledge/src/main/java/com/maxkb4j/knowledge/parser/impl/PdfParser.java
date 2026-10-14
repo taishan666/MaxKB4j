@@ -10,22 +10,23 @@ import io.github.mymonstercat.ocr.InferenceEngine;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.contentstream.operator.Operator;
-import org.apache.pdfbox.cos.COSBase;
+import org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
+import org.apache.pdfbox.util.Matrix;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,8 +45,8 @@ import java.util.regex.Pattern;
 /**
  * PDF 解析器。
  * <p>
- * PDFTextStripper 及其解析过程状态（页面行数据、待上传图片等）不是线程安全的，
- * 因此将所有可变状态封装到 {@link TextLineStripper} 中，每次解析新建实例；
+ * 解析过程状态（页面行数据、待上传图片等）不是线程安全的，
+ * 因此将所有可变状态封装到每次解析新建的实例中；
  * 本组件自身保持无状态，可安全并发调用。
  * </p>
  */
@@ -259,11 +260,25 @@ public class PdfParser implements DocumentParser {
             if (bytes.length > maxPdfSizeMb * 1024L * 1024L) {
                 throw new FileLimitExceededException("common.file.size.exceeded", maxPdfSizeMb);
             }
-            TextLineStripper stripper;
+
+            // 第一步：提取所有图片（XObject 图像与内联图像统一由 drawImage 回调捕获）
+            List<ImageData> pendingImages = new ArrayList<>();
+            Map<Integer, List<TextLine>> pageImages = new LinkedHashMap<>();
             try (PDDocument document = Loader.loadPDF(bytes)) {
                 if (isScannedPDF(document)) {
                     return extractTextFromScannedPDF(document);
                 }
+                int pageNo = 0;
+                for (PDPage page : document.getPages()) {
+                    pageNo++;
+                    ImageExtractor imageExtractor = new ImageExtractor(page, pageNo, pendingImages, pageImages);
+                    imageExtractor.processPage(page);
+                }
+            }
+
+            // 第二步：提取文本
+            TextLineStripper stripper;
+            try (PDDocument document = Loader.loadPDF(bytes)) {
                 stripper = new TextLineStripper();
                 stripper.setSortByPosition(true);
                 stripper.setStartPage(1);
@@ -271,11 +286,53 @@ public class PdfParser implements DocumentParser {
                 stripper.getText(document);
             }
             List<TextLine> lines = stripper.lines;
-            uploadImagesInParallel(lines, stripper.pendingImages);
+
+            // 第三步：按 Y 坐标将图片插入到对应页面的文本行中
+            insertImagesIntoLines(lines, stripper.pageStartIndices, stripper.pageEndIndices, pageImages);
+
+            // 第四步：上传图片并生成 Markdown
+            uploadImagesInParallel(lines, pendingImages);
             HeadingContext ctx = buildFontSizeHeadingMap(lines);
             return toMarkdown(lines, ctx);
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse PDF from input stream", e);
+        }
+    }
+
+    /**
+     * 将图片行按 Y 坐标插入到对应页面的文本行中，
+     * 图片插入到首个 Y 坐标大于图片的文本行之前，保持阅读顺序。
+     * <p>
+     * 注意：向 lines 插入元素会使后续页面的边界索引整体后移，
+     * 因此按页号升序处理并累计已插入数量对边界索引做补偿。
+     * </p>
+     */
+    private static void insertImagesIntoLines(List<TextLine> lines,
+                                              Map<Integer, Integer> pageStartIndices,
+                                              Map<Integer, Integer> pageEndIndices,
+                                              Map<Integer, List<TextLine>> pageImages) {
+        int offset = 0;
+        for (Map.Entry<Integer, List<TextLine>> entry : pageImages.entrySet()) {
+            int pageNum = entry.getKey();
+            int rawStart = pageStartIndices.getOrDefault(pageNum, -1);
+            if (rawStart < 0) {
+                continue;
+            }
+            int pageStartIdx = rawStart + offset;
+            int pageEndIdx = Math.min(pageEndIndices.getOrDefault(pageNum, lines.size()) + offset, lines.size());
+            for (TextLine imgLine : entry.getValue()) {
+                float imgYPos = imgLine.yPos();
+                int insertIdx = pageEndIdx;
+                for (int i = pageStartIdx; i < pageEndIdx; i++) {
+                    if (lines.get(i).yPos() > imgYPos) {
+                        insertIdx = i;
+                        break;
+                    }
+                }
+                lines.add(insertIdx, imgLine);
+                pageEndIdx++;
+                offset++;
+            }
         }
     }
 
@@ -316,16 +373,126 @@ public class PdfParser implements DocumentParser {
     }
 
     /**
-     * 单次解析的工作器：持有解析过程的全部可变状态。
+     * 图片提取器：基于 {@link PDFGraphicsStreamEngine}，
+     * PDFBox 会在解析内容流时对 XObject 图像（Do 操作符）和内联图像（BI/ID/EI 操作符）
+     * 统一回调 {@link #drawImage(PDImage)}，因此两种嵌入方式均可捕获。
+     * 每页创建一个实例，通过构造器共享结果集合。
+     */
+    private static class ImageExtractor extends PDFGraphicsStreamEngine {
+        private final List<ImageData> pendingImages;
+        private final Map<Integer, List<TextLine>> pageImages;
+        private final int pageNo;
+        private final PDRectangle cropBox;
+
+        ImageExtractor(PDPage page, int pageNo,
+                       List<ImageData> pendingImages,
+                       Map<Integer, List<TextLine>> pageImages) {
+            super(page);
+            this.pageNo = pageNo;
+            this.cropBox = page.getCropBox();
+            this.pendingImages = pendingImages;
+            this.pageImages = pageImages;
+        }
+
+        @Override
+        public void drawImage(PDImage pdImage) throws IOException {
+            BufferedImage image = pdImage.getImage();
+            if (image == null) {
+                log.debug("图像无法解码，跳过：宽度={}, 高度={}", pdImage.getWidth(), pdImage.getHeight());
+                return;
+            }
+            /*
+             * 坐标对齐说明（与 PDFTextStripper 的 TextPosition 保持同一坐标系）：
+             * 文本提取时坐标基于 CropBox 并规范化到其原点（减 lowerLeftX/lowerLeftY），
+             * Y 为"页面顶部到基线"的 top-down 距离（cropBox.height - 用户空间Y）。
+             * 图像同理：将图像单位正方形的四个角点经 CTM 变换取包围盒，
+             * X 取左边缘相对 CropBox 左侧的距离，Y 取"顶部边缘"距页面上边缘的距离，
+             * 这样图片与文本的 Y 可直接比较，插入位置与视觉阅读顺序一致。
+             */
+            Matrix ctm = getGraphicsState().getCurrentTransformationMatrix();
+            float minX = Float.MAX_VALUE;
+            float maxX = -Float.MAX_VALUE;
+            float maxY = -Float.MAX_VALUE;
+            for (float[] corner : new float[][]{{0, 0}, {1, 0}, {0, 1}, {1, 1}}) {
+                Point2D.Float p = ctm.transformPoint(corner[0], corner[1]);
+                minX = Math.min(minX, p.x);
+                maxX = Math.max(maxX, p.x);
+                maxY = Math.max(maxY, p.y);
+            }
+            float xPos = minX - cropBox.getLowerLeftX();
+            float yPos = cropBox.getHeight() - (maxY - cropBox.getLowerLeftY());
+            byte[] imageBytes = bufferedImageToBytes(image);
+            String fileName = "pdf_p" + pageNo + "_img" + pendingImages.size() + ".png";
+            pageImages.computeIfAbsent(pageNo, k -> new ArrayList<>())
+                    .add(new TextLine(IMAGE_STYLE, fileName, 0, 0, xPos, yPos));
+            pendingImages.add(new ImageData(fileName, imageBytes));
+        }
+
+        // 以下为 PDFGraphicsStreamEngine 的抽象方法，图片提取场景无需处理图形路径，给空实现
+        @Override
+        public void appendRectangle(Point2D p0, Point2D p1, Point2D p2, Point2D p3) {
+        }
+
+        @Override
+        public void clip(int windingRule) {
+        }
+
+        @Override
+        public void moveTo(float x, float y) {
+        }
+
+        @Override
+        public void lineTo(float x, float y) {
+        }
+
+        @Override
+        public void curveTo(float x1, float y1, float x2, float y2, float x3, float y3) {
+        }
+
+        @Override
+        public Point2D getCurrentPoint() {
+            return new Point2D.Float(0, 0);
+        }
+
+        @Override
+        public void closePath() {
+        }
+
+        @Override
+        public void endPath() {
+        }
+
+        @Override
+        public void strokePath() {
+        }
+
+        @Override
+        public void fillPath(int windingRule) {
+        }
+
+        @Override
+        public void fillAndStrokePath(int windingRule) {
+        }
+
+        @Override
+        public void shadingFill(COSName shadingName) {
+        }
+    }
+
+    /**
+     * 单次文本解析的工作器：持有解析过程的全部可变状态。
      * 每次解析新建实例，避免单例共享状态导致的并发问题。
      */
     private static final class TextLineStripper extends PDFTextStripper {
 
         private final List<TextLine> lines = new ArrayList<>();
-        private final List<ImageData> pendingImages = new ArrayList<>();
-        private float currentPageHeight;
-        private List<TextLine> currentPageLines = new ArrayList<>();
-        private List<TextLine> currentPageImages = new ArrayList<>();
+        private final Map<Integer, Integer> pageStartIndices = new HashMap<>();
+        private final Map<Integer, Integer> pageEndIndices = new HashMap<>();
+        private final List<TextLine> currentPageLines = new ArrayList<>();
+        /**
+         * 页码计数器，从 1 开始，与 {@link ImageExtractor} 的页编号保持一致
+         */
+        private int pageCounter = 0;
 
         private TextLineStripper() throws IOException {
             super();
@@ -358,23 +525,10 @@ public class PdfParser implements DocumentParser {
 
         @Override
         public void processPage(PDPage page) throws IOException {
-            currentPageHeight = page.getCropBox().getHeight();
-            currentPageImages = new ArrayList<>();
-            currentPageLines = new ArrayList<>();
+            pageCounter++;
+            pageStartIndices.put(pageCounter, lines.size());
+            currentPageLines.clear();
             super.processPage(page);
-        }
-
-        @Override
-        protected void processOperator(Operator operator, List<COSBase> operands) throws IOException {
-            if ("Do".equals(operator.getName()) && !operands.isEmpty() && operands.getFirst() instanceof COSName cosName) {
-                PDResources res = getResources();
-                if (res != null && res.isImageXObject(cosName)) {
-                    PDImageXObject image = (PDImageXObject) res.getXObject(cosName);
-                    handleImageInStream(image);
-                    return;
-                }
-            }
-            super.processOperator(operator, operands);
         }
 
         @Override
@@ -384,18 +538,8 @@ public class PdfParser implements DocumentParser {
                 clearPageNumber(mergedLines, PAGE_NUM_DASH);
                 clearPageNumber(mergedLines, PAGE_NUM_PURE);
             }
-            for (TextLine currentPageImage : currentPageImages) {
-                float imgYPos = currentPageImage.yPos();
-                for (int i = 0; i < mergedLines.size(); i++) {
-                    TextLine textLine = mergedLines.get(i);
-                    float yPos = textLine.yPos();
-                    if (yPos > imgYPos) {
-                        mergedLines.set(i, currentPageImage);
-                        break;
-                    }
-                }
-            }
             lines.addAll(mergedLines);
+            pageEndIndices.put(pageCounter, lines.size());
         }
 
         @Override
@@ -411,19 +555,6 @@ public class PdfParser implements DocumentParser {
             float maxHeight = first.getHeight();
             TextLine textLine = new TextLine(fontName, text, fontSize, maxHeight, xPos, yPos);
             currentPageLines.add(textLine);
-        }
-
-        private void handleImageInStream(PDImageXObject image) throws IOException {
-            float translateX = getGraphicsState().getCurrentTransformationMatrix().getTranslateX();
-            float translateY = getGraphicsState().getCurrentTransformationMatrix().getTranslateY();
-            float yPos = currentPageHeight - translateY;
-            BufferedImage bufferedImage = image.getImage();
-            byte[] imageBytes = bufferedImageToBytes(bufferedImage);
-            int pageNo = getCurrentPageNo();
-            int imgIndex = currentPageImages.size();
-            String fileName = "pdf_p" + pageNo + "_img" + imgIndex + ".png";
-            currentPageImages.add(new TextLine(IMAGE_STYLE, fileName, 0, 0, translateX, yPos));
-            pendingImages.add(new ImageData(fileName, imageBytes));
         }
     }
 

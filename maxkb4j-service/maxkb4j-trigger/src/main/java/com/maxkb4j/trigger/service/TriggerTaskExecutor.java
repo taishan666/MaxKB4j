@@ -24,6 +24,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Component
 @RequiredArgsConstructor
@@ -122,7 +125,21 @@ public class TriggerTaskExecutor {
                         .appId(appId)
                         .source(ChatSource.TRIGGER)
                         .build();
-                ChatResponse response = applicationChatService.chatMessage(chatParams, chatState, null);
+                // 异步执行 LLM 会话，避免阻塞调度线程；添加超时保护
+                CompletableFuture<ChatResponse> future = CompletableFuture.supplyAsync(
+                        () -> applicationChatService.chatMessage(chatParams, chatState, null)
+                );
+                ChatResponse response;
+                try {
+                    // 调度任务最大等待 5 分钟，超时则放弃并记录
+                    response = future.get(5, TimeUnit.MINUTES);
+                } catch (TimeoutException e) {
+                    log.warn("Application task timed out after 5 minutes: appId={}, chatId={}", appId, chatId);
+                    future.cancel(true);
+                    float runTime = (System.currentTimeMillis() - startTime) / 1000f;
+                    saveRecord(task.getTriggerId(), task.getId(), ResourceType.APPLICATION, appId, TaskState.FAILURE, runTime, buildErrorMeta(e));
+                    return;
+                }
                 float runTime = (System.currentTimeMillis() - startTime) / 1000f;
                 TaskState state = (response != null && response.getAnswers() != null) ? TaskState.SUCCESS : TaskState.FAILURE;
                 JSONObject meta = (response != null) ? response.getRunDetails() : new JSONObject();

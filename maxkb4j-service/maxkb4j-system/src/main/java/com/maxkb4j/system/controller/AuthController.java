@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author tarzan
@@ -67,8 +68,17 @@ public class AuthController {
         String password = dto.getPassword();
         String rePassword = dto.getRePassword();
         if (Objects.equals(password, rePassword)) {
+            String userId = StpKit.ADMIN.getLoginIdAsString();
+            // 验证旧口令，防止未授权修改
+            UserEntity currentUser = userService.lambdaQuery()
+                    .select(UserEntity::getPassword)
+                    .eq(UserEntity::getId, userId)
+                    .one();
+            if (currentUser == null || !passwordService.matches(dto.getOldPassword(), currentUser.getPassword())) {
+                return R.fail(400, "auth.password.old.incorrect");
+            }
             UserEntity user = new UserEntity();
-            user.setId(StpKit.ADMIN.getLoginIdAsString());
+            user.setId(userId);
             user.setPassword(passwordService.encode(password));
             return R.status(userService.updateById(user));
         }

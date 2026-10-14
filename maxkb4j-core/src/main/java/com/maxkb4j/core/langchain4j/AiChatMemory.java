@@ -43,6 +43,9 @@ public class AiChatMemory implements ChatMemory {
     @Override
     public void add(ChatMessage message) {
         if (message instanceof SystemMessage) {
+            // langchain4j 每轮对话都会重新注入系统消息：先移除旧系统消息再插入，
+            // 避免系统消息随轮次无限累积造成 token 膨胀与上下文污染
+            messages.removeIf(m -> m instanceof SystemMessage);
             messages.addFirst(message);
         } else {
             messages.add(message);

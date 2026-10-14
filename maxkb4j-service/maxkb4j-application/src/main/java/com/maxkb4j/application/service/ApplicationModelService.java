@@ -39,8 +39,9 @@ public class ApplicationModelService {
     public void normalizeAppModels(ApplicationEntity app) {
         if (AppType.SIMPLE.name().equals(app.getType())) {
             app.setModelId(modelService.getSafeModelId(app.getModelId(), ModelType.LLM));
-            app.setTtsModelId(modelService.getSafeModelId(app.getModelId(), ModelType.TTS));
-            app.setSttModelId(modelService.getSafeModelId(app.getModelId(), ModelType.STT));
+            // 各自使用对应的 tts/stt 模型字段，误传 LLM 模型 ID 会导致语音功能使用错误模型
+            app.setTtsModelId(modelService.getSafeModelId(app.getTtsModelId(), ModelType.TTS));
+            app.setSttModelId(modelService.getSafeModelId(app.getSttModelId(), ModelType.STT));
         }
         normalizeNodeModels(app.getWorkFlow());
     }

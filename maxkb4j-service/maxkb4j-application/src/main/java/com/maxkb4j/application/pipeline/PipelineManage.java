@@ -8,6 +8,7 @@ import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.domain.vo.Answer;
 import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
+import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.util.MessageConverter;
 import com.maxkb4j.knowledge.vo.ParagraphRagVO;
@@ -28,12 +29,24 @@ public class PipelineManage {
     public ChatParams chatParams;
     public ChatState chatState;
     public ResultCallback<ChatMessageVO> callback;
+    /**
+     * 各步骤在本次对话中的私有上下文（按步骤实例隔离，随请求生命周期销毁），
+     * 避免步骤单例的实例字段在并发会话间串扰。
+     */
+    private final Map<AbsStep, Map<String, Object>> stepContexts = new HashMap<>();
 
     public PipelineManage(List<AbsStep> stepList) {
         this.stepList = stepList;
         this.context = new HashMap<>();
         this.context.put("messageTokens", 0);
         this.context.put("answerTokens", 0);
+    }
+
+    /**
+     * 获取指定步骤在本次对话中的上下文。
+     */
+    public Map<String, Object> stepContext(AbsStep step) {
+        return stepContexts.computeIfAbsent(step, k -> new JSONObject());
     }
 
 
@@ -78,11 +91,12 @@ public class PipelineManage {
     @SuppressWarnings("unchecked")
     public List<String> getExcludeParagraphIds(String problemText) {
         List<String> excludeParagraphIds = new ArrayList<>();
-        List<ApplicationChatRecordEntity> chatRecordList = (List<ApplicationChatRecordEntity>) context.get("chatRecordList");
+        // 从 chatState 获取历史记录（类型为 List<ChatRecordDTO>），而非从未填充的 context
+        List<ChatRecordDTO> chatRecordList = chatState != null ? chatState.getHistoryChatRecords() : null;
         if (!CollectionUtils.isEmpty(chatRecordList)) {
-            for (ApplicationChatRecordEntity chatRecord : chatRecordList) {
+            for (ChatRecordDTO chatRecord : chatRecordList) {
                 JSONObject details = chatRecord.getDetails();
-                if (!details.isEmpty()) {
+                if (details != null && !details.isEmpty()) {
                     if (problemText.equals(chatRecord.getProblemText()) && details.containsKey("search_step")) {
                         JSONObject searchStep = details.getJSONObject("search_step");
                         // 历史数据可能缺少 paragraphList 键，判空避免 NPE
@@ -104,7 +118,7 @@ public class PipelineManage {
     public JSONObject getDetails() {
         JSONObject details = new JSONObject();
         for (AbsStep row : stepList) {
-            JSONObject item = row.getDetails();
+            JSONObject item = row.getDetails(this);
             if (item != null) {
                 String stepType = item.getString("step_type");
                 details.put(stepType, item);

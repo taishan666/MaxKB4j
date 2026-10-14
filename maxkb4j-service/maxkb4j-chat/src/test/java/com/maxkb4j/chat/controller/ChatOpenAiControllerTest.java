@@ -169,7 +169,7 @@ class ChatOpenAiControllerTest {
                 .andReturn();
         String body = result.getResponse().getContentAsString();
         assertTrue(result.getResponse().getStatus() == 200, "status=" + result.getResponse().getStatus());
-        assertTrue(body.contains("rate limit hit"), body);
+        assertTrue(body.contains("rate.limit.exceeded"), body);
         assertFalse(body.contains("Unrecognized Type"), body);
     }
 

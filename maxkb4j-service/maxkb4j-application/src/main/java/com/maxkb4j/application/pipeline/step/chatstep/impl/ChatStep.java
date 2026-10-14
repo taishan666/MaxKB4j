@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -51,8 +52,8 @@ public class ChatStep extends AbsChatStep {
     protected String execute(String chatId, String chatRecordId, ApplicationVO application, List<ChatMessage> historyMessages, String userPrompt, PipelineManage manage) throws Exception {
         Assistant assistant = buildAssistant(chatId, application, historyMessages, manage);
         StreamResult result = streamChat(assistant, userPrompt, chatId, chatRecordId, application, manage);
-        context.put("reasoningContent", result.reasoning());
-        recordTokenUsage(result.response());
+        stepContext(manage).put("reasoningContent", result.reasoning());
+        recordTokenUsage(result.response(), manage);
         refreshLongTermMemory(application, manage.chatState.getChatUserId());
         return result.answer();
     }
@@ -183,11 +184,11 @@ public class ChatStep extends AbsChatStep {
 
     // ==================== 结果落库 ====================
 
-    private void recordTokenUsage(ChatResponse response) {
+    private void recordTokenUsage(ChatResponse response, PipelineManage manage) {
         TokenUsage tokenUsage = response.tokenUsage();
         if (tokenUsage != null) {
-            context.put("messageTokens", tokenUsage.inputTokenCount());
-            context.put("answerTokens", tokenUsage.outputTokenCount());
+            stepContext(manage).put("messageTokens", tokenUsage.inputTokenCount());
+            stepContext(manage).put("answerTokens", tokenUsage.outputTokenCount());
         }
     }
 
@@ -205,7 +206,8 @@ public class ChatStep extends AbsChatStep {
 
 
     @Override
-    public JSONObject getDetails() {
+    public JSONObject getDetails(PipelineManage manage) {
+        Map<String, Object> context = stepContext(manage);
         JSONObject details = new JSONObject(true);
         details.put("step_type", "chat_step");
         details.put("messageList", context.get("messageList"));

@@ -85,25 +85,42 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
         Map<String, String> problemMap = existingProblems.stream()
                 .collect(Collectors.toMap(ProblemEntity::getContent, ProblemEntity::getId, (n, o) -> n));
 
-        List<ProblemEntity> newProblems = new ArrayList<>();
-        List<ProblemParagraphVO> associations = new ArrayList<>();
+        // 预收集所有需要检查关联的问题ID，批量查询避免 N+1
+        List<String> allProblemIds = new ArrayList<>();
+        List<String> newQuestions = new ArrayList<>();
         for (String question : generatedQuestions) {
             if (problemMap.containsKey(question)) {
-                // 已存在，仅建立关联
-                String problemId = problemMap.get(question);
-                if (!isAssociationExists(problemId, paragraph.getId())) {
-                    associations.add(buildProblemParagraph(knowledgeId, docId, paragraph.getId(), problemId, question));
-                }
+                allProblemIds.add(problemMap.get(question));
             } else {
-                // 新增问题
                 String problemId = IdWorker.get32UUID();
                 problemMap.put(question, problemId);
                 ProblemEntity newProblem = ProblemEntity.createDefault();
                 newProblem.setId(problemId);
                 newProblem.setKnowledgeId(knowledgeId);
                 newProblem.setContent(question);
-                newProblems.add(newProblem);
+                allProblemIds.add(problemId);
+                newQuestions.add(question);
+            }
+        }
+
+        // 批量查询已存在的关联
+        Set<String> existingAssocSet = findExistingAssociations(allProblemIds, paragraph.getId());
+
+        List<ProblemEntity> newProblems = new ArrayList<>();
+        List<ProblemParagraphVO> associations = new ArrayList<>();
+        for (String question : generatedQuestions) {
+            String problemId = problemMap.get(question);
+            // 检查关联是否已存在（用预查询的 Set）
+            if (!existingAssocSet.contains(problemId)) {
                 associations.add(buildProblemParagraph(knowledgeId, docId, paragraph.getId(), problemId, question));
+            }
+            // 如果是新问题，添加到新增列表
+            if (newQuestions.contains(question)) {
+                ProblemEntity newProblem = ProblemEntity.createDefault();
+                newProblem.setId(problemId);
+                newProblem.setKnowledgeId(knowledgeId);
+                newProblem.setContent(question);
+                newProblems.add(newProblem);
             }
         }
         // 批量保存新问题
@@ -178,13 +195,20 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
 
 
     /**
-     * 判断问题-段落关联是否已存在（避免重复）
+     * 批量判断问题-段落关联是否已存在（避免 N+1 查询）
      */
-    private boolean isAssociationExists(String problemId, String paragraphId) {
+    private Set<String> findExistingAssociations(List<String> problemIds, String paragraphId) {
+        if (problemIds == null || problemIds.isEmpty()) {
+            return Set.of();
+        }
         return problemParagraphService.lambdaQuery()
-                .eq(ProblemParagraphEntity::getProblemId, problemId)
+                .select(ProblemParagraphEntity::getProblemId)
+                .in(ProblemParagraphEntity::getProblemId, problemIds)
                 .eq(ProblemParagraphEntity::getParagraphId, paragraphId)
-                .exists();
+                .list()
+                .stream()
+                .map(ProblemParagraphEntity::getProblemId)
+                .collect(Collectors.toSet());
     }
 
     /**

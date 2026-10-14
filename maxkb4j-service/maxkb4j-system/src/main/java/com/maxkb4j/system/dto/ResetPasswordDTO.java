@@ -17,4 +17,8 @@ public class ResetPasswordDTO {
     private String password;
     @NotBlank(message = "确认密码不能为空")
     private String rePassword;
+    /**
+     * 修改密码时验证旧口令，防止未授权修改
+     */
+    private String oldPassword;
 }

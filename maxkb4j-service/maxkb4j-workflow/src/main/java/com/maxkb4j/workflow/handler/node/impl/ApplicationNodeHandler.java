@@ -102,7 +102,10 @@ public class ApplicationNodeHandler extends StreamNodeHandler {
             public void onComplete() {}
 
             @Override
-            public void onError(Throwable e) {}
+            public void onError(Throwable e) {
+                // 记录子应用流错误，防止失败被静默吞掉
+                log.error("Sub-application chat stream error: {}", e.getMessage(), e);
+            }
         };
         return CompletableFuture.supplyAsync(() -> {
             ChatResponse chatResponse = chatService.chatMessage(nodeChatParams, nodeContext, appNodeCallback);

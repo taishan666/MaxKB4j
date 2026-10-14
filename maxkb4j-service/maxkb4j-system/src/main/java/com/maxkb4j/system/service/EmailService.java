@@ -14,8 +14,6 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
-import java.util.Objects;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -40,7 +38,17 @@ public class EmailService {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
         String content = springTemplateEngine.process(templateName, context);
-        helper.setFrom(new InternetAddress(Objects.requireNonNull(mailSender.getUsername()).substring(0, mailSender.getUsername().indexOf("@")) + "<" + mailSender.getUsername() + ">").toString());
+        String username = mailSender.getUsername();
+        if (username == null || !username.contains("@")) {
+            throw new IllegalArgumentException("Invalid sender email address: " + username);
+        }
+        String personal = username.substring(0, username.indexOf("@"));
+        try {
+            helper.setFrom(new InternetAddress(username, personal, "UTF-8").toString());
+        } catch (java.io.UnsupportedEncodingException e) {
+            // 编码不支持时降级为纯地址
+            helper.setFrom(username);
+        }
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(content, true); // true indicates HTML content

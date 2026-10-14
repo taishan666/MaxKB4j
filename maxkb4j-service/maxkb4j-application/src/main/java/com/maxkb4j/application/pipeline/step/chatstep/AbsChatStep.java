@@ -107,9 +107,9 @@ public abstract class AbsChatStep extends AbsStep {
     private void recordResult(PipelineManage manage, String answerText, List<ChatMessage> historyMessages) {
         historyMessages.add(new UserMessage(manage.chatParams.getMessage()));
         historyMessages.add(new AiMessage(answerText));
-        context.put("messageList", manage.formatHistoryMessages(historyMessages));
+        stepContext(manage).put("messageList", manage.formatHistoryMessages(historyMessages));
         manage.context.put("answer", answerText);
-        manage.context.put("reasoningContent", context.get("reasoningContent"));
+        manage.context.put("reasoningContent", stepContext(manage).get("reasoningContent"));
     }
 
     /**

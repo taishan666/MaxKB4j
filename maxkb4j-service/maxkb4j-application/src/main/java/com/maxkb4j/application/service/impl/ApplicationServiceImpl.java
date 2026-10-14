@@ -87,11 +87,12 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
             return true;
         }
         dataPermissionSupport.checkManagePermission(AuthTargetType.APPLICATION, idList);
-        boolean success = true;
+        // 逐个删除，每个 deleteByAppId 都在同一个事务中
+        // 通过注入自身的代理（this）调用，确保 @Transactional 生效
         for (String id : idList) {
-            success &= deleteByAppId(id);
+            this.deleteByAppId(id);
         }
-        return success;
+        return true;
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -18,10 +19,10 @@ import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.service.IApplicationChatRecordInternalService;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
+import com.maxkb4j.application.vo.ParagraphRecordVO;
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
-import com.maxkb4j.application.vo.ParagraphRecordVO;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.knowledge.dto.ParagraphDTO;
 import com.maxkb4j.knowledge.service.IParagraphService;
@@ -192,12 +193,10 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
         chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of(paragraphDTO.getId()));
         this.updateById(chatRecord);
-        ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
-        ApplicationChatEntity updateChatEntity = new ApplicationChatEntity();
-        updateChatEntity.setId(chatId);
-        int currentMarkSum = chatEntity != null && chatEntity.getMarkSum() != null ? chatEntity.getMarkSum() : 0;
-        updateChatEntity.setMarkSum(currentMarkSum + 1);
-        chatMapper.updateById(updateChatEntity);
+        // 使用 setSql 实现原子自增，避免并发丢更新
+        chatMapper.update(null, new LambdaUpdateWrapper<ApplicationChatEntity>()
+                .eq(ApplicationChatEntity::getId, chatId)
+                .setSql("mark_sum = COALESCE(mark_sum, 0) + 1"));
         return this.getById(chatRecordId);
     }
 
@@ -207,12 +206,10 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
         chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of());
         this.updateById(chatRecord);
-        ApplicationChatEntity chatEntity = chatMapper.selectById(chatId);
-        ApplicationChatEntity updateChatEntity = new ApplicationChatEntity();
-        updateChatEntity.setId(chatId);
-        int currentMarkSum2 = chatEntity != null && chatEntity.getMarkSum() != null ? chatEntity.getMarkSum() : 0;
-        updateChatEntity.setMarkSum(Math.max(currentMarkSum2 - 1, 0));
-        chatMapper.updateById(updateChatEntity);
+        // 使用 setSql 实现原子递减，避免并发丢更新
+        chatMapper.update(null, new LambdaUpdateWrapper<ApplicationChatEntity>()
+                .eq(ApplicationChatEntity::getId, chatId)
+                .setSql("mark_sum = GREATEST(COALESCE(mark_sum, 0) - 1, 0)"));
         return paragraphService.deleteById(knowledgeId, paragraphId);
     }
 

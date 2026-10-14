@@ -22,6 +22,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class McpToolUtil {
@@ -38,6 +40,21 @@ public class McpToolUtil {
      * 模型侧函数名上限（OpenAI 兼容约定为 64，且仅允许 [a-zA-Z0-9_-]）。
      */
     private static final int MAX_TOOL_NAME_LENGTH = 64;
+
+    /**
+     * 缓存空闲超过该时长的客户端在下次访问时关闭驱逐，避免服务器会话过期后残留死连接。
+     */
+    private static final long CLIENT_IDLE_CLOSE_MS = 10 * 60 * 1000L;
+
+    /**
+     * MCP 客户端复用缓存：key 为服务器配置指纹，value 为客户端与最近访问时间。
+     * 每次会话都新建客户端（网络握手 + 常驻线程）且从不关闭会导致连接与线程泄漏，
+     * 相同配置的客户端在空闲超时内跨会话复用。
+     */
+    private static final Map<String, CachedClient> CLIENT_CACHE = new ConcurrentHashMap<>();
+
+    private record CachedClient(McpClient client, AtomicLong lastAccess) {
+    }
 
     static {
         // 必须在首个 MCP 客户端使用 McpJson 反序列化之前应用
@@ -139,13 +156,59 @@ public class McpToolUtil {
         if (keyOpt.isPresent()) {
             String key = keyOpt.get();
             JSONObject serverConfig = mcpServers.getJSONObject(key);
-            return getMcpClient(key, serverConfig);
+            return getOrCreateClient(key, serverConfig);
         }
         return null;
     }
 
+    /**
+     * 获取（或创建并缓存）指定服务器配置的 MCP 客户端。
+     * 相同配置的客户端在空闲超时内复用；调用失败可通过 {@link #evict(McpClient)} 驱逐。
+     */
+    private static McpClient getOrCreateClient(String key, JSONObject serverConfig) {
+        evictIdleClients();
+        String fingerprint = key + "|" + serverConfig.toJSONString();
+        while (true) {
+            CachedClient cached = CLIENT_CACHE.get(fingerprint);
+            if (cached != null) {
+                cached.lastAccess().set(System.currentTimeMillis());
+                return cached.client();
+            }
+            McpClient created = buildClient(key, serverConfig);
+            CachedClient newcomer = new CachedClient(created, new AtomicLong(System.currentTimeMillis()));
+            CachedClient existing = CLIENT_CACHE.putIfAbsent(fingerprint, newcomer);
+            if (existing == null) {
+                return created;
+            }
+            // 并发下其他线程已创建相同配置的客户端，关闭本次多余实例
+            closeQuietly(created);
+            existing.lastAccess().set(System.currentTimeMillis());
+            return existing.client();
+        }
+    }
+
+    /**
+     * 驱逐调用失败的客户端，下次访问将重建连接，避免复用已失效的连接/会话。
+     */
+    public static void evict(McpClient client) {
+        CLIENT_CACHE.entrySet().removeIf(entry -> entry.getValue().client() == client);
+        closeQuietly(client);
+    }
+
+    private static void evictIdleClients() {
+        long now = System.currentTimeMillis();
+        CLIENT_CACHE.entrySet().removeIf(entry -> {
+            if (now - entry.getValue().lastAccess().get() > CLIENT_IDLE_CLOSE_MS) {
+                log.info("Closing idle MCP client for server [{}]", entry.getKey());
+                closeQuietly(entry.getValue().client());
+                return true;
+            }
+            return false;
+        });
+    }
+
     @SuppressWarnings("unchecked")
-    private static McpClient getMcpClient(String key, JSONObject serverConfig) {
+    private static McpClient buildClient(String key, JSONObject serverConfig) {
         String url = serverConfig.getString("url");
         String type = serverConfig.getString("type");
         Map<String, String> headers = new HashMap<>();
@@ -191,8 +254,8 @@ public class McpToolUtil {
                 .subscribeToPromptListChanges(false)
                 .subscribeToResourceListChanges(false);
         // 自动健康检查默认开启（30 秒一次），会为每个客户端常驻一个检查线程；客户端
-        // 用完即弃不会被关闭，服务器会话过期后检查线程会反复重连失败刷告警
-        // （"mcp server reconnection failed"），这里一并关闭。
+        // 会被缓存复用但不消费变更通知，服务器会话过期后检查线程会反复重连失败刷告警
+        // （"mcp server reconnection failed"），这里一并关闭，失效连接由调用方 evict 驱逐重建。
         builder.autoHealthCheck(false);
         try {
             return builder.build();
@@ -211,8 +274,8 @@ public class McpToolUtil {
     }
 
     /**
-     * 遍历 mcpServers 中的所有服务器逐个建连。单个服务器不可用（网络异常、
-     * 协议握手失败如 410 等）只记录告警并跳过，不影响其余服务器，
+     * 遍历 mcpServers 中的所有服务器逐个获取客户端（带缓存复用）。单个服务器不可用
+     * （网络异常、协议握手失败如 410 等）只记录告警并跳过，不影响其余服务器，
      * 避免一个失效的 MCP 配置拖垮整个对话。
      */
     private static void forEachServerClient(JSONObject mcpServers, ServerClientConsumer consumer) {
@@ -225,7 +288,7 @@ public class McpToolUtil {
                 continue;
             }
             try {
-                McpClient mcpClient = getMcpClient(key, serverConfig);
+                McpClient mcpClient = getOrCreateClient(key, serverConfig);
                 consumer.accept(key, mcpClient);
             } catch (Exception e) {
                 log.warn("MCP server [{}] connection failed, skip it: {}", key, rootMessage(e), e);
@@ -244,6 +307,13 @@ public class McpToolUtil {
     private static void closeQuietly(McpTransport transport) {
         try {
             transport.close();
+        } catch (Exception ignore) {
+        }
+    }
+
+    private static void closeQuietly(McpClient client) {
+        try {
+            client.close();
         } catch (Exception ignore) {
         }
     }

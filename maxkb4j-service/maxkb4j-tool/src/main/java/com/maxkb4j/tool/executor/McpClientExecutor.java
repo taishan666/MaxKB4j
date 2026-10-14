@@ -24,14 +24,15 @@ public class McpClientExecutor {
                 .name(toolName)
                 .arguments(params.toJSONString())
                 .build();
-
-        ToolExecutionResult toolExecutionResult = mcpClient.executeTool(toolExecutionRequest);
         try {
-            mcpClient.close();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            ToolExecutionResult toolExecutionResult = mcpClient.executeTool(toolExecutionRequest);
+            return toolExecutionResult.resultText();
+        } catch (RuntimeException e) {
+            // 客户端由 McpToolUtil 缓存复用，此处不能关闭；调用失败（如连接/会话过期）
+            // 时从缓存驱逐，下次调用重建连接
+            McpToolUtil.evict(mcpClient);
+            throw e;
         }
-        return toolExecutionResult.resultText();
     }
 
 }

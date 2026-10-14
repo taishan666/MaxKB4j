@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
     public R<String> handleNotLogin(NotLoginException e, HttpServletResponse response) {
         log.error("未登录异常: {}", e.getMessage());
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
-        return R.fail(500, e.getMessage());
+        return R.fail(401, "login.not.login");
     }
 
     @ExceptionHandler(SaJwtException.class)
@@ -69,7 +69,7 @@ public class GlobalExceptionHandler {
     public R<String> handleSaJwtException(SaJwtException e, HttpServletResponse response) {
         log.error("SaJwt 异常: {}", e.getMessage());
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
-        return R.fail(500, e.getMessage());
+        return R.fail(401, "auth.token.invalid");
     }
 
 
@@ -78,7 +78,7 @@ public class GlobalExceptionHandler {
     public R<String> handleException(NotPermissionException e, HttpServletResponse response) {
         log.error("无此权限异常: {}", e.getMessage(), e);
         response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 设置HTTP状态码为403
-        return R.fail(500, e.getMessage());
+        return R.fail(403, "auth.permission.denied");
     }
 
 
@@ -92,7 +92,7 @@ public class GlobalExceptionHandler {
     public R<String> handleNoResourceFoundException(NoResourceFoundException e, HttpServletResponse response) {
         log.warn("静态资源不存在: {}", e.getResourcePath());
         response.setStatus(HttpServletResponse.SC_NOT_FOUND);// 设置HTTP状态码为404
-        return R.fail(500, e.getMessage());
+        return R.fail(404, "resource.not.found");
     }
 
     @ExceptionHandler(UserIdentityException.class)
@@ -100,7 +100,7 @@ public class GlobalExceptionHandler {
     public R<String> handleException(UserIdentityException e, HttpServletResponse response) {
         response.setStatus(460); // 设置HTTP状态码为401
         log.error("用户身份鉴定异常: {}", e.getMessage(), e);
-        return R.fail(500, e.getMessage());
+        return R.fail(460, "auth.identity.failed");
     }
 
     @ExceptionHandler(AccessNumLimitException.class)
@@ -108,7 +108,7 @@ public class GlobalExceptionHandler {
     public R<String> handleException(AccessNumLimitException e, HttpServletResponse response) {
         response.setStatus(461); // 设置HTTP状态码为461
         log.error("用户对话次数超过限制异常: {}", e.getMessage(), e);
-        return R.fail(500, e.getMessage());
+        return R.fail(461, "chat.access.limit.exceeded");
     }
 
 
@@ -116,14 +116,15 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleException(BadPaddingException e) {
         log.error("RSA解密异常: {}", e.getMessage(), e);
-        return R.fail(500, e.getMessage());
+        return R.fail(400, "auth.decrypt.failed");
     }
 
     @ExceptionHandler(NullPointerException.class)
     @ResponseBody
     public R<String> handleException(NullPointerException e) {
-        log.error("空指针异常: {}", e.getMessage(), e);
-        return R.fail(500, e.getMessage());
+        log.error("空指针异常", e);
+        // 不泄露异常详情给客户端
+        return R.fail(500, "common.system.error");
     }
 
     /**
@@ -181,14 +182,14 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining("; "));
         log.warn("参数校验失败: {}", message);
-        return R.fail(500, message);
+        return R.fail(400, message);
     }
 
     @ExceptionHandler(ModelDisabledException.class)
     @ResponseBody
     public R<String> handleException(ModelDisabledException e) {
         log.warn("模型禁用异常: {}", e.getMessage());
-        return R.fail(500, e.getMessage());
+        return R.fail(503, "model.disabled");
     }
 
 
@@ -196,28 +197,30 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleException(ApiException e) {
         log.error("Api异常: {}", e.getMessage());
-        return R.fail(500, e.getMessage());
+        // ApiException 通常携带用户友好的错误码，直接返回
+        return R.fail(400, e.getMessage());
     }
 
     @ExceptionHandler(RateLimitException.class)
     @ResponseBody
     public R<String> handleException(RateLimitException e) {
         log.error("RateLimitException: {}", e.getMessage());
-        return R.fail(500, e.getMessage());
+        return R.fail(429, "rate.limit.exceeded");
     }
 
     @ExceptionHandler(LoginException.class)
     @ResponseBody
     public R<String> handleException(LoginException e) {
         log.error("登录异常: {}", e.getMessage());
-        return R.fail(500, e.getMessage());
+        // 返回通用错误码，避免泄露具体原因
+        return R.fail(401, "auth.login.failed");
     }
 
     @ExceptionHandler(AccessException.class)
     @ResponseBody
     public R<String> handleException(AccessException e) {
         log.error("禁止访问异常: {}", e.getMessage(), e);
-        return R.fail(500, e.getMessage());
+        return R.fail(403, "access.denied");
     }
 
 
@@ -228,27 +231,27 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleRateLimitExceeded(RateLimitExceededException e, HttpServletResponse response) {
         response.setStatus(429);
-        return R.fail(500, e.getMessage());
+        return R.fail(429, "rate.limit.exceeded");
     }
 
     @ExceptionHandler(AuthenticationException.class)
     @ResponseBody
     public R<String> handleException(AuthenticationException e) {
         log.error("模型接口token鉴权失败: {}", e.getMessage(), e);
-        return R.fail(500, e.getMessage());
+        return R.fail(401, "model.auth.failed");
     }
 
     @ExceptionHandler(InvalidRequestException.class)
     @ResponseBody
     public R<String> handleException(InvalidRequestException e) {
         log.error("模型接口请求失败: {}", e.getMessage(), e);
-        return R.fail(500, e.getMessage());
+        return R.fail(400, "model.request.invalid");
     }
 
     @ExceptionHandler(SecurityException.class)
     @ResponseBody
     public R<String> handleException(SecurityException e) {
-        return R.fail(500, e.getMessage());
+        return R.fail(403, "security.violation");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -256,21 +259,21 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public R<String> handleException(IllegalArgumentException e) {
         log.error("非法参数: {}", e.getMessage(), e);
-        return R.fail(500, e.getMessage());
+        return R.fail(400, "invalid.argument");
     }
 
     @ExceptionHandler(FileLimitExceededException.class)
     @ResponseBody
     public R<String> handleException(FileLimitExceededException e) {
         log.error("业务规则校验失败: {}", e.getMessage(), e);
-        return R.fail(500, e.getMessage());
+        return R.fail(413, "file.size.exceeded");
     }
 
     @ExceptionHandler(ModelNotFoundException.class)
     @ResponseBody
     public R<String> handleException(ModelNotFoundException e) {
         log.error("模型不存在异常", e);
-        return R.fail(500, I18nUtil.get("model.name.not.found"));
+        return R.fail(404, "model.name.not.found");
     }
 
 

@@ -1,6 +1,7 @@
 package com.maxkb4j.application.pipeline.step.resetproblemstep.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.application.pipeline.PipelineManage;
 import com.maxkb4j.application.pipeline.step.resetproblemstep.AbsResetProblemStep;
 import com.maxkb4j.core.assistant.CompressingQueryAssistant;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -24,7 +26,7 @@ public class ResetProblemStep extends AbsResetProblemStep {
     private final IModelProviderService modelFactory;
 
     @Override
-    protected String execute(String modelId, JSONObject modelParams, String question, List<ChatMessage> chatMemory) {
+    protected String execute(String modelId, JSONObject modelParams, String question, List<ChatMessage> chatMemory, PipelineManage manage) {
         long startTime = System.currentTimeMillis();
         ChatModel chatModel = modelFactory.buildChatModel(modelId, modelParams);
         CompressingQueryAssistant queryAssistant = AiServiceFactory.builder(CompressingQueryAssistant.class)
@@ -32,18 +34,20 @@ public class ResetProblemStep extends AbsResetProblemStep {
                 .build();
         Result<String> result = queryAssistant.transform(MessageUtils.format(chatMemory), question);
         String paddingProblem = result.content();
-        super.context.put("modelId", modelId);
-        super.context.put("problemText", question);
+        Map<String, Object> context = stepContext(manage);
+        context.put("modelId", modelId);
+        context.put("problemText", question);
         TokenUsage tokenUsage = result.tokenUsage();
-        super.context.put("messageTokens", tokenUsage.inputTokenCount());
-        super.context.put("answerTokens", tokenUsage.outputTokenCount());
-        super.context.put("paddingProblemText", paddingProblem);
+        context.put("messageTokens", tokenUsage.inputTokenCount());
+        context.put("answerTokens", tokenUsage.outputTokenCount());
+        context.put("paddingProblemText", paddingProblem);
         log.info("BaseResetProblemStep 耗时 {} ms", System.currentTimeMillis() - startTime);
         return paddingProblem;
     }
 
     @Override
-    public JSONObject getDetails() {
+    public JSONObject getDetails(PipelineManage manage) {
+        Map<String, Object> context = stepContext(manage);
         JSONObject details = new JSONObject(true);
         details.put("step_type", "problem_padding");
         details.put("problemText", context.get("problemText"));

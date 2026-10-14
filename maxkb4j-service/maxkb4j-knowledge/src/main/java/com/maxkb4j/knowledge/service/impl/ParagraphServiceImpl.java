@@ -111,15 +111,24 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     public boolean saveParagraphAndProblem(ParagraphDTO paragraph, List<String> problems) {
         this.save(BeanUtil.copy(paragraph, ParagraphEntity.class));
         if (!CollectionUtils.isEmpty(problems)) {
+            // 批量查询已存在的问题，避免 N+1
+            List<ProblemEntity> existingProblems = problemService.lambdaQuery()
+                    .eq(ProblemEntity::getKnowledgeId, paragraph.getKnowledgeId())
+                    .in(ProblemEntity::getContent, problems)
+                    .list();
+            Map<String, ProblemEntity> problemMap = existingProblems.stream()
+                    .collect(Collectors.toMap(ProblemEntity::getContent, p -> p, (a, b) -> a));
+
+            List<ProblemEntity> newProblems = new ArrayList<>();
             List<ProblemParagraphEntity> problemParagraphMappingEntities = new ArrayList<>();
-            for (String problem : problems) {
-                ProblemEntity problemEntity = problemService.lambdaQuery().eq(ProblemEntity::getContent, problem).one();
+            for (String problemContent : problems) {
+                ProblemEntity problemEntity = problemMap.get(problemContent);
                 if (problemEntity == null) {
                     problemEntity = ProblemEntity.createDefault();
                     problemEntity.setHitNum(0);
-                    problemEntity.setContent(problem);
+                    problemEntity.setContent(problemContent);
                     problemEntity.setKnowledgeId(paragraph.getKnowledgeId());
-                    problemService.save(problemEntity);
+                    newProblems.add(problemEntity);
                 }
                 ProblemParagraphEntity entity = new ProblemParagraphEntity();
                 entity.setKnowledgeId(paragraph.getKnowledgeId());
@@ -127,6 +136,10 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
                 entity.setParagraphId(paragraph.getId());
                 entity.setDocumentId(paragraph.getDocumentId());
                 problemParagraphMappingEntities.add(entity);
+            }
+            // 批量保存新问题
+            if (!newProblems.isEmpty()) {
+                problemService.saveBatch(newProblems);
             }
             problemParagraphService.saveBatch(problemParagraphMappingEntities);
         }

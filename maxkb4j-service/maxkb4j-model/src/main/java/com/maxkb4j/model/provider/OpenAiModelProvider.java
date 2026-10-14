@@ -127,7 +127,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiImageModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
-                .baseUrl(credential.getBaseUrl())
+                .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .size(getStringParam(params, ParamKey.SIZE))

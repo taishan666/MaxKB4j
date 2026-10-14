@@ -63,7 +63,11 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
         Result<String> result = assistant.route(options, chatMemory, queryStr);
 
         Collection<Integer> classificationIds = parse(result.content());
-        int classificationId = classificationIds.stream().findFirst().orElse(0);
+        Integer classificationId = classificationIds.stream().findFirst().orElse(null);
+        if (classificationId == null) {
+            log.warn("Intent classification returned no valid branch ID for query: {}", queryStr);
+            classificationId = -1; // 默认分支或标记为未分类
+        }
         String branchId = idToClassification.get(classificationId);
         String category = branchMap.get(branchId);
 

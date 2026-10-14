@@ -15,6 +15,7 @@ import com.maxkb4j.workflow.node.impl.HttpNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
@@ -23,6 +24,8 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 @Component
 @RequiredArgsConstructor
 public class HttpNodeHandler extends AbsNodeHandler {
+
+    private static final String MASK = "******";
 
     private final IToolExecuteService toolExecuteService;
 
@@ -35,15 +38,28 @@ public class HttpNodeHandler extends AbsNodeHandler {
         try (HttpResponse response = toolExecuteService.httpExecute(JSON.toJSONString(params), Map.of(), variables)) {
             int resStatus = response.getStatus();
             String resBody = response.body();
-            // 使用辅助方法写入详情
-            putDetails(node, Map.of(
-                    HttpField.URL, request.getUrl(),
-                    HttpField.METHOD, request.getMethod(),
-                    HttpField.HEADERS, request.getHeaders(),
-                    HttpField.REQUEST_BODY, request,
-                    HttpField.PARAMS, request.getParams(),
-                    HttpField.TIMEOUT, request.getTimeout()
-            ));
+            // 写入详情时隐藏敏感凭据，防止持久化泄露
+            Map<String, Object> safeDetails = new HashMap<>();
+            safeDetails.put(HttpField.URL, request.getUrl());
+            safeDetails.put(HttpField.METHOD, request.getMethod());
+            safeDetails.put(HttpField.HEADERS, request.getHeaders());
+            // 创建不含凭据的安全请求对象
+            ToolHttpRequest safeRequest = new ToolHttpRequest();
+            safeRequest.setUrl(request.getUrl());
+            safeRequest.setMethod(request.getMethod());
+            safeRequest.setBody(request.getBody());
+            safeRequest.setHeaders(request.getHeaders());
+            safeRequest.setParams(request.getParams());
+            safeRequest.setTimeout(request.getTimeout());
+            safeRequest.setAuthType(request.getAuthType());
+            // 凭据字段用掩码替换
+            safeRequest.setUsername(request.getUsername() != null ? MASK : null);
+            safeRequest.setPassword(request.getPassword() != null ? MASK : null);
+            safeRequest.setToken(request.getToken() != null ? MASK : null);
+            safeDetails.put(HttpField.REQUEST_BODY, safeRequest);
+            safeDetails.put(HttpField.PARAMS, request.getParams());
+            safeDetails.put(HttpField.TIMEOUT, request.getTimeout());
+            putDetails(node, safeDetails);
             return new NodeResult(Map.of(HttpField.STATUS, resStatus, HttpField.BODY, resBody));
         }
     }

@@ -48,8 +48,17 @@ public class MongoFileService implements IOssService {
     }
 
     public String uploadAndGetFileUrl(MultipartFile file) throws IOException {
-        String fileId = storeFile(file.getBytes(),file.getOriginalFilename(),file.getContentType());
+        // 使用流式存储，避免大文件全量加载到内存导致 OOM
+        String fileId = storeFile(file.getInputStream(), file.getOriginalFilename(), file.getContentType());
         return buildFileUrl(fileId);
+    }
+
+    /**
+     * 流式存储，避免大文件 OOM。
+     */
+    public String storeFile(InputStream inputStream, String fileName, String contentType) {
+        ObjectId objectId = gridFsTemplate.store(inputStream, fileName, contentType);
+        return objectId.toString();
     }
 
     public OssFile uploadFile(String fileName, byte[] fileBytes) {

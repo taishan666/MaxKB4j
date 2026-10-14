@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Slf4j
 public class DatabaseUtil {
@@ -59,12 +60,12 @@ public class DatabaseUtil {
     }
 
     public static String executeSqlQuery(String sqlQuery, DataSource dataSource) {
-        // 只允许 SELECT 查询
+        // 只允许 SELECT 查询，防止数据被修改
         if (!isSelect(sqlQuery)) {
-            // 可选：记录警告日志
-            return "";
+            log.warn("Blocked non-SELECT query attempt: {}", sqlQuery);
+            throw new IllegalArgumentException("Only SELECT queries are allowed");
         }
-        // 验证 SQL（如防止注入等）
+        // 验证 SQL（大小写不敏感）
         validate(sqlQuery);
         // 使用 try-with-resources 自动管理资源
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
@@ -72,13 +73,14 @@ public class DatabaseUtil {
             return execute(sqlQuery, statement);
         } catch (SQLException e) {
             log.error("Failed to execute SQL query", e);
+            throw new RuntimeException("SQL query execution failed", e);
         }
-        return "";
     }
 
     protected static void validate(String sqlQuery) {
-        if (!sqlQuery.startsWith("SELECT")) {
-            throw new IllegalArgumentException("SQL query must start");
+        // 大小写不敏感，防止 select/Select 等小写变体绕过
+        if (!sqlQuery.trim().toUpperCase().startsWith("SELECT")) {
+            throw new IllegalArgumentException("Only SELECT queries are allowed");
         }
     }
 
@@ -131,11 +133,22 @@ public class DatabaseUtil {
     }
 
     public static String cleanSql(String sqlQuery) {
+        int start = 0;
+        int end = sqlQuery.length();
         if (sqlQuery.contains("```sql")) {
-            return sqlQuery.substring(sqlQuery.indexOf("```sql") + 6, sqlQuery.lastIndexOf("```"));
-        } else {
-            return sqlQuery.contains("```") ? sqlQuery.substring(sqlQuery.indexOf("```") + 3, sqlQuery.lastIndexOf("```")) : sqlQuery;
+            start = sqlQuery.indexOf("```sql") + 6;
+            int closingIndex = sqlQuery.lastIndexOf("```");
+            if (closingIndex > start) {
+                end = closingIndex;
+            }
+        } else if (sqlQuery.contains("```")) {
+            start = sqlQuery.indexOf("```") + 3;
+            int closingIndex = sqlQuery.lastIndexOf("```");
+            if (closingIndex > start) {
+                end = closingIndex;
+            }
         }
+        return sqlQuery.substring(start, end).trim();
     }
 
     private static String generateCreateTableStatement(String tableName, DatabaseMetaData metaData) {
@@ -189,17 +202,62 @@ public class DatabaseUtil {
         return createTableStatement.toString();
     }
 
+    /**
+     * 主机名允许的字符：域名/IPv4/IPv6（方括号）与端口号冒号，
+     * 禁止空格、引号及 URL 参数分隔符（? & # / ; =），防止注入 JDBC 连接参数。
+     */
+    private static final Pattern SAFE_HOST_PATTERN = Pattern.compile("^[A-Za-z0-9.\\-]+(:\\d{1,5})?$|^\\[[0-9A-Fa-f:.]+\\](:\\d{1,5})?$");
+
+    /**
+     * 网络型数据库库名允许的字符（URL 路径段），禁止 ? & # / ; = % 等 URL 特殊字符。
+     */
+    private static final Pattern SAFE_DB_NAME_PATTERN = Pattern.compile("^[A-Za-z0-9_.$\\-]+$");
+
+    /**
+     * SQLite 使用文件路径作为数据库名，允许路径分隔符，但禁止 URL 特殊字符。
+     */
+    private static final Pattern SAFE_SQLITE_PATH_PATTERN = Pattern.compile("^[A-Za-z0-9_.$\\-/:\\\\ ]+$");
+
     private static String buildJdbcUrl(String databaseType, String host, int port, String databaseName) {
+        if (databaseType == null) {
+            throw new IllegalArgumentException("Database type must not be null");
+        }
+        if (host == null || !SAFE_HOST_PATTERN.matcher(host).matches()) {
+            throw new IllegalArgumentException("Invalid database host: " + host);
+        }
         return switch (databaseType.toLowerCase()) {
-            case "mysql" ->
-                    String.format("jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=UTC", host, port, databaseName);
-            case "postgresql" -> String.format("jdbc:postgresql://%s:%d/%s", host, port, databaseName);
-            case "oracle" -> String.format("jdbc:oracle:thin:@//%s:%d/%s", host, port, databaseName);
-            case "sqlserver" ->
-                    String.format("jdbc:sqlserver://%s:%d;databaseName=%s;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;", host, port, databaseName);
-            case "sqlite" -> String.format("jdbc:sqlite:%s", databaseName); // SQLite 使用文件路径作为数据库名
+            case "mysql" -> {
+                validateDbName(databaseName);
+                yield String.format("jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=UTC", host, port, databaseName);
+            }
+            case "postgresql" -> {
+                validateDbName(databaseName);
+                yield String.format("jdbc:postgresql://%s:%d/%s", host, port, databaseName);
+            }
+            case "oracle" -> {
+                validateDbName(databaseName);
+                yield String.format("jdbc:oracle:thin:@//%s:%d/%s", host, port, databaseName);
+            }
+            case "sqlserver" -> {
+                // SQL Server 的连接串用分号分隔参数，额外禁止分号由 SAFE_DB_NAME_PATTERN 覆盖
+                validateDbName(databaseName);
+                yield String.format("jdbc:sqlserver://%s:%d;databaseName=%s;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;", host, port, databaseName);
+            }
+            case "sqlite" -> {
+                // SQLite 使用文件路径作为数据库名
+                if (databaseName == null || !SAFE_SQLITE_PATH_PATTERN.matcher(databaseName).matches()) {
+                    throw new IllegalArgumentException("Invalid SQLite database path: " + databaseName);
+                }
+                yield String.format("jdbc:sqlite:%s", databaseName);
+            }
             default -> throw new IllegalArgumentException("Unsupported database type: " + databaseType);
         };
+    }
+
+    private static void validateDbName(String databaseName) {
+        if (databaseName == null || !SAFE_DB_NAME_PATTERN.matcher(databaseName).matches()) {
+            throw new IllegalArgumentException("Invalid database name: " + databaseName);
+        }
     }
 }
 

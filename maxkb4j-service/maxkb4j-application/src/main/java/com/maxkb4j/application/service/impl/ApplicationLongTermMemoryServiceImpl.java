@@ -125,15 +125,26 @@ public class ApplicationLongTermMemoryServiceImpl extends ServiceImpl<Applicatio
             }
             String content = chatModel.chat(userMessage);
             content = THINK_TAG_PATTERN.matcher(content).replaceAll("").trim();
+            // 使用 upsert 原子操作，避免并发覆盖
             if (Objects.isNull(longTermMemory)) {
+                // 先尝试插入新记录，若唯一键冲突则由另一个线程先插入了，直接更新
                 ApplicationLongTermMemoryEntity saveEntity = new ApplicationLongTermMemoryEntity();
                 saveEntity.setApplicationId(applicationId);
                 saveEntity.setMemory(content);
                 saveEntity.setChatUserId(chatUserId);
-                this.save(saveEntity);
+                if (!this.save(saveEntity)) {
+                    // 插入失败，说明已存在，更新
+                    this.lambdaUpdate()
+                            .eq(ApplicationLongTermMemoryEntity::getApplicationId, applicationId)
+                            .eq(ApplicationLongTermMemoryEntity::getChatUserId, chatUserId)
+                            .set(ApplicationLongTermMemoryEntity::getMemory, content)
+                            .update();
+                }
             } else {
-                longTermMemory.setMemory(content);
-                this.updateById(longTermMemory);
+                this.lambdaUpdate()
+                        .eq(ApplicationLongTermMemoryEntity::getId, longTermMemory.getId())
+                        .set(ApplicationLongTermMemoryEntity::getMemory, content)
+                        .update();
             }
         }
     }
