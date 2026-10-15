@@ -83,7 +83,7 @@ public class R<T> implements Serializable {
     }
 
     public static <T> R<T> fail(int code, String message) {
-        return new R<>(code, null, message);
+        return new R<>(code, null, I18nUtil.get(message));
     }
 
     public static <T> R<T> fail(IResultCode resultCode) {

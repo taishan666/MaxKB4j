@@ -205,7 +205,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleException(RateLimitException e) {
         log.error("RateLimitException: {}", e.getMessage());
-        return R.fail(429, "rate.limit.exceeded");
+        return R.fail(429, e.getMessage());
     }
 
     @ExceptionHandler(LoginException.class)
@@ -213,7 +213,7 @@ public class GlobalExceptionHandler {
     public R<String> handleException(LoginException e) {
         log.error("登录异常: {}", e.getMessage());
         // 返回通用错误码，避免泄露具体原因
-        return R.fail(401, "auth.login.failed");
+        return R.fail(401, e.getMessage());
     }
 
     @ExceptionHandler(AccessException.class)
