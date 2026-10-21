@@ -17,8 +17,13 @@
   <a href="https://spring.io/projects/spring-boot"><img src="https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen" alt="SpringBoot3"></a>
   <a href="https://github.com/langchain4j/langchain4j"><img src="https://img.shields.io/badge/LangChain4j-1.x-green" alt="LangChain4j"></a>
   <a href="https://gitee.com/taisan/MaxKB4j"><img src="https://gitee.com/taisan/MaxKB4j/badge/star.svg" alt="GiteeStars"></a>
-  <a href="https://gitee.com/taisan/MaxKB4j/members"><img src="https://gitee.com/taisan/MaxKB4j/badge/fork.svg" alt="GiteeForks"></a><br/>
+  <a href="https://gitee.com/taisan/MaxKB4j/members"><img src="https://gitee.com/taisan/MaxKB4j/badge/fork.svg" alt="GiteeForks"></a>
+  <a href="https://gitee.com/taisan/MaxKB4j/issues"><img src="https://img.shields.io/badge/Issues-Welcome-orange" alt="IssuesWelcome"></a><br/>
   [<a href="README_CN.md">中文（简体）</a>] | [<a href="README.md">English</a>]
+</p>
+
+<p align="center">
+  💬 Found a problem or have a suggestion? Feel free to open an <a href="https://gitee.com/taisan/MaxKB4j/issues">Issue</a>
 </p>
 
 <p align="center">
