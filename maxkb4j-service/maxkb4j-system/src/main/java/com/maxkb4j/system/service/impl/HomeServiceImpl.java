@@ -92,13 +92,20 @@ public class HomeServiceImpl implements IHomeService {
         boolean isAdmin = scope.isAdmin();
         List<String> targetIds = scope.getTargetIds();
         Map<String, Object> data = switch (type) {
-            case "application" -> homeMapper.applicationAggregation(isAdmin, targetIds);
-            case "knowledge" -> homeMapper.knowledgeAggregation(isAdmin, targetIds);
-            case "tool" -> homeMapper.toolAggregation(isAdmin, targetIds);
-            case "model" -> homeMapper.modelAggregation(isAdmin, targetIds);
+            case "application" -> firstRow(homeMapper.applicationAggregation(isAdmin, targetIds));
+            case "knowledge" -> firstRow(homeMapper.knowledgeAggregation(isAdmin, targetIds));
+            case "tool" -> firstRow(homeMapper.toolAggregation(isAdmin, targetIds));
+            case "model" -> firstRow(homeMapper.modelAggregation(isAdmin, targetIds));
             default -> Map.of();
         };
-        return data == null ? new JSONObject() : new JSONObject(data);
+        return new JSONObject(data);
+    }
+
+    /**
+     * 取单行聚合查询的首行结果，空结果返回空 Map。
+     */
+    private static Map<String, Object> firstRow(List<Map<String, Object>> rows) {
+        return rows == null || rows.isEmpty() ? Map.of() : rows.getFirst();
     }
 
     /* ==================== 监控（按天） ==================== */
