@@ -195,8 +195,8 @@ MaxKB4j/
 |:---------------------:|:------:|:-------------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------------------|
 |       ☕ Coffee        |  ¥10   | Direct WeChat line to the author + core community group + AI Agent starter course                                                          | Anyone who appreciates the project                       |
 |  📚 Learning Member   |  ¥99   | All Coffee benefits + free access to the [Knowledge Planet](https://wx.zsxq.com/group/28882525858841) + priority answers inside the planet | Developers who want to master RAG / workflow in practice |
-| 🏢 Enterprise Partner |  ¥799  | All Learning Member benefits + frontend source code (one-time) + deployment / post-sales support                                           | Teams going to production                                |
-| 👑 Strategic Partner  | ¥1399  | All Enterprise Partner benefits + 6-month frontend source upgrades + your logo on the sponsor wall                                         | Long-term partners growing together                      |
+| 🏢 Enterprise Partner |  ¥798  | All Learning Member benefits + frontend source code (one-time) + deployment / post-sales support                                           | Teams going to production                                |
+| 👑 Strategic Partner  | ¥1398  | All Enterprise Partner benefits + 6-month frontend source upgrades + your logo on the sponsor wall                                         | Long-term partners growing together                      |
 
 > 💡 **Every tier includes the author's direct WeChat line + the core community group** — unlocked from the ¥10 Coffee
 > tier.
