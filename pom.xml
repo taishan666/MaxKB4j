@@ -23,7 +23,7 @@
         <maven.flatten.version>1.3.0</maven.flatten.version>
         <langchain4j.version>1.20.0</langchain4j.version>
         <langchain4j.beta.version>1.20.0-beta30</langchain4j.beta.version>
-        <p6spy.version>1.10.0</p6spy.version>
+        <p6spy.version>2.0.1</p6spy.version>
         <knife4j.version>4.5.0</knife4j.version>
         <springdoc-openapi.version>2.8.6</springdoc-openapi.version>
         <sa-token.version>1.39.0</sa-token.version>
