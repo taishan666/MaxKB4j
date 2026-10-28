@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 🌐 Live Demo
+    url: http://43.143.235.194:8080/
+    about: Try MaxKB4j online (demo / demo@123456) before opening an issue.
+  - name: 💬 Gitee Issues（中文社区）
+    url: https://gitee.com/taisan/MaxKB4j/issues
+    about: 主要 Issue 渠道 / Primary issue tracker (Chinese community).
+  - name: 📚 Docs（文档）
+    url: https://gitee.com/taisan/MaxKB4j/tree/master/docs
+    about: 白皮书 / 回归测试报告 / 编码约定等文档。
