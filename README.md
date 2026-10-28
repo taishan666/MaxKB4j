@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  🚀 <a href="#quick-start">Quick Start</a> · 🌐 <a href="http://43.143.235.194:8080/">Live Demo</a> (demo / demo@123456) · 📄 <a href="docs/MaxKB4j-商业价值白皮书.md">Whitepaper</a> · 🧪 <a href="docs/MaxKB4j-回归测试报告.md">Regression Report</a> · 🗒️ <a href="CHANGELOG.md">Changelog</a> · 💖 <a href="#support--sponsorship">Support Us</a>
+  🚀 <a href="#quick-start">Quick Start</a> · 🌐 <a href="http://43.143.235.194:8080/">Live Demo</a> (demo / demo@123456) · 🗒️ <a href="CHANGELOG.md">Changelog</a> · 📄 <a href="#documentation">Docs</a> · 🤝 <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
 ---
@@ -60,19 +60,20 @@ Enterprises face four common challenges when adopting LLM applications, and MaxK
 
 ## 📊 How MaxKB4j Compares
 
-| Capability                           |         **MaxKB4j**         |    Dify     | MaxKB  |  FastGPT   | RAGFlow |
-|:-------------------------------------|:---------------------------:|:-----------:|:------:|:----------:|:-------:|
-| Backend stack                        | **Java 21 + Spring Boot 3** | Python + TS | Python | TypeScript | Python  |
-| Zero language-switch for Java teams  |          ✅ Native           |     ⚠️      |   ⚠️   |     ⚠️     |   ⚠️    |
-| Virtual-Thread high concurrency      |              ✅              |     ⚠️      |   ⚠️   |     ⚠️     |   ⚠️    |
-| Visual workflow + Multi-Agent        |              ✅              |      ✅      |   ⚠️   |     ⚠️     |   ⚠️    |
-| Triggers (Cron / Webhook)            |              ✅              |      ✅      |   ⚠️   |     ⚠️     |   ⚠️    |
-| Multimodal (ASR / TTS / OCR)         |              ✅              |     ⚠️      |   ✅    |     ⚠️     |    ✅    |
-| Text + image fusion embedding        |              ✅              |     ⚠️      |   ⚠️   |     ⚠️     |    ⚠️    |
-| MCP protocol / OpenAI-compatible API |              ✅              |      ✅      |   ✅    |     ✅      |    ✅    |
+| Capability                              |         **MaxKB4j**         |    Dify     | MaxKB  |  FastGPT   | RAGFlow |
+|:----------------------------------------|:---------------------------:|:-----------:|:------:|:----------:|:-------:|
+| Backend stack                           | **Java 21 + Spring Boot 3** | Python + TS | Python | TypeScript | Python  |
+| Visual workflow                         |              ✅              |      ✅      |   ✅    |     ✅      |    ✅    |
+| Multi-Agent collaboration               |              ✅              |      ✅      |   —    |     —      |    —    |
+| Triggers (Cron / Webhook)               |              ✅              |      ✅      |   —    |     —      |    —    |
+| Full built-in multimodal (ASR/TTS/OCR)  |              ✅              |      —      |   ✅    |     —      |    ✅    |
+| Text + image fusion embedding           |              ✅              |      —      |   —    |     —      |    —    |
+| MCP protocol / OpenAI-compatible API    |              ✅              |      ✅      |   ✅    |     ✅      |    ✅    |
+| Virtual-Thread concurrency              |              ✅              |      —      |   —    |     —      |    —    |
 
-> Note: this table is a capability-orientation comparison for selection reference. Evaluate with your own scenarios via
-> the live demo below.
+> ✅ = supported · — = not supported / requires combining other solutions. Compiled from each project's public docs
+> (as of 2026-10); features evolve quickly, so verify against the official docs of each project and evaluate with
+> your own scenarios via the live demo.
 
 ## 🚀 Quick Start
 
@@ -122,17 +123,13 @@ mvn clean package -DskipTests
 java -jar maxkb4j-start/target/maxkb4j-start.jar
 ```
 
-Profiles: `maxkb4j-start/src/main/resources/application-{dev,prod,test}.yml`, switch with
+Profiles: `maxkb4j-start/src/main/resources/application-{dev,prod}.yml`, switch with
 `--spring.profiles.active=dev`.
 
 ### Deploy to cloud platforms
 
 Supports one-click deployment to [Sealos](https://blog.csdn.net/weixin_40986713/article/details/156026021) (overseas
 servers, no proxy needed, auto-scaling).
-
-> 🎉 **Deployed successfully?**
-> If MaxKB4j saved your team development time, consider [buying the author a coffee ☕](#support--sponsorship) — a coffee
-> unlocks the author's direct WeChat line and the core community group, where deployment questions get answered fast.
 
 ## 🌐 Live Demo
 
@@ -148,7 +145,7 @@ servers, no proxy needed, auto-scaling).
 | Backend        | Java 21, Spring Boot 3, Virtual Threads, Sa-Token       |
 | AI framework   | LangChain4j 1.x, Docling document parsing, Volcengine Ark SDK |
 | Storage        | PostgreSQL 15 + pgvector, MongoDB 6.0+, Caffeine cache  |
-| Frontend       | Element Plus,Vue 3, Node.js v20.16.0                    |
+| Frontend       | Element Plus, Vue 3, Node.js v20.16.0                    |
 | Script sandbox | groovy-sandbox                                          |
 
 ```
@@ -163,108 +160,49 @@ MaxKB4j/
 > Dependency direction: `start` → `service` → `service-api` → `core` → `common`. Public contracts live in `-api`
 > modules; implementations live in `service`.
 
-## 📄 Documentation & Resources
+## 📄 Documentation
 
-- 📄 [Business Value Whitepaper](docs/MaxKB4j-商业价值白皮书.md) — value and selection analysis for enterprise decision
-  makers
-- 🧪 [Regression Test Report](docs/MaxKB4j-回归测试报告.md) — regression verification results of core features
-- 📐 [Coding Conventions](docs/编码约定.md)
-- 🗒️ [Changelog](CHANGELOG.md) — latest release: v2.9.0 (2026-06-17)
+> The documents below are written in Chinese (中文). English translations are on the roadmap — contributions welcome.
+
+- 🗒️ [Changelog](CHANGELOG.md) — latest release: **v2.10.6** (2026-10-09)
+- 📄 [Business Value Whitepaper](docs/MaxKB4j-商业价值白皮书.md)（中文）— value and selection analysis for enterprise decision makers
+- 🧪 [Regression Test Report](docs/MaxKB4j-回归测试报告.md)（中文）— regression verification results of core features
+- 📐 [Coding Conventions](docs/编码约定.md)（中文）
 
 ## 🤝 Contributing
 
-| Item                | Details                                                                                                   |
-|:--------------------|:----------------------------------------------------------------------------------------------------------|
-| Feedback & requests | Report bugs, suggestions, or feature requests via [Gitee Issues](https://gitee.com/taisan/MaxKB4j/issues) |
-| Contribution flow   | Fork → create a branch → push to the DEV branch → open a Pull Request                                     |
-| Coding standards    | Follow Alibaba Java coding conventions; include unit tests and update docs                                |
-
-## 💖 Support & Sponsorship
-
-> **MaxKB4j has no commercial backing and no funding** — it is built line by line by an independent developer in his
-> spare time.
-> Every contribution goes directly to real costs:
->
-> - 🖥 **Cloud servers for the live demo** — running 24/7, free for everyone to try
-> - 🤖 **Model token consumption** — every regression test costs real money
-> - 🧪 **Bug fixes & new feature development** — caffeine for late-night coding
->
-> Usage is reported regularly in the community group, fully transparent.
->
-> ⚠️ The author's time is limited: **direct WeChat access and the core community group are reserved for sponsors** (from
-> ¥10) — this protects both the author's focus and the signal quality of the group.
-
-### Sponsorship Tiers
-
-|         Tier          | Amount | Benefits                                                                                                                                   | Best for                                                 |
-|:---------------------:|:------:|:-------------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------------------|
-|       ☕ Coffee        |  ¥10   | Direct WeChat line to the author + core community group + AI Agent starter course                                                          | Anyone who appreciates the project                       |
-|  📚 Learning Member   |  ¥100   | All Coffee benefits + free access to the [Knowledge Planet](https://wx.zsxq.com/group/28882525858841) + priority answers inside the planet | Developers who want to master RAG / workflow in practice |
-| 🏢 Enterprise Partner |  ¥798  | All Learning Member benefits + frontend source code (one-time) + deployment / post-sales support                                           | Teams going to production                                |
-| 👑 Strategic Partner  | ¥1398  | All Enterprise Partner benefits + 6-month frontend source upgrades + your logo on the sponsor wall                                         | Long-term partners growing together                      |
-
-> 💡 **Every tier includes the author's direct WeChat line + the core community group** — unlocked from the ¥10 Coffee
-> tier.
-
-### How to Sponsor (3 steps)
-
-<table>
-  <tr>
-    <th align="center">Step 1 · Add the author on WeChat</th>
-    <th align="center">Step 2 · Pay via Alipay</th>
-    <th align="center">Step 2 · Pay via WeChat</th>
-  </tr>
-  <tr>
-    <td align="center"><img src="image/wx.jpg" width="200" alt="Author WeChat QR"/></td>
-    <td align="center"><img src="image/zfb_skm.png" width="200" alt="Alipay QR"/></td>
-    <td align="center"><img src="image/wx_zsm.png" width="200" alt="WeChat QR"/></td>
-  </tr>
-  <tr>
-    <td align="center">Note "MaxKB4j"</td>
-    <td align="center" colspan="2">Step 3 · Send the payment screenshot to the author (with your nickname) — benefits activate immediately</td>
-  </tr>
-</table>
-
-### 🏅 Sponsor Wall
-
-> 🎯 Join us — your enterprise logo / nickname will be showcased here by sponsorship order, with ongoing community
-> exposure.
-
-## 🏢 Enterprise Services
-
-Need **private deployment, custom development, team training, or SLA-backed support**? Custom plans and quotes are
-available:
-
-- Private / intranet deployment
-- Scenario-specific development and system integration
-- Team training and knowledge transfer
-- Technical support and SLA services
-
-Contact the author on WeChat (`vxhqqh`) for a tailored proposal and quote.
-
-## ✍️ A Note from the Author
-
-Hi, I'm **TARZAN (泰山)**, the author of MaxKB4j.
-
-This project started from a simple belief: **the Java world deserves a native, production-grade AI application platform
-**. With no company and no funding behind it, all the code, docs, tests, and deployment scripts were written in my
-evenings and weekends — and I personally answer questions in the community group whenever I can.
-
-If this project helps you, here are two ways to support it:
-
-- ⭐ **Give it a Star** — 10 seconds of your time helps more Java developers discover it
-- 💖 **[Buy me a coffee](#support--sponsorship)** (from ¥10) — unlocks the author's direct WeChat line and the core
-  community group; your sponsorship becomes servers, tokens, and caffeine that keep this project moving forward
-
-Open source is hard; every bit of kindness counts. 🤝
+Issues and pull requests are welcome on both [Gitee](https://gitee.com/taisan/MaxKB4j/issues) (primary) and
+[GitHub](https://github.com/taishan666/MaxKB4j/issues). See [CONTRIBUTING.md](CONTRIBUTING.md) for the development
+setup, branch model and coding standards, and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community norms.
 
 ## 📜 License
 
 Copyright © 2025–2035 洛阳泰山 TARZAN. All rights reserved.
 
-This project is licensed under the [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) (“License”). You may not use
-the files of this project except in compliance with the License. Software distributed under the License is distributed
-on an AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+MaxKB4j adopts an **open-core** licensing model:
+
+- **Backend (this repository)** — licensed under the [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html). You may
+  use, study, modify and redistribute it under the license terms.
+- **Web console** — distributed as prebuilt assets bundled in the official Docker image and source tree. Its source
+  code is not part of this repository and is licensed separately (available via the
+  [commercial tiers](#-sponsorship)); see the “支持与赞助” section of the [Chinese README](README_CN.md) for details.
+
+Software distributed under the License is distributed on an AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+either express or implied.
+
+## 💖 Sponsorship
+
+MaxKB4j is built by an independent developer (TARZAN) in his spare time — no company, no funding. The live-demo
+server and the model tokens burned by every regression test are paid out of pocket.
+
+If the project helps you:
+
+- ⭐ **Star this repo** — 10 seconds of your time helps more Java developers discover it
+- 💖 **Sponsor** (from ¥10, WeChat / Alipay) — unlocks the author's direct contact and the core community group;
+  tiers and payment details are in the “支持与赞助” section of the [Chinese README](README_CN.md)
+
+Commercial services (private deployment, custom development, team training, SLA support) are available — contact the
+author on WeChat (`vxhqqh`).
 
 ---
 
