@@ -28,6 +28,7 @@ hs_err_pid*
 
 /.claude
 /.idea
+/.zcode
 /ui/src/assets/
 /ui/
 
