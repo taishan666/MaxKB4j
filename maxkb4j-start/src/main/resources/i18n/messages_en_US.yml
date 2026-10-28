@@ -107,6 +107,10 @@ chat:
       or:
         disabled: Token is invalid or disabled
 
+rate:
+  limit:
+    exceeded: Too many requests, please retry later
+
 tool:
   not:
     found: Tool not found

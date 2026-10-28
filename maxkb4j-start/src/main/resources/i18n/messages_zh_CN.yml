@@ -107,6 +107,10 @@ chat:
       or:
         disabled: token不合法或被禁用
 
+rate:
+  limit:
+    exceeded: 请求过于频繁，请稍后再试
+
 tool:
   not:
     found: 未找到工具

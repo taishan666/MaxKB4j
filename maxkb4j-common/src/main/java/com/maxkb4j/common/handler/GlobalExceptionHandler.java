@@ -205,7 +205,8 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public R<String> handleException(RateLimitException e) {
         log.error("RateLimitException: {}", e.getMessage());
-        return R.fail(429, e.getMessage());
+        // 不向客户端透传模型服务商的原始错误信息，统一走 i18n 键
+        return R.fail(429, I18nUtil.get("rate.limit.exceeded"));
     }
 
     @ExceptionHandler(LoginException.class)
