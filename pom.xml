@@ -40,7 +40,7 @@
         <pgvector.version>0.1.6</pgvector.version>
         <openai-java.version>4.9.0</openai-java.version>
         <flexmark.version>0.64.8</flexmark.version>
-        <tika.version>3.2.3</tika.version>
+        <tika.version>4.1.0</tika.version>
         <groovy.version>4.0.26</groovy.version>
         <groovy.sandbox.version>4.3.2</groovy.sandbox.version>
         <exp4j.version>0.4.8</exp4j.version>
