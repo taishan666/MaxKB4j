@@ -24,12 +24,11 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.Locale;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -60,9 +59,32 @@ public class HomeServiceImpl implements IHomeService {
      * 用户 Token 数排行 Excel 文件名（同时用作 sheet 名，长度不超过 31）。
      */
     private static final String USER_TOKENS_FILE_NAME = "用户Token数排行";
+    /**
+     * Excel 下载响应的 Content-Type。
+     */
+    private static final String EXCEL_CONTENT_TYPE = "application/vnd.ms-excel";
+    /**
+     * Excel 下载文件名后缀。
+     */
+    private static final String EXCEL_FILE_SUFFIX = ".xlsx";
+    /**
+     * asker JSONB 中的用户名字段，与 {@code HomeMapper.xml} 中 {@code asker ->> 'username'} 对应。
+     */
+    private static final String ASKER_USERNAME_FIELD = "username";
+    /**
+     * 用户名缺失（未登录提问）时的展示占位符。
+     */
+    private static final String DEFAULT_USERNAME = "-";
+    /**
+     * 百分比保留一位小数，零值占位由同一格式推导，保证与格式化结果一致。
+     */
+    private static final String RATIO_PATTERN = "%.1f%%";
+    /**
+     * 均值保留一位小数，零值占位由同一格式推导，保证与格式化结果一致。
+     */
+    private static final String AVG_PATTERN = "%.1f";
     private final HomeMapper homeMapper;
     private final DataPermissionSupport dataPermissionSupport;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     /* ==================== 资源数量聚合 ==================== */
 
@@ -91,11 +113,12 @@ public class HomeServiceImpl implements IHomeService {
         DataPermissionScope scope = dataPermissionSupport.resolve(authTargetType);
         boolean isAdmin = scope.isAdmin();
         List<String> targetIds = scope.getTargetIds();
-        Map<String, Object> data = switch (type) {
-            case "application" -> firstRow(homeMapper.applicationAggregation(isAdmin, targetIds));
-            case "knowledge" -> firstRow(homeMapper.knowledgeAggregation(isAdmin, targetIds));
-            case "tool" -> firstRow(homeMapper.toolAggregation(isAdmin, targetIds));
-            case "model" -> firstRow(homeMapper.modelAggregation(isAdmin, targetIds));
+        // authTargetType 与合法 type 一一对应，此处复用它分发；default 仅为防御
+        Map<String, Object> data = switch (authTargetType) {
+            case AuthTargetType.APPLICATION -> firstRow(homeMapper.applicationAggregation(isAdmin, targetIds));
+            case AuthTargetType.KNOWLEDGE -> firstRow(homeMapper.knowledgeAggregation(isAdmin, targetIds));
+            case AuthTargetType.TOOL -> firstRow(homeMapper.toolAggregation(isAdmin, targetIds));
+            case AuthTargetType.MODEL -> firstRow(homeMapper.modelAggregation(isAdmin, targetIds));
             default -> Map.of();
         };
         return new JSONObject(data);
@@ -126,7 +149,7 @@ public class HomeServiceImpl implements IHomeService {
         LocalDate startDate = DateTimeUtil.parseDate(query.getStartTime());
         LocalDate endDate = DateTimeUtil.parseDate(query.getEndTime());
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            String day = date.format(formatter);
+            String day = date.format(DateTimeUtil.DATE_FORMAT);
             DailyStatDTO dto = getDailyStat(dailyStats, day);
             dto.setCustomerAddedCount(getCustomerAddedCount(dailyNewCustomers, day));
             result.add(dto);
@@ -209,10 +232,7 @@ public class HomeServiceImpl implements IHomeService {
         dataPermissionSupport.fill(query, AuthTargetType.APPLICATION);
         List<AgentStatDTO> records = homeMapper.tokensRankingExport(query);
         int tokensTotal = tokensCount(query);
-        response.setContentType("application/vnd.ms-excel");
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String encodedFileName = URLEncoder.encode(TOKENS_FILE_NAME, StandardCharsets.UTF_8);
-        response.setHeader("Content-disposition", "attachment;filename=" + encodedFileName + ".xlsx");
+        prepareExcelResponse(response, TOKENS_FILE_NAME);
 
         List<TokensRankingExcel> rows = new ArrayList<>(records.size());
         int rank = 1;
@@ -251,10 +271,7 @@ public class HomeServiceImpl implements IHomeService {
         int tokensTotal = tokensCount(query);
         int chatRecordTotal = chatRecordCount(query);
 
-        response.setContentType("application/vnd.ms-excel");
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String encodedFileName = URLEncoder.encode(FILE_NAME, StandardCharsets.UTF_8);
-        response.setHeader("Content-disposition", "attachment;filename=" + encodedFileName + ".xlsx");
+        prepareExcelResponse(response, FILE_NAME);
 
         List<QuestionRankingExcel> rows = new ArrayList<>(records.size());
         int rank = 1;
@@ -274,14 +291,24 @@ public class HomeServiceImpl implements IHomeService {
     }
 
     /**
+     * 统一设置 Excel 下载响应头：Content-Type、响应编码与 URL 编码后的附件文件名。
+     */
+    private static void prepareExcelResponse(HttpServletResponse response, String fileName) {
+        response.setContentType(EXCEL_CONTENT_TYPE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+        response.setHeader("Content-disposition", "attachment;filename=" + encodedFileName + EXCEL_FILE_SUFFIX);
+    }
+
+    /**
      * 单个应用的指标值占该检索条件下对应总数的百分比，保留一位小数。
      */
     private String formatRatio(Integer value, int total) {
         if (value == null || value == 0 || total <= 0) {
-            return "0.0%";
+            return String.format(Locale.ROOT, RATIO_PATTERN, 0.0);
         }
         double ratio = value * 100.0 / total;
-        return String.format(Locale.ROOT, "%.1f%%", ratio);
+        return String.format(Locale.ROOT, RATIO_PATTERN, ratio);
     }
 
     /**
@@ -289,10 +316,10 @@ public class HomeServiceImpl implements IHomeService {
      */
     private String formatAvg(Integer numerator, Integer denominator) {
         if (numerator == null || denominator == null || denominator == 0) {
-            return "0.0";
+            return String.format(Locale.ROOT, AVG_PATTERN, 0.0);
         }
         double avg = numerator * 1.0 / denominator;
-        return String.format(Locale.ROOT, "%.1f", avg);
+        return String.format(Locale.ROOT, AVG_PATTERN, avg);
     }
 
     /**
@@ -313,10 +340,7 @@ public class HomeServiceImpl implements IHomeService {
         List<ChatUserStatDTO> records = homeMapper.userTokensRankingExport(query);
         int tokensTotal = tokensCount(query);
 
-        response.setContentType("application/vnd.ms-excel");
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        String encodedFileName = URLEncoder.encode(USER_TOKENS_FILE_NAME, StandardCharsets.UTF_8);
-        response.setHeader("Content-disposition", "attachment;filename=" + encodedFileName + ".xlsx");
+        prepareExcelResponse(response, USER_TOKENS_FILE_NAME);
 
         List<UserTokensRankingExcel> rows = new ArrayList<>(records.size());
         int rank = 1;
@@ -324,8 +348,8 @@ public class HomeServiceImpl implements IHomeService {
             UserTokensRankingExcel row = new UserTokensRankingExcel();
             row.setRank(rank++);
             JSONObject asker = dto.getAsker();
-            String username = asker == null ? null : asker.getString("username");
-            row.setUsername(username == null || username.isEmpty() ? "-" : username);
+            String username = asker == null ? null : asker.getString(ASKER_USERNAME_FIELD);
+            row.setUsername(username == null || username.isEmpty() ? DEFAULT_USERNAME : username);
             row.setTotalTokens(dto.getTotalTokens());
             row.setTokenRatio(formatRatio(dto.getTotalTokens(), tokensTotal));
             row.setChatRecordCount(dto.getChatRecordCount());

@@ -16,7 +16,7 @@ import java.io.IOException;
 /**
  * 前端 SPA 路由转发过滤器。
  *
- * <p>项目内置两套前端应用（见 src/main/resources/static）：</p>
+ * <p>项目内置两套前端应用（构建产物位于 maxkb4j-web 模块，经 classpath:/static/ 加载）：</p>
  * <ul>
  *     <li>{@code /admin}：管理后台，Vue Router 前缀为 /admin，入口 /admin/index.html</li>
  *     <li>{@code /chat}：对话应用，Vue Router 前缀为 /chat，入口 /chat/index.html，含分享页 /chat/share/**</li>

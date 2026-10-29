@@ -58,6 +58,12 @@
             <artifactId>maxkb4j-trigger</artifactId>
             <version>${revision}</version>
         </dependency>
+        <!-- 前端构建产物（admin/chat 静态资源），由 classpath:/static/ 随应用提供 -->
+        <dependency>
+            <groupId>com.tarzan</groupId>
+            <artifactId>maxkb4j-web</artifactId>
+            <version>${revision}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>

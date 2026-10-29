@@ -67,6 +67,7 @@
         <module>maxkb4j-service</module>
         <module>maxkb4j-service-api</module>
         <module>maxkb4j-core</module>
+        <module>maxkb4j-web</module>
         <module>maxkb4j-start</module>
     </modules>
     <dependencyManagement>
