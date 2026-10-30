@@ -112,6 +112,8 @@
     <select id="modelAggregation" resultType="java.util.LinkedHashMap">
         SELECT COUNT(*) AS total,
         COUNT(*) FILTER (WHERE model_type = 'EMBEDDING') AS embedding_count,
+        COUNT(*) FILTER (WHERE model_type = 'RERANKER') AS reranker_count,
+        COUNT(*) FILTER (WHERE model_type = 'TTI') AS tti_count,
         COUNT(*) FILTER (WHERE model_type = 'LLM') AS llm_count
         FROM model
         <where>
