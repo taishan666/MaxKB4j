@@ -113,7 +113,6 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
             return createAppFromTemplate(downloadUrl, application);
         }
         // 非模板方式创建
-        application.setIcon("./favicon.ico");
         application.setUserId(userContext.getUserId());
         application.setTtsModelParamsSetting(new JSONObject());
         application.setFileUploadSetting(new JSONObject());
@@ -165,6 +164,9 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         if (application.getId() == null) {
             if (StringUtils.isBlank(application.getFolderId())) {
                 application.setFolderId(ToolConstants.Defaults.DEFAULT_FOLDER_ID);
+            }
+            if (StringUtils.isBlank(application.getIcon())) {
+                application.setIcon("./favicon.ico");
             }
             this.save(application);
             ApplicationAccessTokenEntity accessToken = ApplicationAccessTokenEntity.createDefault();
