@@ -89,6 +89,7 @@
         COUNT(*) FILTER (WHERE tool_type = 'DATA_SOURCE') AS data_source_count,
         COUNT(*) FILTER (WHERE tool_type = 'MCP') AS mcp_count,
         COUNT(*) FILTER (WHERE tool_type = 'SKILL') AS skill_count,
+        COUNT(*) FILTER (WHERE tool_type = 'HTTP') AS http_count,
         COUNT(*) FILTER (WHERE tool_type = 'WORKFLOW') AS workflow_count
         FROM tool
         <where>
