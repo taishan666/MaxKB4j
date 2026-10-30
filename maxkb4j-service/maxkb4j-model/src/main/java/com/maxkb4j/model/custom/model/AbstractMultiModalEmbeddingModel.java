@@ -52,7 +52,15 @@ public abstract class AbstractMultiModalEmbeddingModel extends DimensionAwareEmb
     @Override
     public EmbeddingResponse doEmbed(EmbeddingRequest request) {
         if (!isMultimodal(modelName)) {
-            return textEmbeddingModel().doEmbed(request);
+            // 直调 doEmbed 绕过了 EmbeddingModel.embed() 的默认参数合并，而委托模型
+            // （如 OpenAiEmbeddingModel）只从 EmbeddingRequestParameters 读取 model/dimensions，
+            // 不回退到构造时传入的字段；不合并默认参数会导致请求体缺失 model 字段
+            EmbeddingRequest textRequest = EmbeddingRequest.builder()
+                    .inputs(request.inputs())
+                    .parameters(textEmbeddingModel().defaultRequestParameters()
+                            .overrideWith(request.parameters()))
+                    .build();
+            return textEmbeddingModel().doEmbed(textRequest);
         }
         List<Embedding> embeddings = new ArrayList<>();
         int tokenCount = 0;
