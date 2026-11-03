@@ -30,7 +30,6 @@ public class ChatParams {
     @NotBlank(message = "用户问题不能为空")
     private String message;
     @Schema(description = "对话id")
-    @NotBlank(message = "对话id不能为空")
     private String chatId;
     @Schema(description = "对话记录id")
     private String chatRecordId;
