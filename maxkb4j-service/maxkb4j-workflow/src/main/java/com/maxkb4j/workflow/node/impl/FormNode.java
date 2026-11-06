@@ -33,9 +33,6 @@ public class FormNode extends AbsNode {
             context.putAll(formData);
         }
         context.put(FormField.FORM_DATA, formData);
-      /*  context.put(FormField.IS_SUBMIT, detail.get(FormField.IS_SUBMIT));
-        context.put(FormField.FORM_FIELD_LIST, detail.get(FormField.FORM_FIELD_LIST));
-        context.put(FormField.FORM_CONTENT_FORMAT, detail.get(FormField.FORM_CONTENT_FORMAT));*/
     }
 
     @Override

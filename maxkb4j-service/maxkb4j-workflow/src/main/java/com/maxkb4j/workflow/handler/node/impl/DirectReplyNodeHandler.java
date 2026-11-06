@@ -43,6 +43,7 @@ public class DirectReplyNodeHandler extends AbsNodeHandler {
         if (params.getIsResult()) {
             setAnswerText(node, answerText.get());
         }
+        putDetail(node,NodeField.IS_RESULT,params.getIsResult());
         return new NodeResult(Map.of(NodeField.ANSWER, answerText.get()));
     }
 }
