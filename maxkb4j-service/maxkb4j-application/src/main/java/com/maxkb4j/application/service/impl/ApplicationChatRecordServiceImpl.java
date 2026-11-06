@@ -135,6 +135,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
         Page<ApplicationChatRecordEntity> chatRecordpage = new Page<>(current, size);
         LambdaQueryWrapper<ApplicationChatRecordEntity> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ApplicationChatRecordEntity::getChatId, chatId);
+        wrapper.orderByAsc(ApplicationChatRecordEntity::getCreateTime);
         IPage<ApplicationChatRecordEntity> chatRecordIpage = this.page(chatRecordpage, wrapper);
         return BeanUtil.copyPage(chatRecordIpage, this::convert);
     }
