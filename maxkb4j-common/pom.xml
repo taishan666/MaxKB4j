@@ -80,12 +80,6 @@
             <artifactId>postgresql</artifactId>
             <optional>true</optional>
         </dependency>
-        <!-- PgVector -->
-        <dependency>
-            <groupId>com.pgvector</groupId>
-            <artifactId>pgvector</artifactId>
-            <optional>true</optional>
-        </dependency>
         <!-- 测试 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
