@@ -81,18 +81,6 @@
                     <artifactId>snakeyaml</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>org.apache.tomcat.embed</groupId>
-                    <artifactId>tomcat-embed-el</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jboss.logging</groupId>
-                    <artifactId>jboss-logging</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml</groupId>
-                    <artifactId>classmate</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-autoconfigure</artifactId>
                 </exclusion>
@@ -189,10 +177,6 @@
                 <exclusion>
                     <groupId>org.hamcrest</groupId>
                     <artifactId>hamcrest</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.opentest4j</groupId>
-                    <artifactId>opentest4j</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.junit.jupiter</groupId>
