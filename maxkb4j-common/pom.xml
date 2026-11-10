@@ -45,6 +45,10 @@
             <artifactId>hutool-json</artifactId>
         </dependency>
         <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-http</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
         </dependency>
@@ -136,7 +140,6 @@
             <artifactId>postgresql</artifactId>
             <optional>true</optional>
         </dependency>
-        <!-- PgVector -->
         <!-- 测试 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
