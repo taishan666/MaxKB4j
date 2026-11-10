@@ -67,6 +67,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
+            <!-- 以下传递依赖在项目中未使用过，且排除后项目运行mvn clean verify集成测试、打包均通过 -->
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
