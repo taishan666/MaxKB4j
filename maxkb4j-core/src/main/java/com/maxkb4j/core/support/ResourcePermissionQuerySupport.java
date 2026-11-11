@@ -17,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -37,8 +36,9 @@ public final class ResourcePermissionQuerySupport {
 
     /**
      * 分页查询某类资源，并按名称和权限过滤。
+     * 仅查询 id/name/icon 列，避免带出资源表的大字段（work_flow、credential 等）。
      *
-     * @param iconGetter      资源图标的取值方式，不同资源类型图标来源不同（应用/工具取 icon，模型取 provider，知识库为空串）
+     * @param iconField       资源图标的列引用，不同资源类型图标来源不同（应用/工具取 icon，模型取 provider），无图标字段时传 null
      * @param extraConditions 额外的 wrapper 条件，可为 null
      */
     public static <E extends BaseEntity> IPage<UserResourcePermissionVO> pageResource(
@@ -47,7 +47,7 @@ public final class ResourcePermissionQuerySupport {
             SFunction<E, String> nameField,
             SFunction<E, String> idField,
             String name,
-            Function<E, String> iconGetter,
+            SFunction<E, String> iconField,
             Map<String, String> permissionMap,
             Set<String> permissionFilter,
             String type,
@@ -58,6 +58,11 @@ public final class ResourcePermissionQuerySupport {
         }
         LambdaQueryWrapper<E> wrapper = Wrappers.<E>lambdaQuery()
                 .like(StringUtils.isNotBlank(name), nameField, name);
+        if (iconField == null) {
+            wrapper.select(idField, nameField);
+        } else {
+            wrapper.select(idField, nameField, iconField);
+        }
         if (CollectionUtils.isNotEmpty(filter.includeIds())) {
             wrapper.in(idField, filter.includeIds());
         }
@@ -68,7 +73,7 @@ public final class ResourcePermissionQuerySupport {
             extraConditions.accept(wrapper);
         }
         mapper.selectPage(page, wrapper);
-        return BeanUtil.copyPage(page, e -> buildResourceVO(e.getId(), nameField.apply(e), iconGetter.apply(e), type, permissionMap.getOrDefault(e.getId(), Permission.NOT_AUTH)));
+        return BeanUtil.copyPage(page, e -> buildResourceVO(e.getId(), nameField.apply(e), iconField == null ? "" : iconField.apply(e), type, permissionMap.getOrDefault(e.getId(), Permission.NOT_AUTH)));
     }
 
     public static UserResourcePermissionVO buildResourceVO(String id, String name, String icon, String type, String permission) {

@@ -5,6 +5,9 @@ import com.maxkb4j.common.constant.Permission;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 权限定义工具类
@@ -20,6 +23,15 @@ public final class PermissionDefUtil {
             Permission.VIEW, new PermissionDef(AuthType.RESOURCE_PERMISSION_GROUP, List.of(Permission.VIEW)),
             Permission.NOT_AUTH, new PermissionDef(AuthType.RESOURCE_PERMISSION_GROUP, List.of(Permission.NOT_AUTH))
     );
+
+    // 反向索引：由 PERMISSION_MAP 生成，保证单一数据源；重复定义会在类加载时直接报错
+    private static final Map<PermissionKey, String> KEY_INDEX = PERMISSION_MAP.entrySet().stream()
+            .collect(Collectors.toUnmodifiableMap(
+                    e -> permissionKey(e.getValue().authType(), e.getValue().permissionList()),
+                    Map.Entry::getKey));
+
+    private record PermissionKey(String authType, Set<String> permissions) {
+    }
 
     // 私有构造器防止实例化
     private PermissionDefUtil() {
@@ -38,21 +50,23 @@ public final class PermissionDefUtil {
 
     /**
      * 根据 type 和 permissions 反向查找对应的 Map key
+     * 权限列表按集合语义比较，忽略顺序、重复项与 null 元素
      *
      * @param authType       权限类型，如 "RESOURCE_PERMISSION_GROUP"
      * @param permissionList 权限列表，如 ["MANAGE", "VIEW"]
-     * @return 匹配的 key，未找到时返回 Optional.empty()
+     * @return 匹配的 key，未找到时返回 {@link Permission#NOT_AUTH}
      */
     public static String findKey(String authType, List<String> permissionList) {
         if (authType == null || permissionList == null) {
             return Permission.NOT_AUTH;
         }
-        // List.of 保证顺序敏感匹配；如需无序匹配可改用 Set
-        return PERMISSION_MAP.entrySet().stream()
-                .filter(e -> e.getValue().authType().equals(authType)
-                        && e.getValue().permissionList().equals(permissionList))
-                .map(Map.Entry::getKey)
-                .findFirst().orElse(Permission.NOT_AUTH);
+        return KEY_INDEX.getOrDefault(permissionKey(authType, permissionList), Permission.NOT_AUTH);
+    }
+
+    private static PermissionKey permissionKey(String authType, List<String> permissionList) {
+        return new PermissionKey(authType, permissionList.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toUnmodifiableSet()));
     }
 
 }

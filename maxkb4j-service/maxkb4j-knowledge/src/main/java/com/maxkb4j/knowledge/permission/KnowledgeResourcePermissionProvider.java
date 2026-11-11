@@ -19,7 +19,7 @@ import java.util.Set;
  *
  * <p>实现 user-api 中的 {@link IResourcePermissionPageProvider} SPI，
  * 由 system 模块的 {@code UserResourcePermissionServiceImpl} 在运行期注入，
- * 避免 system 模块反向编译依赖 knowledge。知识库无图标字段，icon 取空串。
+     * 避免 system 模块反向编译依赖 knowledge。知识库无图标字段，icon 传 null 取空串。
  *
  * @author tarzan
  */
@@ -41,7 +41,7 @@ public class KnowledgeResourcePermissionProvider implements IResourcePermissionP
         return ResourcePermissionQuerySupport.pageResource(
                 new Page<>(current, size), knowledgeMapper,
                 KnowledgeEntity::getName, KnowledgeEntity::getId,
-                name, e -> "",
+                name, null,
                 permissionMap, permissionFilter, supportType(), null);
     }
 }

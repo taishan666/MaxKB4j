@@ -98,23 +98,32 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
     }
 
     public IPage<ResourceUserPermissionVO> resourceUserPermissionPage(String resourceId, String type, int current, int size, String nickname, String username, String[] permissions) {
+        Set<String> permissionFilter = toPermissionSet(permissions);
+        LambdaQueryWrapper<UserEntity> userWrapper = Wrappers.<UserEntity>lambdaQuery()
+                .select(UserEntity::getId, UserEntity::getNickname, UserEntity::getUsername)
+                .eq(UserEntity::getIsActive, true)
+                .ne(UserEntity::getId, userContext.getUserId())
+                .like(StringUtils.isNotBlank(nickname), UserEntity::getNickname, nickname)
+                .like(StringUtils.isNotBlank(username), UserEntity::getUsername, username)
+                .orderByAsc(UserEntity::getCreateTime);
+        // 无权限过滤时 VO 仅需本页用户的权限，先分页再按本页 ID 批量加载，避免全量拉取该资源的所有权限记录
+        if (permissionFilter.isEmpty()) {
+            Page<UserEntity> userPage = userMapper.selectPage(new Page<>(current, size), userWrapper);
+            List<String> pageUserIds = userPage.getRecords().stream().map(UserEntity::getId).toList();
+            Map<String, String> pagePermissionMap = loadResourcePermissionMap(resourceId, type, pageUserIds);
+            return BeanUtil.copyPage(userPage, e -> buildUserPermissionVO(e, type, pagePermissionMap));
+        }
+        // 有权限过滤时需全量权限记录计算 include/exclude ID 集合
         Map<String, String> permissionMap = resolvePermissionMap(
                 Wrappers.<UserResourcePermissionEntity>lambdaQuery()
                         .eq(UserResourcePermissionEntity::getTargetId, resourceId)
                         .eq(UserResourcePermissionEntity::getAuthTargetType, type)
                         .eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_ID),
                 UserResourcePermissionEntity::getUserId);
-        ResourcePermissionQuerySupport.PermissionIdFilter filter = ResourcePermissionQuerySupport.buildPermissionIdFilter(permissionMap, toPermissionSet(permissions));
+        ResourcePermissionQuerySupport.PermissionIdFilter filter = ResourcePermissionQuerySupport.buildPermissionIdFilter(permissionMap, permissionFilter);
         if (filter.emptyResult()) {
             return new Page<>(current, size, 0);
         }
-        String currentUserId = userContext.getUserId();
-        LambdaQueryWrapper<UserEntity> userWrapper = Wrappers.<UserEntity>lambdaQuery()
-                .eq(UserEntity::getIsActive, true)
-                .ne(UserEntity::getId, currentUserId)
-                .like(StringUtils.isNotBlank(nickname), UserEntity::getNickname, nickname)
-                .like(StringUtils.isNotBlank(username), UserEntity::getUsername, username)
-                .orderByAsc(UserEntity::getCreateTime);
         if (CollectionUtils.isNotEmpty(filter.includeIds())) {
             userWrapper.in(UserEntity::getId, filter.includeIds());
         }
@@ -122,24 +131,44 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
             userWrapper.notIn(UserEntity::getId, filter.excludeIds());
         }
         Page<UserEntity> userPage = userMapper.selectPage(new Page<>(current, size), userWrapper);
-        return BeanUtil.copyPage(userPage, e -> {
-            ResourceUserPermissionVO vo = new ResourceUserPermissionVO();
-            vo.setId(e.getId());
-            vo.setNickname(e.getNickname());
-            vo.setUsername(e.getUsername());
-            vo.setPermission(permissionMap.getOrDefault(e.getId(), Permission.NOT_AUTH));
-            vo.setWorkspaceId(DEFAULT_ID);
-            vo.setAuthTargetType(type);
-            return vo;
-        });
+        return BeanUtil.copyPage(userPage, e -> buildUserPermissionVO(e, type, permissionMap));
+    }
+
+    /**
+     * 加载指定资源下给定用户的权限映射，userIds 为空时返回空映射。
+     */
+    private Map<String, String> loadResourcePermissionMap(String resourceId, String type, List<String> userIds) {
+        if (CollectionUtils.isEmpty(userIds)) {
+            return Map.of();
+        }
+        return resolvePermissionMap(
+                Wrappers.<UserResourcePermissionEntity>lambdaQuery()
+                        .eq(UserResourcePermissionEntity::getTargetId, resourceId)
+                        .eq(UserResourcePermissionEntity::getAuthTargetType, type)
+                        .eq(UserResourcePermissionEntity::getWorkspaceId, DEFAULT_ID)
+                        .in(UserResourcePermissionEntity::getUserId, userIds),
+                UserResourcePermissionEntity::getUserId);
+    }
+
+    private ResourceUserPermissionVO buildUserPermissionVO(UserEntity entity, String type, Map<String, String> permissionMap) {
+        ResourceUserPermissionVO vo = new ResourceUserPermissionVO();
+        vo.setId(entity.getId());
+        vo.setNickname(entity.getNickname());
+        vo.setUsername(entity.getUsername());
+        vo.setPermission(permissionMap.getOrDefault(entity.getId(), Permission.NOT_AUTH));
+        vo.setWorkspaceId(DEFAULT_ID);
+        vo.setAuthTargetType(type);
+        return vo;
     }
 
 
     /**
      * 加载权限记录并解析为 {@code id -> 已解析权限} 的映射，key 取自 keyGetter（目标资源 ID 或用户 ID）。
-     * 同一 key 存在多条记录时保留首条。
+     * 同一 key 存在多条记录时保留首条。仅查询映射构建所需列。
      */
     private Map<String, String> resolvePermissionMap(LambdaQueryWrapper<UserResourcePermissionEntity> wrapper, SFunction<UserResourcePermissionEntity, String> keyGetter) {
+        wrapper.select(UserResourcePermissionEntity::getUserId, UserResourcePermissionEntity::getTargetId,
+                UserResourcePermissionEntity::getAuthType, UserResourcePermissionEntity::getPermissionList);
         return baseMapper.selectList(wrapper).stream()
                 .collect(Collectors.toMap(keyGetter, e -> PermissionDefUtil.findKey(e.getAuthType(), e.getPermissionList()), (a, b) -> a));
     }

@@ -1,6 +1,7 @@
 package com.maxkb4j.system.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
+import cn.dev33.satoken.annotation.SaMode;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
@@ -29,7 +30,7 @@ public class UserResourcePermissionController {
     private final IUserResourcePermissionInternalService userResourcePermissionService;
     private final IUserInternalService userService;
 
-    // @SaCheckRole(type= LoginType.ADMIN,value = {RoleType.ADMIN, RoleType.USER},mode = SaMode.OR)
+    @SaCheckRole(type= LoginType.ADMIN,value = {RoleConst.ADMIN, RoleConst.USER},mode = SaMode.OR)
     @GetMapping("/user_list")
     public R<List<UserNameVO>> userList() {
         return R.data(userService.listActiveUserNames());
