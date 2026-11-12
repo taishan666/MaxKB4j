@@ -64,8 +64,8 @@
         (
         SELECT COUNT(*) FROM document
         WHERE (
-        SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 1 FOR 1) = '1'
-        OR SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 2 FOR 1) = '1'
+        SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 1 FOR 1) = '3'
+        OR SUBSTRING(reverse(LPAD(COALESCE(status, 'nn0'), 3, 'n')) FROM 2 FOR 1) = '3'
         )
         <if test="isAdmin == null or !isAdmin">
             <choose>
