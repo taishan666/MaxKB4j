@@ -3,6 +3,7 @@ package com.maxkb4j.knowledge.handler;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.context.UserContext;
+import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
@@ -198,7 +199,7 @@ public class KnowledgeImportHandler {
         doc.setParagraphs(paragraphs);
         docs.add(doc);
 
-        documentWriteService.batchCreateDocs(knowledgeId, 0, docs);
+        documentWriteService.batchCreateDocs(knowledgeId, KnowledgeType.BASE, docs);
     }
 
 

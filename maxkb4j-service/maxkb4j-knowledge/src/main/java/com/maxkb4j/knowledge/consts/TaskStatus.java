@@ -12,7 +12,4 @@ public interface TaskStatus {
     int FAILURE=3;
     // 取消任务
     int REVOKE=4;
-    // 取消成功
-    int REVOKED=5;
-  //  int IGNORED=n;
 }

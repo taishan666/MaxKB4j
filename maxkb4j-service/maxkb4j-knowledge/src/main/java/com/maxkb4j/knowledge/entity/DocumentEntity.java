@@ -34,11 +34,12 @@ public class DocumentEntity extends BaseEntity {
     /**
      * 文档初始状态码
      */
-    public static final String STATUS_INITIAL = "nn0";
+    public static final String STATUS_INITIAL = "nnn";
     private String name;
     private Integer charLength;
     private String status;
     private Boolean isActive;
+    //同知识库type
     private Integer type;
     @TableField(typeHandler = JSONBTypeHandler.class)
     private JSONObject meta;
