@@ -1,5 +1,6 @@
 package com.maxkb4j.trigger.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -23,6 +24,10 @@ public class EventTriggerTaskRecordServiceImpl extends ServiceImpl<EventTriggerT
 
     @Override
     public EventTriggerTaskRecordEntity get(String id, String taskId, String recordId) {
-        return this.getById(recordId);
+        QueryWrapper<EventTriggerTaskRecordEntity> wrapper = new QueryWrapper<EventTriggerTaskRecordEntity>()
+                .eq("trigger_id", id)
+                .eq("trigger_task_id", taskId)
+                .eq("id", recordId);
+        return this.baseMapper.selectOne(wrapper);
     }
 }

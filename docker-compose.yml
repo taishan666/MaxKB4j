@@ -11,6 +11,18 @@ services:
       POSTGRES_DB: MaxKB4j
     volumes:
       - ./postgres/data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tarzan_postgres -d MaxKB4j"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2g
+          pids: 512
   mongo:
     image: registry.cn-hangzhou.aliyuncs.com/tarzanx/mongo:8.0
     container_name: maxkb4j-mongo
@@ -24,6 +36,18 @@ services:
     volumes:
       - ./mongo/data:/data/db
       - ./mongo/configdb:/data/configdb
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok' --username tarzan_mongo --password ycn4NRhjN2 --authenticationDatabase admin localhost:27017/MaxKB4j | grep -q 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2g
+          pids: 512
   maxKB4j:
     container_name: maxkb4j-app
     image: registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:latest
@@ -33,9 +57,9 @@ services:
       - maxkb4j_network
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       mongo:
-        condition: service_started
+        condition: service_healthy
     restart: always
     logging:
       options:
@@ -45,7 +69,7 @@ services:
       # JWT 密钥必须由宿主机环境变量提供（未设置时 compose 直接报错，应用侧亦有 fail-fast 校验）
       - SA_TOKEN_JWT_SECRET_KEY=${SA_TOKEN_JWT_SECRET_KEY:?请设置 SA_TOKEN_JWT_SECRET_KEY 环境变量（建议32位以上随机字符串）}
       # 可选：默认管理员口令；不设置时首次启动自动生成随机口令并打印到日志
-      - SYSTEM_DEFAULT_PASSWORD=${SYSTEM_DEFAULT_PASSWORD:}
+      - SYSTEM_DEFAULT_PASSWORD=${SYSTEM_DEFAULT_PASSWORD:-}
       - SPRING_DATA_MONGODB_URI=mongodb://tarzan_mongo:ycn4NRhjN2@mongo:27017/MaxKB4j?authSource=admin
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/MaxKB4j
       - SPRING_DATASOURCE_USERNAME=tarzan_postgres
@@ -53,10 +77,18 @@ services:
     volumes:
       - ./logs:/logs
       - ./server.crt:/tmp/certs/server.crt
-    entrypoint: >
-      sh -c "
-      sleep 10;
-      exec java -jar maxkb4j-start.jar 
-      "
+    healthcheck:
+      # 应用镜像未引入 actuator，用 bash /dev/tcp 探测端口就绪（amazoncorretto:21 自带 bash）
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/8080'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 4g
+          pids: 1024
 networks:
   maxkb4j_network:
