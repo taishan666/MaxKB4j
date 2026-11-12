@@ -1,5 +1,8 @@
 package com.maxkb4j.common.interceptor;
 
+import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.jwt.exception.SaJwtException;
+import cn.dev33.satoken.stp.StpLogic;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.context.ThreadLocalUserContext;
 import com.maxkb4j.common.context.UserIdentity;
@@ -22,8 +25,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
  *   <li>其他路径:优先解析 {@link StpKit#ADMIN},ADMIN 未命中时再尝试 USER。</li>
  * </ol>
  *
- * <p>本拦截器只负责"填充上下文",不承担鉴权(鉴权由 {@code AuthInterceptor}、{@code SaCheckPermAspect} 等负责),
- * 因此任何分支均返回 {@code true},且解析过程对外抛出被吞掉(仅 debug 日志),绝不阻断请求。
+ * <p>本拦截器只负责"填充上下文",不承担鉴权(鉴权由 {@code AuthInterceptor}、{@code SaCheckPermAspect} 等负责)。
+ * 非认证异常降级为未登录上下文;token 过期、无效等认证异常继续抛出,由全局异常处理器返回明确提示。
  *
  * <p>注册时 order 需大于 {@code AuthInterceptor}(默认 0),以保证 USER 会话已由 AuthHandler 建立。
  *
@@ -46,8 +49,10 @@ public class UserIdentityInterceptor implements HandlerInterceptor {
             if (identity != null) {
                 userContext.set(identity);
             }
+        } catch (NotLoginException | SaJwtException e) {
+            throw e;
         } catch (Exception e) {
-            // 身份解析失败不应影响请求处理,降级为"未登录"上下文
+            // 非认证异常不应影响请求处理,降级为"未登录"上下文
             log.error("解析用户身份失败,降级为未登录: {}", e.getMessage());
         }
         return true;
@@ -74,17 +79,22 @@ public class UserIdentityInterceptor implements HandlerInterceptor {
     }
 
     private UserIdentity resolveAdmin() {
-        if (StpKit.ADMIN.isLogin()) {
-            return new UserIdentity(StpKit.ADMIN.getLoginIdAsString(), StpKit.ADMIN.getTokenValue(), LoginType.ADMIN);
-        }
-        return null;
+        return resolveIdentity(StpKit.ADMIN, LoginType.ADMIN);
     }
 
     private UserIdentity resolveUser() {
-        if (StpKit.USER.isLogin()) {
-            return new UserIdentity(StpKit.USER.getLoginIdAsString(), StpKit.USER.getTokenValue(), LoginType.USER);
+        return resolveIdentity(StpKit.USER, LoginType.USER);
+    }
+
+    private UserIdentity resolveIdentity(StpLogic stpLogic, String loginType) {
+        try {
+            return new UserIdentity(stpLogic.getLoginIdAsString(), stpLogic.getTokenValue(), loginType);
+        } catch (NotLoginException e) {
+            if (NotLoginException.NOT_TOKEN.equals(e.getType())) {
+                return null;
+            }
+            throw e;
         }
-        return null;
     }
 
 }

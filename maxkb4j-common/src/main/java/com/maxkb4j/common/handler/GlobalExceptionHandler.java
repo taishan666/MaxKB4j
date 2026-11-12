@@ -2,6 +2,7 @@ package com.maxkb4j.common.handler;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotPermissionException;
+import cn.dev33.satoken.jwt.error.SaJwtErrorCode;
 import cn.dev33.satoken.jwt.exception.SaJwtException;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.exception.*;
@@ -61,7 +62,13 @@ public class GlobalExceptionHandler {
     public R<String> handleNotLogin(NotLoginException e, HttpServletResponse response) {
         log.error("未登录异常: {}", e.getMessage());
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
-        return R.fail(401, "login.not.login");
+        String message = switch (e.getType()) {
+            case NotLoginException.TOKEN_TIMEOUT -> "auth.token.expired";
+            case NotLoginException.INVALID_TOKEN, NotLoginException.NO_PREFIX,
+                 NotLoginException.TOKEN_FREEZE -> "auth.token.invalid";
+            default -> "login.not.login";
+        };
+        return R.fail(401, message);
     }
 
     @ExceptionHandler(SaJwtException.class)
@@ -69,7 +76,9 @@ public class GlobalExceptionHandler {
     public R<String> handleSaJwtException(SaJwtException e, HttpServletResponse response) {
         log.error("SaJwt 异常: {}", e.getMessage());
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 设置HTTP状态码为401
-        return R.fail(401, "auth.token.invalid");
+        String message = e.getCode() == SaJwtErrorCode.CODE_30204
+                ? "auth.token.expired" : "auth.token.invalid";
+        return R.fail(401, message);
     }
 
 

@@ -47,6 +47,11 @@ login:
   access:
     denied: 禁止访问
 
+auth:
+  token:
+    expired: token已过期，请重新登录
+    invalid: token无效，请重新登录
+
 resource:
   "no":
     permission: 无权限删除该资源

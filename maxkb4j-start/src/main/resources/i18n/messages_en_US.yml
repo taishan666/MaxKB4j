@@ -47,6 +47,11 @@ login:
   access:
     denied: Access denied
 
+auth:
+  token:
+    expired: Token has expired. Please log in again.
+    invalid: Token is invalid. Please log in again.
+
 resource:
   "no":
     permission: No permission to delete this resource
