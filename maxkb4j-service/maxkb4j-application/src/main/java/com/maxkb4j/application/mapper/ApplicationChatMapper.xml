@@ -36,10 +36,10 @@
                 AND asker ->> 'username' LIKE '%' || #{query.username} || '%'
             </if>
             <if test="query.startTime != null and query.startTime != ''">
-                AND <![CDATA[TO_CHAR(create_time, 'YYYY-MM-DD') >= #{query.startTime} ]]>
+                AND <![CDATA[create_time >= CAST(#{query.startTime} AS TIMESTAMP) ]]>
             </if>
             <if test="query.endTime != null and query.endTime != ''">
-                AND <![CDATA[TO_CHAR(create_time, 'YYYY-MM-DD') <= #{query.endTime} ]]>
+                AND <![CDATA[create_time < CAST(#{query.endTime} AS TIMESTAMP) + INTERVAL '1 day' ]]>
             </if>
             <if test="query.minStar != null">
                 AND <![CDATA[star_num >= #{query.minStar} ]]>
@@ -62,18 +62,28 @@
         FROM
         application_chat chat
         LEFT JOIN (
-        select chat_id, ( SUM (message_tokens)+ SUM (answer_tokens)) as tokens_num
+        select r.chat_id, ( SUM (r.message_tokens)+ SUM (r.answer_tokens)) as tokens_num
         FROM
-        application_chat_record
-        GROUP BY chat_id
+        application_chat_record r
+        INNER JOIN application_chat c ON r.chat_id = c.id
+        <where>
+            c.APPLICATION_ID = #{appId}
+            <if test="query.startTime != null and query.startTime != ''">
+                and  <![CDATA[c.CREATE_TIME >= CAST(#{query.startTime} AS TIMESTAMP) ]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                and  <![CDATA[c.CREATE_TIME < CAST(#{query.endTime} AS TIMESTAMP) + INTERVAL '1 day' ]]>
+            </if>
+        </where>
+        GROUP BY r.chat_id
         ) chat_record ON chat."id" = chat_record.chat_id
         <where>
             APPLICATION_ID = #{appId}
             <if test="query.startTime != null and query.startTime != ''">
-                and  <![CDATA[TO_CHAR(CREATE_TIME, 'YYYY-MM-DD') >= #{query.startTime} ]]>
+                and  <![CDATA[CREATE_TIME >= CAST(#{query.startTime} AS TIMESTAMP) ]]>
             </if>
             <if test="query.endTime != null and query.endTime != ''">
-                and  <![CDATA[TO_CHAR(CREATE_TIME, 'YYYY-MM-DD') <= #{query.endTime} ]]>
+                and  <![CDATA[CREATE_TIME < CAST(#{query.endTime} AS TIMESTAMP) + INTERVAL '1 day' ]]>
             </if>
         </where>
         GROUP BY "day";
@@ -85,19 +95,29 @@
         FROM
         application_chat chat
         LEFT JOIN (
-        select chat_id, ( SUM (message_tokens)+ SUM (answer_tokens)) as tokens_num
+        select r.chat_id, ( SUM (r.message_tokens)+ SUM (r.answer_tokens)) as tokens_num
         FROM
-        application_chat_record
-        GROUP BY chat_id
+        application_chat_record r
+        INNER JOIN application_chat c ON r.chat_id = c.id
+        <where>
+            c.APPLICATION_ID = #{appId}
+            <if test="query.startTime != null and query.startTime != ''">
+                and  <![CDATA[c.CREATE_TIME >= CAST(#{query.startTime} AS TIMESTAMP) ]]>
+            </if>
+            <if test="query.endTime != null and query.endTime != ''">
+                and  <![CDATA[c.CREATE_TIME < CAST(#{query.endTime} AS TIMESTAMP) + INTERVAL '1 day' ]]>
+            </if>
+        </where>
+        GROUP BY r.chat_id
         ) chat_record ON chat."id" = chat_record.chat_id
         INNER JOIN "user" ON chat.chat_user_id = "user"."id"
         <where>
             APPLICATION_ID = #{appId}
             <if test="query.startTime != null and query.startTime != ''">
-                and  <![CDATA[TO_CHAR(chat.CREATE_TIME, 'YYYY-MM-DD') >= #{query.startTime} ]]>
+                and  <![CDATA[chat.CREATE_TIME >= CAST(#{query.startTime} AS TIMESTAMP) ]]>
             </if>
             <if test="query.endTime != null and query.endTime != ''">
-                and  <![CDATA[TO_CHAR(chat.CREATE_TIME, 'YYYY-MM-DD') <= #{query.endTime} ]]>
+                and  <![CDATA[chat.CREATE_TIME < CAST(#{query.endTime} AS TIMESTAMP) + INTERVAL '1 day' ]]>
             </if>
         </where>
         GROUP BY "user"."id";
@@ -108,20 +128,14 @@
         "user".nickname as userName
         FROM
         application_chat chat
-        LEFT JOIN (
-        select chat_id, ( SUM (message_tokens)+ SUM (answer_tokens)) as tokens_num
-        FROM
-        application_chat_record
-        GROUP BY chat_id
-        ) chat_record ON chat."id" = chat_record.chat_id
         INNER JOIN "user" ON chat.chat_user_id = "user"."id"
         <where>
             APPLICATION_ID = #{appId}
             <if test="query.startTime != null and query.startTime != ''">
-                and  <![CDATA[TO_CHAR(chat.CREATE_TIME, 'YYYY-MM-DD') >= #{query.startTime} ]]>
+                and  <![CDATA[chat.CREATE_TIME >= CAST(#{query.startTime} AS TIMESTAMP) ]]>
             </if>
             <if test="query.endTime != null and query.endTime != ''">
-                and  <![CDATA[TO_CHAR(chat.CREATE_TIME, 'YYYY-MM-DD') <= #{query.endTime} ]]>
+                and  <![CDATA[chat.CREATE_TIME < CAST(#{query.endTime} AS TIMESTAMP) + INTERVAL '1 day' ]]>
             </if>
         </where>
         GROUP BY "user"."id";

@@ -79,6 +79,13 @@
             #{state}
         </foreach>
     </select>
+    <update id="shiftPositions">
+        UPDATE "paragraph"
+        SET position = position + #{offset}
+        WHERE document_id = #{documentId}
+          AND knowledge_id = #{knowledgeId}
+          AND position &gt;= #{fromPosition}
+    </update>
     <select id="listParagraphIdsByStates" resultType="java.lang.String">
         SELECT
         ID

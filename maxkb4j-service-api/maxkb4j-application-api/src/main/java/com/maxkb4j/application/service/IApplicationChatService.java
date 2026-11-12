@@ -18,7 +18,11 @@ public interface IApplicationChatService {
 
     ChatResponse chatMessage(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback);
 
-    void chatMessageAsync(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback);
+    /**
+     * 异步执行对话，返回该任务的 Future；调用方可在客户端断连时 cancel(true)
+     * 中断底层执行线程。正常/异常收尾仍通过 callback 的 onComplete/onError 传递。
+     */
+    java.util.concurrent.CompletableFuture<Void> chatMessageAsync(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback);
 
     Boolean deleteById(String chatId);
 

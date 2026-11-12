@@ -9,23 +9,24 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
-import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.excel.KnowledgeExcel;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
 import com.maxkb4j.knowledge.mapper.ProblemParagraphMapper;
+import com.maxkb4j.knowledge.vo.ProblemParagraphVO;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -40,6 +41,8 @@ import java.util.zip.ZipOutputStream;
 @RequiredArgsConstructor
 public class KnowledgeExportHandler {
 
+    private static final int PARAGRAPH_BATCH_SIZE = 500;
+
     private final ParagraphMapper paragraphMapper;
     private final ProblemParagraphMapper problemParagraphMapper;
 
@@ -51,27 +54,52 @@ public class KnowledgeExportHandler {
      */
     public List<KnowledgeExcel> getDatasetExcelByDoc(DocumentEntity doc) {
         List<KnowledgeExcel> list = new ArrayList<>();
-        LambdaQueryWrapper<ParagraphEntity> queryWrapper = Wrappers.<ParagraphEntity>lambdaQuery()
-                .eq(ParagraphEntity::getDocumentId, doc.getId());
-        List<ParagraphEntity> paragraphs = paragraphMapper.selectList(queryWrapper);
+        processParagraphBatches(doc, list::addAll);
+        return list;
+    }
+
+    private boolean processParagraphBatches(DocumentEntity doc, Consumer<List<KnowledgeExcel>> consumer) {
+        String lastId = null;
+        boolean hasData = false;
+        while (true) {
+            LambdaQueryWrapper<ParagraphEntity> queryWrapper = Wrappers.<ParagraphEntity>lambdaQuery()
+                    .select(ParagraphEntity::getId, ParagraphEntity::getTitle, ParagraphEntity::getContent)
+                    .eq(ParagraphEntity::getDocumentId, doc.getId())
+                    .gt(lastId != null, ParagraphEntity::getId, lastId)
+                    .orderByAsc(ParagraphEntity::getId)
+                    .last("LIMIT " + PARAGRAPH_BATCH_SIZE);
+            List<ParagraphEntity> paragraphs = paragraphMapper.selectList(queryWrapper);
+            if (paragraphs.isEmpty()) {
+                break;
+            }
+            hasData = true;
+            consumer.accept(toExcelRows(paragraphs));
+            if (paragraphs.size() < PARAGRAPH_BATCH_SIZE) {
+                break;
+            }
+            lastId = paragraphs.get(paragraphs.size() - 1).getId();
+        }
+        return hasData;
+    }
+
+    private List<KnowledgeExcel> toExcelRows(List<ParagraphEntity> paragraphs) {
+        List<String> paragraphIds = paragraphs.stream()
+                .map(ParagraphEntity::getId)
+                .toList();
+        Map<String, String> problemsByParagraphId = problemParagraphMapper
+                .getProblemContentsByParagraphIds(paragraphIds).stream()
+                .filter(problem -> StringUtils.isNotBlank(problem.getContent()))
+                .collect(Collectors.groupingBy(ProblemParagraphVO::getParagraphId,
+                        Collectors.mapping(ProblemParagraphVO::getContent, Collectors.joining("\n"))));
+        List<KnowledgeExcel> rows = new ArrayList<>(paragraphs.size());
         for (ParagraphEntity paragraph : paragraphs) {
             KnowledgeExcel excel = new KnowledgeExcel();
             excel.setTitle(paragraph.getTitle());
             excel.setContent(paragraph.getContent());
-            List<ProblemEntity> problemEntities = problemParagraphMapper.getProblemsByParagraphId(paragraph.getId());
-            StringBuilder sb = new StringBuilder();
-            if (!CollectionUtils.isEmpty(problemEntities)) {
-                List<String> problems = problemEntities.stream()
-                        .map(ProblemEntity::getContent)
-                        .filter(StringUtils::isNotBlank)
-                        .collect(Collectors.toList());
-                String result = String.join("\n", problems);
-                sb.append(result);
-            }
-            excel.setProblems(sb.toString());
-            list.add(excel);
+            excel.setProblems(problemsByParagraphId.getOrDefault(paragraph.getId(), ""));
+            rows.add(excel);
         }
-        return list;
+        return rows;
     }
 
     /**
@@ -99,18 +127,18 @@ public class KnowledgeExportHandler {
     /**
      * 写入多Sheet的Excel文件到输出流
      */
-    public void writeMultiSheetExcel(java.io.OutputStream outputStream, List<DocumentEntity> docs) {
-        try (ExcelWriter excelWriter = EasyExcel.write(outputStream, KnowledgeExcel.class).build()) {
+    public void writeMultiSheetExcel(OutputStream outputStream, List<DocumentEntity> docs) {
+        try (ExcelWriter excelWriter = EasyExcel.write(outputStream, KnowledgeExcel.class)
+                .autoCloseStream(false).build()) {
             boolean hasData = false;
             for (DocumentEntity doc : docs) {
-                List<KnowledgeExcel> list = getDatasetExcelByDoc(doc);
-                if (list.isEmpty()) {
+                WriteSheet writeSheet = EasyExcel.writerSheet(doc.getName()).build();
+                boolean docHasData = processParagraphBatches(doc, rows -> excelWriter.write(rows, writeSheet));
+                if (!docHasData) {
                     log.debug("文档 {} 没有数据，跳过该sheet", doc.getName());
-                    continue; // 跳过空数据
+                    continue;
                 }
                 hasData = true;
-                WriteSheet writeSheet = EasyExcel.writerSheet(doc.getName()).build();
-                excelWriter.write(list, writeSheet);
             }
             // 如果没有任何数据，写入一个空sheet以确保Excel文件有效
             if (!hasData) {
@@ -125,20 +153,11 @@ public class KnowledgeExportHandler {
      */
     public void writeExcelToZipAndResponse(List<DocumentEntity> docs, String fileName, HttpServletResponse response) throws IOException {
         setZipResponseHeader(response, fileName);
-        try (ByteArrayOutputStream zipBuffer = new ByteArrayOutputStream();
-             ZipOutputStream zipOut = new ZipOutputStream(zipBuffer)) {
-
-            // 生成 Excel 内容到内存
-            try (ByteArrayOutputStream excelBuffer = new ByteArrayOutputStream()) {
-                writeMultiSheetExcel(excelBuffer, docs);
-                // 添加到 ZIP
-                String entryName = fileName + ".xlsx";
-                zipOut.putNextEntry(new ZipEntry(entryName));
-                zipOut.write(excelBuffer.toByteArray());
-                zipOut.closeEntry();
-            }
-            // 写回 HTTP 响应
-            zipBuffer.writeTo(response.getOutputStream());
+        try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
+            zipOut.putNextEntry(new ZipEntry(fileName + ".xlsx"));
+            writeMultiSheetExcel(zipOut, docs);
+            zipOut.closeEntry();
+            zipOut.finish();
             response.getOutputStream().flush();
         }
     }
@@ -161,12 +180,6 @@ public class KnowledgeExportHandler {
                                    Integer fileCountLimit, HttpServletResponse response) throws IOException {
         setZipResponseHeader(response, knowledgeName);
 
-        // 先在内存中生成 Excel
-        ByteArrayOutputStream excelBuffer = new ByteArrayOutputStream();
-        writeMultiSheetExcel(excelBuffer, docs);
-        byte[] excelBytes = excelBuffer.toByteArray();
-        excelBuffer.close();
-
         // 构建 knowledge.json
         JSONObject knowledgeJson = new JSONObject();
         knowledgeJson.put("name", knowledgeName);
@@ -179,8 +192,7 @@ public class KnowledgeExportHandler {
         byte[] jsonBytes = knowledgeJson.toJSONString().getBytes(StandardCharsets.UTF_8);
 
         // 创建 ZIP 并写入响应
-        ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream());
-        try {
+        try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
             // 添加 knowledge.json
             zipOut.putNextEntry(new ZipEntry("knowledge.json"));
             zipOut.write(jsonBytes);
@@ -188,11 +200,9 @@ public class KnowledgeExportHandler {
 
             // 添加 knowledge.xlsx
             zipOut.putNextEntry(new ZipEntry("knowledge.xlsx"));
-            zipOut.write(excelBytes);
+            writeMultiSheetExcel(zipOut, docs);
             zipOut.closeEntry();
-        } finally {
             zipOut.finish();
-            zipOut.flush();
             response.getOutputStream().flush();
         }
     }

@@ -39,7 +39,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Tag(name = "MaxKB4J兼容 OpenAI API 格式")
 @RestController
@@ -56,6 +59,10 @@ public class ChatOpenAiController {
      * 相邻信号间的空闲超时：超时后流按错误收尾，避免连接无限挂起。
      */
     private static final Duration STREAM_IDLE_TIMEOUT = Duration.ofMinutes(10);
+    /**
+     * 未消费消息的有界缓冲上限：慢客户端撑满后按错误收尾，防止无界堆积。
+     */
+    private static final int STREAM_BUFFER_SIZE = 1024;
 
     private final IApplicationChatService chatService;
 
@@ -161,35 +168,63 @@ public class ChatOpenAiController {
      * 处理流式响应
      */
     private Flux<ServerSentEvent<String>> handleStreamResponse(OpenAIChatCompletionRequest request, ChatParams params, ChatState chatState) {
-        String completionId = generateCompletionId();
-        String model = resolveModelName(request);
-        Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast().onBackpressureBuffer();
-        // 异步执行业务逻辑；订阅前的消息由 sink 缓冲
-        chatService.chatMessageAsync(params, chatState, buildSinkCallback(sink));
+        // defer：订阅（客户端真正建立流）后才启动异步聊天，未订阅不消耗资源
+        return Flux.defer(() -> {
+            String completionId = generateCompletionId();
+            String model = resolveModelName(request);
+            // 有界缓冲 + ERROR 策略：慢客户端撑满缓冲即按错误收尾，避免无界堆积
+            Sinks.Many<ChatMessageVO> sink = Sinks.many().unicast()
+                    .onBackpressureBuffer(new ArrayBlockingQueue<>(STREAM_BUFFER_SIZE));
+            AtomicBoolean cancelled = new AtomicBoolean(false);
+            CompletableFuture<Void> chatTask =
+                    chatService.chatMessageAsync(params, chatState, buildSinkCallback(sink, cancelled));
 
-        return sink.asFlux()
-                .timeout(STREAM_IDLE_TIMEOUT)
-                .map(chatMessage -> toChunkEvent(completionId, model, chatMessage))
-                .concatWithValues(doneEvent())
-                .doOnError(error -> log.error("OpenAI 兼容接口流式响应异常", error))
-                .onErrorResume(e -> Flux.just(errorEvent(e), doneEvent()));
+            return sink.asFlux()
+                    .timeout(STREAM_IDLE_TIMEOUT)
+                    .map(chatMessage -> toChunkEvent(completionId, model, chatMessage))
+                    .concatWithValues(doneEvent())
+                    .doOnError(error -> log.error("OpenAI 兼容接口流式响应异常", error))
+                    .onErrorResume(e -> Flux.just(errorEvent(e), doneEvent()))
+                    // 客户端断连/取消时停止回灌并中断底层任务，避免继续消耗线程与 Token
+                    .doFinally(signal -> {
+                        cancelled.set(true);
+                        // 已正常完成的任务 cancel 是 no-op，统一取消即可
+                        chatTask.cancel(true);
+                    });
+        });
     }
 
-    private ResultCallback<ChatMessageVO> buildSinkCallback(Sinks.Many<ChatMessageVO> sink) {
+    private ResultCallback<ChatMessageVO> buildSinkCallback(Sinks.Many<ChatMessageVO> sink, AtomicBoolean cancelled) {
         return new ResultCallback<>() {
             @Override
             public void onEvent(ChatMessageVO message) {
-                sink.tryEmitNext(message);
+                if (cancelled.get()) {
+                    return;
+                }
+                Sinks.EmitResult result = sink.tryEmitNext(message);
+                if (result == Sinks.EmitResult.FAIL_OVERFLOW) {
+                    // 缓冲已满（慢客户端）：按错误收尾，让下游走 onErrorResume 结束流
+                    log.warn("OpenAI 兼容接口 SSE 缓冲溢出（{} 条），终止流", STREAM_BUFFER_SIZE);
+                    sink.tryEmitError(new IllegalStateException("sse.buffer.overflow"));
+                } else if (result.isFailure()) {
+                    log.warn("OpenAI 兼容接口 SSE 发送失败 result={} content={}", result, message.getContent());
+                }
             }
 
             @Override
             public void onComplete() {
-                sink.tryEmitComplete();
+                Sinks.EmitResult result = sink.tryEmitComplete();
+                if (result.isFailure()) {
+                    log.debug("OpenAI 兼容接口 SSE complete 失败 result={}", result);
+                }
             }
 
             @Override
             public void onError(Throwable e) {
-                sink.tryEmitError(e);
+                Sinks.EmitResult result = sink.tryEmitError(e);
+                if (result.isFailure()) {
+                    log.debug("OpenAI 兼容接口 SSE error 失败 result={}", result);
+                }
             }
         };
     }

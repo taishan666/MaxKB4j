@@ -37,6 +37,18 @@
             #{paragraphId}
         </foreach>
     </select>
+    <select id="getProblemContentsByParagraphIds" resultType="com.maxkb4j.knowledge.vo.ProblemParagraphVO">
+        SELECT
+        ppm.paragraph_id,
+        P."content"
+        FROM
+        problem_paragraph_mapping ppm
+        INNER JOIN problem P ON P.ID = ppm.problem_id
+        WHERE ppm.paragraph_id IN
+        <foreach item="paragraphId" collection="paragraphIds" open="(" separator="," close=")">
+            #{paragraphId}
+        </foreach>
+    </select>
     <select id="getActivePPbyProblemIds" resultType="com.maxkb4j.knowledge.entity.ProblemParagraphEntity">
         SELECT
         ppm.knowledge_id,

@@ -21,13 +21,13 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
@@ -82,12 +82,12 @@ class ChatOpenAiControllerTest {
 
     @Test
     void streamTrue_wildcardAccept_routesToSse() throws Exception {
-        doAnswer(invocation -> {
-            ResultCallback<ChatMessageVO> callback = invocation.getArgument(2);
-            callback.onError(new RateLimitException("rate limit hit"));
-            return null;
-        })
-                .when(chatService).chatMessageAsync(any(ChatParams.class), any(ChatState.class), any());
+        when(chatService.chatMessageAsync(any(ChatParams.class), any(ChatState.class), any()))
+                .thenAnswer(invocation -> {
+                    ResultCallback<ChatMessageVO> callback = invocation.getArgument(2);
+                    callback.onError(new RateLimitException("rate limit hit"));
+                    return CompletableFuture.completedFuture(null);
+                });
         MvcResult sync = mvc.perform(post("/chat/api/app-1/chat/completions")
                         .accept(MediaType.ALL)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -121,12 +121,12 @@ class ChatOpenAiControllerTest {
 
     @Test
     void streamTrue_conflictingJsonAccept_stillStreams() throws Exception {
-        doAnswer(invocation -> {
-            ResultCallback<ChatMessageVO> callback = invocation.getArgument(2);
-            callback.onError(new RateLimitException("rate limit hit"));
-            return null;
-        })
-                .when(chatService).chatMessageAsync(any(ChatParams.class), any(ChatState.class), any());
+        when(chatService.chatMessageAsync(any(ChatParams.class), any(ChatState.class), any()))
+                .thenAnswer(invocation -> {
+                    ResultCallback<ChatMessageVO> callback = invocation.getArgument(2);
+                    callback.onError(new RateLimitException("rate limit hit"));
+                    return CompletableFuture.completedFuture(null);
+                });
 
         MvcResult sync = mvc.perform(post("/chat/api/app-1/chat/completions")
                         .accept(MediaType.APPLICATION_JSON)

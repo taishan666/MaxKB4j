@@ -142,9 +142,9 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
      * 约定：下层（pipeline/workflow）不得先向 sink emit 错误再抛异常，否则会重复收尾。
      * </p>
      */
-    public void chatMessageAsync(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback) {
+    public CompletableFuture<Void> chatMessageAsync(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback) {
         ResultCallback<ChatMessageVO> safeCallback = callback != null ? callback : ResultCallback.noop();
-        CompletableFuture
+        return CompletableFuture
                 .runAsync(() -> chatMessage(chatParams, chatState, safeCallback), chatTaskExecutor)
                 .whenComplete((ignored, throwable) -> {
                     if (throwable == null) {

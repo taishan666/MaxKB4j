@@ -34,7 +34,9 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
-    validate-on-migrate: false
+    # 校验已应用迁移的 checksum。V6/V7 曾在发布后被就地修改（dea67dd25 / 391b27ae8 / 6daef79b4），
+    # 旧库升级到本版本时如出现 checksum 不一致，需先执行 flyway repair 修正历史记录，再启动应用。
+    validate-on-migrate: true
     locations: classpath:db/migration
   data:
     mongodb:

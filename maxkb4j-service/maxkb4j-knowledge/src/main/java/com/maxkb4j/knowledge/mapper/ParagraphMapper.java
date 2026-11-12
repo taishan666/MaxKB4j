@@ -21,4 +21,6 @@ public interface ParagraphMapper extends BaseMapper<ParagraphEntity> {
     List<ParagraphEntity> listByStateIds(String docId, int fromIndex, List<String> stateList);
 
     List<String> listParagraphIdsByStates(String docId, int fromIndex, List<String> stateList);
+
+    int shiftPositions(String documentId, String knowledgeId, int fromPosition, int offset);
 }

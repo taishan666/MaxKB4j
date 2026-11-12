@@ -167,11 +167,8 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
 
     @Transactional(rollbackFor = Exception.class)
     public boolean save(ParagraphEntity paragraph) {
-        List<ParagraphEntity> list = this.lambdaQuery().eq(ParagraphEntity::getKnowledgeId, paragraph.getKnowledgeId()).eq(ParagraphEntity::getDocumentId, paragraph.getDocumentId()).list();
-        List<ParagraphEntity> updateList = list.stream().filter(e -> e.getPosition() >= paragraph.getPosition()).peek(e -> e.setPosition(e.getPosition() + 1)).toList();
-        if (!CollectionUtils.isEmpty(updateList)) {
-            super.updateBatchById(updateList);
-        }
+        // 集合并更新：仅将 position >= 新位置的段落整体后移，避免读取全部段落并逐条更新
+        baseMapper.shiftPositions(paragraph.getDocumentId(), paragraph.getKnowledgeId(), paragraph.getPosition(), 1);
         return super.save(paragraph);
     }
 

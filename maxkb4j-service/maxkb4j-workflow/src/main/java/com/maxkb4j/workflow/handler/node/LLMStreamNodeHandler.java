@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.common.util.MimeTypeUtils;
+import com.maxkb4j.common.util.StreamTextAccumulator;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AiChatMemory;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
@@ -28,7 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 import static org.springframework.web.util.UriUtils.extractFileExtension;
@@ -142,15 +142,15 @@ public abstract class LLMStreamNodeHandler extends StreamNodeHandler {
      * 并构造 {@link NodeResult}。
      *
      * @param tokenUsage     token费用
-     * @param reasoningTexts    累积的思考文本
-     * @param answerTexts       累积的答案文本
-     * @param node         节点实例
+     * @param reasoningText 思考文本累积器
+     * @param answerText    答案文本累积器
+     * @param node          节点实例
      * @return 节点执行结果
      */
-    protected NodeResult handleChatResponse(TokenUsage tokenUsage, List<String> reasoningTexts, List<String> answerTexts, AbsNode node) {
+    protected NodeResult handleChatResponse(TokenUsage tokenUsage, StreamTextAccumulator reasoningText, StreamTextAccumulator answerText, AbsNode node) {
         recordTokenUsage(node, tokenUsage);
-        String reasoning = String.join("", reasoningTexts);
-        String answer = String.join("", answerTexts);
+        String reasoning = reasoningText.toString();
+        String answer = answerText.toString();
         return new NodeResult(Map.of(
                 NodeField.ANSWER, answer,
                 NodeField.REASONING_CONTENT, reasoning,
@@ -193,11 +193,11 @@ public abstract class LLMStreamNodeHandler extends StreamNodeHandler {
                 NodeField.IS_RESULT, options.isResult(),
                 NodeField.REASONING_CONTENT_ENABLE, options.reasoningContentEnable()
         ));
-        List<String> answerTexts = new CopyOnWriteArrayList<>();
-        List<String> reasoningTexts = new CopyOnWriteArrayList<>();
+        StreamTextAccumulator answerText = new StreamTextAccumulator();
+        StreamTextAccumulator reasoningText = new StreamTextAccumulator();
         CompletableFuture<NodeResult> resultFuture = new CompletableFuture<>();
         tokenStream.onPartialThinking(thinking -> {
-                    reasoningTexts.add(thinking.text());
+                    reasoningText.append(thinking.text());
                     if (options.isResult() && options.reasoningContentEnable()) {
                         emitMessage(workflow, node, "", thinking.text());
                     }
@@ -209,7 +209,7 @@ public abstract class LLMStreamNodeHandler extends StreamNodeHandler {
                 })
                 .onToolExecuted(toolExecute -> {
                     String toolMessage = onToolExecuted(toolExecute, workflow, node);
-                    answerTexts.add(toolMessage);
+                    answerText.append(toolMessage);
                     if (options.isResult() && options.toolOutputEnable()) {
                         if (toolMessage != null && !toolMessage.isEmpty()) {
                             emitMessage(workflow, node, toolMessage, toolMessage);
@@ -217,12 +217,12 @@ public abstract class LLMStreamNodeHandler extends StreamNodeHandler {
                     }
                 })
                 .onPartialResponse(content -> {
-                    answerTexts.add(content);
+                    answerText.append(content);
                     if (options.isResult()) {
                         emitMessage(workflow, node, content, "");
                     }
                 })
-                .onCompleteResponse(response -> resultFuture.complete(handleChatResponse(response.tokenUsage(), reasoningTexts,answerTexts, node))).onError(resultFuture::completeExceptionally)
+                .onCompleteResponse(response -> resultFuture.complete(handleChatResponse(response.tokenUsage(), reasoningText, answerText, node))).onError(resultFuture::completeExceptionally)
                 .start();
         return resultFuture;
     }

@@ -7,6 +7,7 @@ import com.maxkb4j.application.pipeline.step.chatstep.AbsChatStep;
 import com.maxkb4j.application.service.IApplicationLongTermMemoryService;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.common.mp.entity.KnowledgeSetting;
+import com.maxkb4j.common.util.StreamTextAccumulator;
 import com.maxkb4j.core.assistant.Assistant;
 import com.maxkb4j.core.langchain4j.AiChatMemory;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
@@ -28,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -127,15 +127,15 @@ public class ChatStep extends AbsChatStep {
         boolean reasoningEnable = modelSetting != null && Boolean.TRUE.equals(modelSetting.getReasoningContentEnable());
         boolean toolOutputEnable = Boolean.TRUE.equals(application.getToolOutputEnable());
         CompletableFuture<ChatResponse> future = new CompletableFuture<>();
-        List<String> answerTexts = new CopyOnWriteArrayList<>();
-        List<String> reasoningTexts = new CopyOnWriteArrayList<>();
+        StreamTextAccumulator answerText = new StreamTextAccumulator();
+        StreamTextAccumulator reasoningText = new StreamTextAccumulator();
         AtomicBoolean cancelled = new AtomicBoolean(false);
         TokenStream tokenStream = assistant.chatStream(userPrompt);
         // 完成后释放线程；超时置 cancelled 后各回调不再向 sink 推送
         tokenStream.onPartialThinking(thinking -> {
                     if (reasoningEnable && !cancelled.get()) {
                         emit(manage, chatId, chatRecordId, "", thinking.text(),false);
-                        reasoningTexts.add(thinking.text());
+                        reasoningText.append(thinking.text());
                     }
                 })
                 .onPartialResponse(text -> {
@@ -143,7 +143,7 @@ public class ChatStep extends AbsChatStep {
                         return;
                     }
                     emit(manage, chatId, chatRecordId, text, "",false);
-                    answerTexts.add(text);
+                    answerText.append(text);
                 })
                 .beforeToolExecution(toolExecute -> {
                     if (toolOutputEnable && !cancelled.get()) {
@@ -156,13 +156,13 @@ public class ChatStep extends AbsChatStep {
                     }
                     String toolText = toolFormatterService.format(toolExecute);
                     emit(manage, chatId, chatRecordId, toolText, "",false);
-                    answerTexts.add(toolText);
+                    answerText.append(toolText);
                 })
                 .onCompleteResponse(future::complete)
                 .onError(future::completeExceptionally)
                 .start();
         ChatResponse response = awaitResponse(future, cancelled, chatId, chatRecordId);
-        return new StreamResult(response, String.join("", answerTexts), String.join("", reasoningTexts));
+        return new StreamResult(response, answerText.toString(), reasoningText.toString());
     }
 
     /**
