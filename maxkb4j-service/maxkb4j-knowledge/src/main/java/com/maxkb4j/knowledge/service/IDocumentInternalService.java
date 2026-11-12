@@ -22,7 +22,7 @@ public interface IDocumentInternalService extends IService<DocumentEntity> {
 
     boolean embedByDocIds(String knowledgeId, List<String> docIds, List<String> stateList);
 
-    boolean cancelTask(String docId, DocumentEntity doc);
+    boolean cancelTask(String docId, int taskType);
 
     DocumentEntity updateAndGetById(String docId, DocumentEntity documentEntity);
 

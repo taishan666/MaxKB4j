@@ -135,9 +135,7 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{docId}/cancel_task")
     public R<Boolean> cancelTask(@PathVariable String id, @PathVariable("docId") String docId, @Valid @RequestBody DocumentTaskCancelDTO dto) {
-        DocumentEntity documentEntity = new DocumentEntity();
-        documentEntity.setType(dto.getType());
-        return R.status(documentService.cancelTask(docId, documentEntity));
+        return R.status(documentService.cancelTask(docId, dto.getType()));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)

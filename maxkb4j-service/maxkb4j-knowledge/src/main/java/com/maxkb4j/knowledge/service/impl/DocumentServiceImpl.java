@@ -3,6 +3,8 @@ package com.maxkb4j.knowledge.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.maxkb4j.knowledge.consts.TaskStatus;
+import com.maxkb4j.knowledge.consts.TaskType;
 import com.maxkb4j.knowledge.dto.DatasetBatchHitHandlingDTO;
 import com.maxkb4j.knowledge.dto.DocQuery;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
@@ -116,16 +118,18 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
         return true;
     }
 
-    public boolean cancelTask(String docId, DocumentEntity doc) {
+    public boolean cancelTask(String docId, int taskType) {
         DocumentEntity entity = baseMapper.selectById(docId);
         if (entity == null) return false;
         String status = entity.getStatus();
         if (status == null || status.length() < 3) return false;
         StringBuilder newStatus = new StringBuilder(status);
-        if (doc.getType() == 1) {
-            newStatus.setCharAt(2, '3'); // 向量化取消
-        } else if (doc.getType() == 2) {
-            newStatus.setCharAt(1, '3'); // 问题生成取消
+        if (taskType == TaskType.EMBEDDING) {
+            newStatus.setCharAt(2, (char) TaskStatus.FAILURE); // 向量化取消
+        } else if (taskType == TaskType.GENERATE_PROBLEM) {
+            newStatus.setCharAt(1, (char) TaskStatus.FAILURE); // 问题生成取消
+        }else if (taskType == TaskType.SYNC) {
+            newStatus.setCharAt(0, (char) TaskStatus.FAILURE); // 问题生成取消
         }
         entity.setStatus(newStatus.toString());
         return this.updateById(entity);
