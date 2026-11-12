@@ -5,8 +5,10 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -27,6 +29,13 @@ public class SkillsToolUtil {
      */
     public static final String SKILL_MD = "skill.md";
 
+    private static final int MAX_ENTRY_COUNT = 1000;
+    private static final int BUFFER_SIZE = 8192;
+    private static final long MAX_UNCOMPRESSED_SIZE = 100L * 1024 * 1024;
+    private static final long MAX_ENTRY_SIZE = MAX_UNCOMPRESSED_SIZE;
+    private static final long MAX_COMPRESSED_SIZE = MAX_UNCOMPRESSED_SIZE;
+    private static final long MAX_SKILL_MD_SIZE = 1024 * 1024;
+
     @Getter
     private final static Path skillsFolder = Paths.get("skills");
 
@@ -42,18 +51,15 @@ public class SkillsToolUtil {
             throw new ApiException("tool.skill.directory.create.failed", e.getMessage());
         }
         byte[] zipBytes;
-        try {
-            zipBytes = is.readAllBytes();
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            copyBounded(is, output, MAX_COMPRESSED_SIZE, MAX_COMPRESSED_SIZE);
+            zipBytes = output.toByteArray();
         } catch (IOException e) {
             throw new ApiException("tool.skill.zip.extract.failed");
         }
 
-        // ZIP 炸弹防护：限制解压条目数和总解压大小
-        final int MAX_ENTRY_COUNT = 1000;
-        final long MAX_UNCOMPRESSED_SIZE = 100 * 1024 * 1024; // 100MB
         long totalUncompressedSize = 0;
         int entryCount = 0;
-
         String rootFolderName = null;
         Set<String> topLevelFolders = new HashSet<>();
         Set<String> topLevelFiles = new HashSet<>();
@@ -64,13 +70,6 @@ public class SkillsToolUtil {
                 if (entryCount > MAX_ENTRY_COUNT) {
                     throw new ApiException("tool.skill.zip.too.many.entries");
                 }
-                long entrySize = entry.getSize();
-                if (entrySize > 0) {
-                    totalUncompressedSize += entrySize;
-                    if (totalUncompressedSize > MAX_UNCOMPRESSED_SIZE) {
-                        throw new ApiException("tool.skill.zip.size.exceeded");
-                    }
-                }
                 String entryName = entry.getName();
                 int separatorIndex = entryName.indexOf('/');
                 if (separatorIndex > 0) {
@@ -78,6 +77,8 @@ public class SkillsToolUtil {
                 } else if (!entry.isDirectory()) {
                     topLevelFiles.add(entryName);
                 }
+                totalUncompressedSize += copyBounded(zis, OutputStream.nullOutputStream(),
+                        MAX_ENTRY_SIZE, MAX_UNCOMPRESSED_SIZE - totalUncompressedSize);
                 zis.closeEntry();
             }
         } catch (IOException e) {
@@ -87,6 +88,7 @@ public class SkillsToolUtil {
             rootFolderName = topLevelFolders.iterator().next();
         }
 
+        totalUncompressedSize = 0;
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
@@ -107,7 +109,11 @@ public class SkillsToolUtil {
                     Files.createDirectories(targetPath);
                 } else {
                     Files.createDirectories(targetPath.getParent());
-                    Files.copy(zis, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                    try (OutputStream output = Files.newOutputStream(targetPath,
+                            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+                        totalUncompressedSize += copyBounded(zis, output,
+                                MAX_ENTRY_SIZE, MAX_UNCOMPRESSED_SIZE - totalUncompressedSize);
+                    }
                 }
                 zis.closeEntry();
             }
@@ -146,12 +152,22 @@ public class SkillsToolUtil {
      * @return SKILL.md 内容；未找到返回 null；entry 名无法按该字符集解码时返回 null（由调用方回退重试）
      */
     private static String readSkillMd(byte[] zipBytes, Charset charset) {
+        long totalUncompressedSize = 0;
+        int entryCount = 0;
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes), charset)) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                if (!entry.isDirectory() && isSkillMdEntry(entry.getName())) {
-                    return new String(zis.readAllBytes(), StandardCharsets.UTF_8);
+                entryCount++;
+                if (entryCount > MAX_ENTRY_COUNT) {
+                    throw new ApiException("tool.skill.zip.too.many.entries");
                 }
+                if (!entry.isDirectory() && isSkillMdEntry(entry.getName())) {
+                    ByteArrayOutputStream output = new ByteArrayOutputStream();
+                    copyBounded(zis, output, MAX_SKILL_MD_SIZE, MAX_UNCOMPRESSED_SIZE - totalUncompressedSize);
+                    return new String(output.toByteArray(), StandardCharsets.UTF_8);
+                }
+                totalUncompressedSize += copyBounded(zis, OutputStream.nullOutputStream(),
+                        MAX_ENTRY_SIZE, MAX_UNCOMPRESSED_SIZE - totalUncompressedSize);
                 zis.closeEntry();
             }
         } catch (IOException e) {
@@ -161,6 +177,21 @@ public class SkillsToolUtil {
             return null;
         }
         return null;
+    }
+
+    private static long copyBounded(InputStream input, OutputStream output,
+                                    long maxEntrySize, long remainingTotalSize) throws IOException {
+        long entrySize = 0;
+        byte[] buffer = new byte[BUFFER_SIZE];
+        int read;
+        while ((read = input.read(buffer)) != -1) {
+            if (read > maxEntrySize - entrySize || read > remainingTotalSize - entrySize) {
+                throw new ApiException("tool.skill.zip.size.exceeded");
+            }
+            output.write(buffer, 0, read);
+            entrySize += read;
+        }
+        return entrySize;
     }
 
     /**

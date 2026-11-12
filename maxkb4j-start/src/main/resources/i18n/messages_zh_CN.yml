@@ -137,6 +137,11 @@ tool:
       entry:
         outside:
           target: Zip条目位于目标目录之外：{0}
+      size:
+        exceeded: 技能压缩包解压后大小超出限制
+      too:
+        many:
+          entries: 技能压缩包条目数量超出限制
       extract:
         failed: 技能压缩包解压失败
     file:

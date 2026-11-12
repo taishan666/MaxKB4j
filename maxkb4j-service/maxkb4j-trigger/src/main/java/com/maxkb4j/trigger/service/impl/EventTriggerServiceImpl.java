@@ -97,13 +97,22 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
                 throw new ApiException("trigger.schedule.type.required");
             }
         }
-        dto.setUserId(userContext.getUserId());
         Date now = new Date();
         boolean isEditValue = Boolean.TRUE.equals(isEdit);
-        if (!isEditValue) {
+        if (isEditValue) {
+            EventTriggerEntity existing = this.getById(dto.getId());
+            if (existing == null) {
+                throw new ApiException("common.record.not.exists");
+            }
+            dto.setUserId(existing.getUserId());
+            dto.setCreateTime(existing.getCreateTime());
+            dto.setWorkspaceId(existing.getWorkspaceId());
+        } else {
+            dto.setId(null);
+            dto.setUserId(userContext.getUserId());
             dto.setCreateTime(now);
+            dto.setWorkspaceId(AppConst.DEFAULT_WORKSPACE_ID);
         }
-        dto.setWorkspaceId(AppConst.DEFAULT_WORKSPACE_ID);
         dto.setUpdateTime(now);
         this.saveOrUpdate(dto);
         if (dto.getTriggerTask() != null) {
@@ -116,10 +125,8 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
                     continue;
                 }
                 EventTriggerTaskEntity ett = new EventTriggerTaskEntity();
-                if (!isEditValue) {
-                    ett.setId(null);
-                    ett.setCreateTime(now);
-                }
+                ett.setId(null);
+                ett.setCreateTime(now);
                 ett.setTriggerId(dto.getId());
                 ett.setIsActive(dto.getIsActive());
                 ett.setSourceType(item.getSourceType());
@@ -130,19 +137,49 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
                 resList.add(ett);
             }
             if (!resList.isEmpty()) {
-                eventTriggerTaskService.saveOrUpdateBatch(resList);
+                eventTriggerTaskService.saveBatch(resList);
             }
         }
         EventTriggerEntity savedTrigger = this.getById(dto.getId());
-        // 重新调度定时触发器
-        if (TriggerType.SCHEDULED.name().equals(savedTrigger.getTriggerType())) {
+        if (savedTrigger != null && TriggerType.SCHEDULED.name().equals(savedTrigger.getTriggerType())) {
             triggerSchedulerProvider.getObject().rescheduleTrigger(savedTrigger);
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public void saveTriggerBySource(EventTriggerDTO dto, Boolean isEdit, String sourceType, String sourceId) {
+        boolean containsSource = dto != null && dto.getTriggerTask() != null && dto.getTriggerTask().stream()
+                .anyMatch(task -> task != null && sourceType.equals(task.getSourceType()) && sourceId.equals(task.getSourceId()));
+        if (!containsSource) {
+            throw new ApiException("common.illegal.argument");
+        }
+        saveTrigger(dto, isEdit);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean batchActivate(String id, Boolean isActive) {
+        if (StringUtils.isBlank(id)) {
+            return false;
+        }
+        return batchActivateInternal(id, isActive);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean batchActivate(List<String> idList, Boolean isActive) {
+        if (idList == null || idList.isEmpty()) {
+            return true;
+        }
+        boolean allSuccess = true;
+        for (String id : idList) {
+            allSuccess = batchActivateInternal(id, isActive) && allSuccess;
+        }
+        return allSuccess;
+    }
+
+    private boolean batchActivateInternal(String id, Boolean isActive) {
         if (StringUtils.isBlank(id)) {
             return false;
         }
@@ -182,10 +219,37 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
         if (StringUtils.isBlank(id)) {
             return false;
         }
-        // 取消调度
+        return deleteTriggerInternal(id);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteBatch(List<String> idList) {
+        if (idList == null || idList.isEmpty()) {
+            return true;
+        }
+        boolean allSuccess = true;
+        for (String id : idList) {
+            allSuccess = deleteTriggerInternal(id) && allSuccess;
+        }
+        return allSuccess;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteTriggerBySource(String id, String sourceType, String sourceId) {
+        if (findSourceTask(id, sourceType, sourceId).isEmpty()) {
+            return false;
+        }
+        return deleteTrigger(id);
+    }
+
+    private boolean deleteTriggerInternal(String id) {
+        if (StringUtils.isBlank(id)) {
+            return false;
+        }
         triggerSchedulerProvider.getObject().cancelSchedule(id);
         this.removeById(id);
-        // 同时删除关联的任务
         LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
         wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, id);
         eventTriggerTaskService.remove(wrapperTask);
@@ -215,21 +279,19 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
         if (entity == null) {
             return null;
         }
-        SourceEventTriggerVO vo = BeanUtil.copy(entity, SourceEventTriggerVO.class);
-        LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
-        wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, id);
-        List<EventTriggerTaskEntity> allTasks = eventTriggerTaskService.list(wrapperTask);
-        Optional<EventTriggerTaskEntity> sourceTask = allTasks.stream().filter(task -> sourceType.equals(task.getSourceType()) && sourceId.equals(task.getSourceId())).findFirst();
-        if (sourceTask.isPresent()) {
-            if (ResourceType.APPLICATION.equals(sourceType)) {
-                ApplicationVO app = applicationService.getDtoById(sourceTask.get().getSourceId());
-                vo.setApplicationTask(BeanUtil.copy(app, ApplicationTaskVO.class));
-            } else if (ResourceType.TOOL.equals(sourceType)) {
-                ToolDTO tool = toolService.getDtoById(sourceTask.get().getSourceId());
-                vo.setToolTask(BeanUtil.copy(tool, ToolTaskVO.class));
-            }
-            vo.setTriggerTask(sourceTask.get());
+        Optional<EventTriggerTaskEntity> sourceTask = findSourceTask(id, sourceType, sourceId);
+        if (sourceTask.isEmpty()) {
+            return null;
         }
+        SourceEventTriggerVO vo = BeanUtil.copy(entity, SourceEventTriggerVO.class);
+        if (ResourceType.APPLICATION.equals(sourceType)) {
+            ApplicationVO app = applicationService.getDtoById(sourceId);
+            vo.setApplicationTask(BeanUtil.copy(app, ApplicationTaskVO.class));
+        } else {
+            ToolDTO tool = toolService.getDtoById(sourceId);
+            vo.setToolTask(BeanUtil.copy(tool, ToolTaskVO.class));
+        }
+        vo.setTriggerTask(sourceTask.get());
         return vo;
     }
 
@@ -245,8 +307,16 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
         if (allTasks == null || allTasks.isEmpty()) {
             return List.of();
         }
-        // 批量查询避免N+1问题
         List<String> triggerIds = allTasks.stream().map(EventTriggerTaskEntity::getTriggerId).distinct().toList();
         return this.lambdaQuery().in(EventTriggerEntity::getId, triggerIds).eq(EventTriggerEntity::getIsActive, true).list();
     }
+
+    private Optional<EventTriggerTaskEntity> findSourceTask(String id, String sourceType, String sourceId) {
+        LambdaQueryWrapper<EventTriggerTaskEntity> wrapperTask = Wrappers.lambdaQuery();
+        wrapperTask.eq(EventTriggerTaskEntity::getTriggerId, id);
+        wrapperTask.eq(EventTriggerTaskEntity::getSourceType, sourceType);
+        wrapperTask.eq(EventTriggerTaskEntity::getSourceId, sourceId);
+        return eventTriggerTaskService.list(wrapperTask).stream().findFirst();
+    }
+
 }

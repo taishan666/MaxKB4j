@@ -15,9 +15,17 @@ public interface IEventTriggerService extends IService<EventTriggerEntity> {
 
     void saveTrigger(EventTriggerDTO dto, Boolean isEdit);
 
+    void saveTriggerBySource(EventTriggerDTO dto, Boolean isEdit, String sourceType, String sourceId);
+
     boolean batchActivate(String id, Boolean isActive);
 
+    boolean batchActivate(List<String> idList, Boolean isActive);
+
     boolean deleteTrigger(String id);
+
+    boolean deleteBatch(List<String> idList);
+
+    boolean deleteTriggerBySource(String id, String sourceType, String sourceId);
 
     EventTriggerVO getDetailById(String id);
 

@@ -137,6 +137,11 @@ tool:
       entry:
         outside:
           target: "Zip entry is outside target directory: {0}"
+      size:
+        exceeded: Extracted skill zip size exceeds the limit
+      too:
+        many:
+          entries: Skill zip entry count exceeds the limit
       extract:
         failed: Failed to extract skill zip file
     file:
