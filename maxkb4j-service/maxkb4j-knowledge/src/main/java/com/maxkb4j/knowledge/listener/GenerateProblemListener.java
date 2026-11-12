@@ -1,6 +1,8 @@
 package com.maxkb4j.knowledge.listener;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.maxkb4j.knowledge.consts.TaskStatus;
+import com.maxkb4j.knowledge.consts.TaskType;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.event.GenerateProblemEvent;
@@ -36,21 +38,21 @@ public class GenerateProblemListener {
         log.info("收到问题生成事件消息: {}", event.getDocumentIdList());
         ChatModel chatModel = modelFactory.buildChatModel(event.getModelId(), event.getModelParamsSetting());
         EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
-        documentService.updateStatusByIds(event.getDocumentIdList(), 2, 0);
+        documentService.updateStatusByIds(event.getDocumentIdList(), TaskType.GENERATE_PROBLEM, TaskStatus.PENDING);
         List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, event.getKnowledgeId()).list();
         for (String docId : event.getDocumentIdList()) {
             try {
-                List<String> paragraphIds = paragraphService.listParagraphIdsByStates(docId, 2, event.getStateList());
+                List<String> paragraphIds = paragraphService.listParagraphIdsByStates(docId, TaskType.GENERATE_PROBLEM, event.getStateList());
                 if (CollectionUtils.isNotEmpty(paragraphIds)) {
                     log.info("开始--->文档问题生成:{}", docId);
                     //重置完成分段数量
-                    paragraphService.updateStatusByIds(paragraphIds, 2, 1);
-                    documentService.updateStatusById(docId, 2, 1);
+                    paragraphService.updateStatusByIds(paragraphIds, TaskType.GENERATE_PROBLEM, TaskStatus.STARTED);
+                    documentService.updateStatusById(docId, TaskType.GENERATE_PROBLEM, TaskStatus.STARTED);
                     List<ParagraphEntity> paragraphs = paragraphService.listByIds(paragraphIds);
                     paragraphs.forEach(paragraph -> {
                         try {
                             problemService.generateRelated(chatModel, embeddingModel, event.getKnowledgeId(), docId, paragraph, knowledgeProblems, event.getNumber());
-                            paragraphService.updateStatusById(paragraph.getId(), 2, 2);
+                            paragraphService.updateStatusById(paragraph.getId(), TaskType.GENERATE_PROBLEM, TaskStatus.SUCCESS);
                             documentService.updateStatusMetaById(docId);
                         } catch (Exception e) {
                             log.error("段落问题生成失败: paragraphId={}, 错误: {}", paragraph.getId(), e.getMessage(), e);
@@ -58,7 +60,7 @@ public class GenerateProblemListener {
                     });
                     log.info("结束--->文档问题生成:{}", docId);
                 }
-                documentService.updateStatusById(docId, 2, 2);
+                documentService.updateStatusById(docId, TaskType.GENERATE_PROBLEM, TaskStatus.SUCCESS);
             } catch (Exception e) {
                 log.error("文档问题生成失败: docId={}, 错误: {}", docId, e.getMessage(), e);
             }

@@ -1,5 +1,7 @@
 package com.maxkb4j.knowledge.listener;
 
+import com.maxkb4j.knowledge.consts.TaskStatus;
+import com.maxkb4j.knowledge.consts.TaskType;
 import com.maxkb4j.knowledge.event.DocumentIndexEvent;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
 import com.maxkb4j.knowledge.service.ParagraphIndexBatchExecutor;
@@ -29,7 +31,7 @@ public class DocumentIndexListener {
     public void handleEvent(DocumentIndexEvent event) {
         log.info("收到文档向量化事件消息: {}", event.getDocIds());
         EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
-        documentService.updateStatusByIds(event.getDocIds(), 1, 0);
+        documentService.updateStatusByIds(event.getDocIds(), TaskType.EMBEDDING, TaskStatus.PENDING);
         for (String docId : event.getDocIds()) {
             try {
                 List<String> paragraphIds = paragraphService.listParagraphIdsByStates(docId, 1, event.getStateList());

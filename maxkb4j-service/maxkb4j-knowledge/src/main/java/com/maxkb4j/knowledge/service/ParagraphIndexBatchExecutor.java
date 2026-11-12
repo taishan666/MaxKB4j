@@ -2,6 +2,8 @@ package com.maxkb4j.knowledge.service;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.util.BatchUtil;
+import com.maxkb4j.knowledge.consts.TaskStatus;
+import com.maxkb4j.knowledge.consts.TaskType;
 import com.maxkb4j.knowledge.listener.DocumentIndexListener;
 import com.maxkb4j.knowledge.listener.ParagraphIndexListener;
 import com.maxkb4j.knowledge.consts.SourceType;
@@ -41,22 +43,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ParagraphIndexBatchExecutor {
 
-    /**
-     * status 状态串的索引维度
-     */
-    private static final int INDEX_TYPE = 1;
-    /**
-     * 待处理（可被重试流程重新拾起）
-     */
-    private static final int STATUS_PENDING = 0;
-    /**
-     * 处理中
-     */
-    private static final int STATUS_PROCESSING = 1;
-    /**
-     * 完成
-     */
-    private static final int STATUS_COMPLETED = 2;
 
     private final IDocumentInternalService documentService;
     private final IParagraphInternalService paragraphService;
@@ -76,31 +62,31 @@ public class ParagraphIndexBatchExecutor {
     public void indexBatch(EmbeddingModel embeddingModel, String knowledgeId, String docId, List<String> paragraphIds) {
         if (CollectionUtils.isEmpty(paragraphIds)) {
             // 无可索引段落，直接收敛到完成态，省去中间态写库
-            documentService.updateStatusById(docId, INDEX_TYPE, STATUS_COMPLETED);
+            documentService.updateStatusById(docId, TaskType.EMBEDDING, TaskStatus.SUCCESS);
             return;
         }
         if (embeddingModel == null) {
             // 未配置嵌入模型：文档回退待处理状态，交由重试流程在配置修复后拾起
-            documentService.updateStatusById(docId, INDEX_TYPE, STATUS_PENDING);
+            documentService.updateStatusById(docId, TaskType.EMBEDDING, TaskStatus.PENDING);
             log.warn("知识库 {} 未配置嵌入模型，文档 {} 索引跳过", knowledgeId, docId);
             return;
         }
 
         log.info("开始--->文档索引: {}", docId);
-        documentService.updateStatusById(docId, INDEX_TYPE, STATUS_PROCESSING);
+        documentService.updateStatusById(docId, TaskType.EMBEDDING, TaskStatus.STARTED);
         // 段落先统一置为待处理：中途失败或进程崩溃后仍能被重试流程拾起
-        updateParagraphStatus(paragraphIds, STATUS_PENDING);
+        updateParagraphStatus(paragraphIds, TaskStatus.PENDING);
 
         try {
             int indexedCount = createIndexBatch(knowledgeId, docId, paragraphIds, embeddingModel);
-            updateParagraphStatus(paragraphIds, STATUS_COMPLETED);
+            updateParagraphStatus(paragraphIds, TaskStatus.SUCCESS);
             // status_meta 聚合段落状态，必须在段落置为完成之后重算
             documentService.updateStatusMetaById(docId);
-            documentService.updateStatusById(docId, INDEX_TYPE, STATUS_COMPLETED);
+            documentService.updateStatusById(docId, TaskType.EMBEDDING, TaskStatus.SUCCESS);
             log.info("结束--->文档索引: {} (处理了 {} 个段落)", docId, indexedCount);
         } catch (Exception e) {
             // 段落与文档均保留为待处理状态以便重试，交由调用方记录日志
-            documentService.updateStatusById(docId, INDEX_TYPE, STATUS_PENDING);
+            documentService.updateStatusById(docId, TaskType.EMBEDDING, TaskStatus.FAILURE);
             throw new RuntimeException("文档索引失败: " + docId, e);
         }
     }
@@ -193,7 +179,7 @@ public class ParagraphIndexBatchExecutor {
      */
     private void updateParagraphStatus(List<String> paragraphIds, int status) {
         BatchUtil.protectBach(paragraphIds, ids -> {
-            paragraphService.updateStatusByIds(ids, INDEX_TYPE, status);
+            paragraphService.updateStatusByIds(ids, TaskType.EMBEDDING, status);
         });
     }
 }

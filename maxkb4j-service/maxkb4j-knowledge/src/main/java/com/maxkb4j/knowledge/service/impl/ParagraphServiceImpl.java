@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.knowledge.consts.TaskStatus;
+import com.maxkb4j.knowledge.consts.TaskType;
 import com.maxkb4j.knowledge.dto.ParagraphDTO;
 import com.maxkb4j.knowledge.dto.ProblemDTO;
 import com.maxkb4j.knowledge.event.GenerateProblemEvent;
@@ -226,7 +228,7 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
     public Boolean batchGenerateRelated(String knowledgeId, String docId, GenerateProblemDTO dto) {
-        this.updateStatusByIds(dto.getParagraphIdList(), 2, 0);
+        this.updateStatusByIds(dto.getParagraphIdList(), TaskType.GENERATE_PROBLEM, TaskStatus.PENDING);
         eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, List.of(docId), dto.getModelId(), dto.getModelParamsSetting(), dto.getNumber(), List.of("0")));
         return true;
     }
