@@ -27,24 +27,21 @@ public class ToolConnectionHandler {
             return false;
         }
         McpClient mcpClient = null;
-        boolean flag = false;
         try {
             mcpClient = McpToolUtil.getMcpClient(serverConfig);
             if (mcpClient != null) {
                 mcpClient.checkHealth();
-                flag = true;
+                return true;
             }
         } catch (Exception e) {
             log.warn("MCP服务器连接测试失败", e);
-        } finally {
             if (mcpClient != null) {
-                try {
-                    mcpClient.close();
-                } catch (Exception e) {
-                    log.warn("关闭MCP客户端时发生错误", e);
-                }
+                // 客户端由 McpToolUtil 缓存复用，此处不能 close——那会关闭缓存中的
+                // 共享实例且缓存条目仍在，导致相同配置的后续测试/调用一直报
+                // "The client is closed"；健康检查失败时驱逐即可，下次访问将重建连接
+                McpToolUtil.evict(mcpClient);
             }
         }
-        return flag;
+        return false;
     }
 }
