@@ -2,7 +2,6 @@ package com.maxkb4j.application.handler.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
@@ -19,9 +18,10 @@ import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Map;
@@ -50,22 +50,26 @@ public class ChatPostHandler implements PostResponseHandler {
         boolean debug = chatState.getDebug();
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
 
-        // 1. 构建对话记录并刷新缓存
-        ChatInfo chatInfo = ChatCache.get(chatId);
-        if (chatInfo == null) {
+        // 1. 构建对话记录
+        ChatInfo existing = ChatCache.get(chatId);
+        final ChatInfo chatInfo;
+        if (existing == null) {
+            // 缓存缺失：立即放入空容器供并发请求共享；记录本身待事务提交后再写入
             chatInfo = new ChatInfo(chatId, chatState.getAppId());
+            ChatCache.put(chatId, chatInfo);
+        } else {
+            chatInfo = existing;
         }
         ChatRecordDTO chatRecord = chatState.getChatRecord();
         ApplicationChatRecordEntity chatRecordEntity = buildChatRecordEntity(chatParams, chatResponse, runTime, chatInfo, chatRecord);
         ChatRecordDTO chatRecordDTO = BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
-        chatInfo.addChatRecord(chatRecordDTO);
-        ChatCache.put(chatId, chatInfo);
-        // 2. 持久化
+        // 2. 先持久化，缓存更新延后到事务提交：回滚时缓存中不留"幽灵回答"
         if (!debug) {
             // chatRecord == null 表示新增对话记录，chatRecord != null 表示补充/覆盖已有记录
             saveChat(chatId, chatState, chatInfo, chatParams.getMessage(), chatRecord == null);
             chatRecordService.saveOrUpdate(chatRecordEntity);
         }
+        registerAfterCommit(() -> chatInfo.addChatRecord(chatRecordDTO));
     }
 
     /**
@@ -105,8 +109,12 @@ public class ChatPostHandler implements PostResponseHandler {
     }
 
     /**
-     * 保存/更新会话：首次创建会话，已存在则原子自增记录数（不依赖缓存计数，避免缓存丢失后写错）；
-     * 仅新增对话记录时累加 chat_record_count，修改/覆盖已有记录时不重复计数
+     * 保存/更新会话：新会话插入，已存在则 chat_record_count 原子自增（不依赖缓存计数，避免缓存丢失后写错）；
+     * 仅新增对话记录时计数，修改/覆盖已有记录时不重复计数。
+     * <p>
+     * 单条 INSERT ... ON CONFLICT 原子完成"插入或自增"：PostgreSQL 中 INSERT 唯一键冲突会中止整个事务，
+     * 同一事务内 catch 后回退 UPDATE 无法执行（"current transaction is aborted"），故不能用"先查/先插、冲突再更新"的写法。
+     * </p>
      */
     private void saveChat(String chatId, ChatState chatState, ChatInfo chatInfo, String problemText, boolean isNewRecord) {
         // 补充/覆盖已存在的对话记录时，会话必然已创建，直接返回，避免重复累加 chat_record_count
@@ -115,13 +123,6 @@ public class ChatPostHandler implements PostResponseHandler {
         }
         // 原子自增，避免并发"读-改-写"丢失更新；统计行已由 visitCountOver 确保存在
         chatUserStatsService.incrementAccessNum(chatState.getChatUserId(), chatInfo.getAppId());
-        boolean chatExists = chatMapper.exists(Wrappers.<ApplicationChatEntity>lambdaQuery().eq(ApplicationChatEntity::getId, chatId));
-        if (chatExists) {
-            chatMapper.update(null, Wrappers.<ApplicationChatEntity>lambdaUpdate()
-                    .eq(ApplicationChatEntity::getId, chatId)
-                    .setSql("chat_record_count = chat_record_count + 1"));
-            return;
-        }
         ApplicationChatEntity chatEntity = new ApplicationChatEntity();
         chatEntity.setId(chatId);
         chatEntity.setApplicationId(chatInfo.getAppId());
@@ -139,13 +140,22 @@ public class ChatPostHandler implements PostResponseHandler {
         chatEntity.setMarkSum(0);
         chatEntity.setIpAddress(chatState.getIpAddress());
         chatEntity.setSource(new JSONObject(Map.of("type", chatState.getSource())));
-        try {
-            chatMapper.insert(chatEntity);
-        } catch (DuplicateKeyException e) {
-            // 并发下已被其他请求创建，退化为自增
-            chatMapper.update(null, Wrappers.<ApplicationChatEntity>lambdaUpdate()
-                    .eq(ApplicationChatEntity::getId, chatId)
-                    .setSql("chat_record_count = chat_record_count + 1"));
+        chatMapper.insertOrIncrementRecordCount(chatEntity);
+    }
+
+    /**
+     * 事务提交后再执行缓存写入，回滚时不留"幽灵回答"；无事务上下文时（如测试直调）立即执行
+     */
+    private void registerAfterCommit(Runnable action) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    action.run();
+                }
+            });
+        } else {
+            action.run();
         }
     }
 }

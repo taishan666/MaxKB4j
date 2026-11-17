@@ -153,4 +153,20 @@
         ORDER BY chat.id,record.create_time
     </select>
 
+    <!-- 原子 upsert：会话不存在则插入（chat_record_count = 1），已存在（含并发创建冲突）则 chat_record_count 原子 +1 -->
+    <insert id="insertOrIncrementRecordCount">
+        INSERT INTO application_chat (id, summary, application_id, chat_user_id, chat_user_type,
+        asker, meta, is_deleted, star_num, trample_num, chat_record_count, mark_sum, ip_address, source,
+        create_time, update_time)
+        VALUES (#{id}, #{summary}, #{applicationId}, #{chatUserId}, #{chatUserType},
+        #{asker, typeHandler=com.maxkb4j.common.typehandler.JSONBTypeHandler},
+        #{meta, typeHandler=com.maxkb4j.common.typehandler.JSONBTypeHandler},
+        #{isDeleted}, #{starNum}, #{trampleNum}, #{chatRecordCount}, #{markSum}, #{ipAddress},
+        #{source, typeHandler=com.maxkb4j.common.typehandler.JSONBTypeHandler},
+        NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET
+        chat_record_count = application_chat.chat_record_count + 1,
+        update_time = NOW()
+    </insert>
+
 </mapper>
