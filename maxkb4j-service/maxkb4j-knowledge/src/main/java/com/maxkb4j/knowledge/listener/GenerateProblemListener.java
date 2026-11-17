@@ -20,6 +20,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Component
@@ -49,20 +50,29 @@ public class GenerateProblemListener {
                     paragraphService.updateStatusByIds(paragraphIds, TaskType.GENERATE_PROBLEM, TaskStatus.STARTED);
                     documentService.updateStatusById(docId, TaskType.GENERATE_PROBLEM, TaskStatus.STARTED);
                     List<ParagraphEntity> paragraphs = paragraphService.listByIds(paragraphIds);
+                    AtomicInteger failureCount = new AtomicInteger(0);
                     paragraphs.forEach(paragraph -> {
                         try {
                             problemService.generateRelated(chatModel, embeddingModel, event.getKnowledgeId(), docId, paragraph, knowledgeProblems, event.getNumber());
                             paragraphService.updateStatusById(paragraph.getId(), TaskType.GENERATE_PROBLEM, TaskStatus.SUCCESS);
-                            documentService.updateStatusMetaById(docId);
                         } catch (Exception e) {
+                            failureCount.incrementAndGet();
                             log.error("段落问题生成失败: paragraphId={}, 错误: {}", paragraph.getId(), e.getMessage(), e);
+                            paragraphService.updateStatusById(paragraph.getId(), TaskType.GENERATE_PROBLEM, TaskStatus.FAILURE);
                         }
+                        documentService.updateStatusMetaById(docId);
                     });
                     log.info("结束--->文档问题生成:{}", docId);
+                    if (failureCount.get() > 0) {
+                        log.warn("文档问题生成存在失败分段: docId={}, 失败数量: {}/{}", docId, failureCount.get(), paragraphs.size());
+                        documentService.updateStatusById(docId, TaskType.GENERATE_PROBLEM, TaskStatus.FAILURE);
+                        continue;
+                    }
                 }
                 documentService.updateStatusById(docId, TaskType.GENERATE_PROBLEM, TaskStatus.SUCCESS);
             } catch (Exception e) {
                 log.error("文档问题生成失败: docId={}, 错误: {}", docId, e.getMessage(), e);
+                documentService.updateStatusById(docId, TaskType.GENERATE_PROBLEM, TaskStatus.FAILURE);
             }
         }
     }
