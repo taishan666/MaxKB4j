@@ -61,6 +61,9 @@ public class BeanUtil {
      * @return
      */
     public static <T> T copy(Object source, Class<T> target) {
+        if (source == null) {
+            return null;
+        }
         try {
             Constructor<T> constructor = target.getConstructor();
             // 使用构造函数实例化对象

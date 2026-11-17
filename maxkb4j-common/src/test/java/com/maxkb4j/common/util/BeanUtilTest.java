@@ -23,6 +23,12 @@ class BeanUtilTest {
     }
 
     @Test
+    void copy_nullSourceReturnsNullInsteadOfThrowing() {
+        // 无效令牌时查库结果为 null，copy 须返回 null 以便走鉴权失败流程，而不是抛异常导致 500
+        assertThat(BeanUtil.copy(null, Target.class)).isNull();
+    }
+
+    @Test
     void copyList_copiesAllElementsInOrder() {
         List<Target> result = BeanUtil.copyList(
                 List.of(new Source("a", 1), new Source("b", 2)), Target.class);
