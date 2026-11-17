@@ -114,6 +114,38 @@ class NodeLifecycleExecutorTest {
     }
 
     @Test
+    void executeShouldFallBackToStringWhenExceptionMessageIsNull() throws Exception {
+        AbsNode node = newNode("n1", new JSONObject());
+        NullPointerException noMessage = new NullPointerException();
+        when(nodeHandler.execute(workflow, node)).thenReturn(CompletableFuture.failedFuture(noMessage));
+
+        List<INode> nextNodes = executor.execute(workflow, node).join();
+
+        assertThat(nextNodes).isEmpty();
+        verify(listener).onNodeError(same(workflow), same(node), argThat(ex -> ex instanceof NullPointerException));
+        assertThat(node.getDetail())
+                .containsEntry(NodeField.EXCEPTION, "java.lang.NullPointerException");
+        verify(context).appendNode(node);
+    }
+
+    @Test
+    void executeShouldRouteToExceptionBranchWhenMessageIsNull() throws Exception {
+        JSONObject properties = new JSONObject();
+        properties.put(NodeField.ENABLE_EXCEPTION, true);
+        AbsNode node = newNode("n1", properties);
+        AbsNode branchNode = newNode("n2", new JSONObject());
+        when(nodeHandler.execute(workflow, node)).thenReturn(CompletableFuture.failedFuture(new NullPointerException()));
+        when(execution.nextNodes(same(node), any(NodeResult.class))).thenReturn(List.of(branchNode));
+
+        List<INode> nextNodes = executor.execute(workflow, node).join();
+
+        assertThat(nextNodes).containsExactly(branchNode);
+        verify(execution).nextNodes(same(node), argThat(result ->
+                NodeField.EXCEPTION.equals(result.getNodeVariable().get(NodeField.BRANCH_ID))
+                        && "java.lang.NullPointerException".equals(result.getNodeVariable().get(NodeField.EXCEPTION))));
+    }
+
+    @Test
     void executeShouldRouteToExceptionBranchWhenEnabled() throws Exception {
         JSONObject properties = new JSONObject();
         properties.put(NodeField.ENABLE_EXCEPTION, true);

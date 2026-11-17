@@ -124,15 +124,19 @@ public class NodeLifecycleExecutor<W extends IWorkflow> {
     /**
      * 失败完成：节点启用异常分支时路由到 exception 分支，
      * 否则经监听器上报异常并以空后继列表终止该分支。
+     * 异常消息可能为 null（如未携带消息的 NPE），回退到异常 toString，
+     * 避免写入 {@link Map#of} 时再次抛出 NPE 掩盖原始异常。
      */
     private List<INode> completeFailedNode(W workflow, AbsNode node, Throwable ex) {
-        listener.onNodeError(workflow, node, unwrapException(ex));
-        NodeResult result = new NodeResult(Map.of(NodeField.EXCEPTION, ex.getMessage()));
+        Exception cause = unwrapException(ex);
+        listener.onNodeError(workflow, node, cause);
+        String errorMessage = cause.getMessage() != null ? cause.getMessage() : cause.toString();
+        NodeResult result = new NodeResult(Map.of(NodeField.EXCEPTION, errorMessage));
         Boolean enableException = node.getProperties().getBoolean(NodeField.ENABLE_EXCEPTION);
         if (Boolean.TRUE.equals(enableException)) {
             result = new NodeResult(Map.of(
                     NodeField.BRANCH_ID, NodeField.EXCEPTION,
-                    NodeField.EXCEPTION, ex.getMessage()));
+                    NodeField.EXCEPTION, errorMessage));
             return workflow.execution().nextNodes(node, result);
         }
         writeResult(result, node, workflow);
