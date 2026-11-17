@@ -26,7 +26,7 @@
 </p>
 
 <p align="center">
-  🚀 <a href="#快速开始">快速开始</a> · 🌐 <a href="http://43.143.235.194:8080/">在线 Demo</a>（demo / demo@123456） · 📄 <a href="docs/MaxKB4j-商业价值白皮书.md">商业价值白皮书</a> · 🧪 <a href="docs/MaxKB4j-回归测试报告.md">回归测试报告</a> · 🗒️ <a href="CHANGELOG.md">更新日志</a> · 💖 <a href="#支持与赞助">支持项目</a>
+  ✨ <a href="#-核心能力">核心能力</a> · 🚀 <a href="#-快速开始">快速开始</a> · 🌐 <a href="http://43.143.235.194:8080/">在线 Demo</a>（demo / demo@123456） · 📄 <a href="#-文档与资源">文档</a> · 🗒️ <a href="CHANGELOG.md">更新日志</a> · 🤝 <a href="CONTRIBUTING.md">参与贡献</a>
 </p>
 
 ---
@@ -76,61 +76,94 @@
 
 ### 环境要求
 
-- Java 21+
-- PostgreSQL 12+（启用 pgvector 扩展）
-- MongoDB 6.0+（全文检索与文件存储）
+| 部署方式 | 依赖 |
+|:---|:---|
+| Docker 部署 | Docker、Docker Compose v2 |
+| 源码运行 | JDK 21+、Maven 3.6+、PostgreSQL 12+（启用 pgvector）、MongoDB 6.0+ |
 
 ### 方式一：Docker Compose（推荐）
 
+1. 在项目根目录创建 `.env` 文件，设置 JWT 密钥和初始管理员密码：
+
+   ```dotenv
+   # 生产环境请替换为至少 32 位的随机字符串
+   SA_TOKEN_JWT_SECRET_KEY=replace-with-a-random-secret-at-least-32-chars
+   SYSTEM_DEFAULT_PASSWORD=tarzan@123456
+   ```
+
+2. 启动并检查服务：
+
+   ```bash
+   docker compose up -d
+   docker compose ps
+   ```
+
+3. 访问 `http://localhost:8080/admin/login`，使用账号 `admin` 和上一步设置的密码登录。首次启动会自动初始化数据库。
+
 ```bash
-docker-compose up -d
+# 查看应用日志
+docker compose logs -f maxKB4j
+
+# 停止服务（保留数据库与上传文件）
+docker compose down
 ```
 
-启动后访问 `http://localhost:8080/admin/login`（默认账号 `admin` / 密码 `tarzan@123456`），首次启动自动初始化数据库。
+> 请勿将示例密钥或密码直接用于生产环境，并请在首次登录后修改管理员密码。
 
 ### 方式二：Docker 单容器
 
+适用于已有 PostgreSQL 和 MongoDB 的场景。以下示例通过 `host.docker.internal` 访问宿主机数据库，请按实际情况替换数据库地址、账号和密码：
+
 ```bash
 docker run --name maxkb4j -d --restart always -p 8080:8080 \
-  -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j \
+  --add-host=host.docker.internal:host-gateway \
+  -e SA_TOKEN_JWT_SECRET_KEY=replace-with-a-random-secret-at-least-32-chars \
+  -e SYSTEM_DEFAULT_PASSWORD=tarzan@123456 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/MaxKB4j \
   -e SPRING_DATASOURCE_USERNAME=postgres \
   -e SPRING_DATASOURCE_PASSWORD=123456 \
-  -e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin \
-  registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j
+  -e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@host.docker.internal:27017/MaxKB4j?authSource=admin \
+  registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:latest
 ```
 
 ### 方式三：一键安装脚本
 
-`deploy/` 目录提供交互式安装脚本，自动完成环境检查、镜像拉取 / 构建与 docker-compose 编排（Linux / macOS / Windows）：
+`deploy/` 目录提供交互式安装脚本，自动完成环境检查、镜像拉取 / 构建与 Docker Compose 编排：
 
 ```bash
 # Linux / macOS
 chmod +x deploy/install.sh
 ./deploy/install.sh
+
 # Windows
 deploy\install.bat
 ```
 
 ### 方式四：源码构建
 
+先启动数据库依赖，并在 `maxkb4j-start/src/main/resources/application-dev.yml` 中配置数据库连接：
+
 ```bash
+docker compose -f docker-compose.dev.yml up -d
 mvn clean package -DskipTests
-java -jar maxkb4j-start/target/maxkb4j-start.jar
+java -jar maxkb4j-start/target/maxkb4j-start.jar --spring.profiles.active=dev
 ```
 
-环境配置：`maxkb4j-start/src/main/resources/application-{dev,prod,test}.yml`，通过 `--spring.profiles.active=dev` 切换。
+运行前请设置 `SA_TOKEN_JWT_SECRET_KEY` 环境变量；如需修改默认管理员密码，可设置 `SYSTEM_DEFAULT_PASSWORD`。完整构建与测试命令参见 [贡献指南](CONTRIBUTING.md)。
 
 ### 部署到第三方平台
 
 支持 [一键部署到 Sealos](https://blog.csdn.net/weixin_40986713/article/details/156026021)（海外服务器、免网络代理、支持高并发与动态伸缩）。
 
 > 🎉 **部署成功了？**
-> 如果 MaxKB4j 为你节省了开发时间，欢迎 [请作者喝杯咖啡 ☕](#支持与赞助) —— 一杯咖啡即可解锁作者微信直连与核心交流群，部署问题群内实时答疑。
+> 如果 MaxKB4j 为你节省了开发时间，欢迎 [请作者喝杯咖啡 ☕](#-支持与赞助) —— 一杯咖啡即可解锁作者微信直连与核心交流群，部署问题群内实时答疑。
 
 ## 🌐 在线 Demo
 
 - 在线 Demo：http://43.143.235.194:8080/（账号 `demo` / 密码 `demo@123456`，普通用户权限）
-- 本地默认管理员：`admin` / `tarzan@123456`
+- 本地默认管理员：`admin` / `tarzan@123456`（可通过 `SYSTEM_DEFAULT_PASSWORD` 修改）
+
+<img src="image/maxkb4j.gif" alt="MaxKB4j 产品演示" />
 
 ## 🛠 技术栈与项目结构
 
@@ -236,7 +269,7 @@ MaxKB4j/
 如果这个项目帮到了你，欢迎用行动支持它：
 
 - ⭐ **点一个 Star** —— 让更多 Java 开发者看到它，10 秒钟，对我意义重大
-- 💖 **[请我喝杯咖啡](#支持与赞助)**（¥10 起）—— 即可解锁作者微信直连与核心交流群，你的赞助会变成服务器、Token 和咖啡因，让项目走得更远
+- 💖 **[请我喝杯咖啡](#-支持与赞助)**（¥10 起）—— 即可解锁作者微信直连与核心交流群，你的赞助会变成服务器、Token 和咖啡因，让项目走得更远
 
 开源不易，感谢每一份善意。🤝
 

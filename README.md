@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  🚀 <a href="#quick-start">Quick Start</a> · 🌐 <a href="http://43.143.235.194:8080/">Live Demo</a> (demo / demo@123456) · 🗒️ <a href="CHANGELOG.md">Changelog</a> · 📄 <a href="#documentation">Docs</a> · 🤝 <a href="CONTRIBUTING.md">Contributing</a>
+  ✨ <a href="#-key-capabilities">Key Capabilities</a> · 🚀 <a href="#-quick-start">Quick Start</a> · 🌐 <a href="http://43.143.235.194:8080/">Live Demo</a> (demo / demo@123456) · 📄 <a href="#-documentation">Docs</a> · 🗒️ <a href="CHANGELOG.md">Changelog</a> · 🤝 <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
 ---
@@ -79,52 +79,85 @@ Enterprises face four common challenges when adopting LLM applications, and MaxK
 
 ### Requirements
 
-- Java 21+
-- PostgreSQL 12+ (with pgvector extension enabled)
-- MongoDB 6.0+ (full-text search and file storage)
+| Deployment method | Dependencies |
+|:---|:---|
+| Docker | Docker and Docker Compose v2 |
+| Source | JDK 21+, Maven 3.6+, PostgreSQL 12+ (pgvector enabled), MongoDB 6.0+ |
 
 ### Option 1: Docker Compose (recommended)
 
+1. Create a `.env` file in the project root and set the JWT secret and initial admin password:
+
+   ```dotenv
+   # Replace both values before deploying to production
+   SA_TOKEN_JWT_SECRET_KEY=replace-with-a-random-secret-at-least-32-chars
+   SYSTEM_DEFAULT_PASSWORD=tarzan@123456
+   ```
+
+2. Start the services and check their status:
+
+   ```bash
+   docker compose up -d
+   docker compose ps
+   ```
+
+3. Open `http://localhost:8080/admin/login` and sign in as `admin` with the password configured above. The database
+   is initialized automatically on first startup.
+
 ```bash
-docker-compose up -d
+# Follow application logs
+docker compose logs -f maxKB4j
+
+# Stop services while preserving database and uploaded data
+docker compose down
 ```
 
-Then open `http://localhost:8080/admin/login` (default `admin` / `tarzan@123456`). The database is initialized
-automatically on first startup.
+> Do not use the example secret or password in production. Change the admin password after your first login.
 
 ### Option 2: Docker single container
 
+Use this option when PostgreSQL and MongoDB are already available. The example accesses databases on the host through
+`host.docker.internal`; replace the host, credentials, and database names with your actual values:
+
 ```bash
 docker run --name maxkb4j -d --restart always -p 8080:8080 \
-  -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/MaxKB4j \
+  --add-host=host.docker.internal:host-gateway \
+  -e SA_TOKEN_JWT_SECRET_KEY=replace-with-a-random-secret-at-least-32-chars \
+  -e SYSTEM_DEFAULT_PASSWORD=tarzan@123456 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/MaxKB4j \
   -e SPRING_DATASOURCE_USERNAME=postgres \
   -e SPRING_DATASOURCE_PASSWORD=123456 \
-  -e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@localhost:27017/MaxKB4j?authSource=admin \
-  registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j
+  -e SPRING_DATA_MONGODB_URI=mongodb://admin:123456@host.docker.internal:27017/MaxKB4j?authSource=admin \
+  registry.cn-hangzhou.aliyuncs.com/tarzanx/maxkb4j:latest
 ```
 
 ### Option 3: One-click install script
 
-Interactive installers in `deploy/` handle environment checks, image pulling / building, and docker-compose
-orchestration (Linux / macOS / Windows):
+Interactive installers in `deploy/` handle environment checks, image pulling / building, and Docker Compose
+orchestration:
 
 ```bash
 # Linux / macOS
 chmod +x deploy/install.sh
 ./deploy/install.sh
+
 # Windows
 deploy\install.bat
 ```
 
 ### Option 4: Build from source
 
+Start the database dependencies and configure their connections in
+`maxkb4j-start/src/main/resources/application-dev.yml`:
+
 ```bash
+docker compose -f docker-compose.dev.yml up -d
 mvn clean package -DskipTests
-java -jar maxkb4j-start/target/maxkb4j-start.jar
+java -jar maxkb4j-start/target/maxkb4j-start.jar --spring.profiles.active=dev
 ```
 
-Profiles: `maxkb4j-start/src/main/resources/application-{dev,prod}.yml`, switch with
-`--spring.profiles.active=dev`.
+Set the `SA_TOKEN_JWT_SECRET_KEY` environment variable before starting the application. To override the default admin
+password, set `SYSTEM_DEFAULT_PASSWORD`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full build and test commands.
 
 ### Deploy to cloud platforms
 
@@ -133,10 +166,10 @@ servers, no proxy needed, auto-scaling).
 
 ## 🌐 Live Demo
 
-- Live demo: http://43.143.235.194:8080/ (account `demo` / password `demo@123456`, normal-user permissions)
-- Local default admin: `admin` / `tarzan@123456`
+- Live demo: http://43.143.235.194:8080/ (account `demo` / password `demo@123456`, standard-user permissions)
+- Local default admin: `admin` / `tarzan@123456` (override with `SYSTEM_DEFAULT_PASSWORD`)
 
-<img src="image/maxkb4j.gif" alt="MaxKB4jUI" />
+<img src="image/maxkb4j.gif" alt="MaxKB4j product demo" />
 
 ## 🛠 Tech Stack & Project Structure
 
