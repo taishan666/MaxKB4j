@@ -23,7 +23,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -125,5 +129,51 @@ class ParagraphServiceImplSecurityTest {
         List<?> problems = paragraphService.getProblemsByParagraphId(KNOWLEDGE_ID, DOC_ID, FOREIGN_PARAGRAPH);
 
         assertTrue(problems.isEmpty());
+    }
+
+    @Test
+    void adjustPosition_negativeTargetIndex_returnsFalse() {
+        assertFalse(paragraphService.adjustPosition(KNOWLEDGE_ID, DOC_ID, OWNED_PARAGRAPH, 2, -1));
+        assertFalse(paragraphService.adjustPosition(KNOWLEDGE_ID, DOC_ID, OWNED_PARAGRAPH, 2, -5));
+
+        verify(paragraphMapper, never()).selectList(any(LambdaQueryWrapper.class));
+    }
+
+    @Test
+    void adjustPosition_invalidNewPosition_returnsFalse() {
+        assertFalse(paragraphService.adjustPosition(KNOWLEDGE_ID, DOC_ID, OWNED_PARAGRAPH, null, 1));
+        assertFalse(paragraphService.adjustPosition(KNOWLEDGE_ID, DOC_ID, OWNED_PARAGRAPH, 0, 1));
+    }
+
+    @Test
+    void adjustPosition_newPositionBeyondMax_clampsToMaxPosition() {
+        List<ParagraphEntity> paragraphs = new ArrayList<>(List.of(
+                paragraph("p1", 1), paragraph("p2", 2), paragraph("p3", 3)));
+        when(paragraphMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(paragraphs);
+        // 匿名子类拦截 updateBatchById，避免触碰 MyBatis-Plus 批处理会话（spy 会破坏实体类解析，不可用）
+        List<ParagraphEntity> captured = new ArrayList<>();
+        ParagraphServiceImpl service = new ParagraphServiceImpl(
+                problemService, problemParagraphService, compositeStore, documentMapper, eventPublisher) {
+            @Override
+            public boolean updateBatchById(Collection<ParagraphEntity> entityList) {
+                captured.addAll(entityList);
+                return true;
+            }
+        };
+        ReflectionTestUtils.setField(service, "baseMapper", paragraphMapper);
+
+        boolean result = service.adjustPosition(KNOWLEDGE_ID, DOC_ID, "p1", 99, 2);
+
+        assertTrue(result);
+        Map<String, Integer> positions = captured.stream()
+                .collect(Collectors.toMap(ParagraphEntity::getId, ParagraphEntity::getPosition));
+        assertEquals(Map.of("p1", 3, "p2", 1, "p3", 2), positions);
+    }
+
+    private static ParagraphEntity paragraph(String id, int position) {
+        ParagraphEntity entity = new ParagraphEntity();
+        entity.setId(id);
+        entity.setPosition(position);
+        return entity;
     }
 }

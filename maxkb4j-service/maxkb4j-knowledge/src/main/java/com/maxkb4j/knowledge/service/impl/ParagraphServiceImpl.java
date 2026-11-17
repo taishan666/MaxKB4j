@@ -294,16 +294,16 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
         if (newPosition == null || newPosition < 1) {
             return false;
         }
+        // targetIndex 为 0 起始索引，负数属于非法输入，直接拒绝
         if (targetIndex != null && targetIndex < 0) {
-            newPosition = targetIndex + 1;
+            return false;
         }
         // 2. 一次性查询所需数据，避免二次查库
-        List<ParagraphEntity> paragraphs = this.lambdaQuery()
+        List<ParagraphEntity> paragraphs = baseMapper.selectList(Wrappers.<ParagraphEntity>lambdaQuery()
                 .select(ParagraphEntity::getId, ParagraphEntity::getPosition)
                 .eq(ParagraphEntity::getKnowledgeId, knowledgeId)
                 .eq(ParagraphEntity::getDocumentId, documentId)
-                .orderByAsc(ParagraphEntity::getPosition)
-                .list();
+                .orderByAsc(ParagraphEntity::getPosition));
 
         if (CollectionUtils.isEmpty(paragraphs)) {
             return false;
@@ -326,11 +326,9 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
             return true;
         }
 
-        // 5. 边界检查：防止targetIndex超出实际段落范围
+        // 5. 边界检查：统一钳制到 1..maxPosition
         int maxPosition = paragraphs.size();
-        if (newPosition > maxPosition) {
-            newPosition = maxPosition;
-        }
+        newPosition = Math.max(1, Math.min(newPosition, maxPosition));
         if (oldPosition == newPosition) {
             return true;
         }
