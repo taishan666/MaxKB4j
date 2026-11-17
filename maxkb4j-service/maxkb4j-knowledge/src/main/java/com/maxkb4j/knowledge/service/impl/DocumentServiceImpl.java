@@ -1,6 +1,7 @@
 package com.maxkb4j.knowledge.service.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.knowledge.consts.TaskStatus;
@@ -25,7 +26,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -59,21 +62,26 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
         return this.lambdaQuery().eq(DocumentEntity::getKnowledgeId, id).list();
     }
 
+    public DocumentEntity getByKnowledgeIdAndId(String knowledgeId, String docId) {
+        return baseMapper.selectOne(
+                Wrappers.<DocumentEntity>lambdaQuery()
+                        .eq(DocumentEntity::getKnowledgeId, knowledgeId)
+                        .eq(DocumentEntity::getId, docId));
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public boolean batchHitHandling(String knowledgeId, DatasetBatchHitHandlingDTO dto) {
         List<String> ids = dto.getIdList();
         if (CollectionUtils.isEmpty(ids)) {
             return false;
         }
-        List<DocumentEntity> documentEntities = ids.stream().map(id -> {
-            DocumentEntity entity = new DocumentEntity();
-            entity.setId(id);
-            entity.setKnowledgeId(knowledgeId);
-            entity.setHitHandlingMethod(dto.getHitHandlingMethod());
-            entity.setDirectlyReturnSimilarity(dto.getDirectlyReturnSimilarity());
-            return entity;
-        }).collect(Collectors.toList());
-        return this.updateBatchById(documentEntities);
+        return baseMapper.update(null,
+                Wrappers.<DocumentEntity>lambdaUpdate()
+                        .eq(DocumentEntity::getKnowledgeId, knowledgeId)
+                        .in(DocumentEntity::getId, ids)
+                        .set(DocumentEntity::getHitHandlingMethod, dto.getHitHandlingMethod())
+                        .set(dto.getDirectlyReturnSimilarity() != null,
+                                DocumentEntity::getDirectlyReturnSimilarity, dto.getDirectlyReturnSimilarity())) > 0;
     }
 
     public List<String> getNoActiveDocIds(List<String> knowledgeIds) {
@@ -87,14 +95,18 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
 
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteDocByIds(String knowledgeId, List<String> docIds) {
-        if (CollectionUtils.isEmpty(docIds)) {
+        List<String> ownedDocIds = listOwnedDocIds(knowledgeId, docIds);
+        if (ownedDocIds.isEmpty()) {
             return false;
         }
-        problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, docIds).remove();
-        documentTagService.lambdaUpdate().in(DocumentTagEntity::getDocumentId, docIds).remove();
-        paragraphService.lambdaUpdate().in(ParagraphEntity::getDocumentId, docIds).remove();
-        compositeStore.deleteByDocumentIds(knowledgeId, docIds);
-        return this.lambdaUpdate().in(DocumentEntity::getId, docIds).remove();
+        problemParagraphService.lambdaUpdate().in(ProblemParagraphEntity::getDocumentId, ownedDocIds).remove();
+        documentTagService.lambdaUpdate().in(DocumentTagEntity::getDocumentId, ownedDocIds).remove();
+        paragraphService.lambdaUpdate().in(ParagraphEntity::getDocumentId, ownedDocIds).remove();
+        compositeStore.deleteByDocumentIds(knowledgeId, ownedDocIds);
+        return this.lambdaUpdate()
+                .eq(DocumentEntity::getKnowledgeId, knowledgeId)
+                .in(DocumentEntity::getId, ownedDocIds)
+                .remove();
     }
 
 
@@ -114,12 +126,13 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
     }
 
     public boolean embedByDocIds(String knowledgeId, List<String> docIds, List<String> stateList) {
-        publishDocumentIndexEvent(knowledgeId, docIds, stateList);
-        return true;
+        List<String> ownedDocIds = listOwnedDocIds(knowledgeId, docIds);
+        publishDocumentIndexEvent(knowledgeId, ownedDocIds, stateList);
+        return !ownedDocIds.isEmpty();
     }
 
-    public boolean cancelTask(String docId, int taskType) {
-        DocumentEntity entity = baseMapper.selectById(docId);
+    public boolean cancelTask(String knowledgeId, String docId, int taskType) {
+        DocumentEntity entity = getByKnowledgeIdAndId(knowledgeId, docId);
         if (entity == null) return false;
         String status = entity.getStatus();
         if (status == null || status.length() < 3) return false;
@@ -131,14 +144,20 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
         }else if (taskType == TaskType.SYNC) {
             newStatus.setCharAt(0, (char) TaskStatus.FAILURE); // 问题生成取消
         }
-        entity.setStatus(newStatus.toString());
-        return this.updateById(entity);
+        return baseMapper.update(null,
+                Wrappers.<DocumentEntity>lambdaUpdate()
+                        .eq(DocumentEntity::getKnowledgeId, knowledgeId)
+                        .eq(DocumentEntity::getId, docId)
+                        .set(DocumentEntity::getStatus, newStatus.toString())) > 0;
     }
 
-    public DocumentEntity updateAndGetById(String docId, DocumentEntity documentEntity) {
-        documentEntity.setId(docId);
-        this.updateById(documentEntity);
-        return this.getById(docId);
+    public DocumentEntity updateAndGetById(String knowledgeId, String docId, DocumentEntity documentEntity) {
+        documentEntity.setKnowledgeId(null);
+        int rows = baseMapper.update(documentEntity,
+                Wrappers.<DocumentEntity>lambdaUpdate()
+                        .eq(DocumentEntity::getKnowledgeId, knowledgeId)
+                        .eq(DocumentEntity::getId, docId));
+        return rows > 0 ? getByKnowledgeIdAndId(knowledgeId, docId) : null;
     }
 
 
@@ -156,8 +175,26 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
     }
 
     public boolean batchGenerateRelated(String knowledgeId, GenerateProblemDTO dto) {
-        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, dto.getDocumentIdList(), dto.getModelId(), dto.getModelParamsSetting(), dto.getNumber(), dto.getStateList()));
+        List<String> ownedDocIds = listOwnedDocIds(knowledgeId, dto.getDocumentIdList());
+        if (ownedDocIds.isEmpty()) {
+            return false;
+        }
+        eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, ownedDocIds, dto.getModelId(), dto.getModelParamsSetting(), dto.getNumber(), dto.getStateList()));
         return true;
+    }
+
+    private List<String> listOwnedDocIds(String knowledgeId, List<String> docIds) {
+        if (CollectionUtils.isEmpty(docIds)) {
+            return List.of();
+        }
+        return baseMapper.selectList(
+                        Wrappers.<DocumentEntity>lambdaQuery()
+                                .select(DocumentEntity::getId)
+                                .eq(DocumentEntity::getKnowledgeId, knowledgeId)
+                                .in(DocumentEntity::getId, docIds))
+                .stream()
+                .map(DocumentEntity::getId)
+                .toList();
     }
 
     // ===== 封装事件发布 =====

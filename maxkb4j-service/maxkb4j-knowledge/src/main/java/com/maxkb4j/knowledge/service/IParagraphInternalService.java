@@ -15,6 +15,8 @@ import java.util.List;
  */
 public interface IParagraphInternalService extends IParagraphService, IService<ParagraphEntity> {
 
+    ParagraphEntity getByKnowledgeIdAndDocIdAndId(String knowledgeId, String docId, String paragraphId);
+
     void updateParagraphById(String knowledgeId, String docId, ParagraphEntity paragraph);
 
     Boolean deleteBatchByIds(String knowledgeId, String docId, List<String> paragraphIds);
@@ -30,9 +32,9 @@ public interface IParagraphInternalService extends IParagraphService, IService<P
 
     boolean saveParagraphAndProblem(String knowledgeId, String docId, ParagraphAddDTO addDTO);
 
-    IPage<ParagraphEntity> pageParagraphByDocId(String docId, int current, int size, String title, String content);
+    IPage<ParagraphEntity> pageParagraphByDocId(String knowledgeId, String docId, int current, int size, String title, String content);
 
-    List<ProblemSimpleVO> getProblemsByParagraphId(String paragraphId);
+    List<ProblemSimpleVO> getProblemsByParagraphId(String knowledgeId, String docId, String paragraphId);
 
     Boolean batchGenerateRelated(String knowledgeId, String docId, GenerateProblemDTO dto);
 

@@ -29,5 +29,5 @@ public interface IApplicationChatRecordInternalService extends IApplicationChatR
 
     long countByAppIdAndChatUserId(String applicationId, String chatUserId);
 
-    List<ApplicationChatRecordVO> listVOByIds(List<String> ids);
+    List<ApplicationChatRecordVO> listVOByIds(String chatId, List<String> ids);
 }

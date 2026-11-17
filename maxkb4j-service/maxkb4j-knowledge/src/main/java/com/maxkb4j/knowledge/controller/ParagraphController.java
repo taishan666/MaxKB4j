@@ -43,7 +43,7 @@ public class ParagraphController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document/{docId}/paragraph/{current}/{size}")
     public R<IPage<ParagraphPageVO>> getParagraphByProblemId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("current") int current, @PathVariable("size") int size, String title, String content) {
-        return R.data(BeanUtil.copyPage(paragraphService.pageParagraphByDocId(docId, current, size, title, content), ParagraphPageVO.class));
+        return R.data(BeanUtil.copyPage(paragraphService.pageParagraphByDocId(id, docId, current, size, title, content), ParagraphPageVO.class));
     }
 
 
@@ -53,7 +53,7 @@ public class ParagraphController {
         ParagraphEntity paragraph = BeanUtil.copy(dto, ParagraphEntity.class);
         paragraph.setId(paragraphId);
         paragraphService.updateParagraphById(id, docId, paragraph);
-        ParagraphEntity e = paragraphService.getById(paragraphId);
+        ParagraphEntity e = paragraphService.getByKnowledgeIdAndDocIdAndId(id, docId, paragraphId);
         return R.data(e == null ? null : BeanUtil.copy(e, ParagraphBaseVO.class));
     }
 
@@ -85,7 +85,7 @@ public class ParagraphController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document/{docId}/paragraph/{paragraphId}/problem")
     public R<List<ProblemSimpleVO>> getProblemsByParagraphId(@PathVariable String id, @PathVariable("docId") String docId, @PathVariable("paragraphId") String paragraphId) {
-        return R.data(paragraphService.getProblemsByParagraphId(paragraphId));
+        return R.data(paragraphService.getProblemsByParagraphId(id, docId, paragraphId));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)

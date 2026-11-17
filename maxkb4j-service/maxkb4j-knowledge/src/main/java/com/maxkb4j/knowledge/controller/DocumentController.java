@@ -116,7 +116,7 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document/{docId}")
     public R<DocumentVO> getDocByDocId(@PathVariable String id, @PathVariable("docId") String docId) {
-        DocumentEntity e = documentService.getById(docId);
+        DocumentEntity e = documentService.getByKnowledgeIdAndId(id, docId);
         return R.data(e == null ? null : BeanUtil.copy(e, DocumentVO.class));
     }
 
@@ -135,14 +135,14 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{docId}/cancel_task")
     public R<Boolean> cancelTask(@PathVariable String id, @PathVariable("docId") String docId, @Valid @RequestBody DocumentTaskCancelDTO dto) {
-        return R.status(documentService.cancelTask(docId, dto.getType()));
+        return R.status(documentService.cancelTask(id, docId, dto.getType()));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PutMapping("/knowledge/{id}/document/{docId}")
     public R<DocumentVO> updateDocByDocId(@PathVariable String id, @PathVariable("docId") String docId, @RequestBody DocumentUpdateDTO dto) {
         DocumentEntity documentEntity = BeanUtil.copy(dto, DocumentEntity.class);
-        DocumentEntity e = documentService.updateAndGetById(docId, documentEntity);
+        DocumentEntity e = documentService.updateAndGetById(id, docId, documentEntity);
         return R.data(e == null ? null : BeanUtil.copy(e, DocumentVO.class));
     }
 

@@ -73,34 +73,53 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
 
 
     public String chatOpen(String appId, boolean debug) {
+        return chatOpen(appId, debug, null);
+    }
+
+    public String chatOpen(String appId, boolean debug, String chatUserId) {
         if (!debug) {
             long count = applicationVersionService.lambdaQuery().eq(ApplicationVersionEntity::getApplicationId, appId).count();
             if (count == 0) {
                 throw new ApiException("application.not.published");
             }
         }
-        ChatInfo chatInfo = new ChatInfo(IdWorker.get32UUID(), appId);
+        ChatInfo chatInfo = new ChatInfo(IdWorker.get32UUID(), appId, chatUserId);
         ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
     }
 
 
-    public ChatInfo getChatInfo(String chatId, String appId) {
+    private ChatInfo getChatInfo(String chatId, String appId, String chatUserId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
-        if (chatInfo == null) {
-            if (StringUtils.isBlank(appId)) {
-                ApplicationChatEntity chatEntity = this.lambdaQuery().select(ApplicationChatEntity::getApplicationId).eq(ApplicationChatEntity::getId, chatId).one();
-                if (chatEntity != null) {
-                    appId = chatEntity.getApplicationId();
-                }
+        if (chatInfo != null) {
+            boolean appMismatch = StringUtils.isNotBlank(appId) && !Objects.equals(appId, chatInfo.getAppId());
+            boolean userMismatch = StringUtils.isNotBlank(chatUserId) && chatInfo.getChatUserId() != null
+                    && !Objects.equals(chatUserId, chatInfo.getChatUserId());
+            if (appMismatch || userMismatch) {
+                throw new ApiException("common.record.not.exists");
             }
-            chatInfo = new ChatInfo(chatId, appId);
-            // ChatInfo.chatRecordList 设计为 CopyOnWriteArrayList 供多线程共享，
-            // 必须包装回并发容器，避免被普通 ArrayList 覆盖后并发写导致记录丢失/越界
-            chatInfo.setChatRecordList(new CopyOnWriteArrayList<>(chatRecordService.getChatRecords(chatId)));
-            ChatCache.put(chatInfo.getChatId(), chatInfo);
+            if (chatInfo.getChatUserId() == null) {
+                chatInfo.setChatUserId(chatUserId);
+            }
             return chatInfo;
         }
+        if (StringUtils.isBlank(appId) || StringUtils.isBlank(chatUserId)) {
+            throw new ApiException("common.record.not.exists");
+        }
+        ApplicationChatEntity chatEntity = this.lambdaQuery()
+                .select(ApplicationChatEntity::getApplicationId, ApplicationChatEntity::getChatUserId)
+                .eq(ApplicationChatEntity::getId, chatId)
+                .eq(ApplicationChatEntity::getApplicationId, appId)
+                .eq(ApplicationChatEntity::getChatUserId, chatUserId)
+                .one();
+        if (chatEntity == null) {
+            throw new ApiException("common.record.not.exists");
+        }
+        chatInfo = new ChatInfo(chatId, chatEntity.getApplicationId(), chatEntity.getChatUserId());
+        // ChatInfo.chatRecordList 设计为 CopyOnWriteArrayList 供多线程共享，
+        // 必须包装回并发容器，避免被普通 ArrayList 覆盖后并发写导致记录丢失/越界
+        chatInfo.setChatRecordList(new CopyOnWriteArrayList<>(chatRecordService.getChatRecords(chatId)));
+        ChatCache.put(chatInfo.getChatId(), chatInfo);
         return chatInfo;
     }
 
@@ -112,7 +131,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
             safeCallback.onError(new AccessNumLimitException());
             return new ChatResponse(List.of(), null);
         }
-        ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatState.getAppId());
+        ChatInfo chatInfo = this.getChatInfo(chatParams.getChatId(), chatState.getAppId(), chatState.getChatUserId());
         ApplicationVO application = applicationService.getAppDetail(chatInfo.getAppId(), chatState.getDebug());
         if (Objects.isNull(application)) {
             safeCallback.onError(new ApiException("application.not.found"));
@@ -223,28 +242,40 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
     }
 
     private boolean belongsToApp(String chatId, String appId) {
-        return this.lambdaQuery()
+        return baseMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery()
                 .eq(ApplicationChatEntity::getId, chatId)
-                .eq(ApplicationChatEntity::getApplicationId, appId)
-                .count() > 0;
+                .eq(ApplicationChatEntity::getApplicationId, appId)) > 0;
     }
 
     @Override
     public boolean isOwnedBy(String chatId, String appId, String userId) {
-        return this.lambdaQuery()
+        return baseMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery()
                 .eq(ApplicationChatEntity::getId, chatId)
                 .eq(ApplicationChatEntity::getApplicationId, appId)
-                .eq(ApplicationChatEntity::getChatUserId, userId)
-                .count() > 0;
+                .eq(ApplicationChatEntity::getChatUserId, userId)) > 0;
     }
 
     @Override
     public Map<String, String> shareChat(String id, String chatId, ShareChatDTO dto) {
+        if (!belongsToApp(chatId, id)) {
+            throw new ApiException("common.record.not.exists");
+        }
+        List<String> chatRecordIds = dto.getChatRecordIds();
+        if (!CollectionUtils.isEmpty(chatRecordIds)) {
+            long expectedCount = chatRecordIds.stream().distinct().count();
+            long actualCount = chatRecordService.lambdaQuery()
+                    .eq(ApplicationChatRecordEntity::getChatId, chatId)
+                    .in(ApplicationChatRecordEntity::getId, chatRecordIds)
+                    .count();
+            if (actualCount != expectedCount) {
+                throw new ApiException("common.record.not.exists");
+            }
+        }
         ApplicationChatShareLinkEntity chatShareLink = new ApplicationChatShareLinkEntity();
         chatShareLink.setChatId(chatId);
         chatShareLink.setApplicationId(id);
         chatShareLink.setUserId(StpKit.USER.getLoginIdAsString());
-        chatShareLink.setChatRecordIds(dto.getChatRecordIds());
+        chatShareLink.setChatRecordIds(chatRecordIds);
         chatShareLink.setShareType(ShareLinkType.PUBLIC.name());
         chatShareLinkMapper.insert(chatShareLink);
         return Map.of("link", chatShareLink.getId());
@@ -299,7 +330,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         }
         ApplicationChatEntity chatEntity = this.lambdaQuery().select(ApplicationChatEntity::getSummary).eq(ApplicationChatEntity::getId, chatShareLink.getChatId()).one();
         shareChatVO.setSummary(chatEntity != null ? chatEntity.getSummary() : null);
-        List<ApplicationChatRecordVO> chatRecordList = chatRecordService.listVOByIds(chatShareLink.getChatRecordIds());
+        List<ApplicationChatRecordVO> chatRecordList = chatRecordService.listVOByIds(chatShareLink.getChatId(), chatShareLink.getChatRecordIds());
         shareChatVO.setChatRecordList(chatRecordList);
         return shareChatVO;
     }

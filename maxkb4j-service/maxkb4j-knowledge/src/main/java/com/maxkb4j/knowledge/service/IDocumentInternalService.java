@@ -22,9 +22,11 @@ public interface IDocumentInternalService extends IService<DocumentEntity> {
 
     boolean embedByDocIds(String knowledgeId, List<String> docIds, List<String> stateList);
 
-    boolean cancelTask(String docId, int taskType);
+    DocumentEntity getByKnowledgeIdAndId(String knowledgeId, String docId);
 
-    DocumentEntity updateAndGetById(String docId, DocumentEntity documentEntity);
+    boolean cancelTask(String knowledgeId, String docId, int taskType);
+
+    DocumentEntity updateAndGetById(String knowledgeId, String docId, DocumentEntity documentEntity);
 
     IPage<DocumentVO> getDocByKnowledgeId(String knowledgeId, int current, int size, DocQuery query);
 

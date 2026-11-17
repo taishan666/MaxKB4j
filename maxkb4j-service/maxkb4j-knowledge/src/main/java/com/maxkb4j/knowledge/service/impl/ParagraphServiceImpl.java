@@ -15,6 +15,7 @@ import com.maxkb4j.knowledge.event.GenerateProblemEvent;
 import com.maxkb4j.knowledge.event.ParagraphIndexEvent;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.dto.ParagraphAddDTO;
+import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
@@ -77,10 +78,24 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
 
+    public ParagraphEntity getByKnowledgeIdAndDocIdAndId(String knowledgeId, String docId, String paragraphId) {
+        return baseMapper.selectOne(
+                Wrappers.<ParagraphEntity>lambdaQuery()
+                        .eq(ParagraphEntity::getKnowledgeId, knowledgeId)
+                        .eq(ParagraphEntity::getDocumentId, docId)
+                        .eq(ParagraphEntity::getId, paragraphId));
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public void updateParagraphById(String knowledgeId, String docId, ParagraphEntity paragraph) {
-        this.updateById(paragraph);
-        if (Objects.nonNull(paragraph.getContent())) {
+        paragraph.setKnowledgeId(null);
+        paragraph.setDocumentId(null);
+        int rows = baseMapper.update(paragraph,
+                Wrappers.<ParagraphEntity>lambdaUpdate()
+                        .eq(ParagraphEntity::getKnowledgeId, knowledgeId)
+                        .eq(ParagraphEntity::getDocumentId, docId)
+                        .eq(ParagraphEntity::getId, paragraph.getId()));
+        if (rows > 0 && Objects.nonNull(paragraph.getContent())) {
             documentMapper.updateCharLengthById(docId);
             eventPublisher.publishEvent(new ParagraphIndexEvent(this, knowledgeId, docId, List.of(paragraph.getId())));
         }
@@ -90,14 +105,28 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
 
     @Transactional(rollbackFor = Exception.class)
     public Boolean deleteBatchByIds(String knowledgeId, String docId, List<String> paragraphIds) {
-        compositeStore.deleteByParagraphIds(knowledgeId, paragraphIds);
-        this.removeByIds(paragraphIds);
+        List<String> ownedParagraphIds = listOwnedParagraphIds(knowledgeId, docId, paragraphIds);
+        if (ownedParagraphIds.isEmpty()) {
+            return false;
+        }
+        compositeStore.deleteByParagraphIds(knowledgeId, ownedParagraphIds);
+        baseMapper.delete(
+                Wrappers.<ParagraphEntity>lambdaQuery()
+                        .eq(ParagraphEntity::getKnowledgeId, knowledgeId)
+                        .eq(ParagraphEntity::getDocumentId, docId)
+                        .in(ParagraphEntity::getId, ownedParagraphIds));
         return documentMapper.updateCharLengthById(docId);
     }
 
 
     @Transactional(rollbackFor = Exception.class)
     public boolean saveParagraphAndProblem(String knowledgeId, String docId, ParagraphAddDTO addDTO) {
+        Long documentCount = documentMapper.selectCount(Wrappers.<DocumentEntity>lambdaQuery()
+                .eq(DocumentEntity::getKnowledgeId, knowledgeId)
+                .eq(DocumentEntity::getId, docId));
+        if (documentCount == 0) {
+            return false;
+        }
         ParagraphDTO paragraph = new ParagraphDTO(IdWorker.get32UUID(),knowledgeId, docId, addDTO.getTitle(), addDTO.getContent(), addDTO.getPosition());
         List<ProblemDTO> problemList = addDTO.getProblemList();
         List<String> problems = new ArrayList<>();
@@ -199,9 +228,10 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
     }
 
 
-    public IPage<ParagraphEntity> pageParagraphByDocId(String docId, int current, int size, String title, String content) {
+    public IPage<ParagraphEntity> pageParagraphByDocId(String knowledgeId, String docId, int current, int size, String title, String content) {
         Page<ParagraphEntity> paragraphPage = new Page<>(current, size);
         LambdaQueryWrapper<ParagraphEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ParagraphEntity::getKnowledgeId, knowledgeId);
         wrapper.eq(ParagraphEntity::getDocumentId, docId);
         if (StringUtils.isNotBlank(title)) {
             wrapper.like(ParagraphEntity::getTitle, title);
@@ -213,21 +243,50 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
         return this.page(paragraphPage, wrapper);
     }
 
-    public List<ProblemSimpleVO> getProblemsByParagraphId(String paragraphId) {
+    public List<ProblemSimpleVO> getProblemsByParagraphId(String knowledgeId, String docId, String paragraphId) {
+        if (getByKnowledgeIdAndDocIdAndId(knowledgeId, docId, paragraphId) == null) {
+            return Collections.emptyList();
+        }
         List<ProblemParagraphEntity> list = problemParagraphService.lambdaQuery()
-                .select(ProblemParagraphEntity::getProblemId).eq(ProblemParagraphEntity::getParagraphId, paragraphId).list();
+                .select(ProblemParagraphEntity::getProblemId)
+                .eq(ProblemParagraphEntity::getKnowledgeId, knowledgeId)
+                .eq(ProblemParagraphEntity::getDocumentId, docId)
+                .eq(ProblemParagraphEntity::getParagraphId, paragraphId)
+                .list();
         if (!CollectionUtils.isEmpty(list)) {
             List<String> problemIds = list.stream().map(ProblemParagraphEntity::getProblemId).toList();
-            List<ProblemEntity> problems = problemService.lambdaQuery().in(ProblemEntity::getId, problemIds).list();
+            List<ProblemEntity> problems = problemService.lambdaQuery()
+                    .eq(ProblemEntity::getKnowledgeId, knowledgeId)
+                    .in(ProblemEntity::getId, problemIds)
+                    .list();
             return BeanUtil.copyList(problems, ProblemSimpleVO.class);
         }
         return Collections.emptyList();
     }
 
     public Boolean batchGenerateRelated(String knowledgeId, String docId, GenerateProblemDTO dto) {
-        this.updateStatusByIds(dto.getParagraphIdList(), TaskType.GENERATE_PROBLEM, TaskStatus.PENDING);
+        List<String> ownedParagraphIds = listOwnedParagraphIds(knowledgeId, docId, dto.getParagraphIdList());
+        if (ownedParagraphIds.isEmpty()) {
+            return false;
+        }
+        this.updateStatusByIds(ownedParagraphIds, TaskType.GENERATE_PROBLEM, TaskStatus.PENDING);
         eventPublisher.publishEvent(new GenerateProblemEvent(this, knowledgeId, List.of(docId), dto.getModelId(), dto.getModelParamsSetting(), dto.getNumber(), List.of("0")));
         return true;
+    }
+
+    private List<String> listOwnedParagraphIds(String knowledgeId, String docId, List<String> paragraphIds) {
+        if (CollectionUtils.isEmpty(paragraphIds)) {
+            return List.of();
+        }
+        return baseMapper.selectList(
+                        Wrappers.<ParagraphEntity>lambdaQuery()
+                                .select(ParagraphEntity::getId)
+                                .eq(ParagraphEntity::getKnowledgeId, knowledgeId)
+                                .eq(ParagraphEntity::getDocumentId, docId)
+                                .in(ParagraphEntity::getId, paragraphIds))
+                .stream()
+                .map(ParagraphEntity::getId)
+                .toList();
     }
 
     @Transactional(rollbackFor = Exception.class)

@@ -17,13 +17,19 @@ public class ChatInfo implements Serializable {
 
     private String chatId;
     private String appId;
+    private String chatUserId;
     private List<ChatRecordDTO> chatRecordList = new CopyOnWriteArrayList<>();
     private Map<String, Object> chatVariables = new ConcurrentHashMap<>(10);
 
 
     public ChatInfo(String chatId, String appId) {
+        this(chatId, appId, null);
+    }
+
+    public ChatInfo(String chatId, String appId, String chatUserId) {
         this.chatId = chatId;
         this.appId = appId;
+        this.chatUserId = chatUserId;
     }
 
     public void putChatVariables(Map<String, Object> chatVariables) {

@@ -50,7 +50,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     private final IParagraphService paragraphService;
     private final ApplicationChatMapper chatMapper;
 
-    private ChatRecordDTO getChatRecordDTO(ChatInfo chatInfo, String chatRecordId) {
+    private ChatRecordDTO getChatRecordDTO(ChatInfo chatInfo, String chatId, String chatRecordId) {
         ChatRecordDTO chatRecord = null;
         if (Objects.nonNull(chatInfo) && !CollectionUtils.isEmpty(chatInfo.getChatRecordList())) {
             chatRecord = chatInfo.getChatRecordList().stream()
@@ -59,7 +59,10 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
                     .orElse(null);
         }
         if (Objects.isNull(chatRecord)) {
-            ApplicationChatRecordEntity chatRecordEntity = this.getById(chatRecordId);
+            ApplicationChatRecordEntity chatRecordEntity = baseMapper.selectOne(
+                    Wrappers.<ApplicationChatRecordEntity>lambdaQuery()
+                        .eq(ApplicationChatRecordEntity::getId, chatRecordId)
+                        .eq(ApplicationChatRecordEntity::getChatId, chatId));
             chatRecord = chatRecordEntity == null ? null : BeanUtil.copy(chatRecordEntity, ChatRecordDTO.class);
         }
         return chatRecord;
@@ -76,7 +79,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
 
     public ApplicationChatRecordVO getChatRecordInfo(String chatId, String chatRecordId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
-        ChatRecordDTO chatRecord = getChatRecordDTO(chatInfo, chatRecordId);
+        ChatRecordDTO chatRecord = getChatRecordDTO(chatInfo, chatId, chatRecordId);
         return convert(chatRecord);
     }
 
@@ -141,18 +144,20 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     }
 
     @Override
-    public List<ApplicationChatRecordVO> listVOByIds(List<String> ids) {
+    public List<ApplicationChatRecordVO> listVOByIds(String chatId, List<String> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             return List.of();
         }
-        List<ApplicationChatRecordEntity> chatRecordList = this.lambdaQuery()
-                .select(ApplicationChatRecordEntity::getId,
-                        ApplicationChatRecordEntity::getProblemText,
-                        ApplicationChatRecordEntity::getAnswerText,
-                        ApplicationChatRecordEntity::getAnswerTextList,
-                        ApplicationChatRecordEntity::getDetails,
-                        ApplicationChatRecordEntity::getCreateTime)
-                .in(ApplicationChatRecordEntity::getId, ids).list();
+        List<ApplicationChatRecordEntity> chatRecordList = baseMapper.selectList(
+                Wrappers.<ApplicationChatRecordEntity>lambdaQuery()
+                        .select(ApplicationChatRecordEntity::getId,
+                                ApplicationChatRecordEntity::getProblemText,
+                                ApplicationChatRecordEntity::getAnswerText,
+                                ApplicationChatRecordEntity::getAnswerTextList,
+                                ApplicationChatRecordEntity::getDetails,
+                                ApplicationChatRecordEntity::getCreateTime)
+                        .eq(ApplicationChatRecordEntity::getChatId, chatId)
+                        .in(ApplicationChatRecordEntity::getId, ids));
         return BeanUtil.copyList(chatRecordList, this::convert);
     }
 

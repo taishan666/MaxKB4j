@@ -114,7 +114,7 @@ public class DocumentImportService {
 
     @Transactional(rollbackFor = Exception.class)
     public void syncWebDoc(String knowledgeId, String docId) {
-        DocumentEntity doc = documentService.getById(docId);
+        DocumentEntity doc = documentService.getByKnowledgeIdAndId(knowledgeId, docId);
         if (doc == null || doc.getMeta() == null) return;
         String sourceUrl = doc.getMeta().getString("sourceUrl");
         String selector = doc.getMeta().getString("selector");

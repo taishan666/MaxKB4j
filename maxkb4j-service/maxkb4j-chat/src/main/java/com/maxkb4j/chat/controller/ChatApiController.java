@@ -90,7 +90,8 @@ public class ChatApiController {
     @GetMapping("/open")
     public R<String> chatOpen() {
         String appId = (String) StpKit.USER.getExtra("applicationId");
-        return R.data(chatService.chatOpen(appId, false));
+        String userId = StpKit.USER.getLoginIdAsString();
+        return R.data(chatService.chatOpen(appId, false, userId));
     }
 
     @Operation(summary = "聊天对话", description = "聊天对话")

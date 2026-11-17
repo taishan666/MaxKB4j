@@ -1,6 +1,7 @@
 package com.maxkb4j.application.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.application.dto.ApplicationApiKeyDTO;
 import com.maxkb4j.application.entity.ApplicationApiKeyEntity;
@@ -40,13 +41,18 @@ public class ApplicationApiKeyServiceImpl extends ServiceImpl<ApplicationApiKeyM
     }
 
     public Boolean updateApikey(String appId, String apiKeyId, ApplicationApiKeyEntity apiKeyEntity) {
-        apiKeyEntity.setId(apiKeyId);
-        apiKeyEntity.setApplicationId(appId);
-        return this.updateById(apiKeyEntity);
+        apiKeyEntity.setApplicationId(null);
+        return baseMapper.update(apiKeyEntity,
+                Wrappers.<ApplicationApiKeyEntity>lambdaUpdate()
+                        .eq(ApplicationApiKeyEntity::getId, apiKeyId)
+                        .eq(ApplicationApiKeyEntity::getApplicationId, appId)) > 0;
     }
 
     public Boolean deleteApikey(String appId, String apiKeyId) {
-        return this.removeById(apiKeyId);
+        return baseMapper.delete(
+                Wrappers.<ApplicationApiKeyEntity>lambdaQuery()
+                        .eq(ApplicationApiKeyEntity::getId, apiKeyId)
+                        .eq(ApplicationApiKeyEntity::getApplicationId, appId)) > 0;
     }
 
     public ApplicationApiKeyDTO getBySecretKey(String secretKey) {

@@ -16,6 +16,8 @@ public interface IApplicationChatService {
 
     String chatOpen(String appId, boolean debug);
 
+    String chatOpen(String appId, boolean debug, String chatUserId);
+
     ChatResponse chatMessage(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback);
 
     /**
