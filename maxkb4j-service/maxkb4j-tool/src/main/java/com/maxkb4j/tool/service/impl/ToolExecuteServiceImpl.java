@@ -41,8 +41,10 @@ public class ToolExecuteServiceImpl implements IToolExecuteService {
         log.info("input params: {}", parameters);
         Object result;
         if (ToolConstants.ToolType.HTTP.equals(toolType)) {
-            HttpResponse httpResponse = httpExecute(code, initParams, parameters);
-            result = httpResponse.body();
+            // try-with-resources 确保读取 body 后关闭响应，避免底层连接泄漏
+            try (HttpResponse httpResponse = httpExecute(code, initParams, parameters)) {
+                result = httpResponse.body();
+            }
         } else {
             result = customExecute(code, initParams, parameters);
         }

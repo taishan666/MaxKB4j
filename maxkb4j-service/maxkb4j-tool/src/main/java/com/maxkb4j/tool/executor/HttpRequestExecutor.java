@@ -52,8 +52,10 @@ public class HttpRequestExecutor extends AbsToolExecutor {
     @Override
     public String execute(ToolExecutionRequest toolExecutionRequest, Object memoryId) {
         Map<String, Object> variables = argumentsAsMap(toolExecutionRequest.arguments());
-        HttpResponse response = execute(variables);
-        return response.body();
+        // try-with-resources 确保读取 body 后关闭响应，避免底层连接泄漏
+        try (HttpResponse response = execute(variables)) {
+            return response.body();
+        }
     }
 
     public HttpResponse execute(Map<String, Object> inputParams) {
@@ -103,6 +105,7 @@ public class HttpRequestExecutor extends AbsToolExecutor {
         // 用 long 计算避免 int 溢出（timeout 秒值来自用户工具配置，无上限校验）
         long timeoutMillis = data.getTimeout() * 1000L;
         request.timeout((int) Math.min(timeoutMillis, Integer.MAX_VALUE));
+        // 响应所有权移交给调用方：消费完 body 后必须关闭（HttpResponse 为 Closeable）
         return request.execute();
     }
 
