@@ -10,5 +10,5 @@ public class AppConst {
 
     public static final String APP_KEY_PREFIX = "maxKb4j-";
 
-    public static final String DEFAULT_WORKSPACE_ID = "default";
+    public static final String DEFAULT_ID = "default";
 }

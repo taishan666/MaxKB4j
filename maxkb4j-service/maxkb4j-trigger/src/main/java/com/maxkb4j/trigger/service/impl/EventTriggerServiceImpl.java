@@ -111,7 +111,7 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
             dto.setId(null);
             dto.setUserId(userContext.getUserId());
             dto.setCreateTime(now);
-            dto.setWorkspaceId(AppConst.DEFAULT_WORKSPACE_ID);
+            dto.setWorkspaceId(AppConst.DEFAULT_ID);
         }
         dto.setUpdateTime(now);
         this.saveOrUpdate(dto);

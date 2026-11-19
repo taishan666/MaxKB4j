@@ -82,7 +82,7 @@ public final class ResourcePermissionQuerySupport {
         vo.setName(name);
         vo.setIcon(icon);
         vo.setFolderId(id);
-        vo.setWorkspaceId(AppConst.DEFAULT_WORKSPACE_ID);
+        vo.setWorkspaceId(AppConst.DEFAULT_ID);
         vo.setAuthTargetType(type);
         vo.setPermission(permission);
         return vo;

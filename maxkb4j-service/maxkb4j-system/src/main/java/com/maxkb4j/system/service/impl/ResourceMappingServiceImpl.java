@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.system.entity.ResourceMappingEntity;
 import com.maxkb4j.system.dto.SourceResource;
@@ -126,6 +127,9 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
                 vo.setDesc(sourceResource.getDesc());
                 vo.setIcon(sourceResource.getIcon());
                 vo.setType(sourceResource.getType());
+                vo.setFolderId(AppConst.DEFAULT_ID);
+                vo.setWorkspaceId(AppConst.DEFAULT_ID);
+                vo.setSourceId(sourceResource.getId());
                 vo.setUsername(nicknameMap.get(sourceResource.getUserId()));
             }
             return vo;
