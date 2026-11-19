@@ -17,4 +17,5 @@ public class ResourceUseVO {
     private String sourceType;
     private String sourceId;
     private String targetType;
+    private String targetId;
 }
