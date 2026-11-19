@@ -41,6 +41,7 @@ public class AppKeyHandler implements AuthHandler {
             ResponseProvider.write(response);
             return false;
         }
+
         SaLoginModel loginModel = new SaLoginModel();
         loginModel.setExtra("applicationId", apiKey.getApplicationId());
         loginModel.setExtra("chatUserType", ChatUserType.APPLICATION_API_KEY.name());

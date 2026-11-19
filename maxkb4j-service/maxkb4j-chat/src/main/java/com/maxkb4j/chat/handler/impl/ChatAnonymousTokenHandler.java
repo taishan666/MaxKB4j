@@ -31,6 +31,12 @@ public class ChatAnonymousTokenHandler implements AuthHandler {
             ResponseProvider.write(response);
             return false;
         }
+        if (Boolean.TRUE.equals(token.getWhiteActive())
+                && (token.getWhiteList() == null || !token.getWhiteList().contains(WebUtil.getIP()))) {
+            log.warn("当前IP不在应用访问白名单中");
+            ResponseProvider.write(response);
+            return false;
+        }
         return true;
     }
 
