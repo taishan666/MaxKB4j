@@ -1,5 +1,8 @@
 package com.maxkb4j.chat.service;
 
+import cn.dev33.satoken.SaManager;
+import cn.dev33.satoken.context.SaTokenContext;
+import cn.dev33.satoken.spring.SaTokenContextForSpringInJakartaServlet;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.application.dto.ApplicationAccessTokenDTO;
 import com.maxkb4j.application.service.IApplicationAccessTokenService;
@@ -7,14 +10,17 @@ import com.maxkb4j.application.service.IApplicationChatRecordService;
 import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.application.service.IApplicationService;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.util.StpKit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,9 +39,16 @@ class ChatApiServiceTest {
     private IApplicationAccessTokenService accessTokenService;
     private ChatTokenService chatTokenService;
     private ChatApiService chatApiService;
+    private MockHttpServletRequest request;
+    private String originalJwtSecretKey;
+    private SaTokenContext originalSaTokenContext;
 
     @BeforeEach
     void setUp() {
+        originalJwtSecretKey = SaManager.getConfig().getJwtSecretKey();
+        originalSaTokenContext = SaManager.getSaTokenContext();
+        SaManager.getConfig().setJwtSecretKey("test-jwt-secret-key");
+        SaManager.setSaTokenContext(new SaTokenContextForSpringInJakartaServlet());
         accessTokenService = mock(IApplicationAccessTokenService.class);
         chatTokenService = mock(ChatTokenService.class);
         chatApiService = new ChatApiService(
@@ -44,14 +57,17 @@ class ChatApiServiceTest {
                 mock(IApplicationChatService.class),
                 mock(IApplicationChatRecordService.class),
                 chatTokenService);
-        MockHttpServletRequest request = new MockHttpServletRequest();
+        request = new MockHttpServletRequest();
         request.setRemoteAddr(CLIENT_IP);
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+        RequestContextHolder.setRequestAttributes(
+                new ServletRequestAttributes(request, new MockHttpServletResponse()));
     }
 
     @AfterEach
     void tearDown() {
         RequestContextHolder.resetRequestAttributes();
+        SaManager.getConfig().setJwtSecretKey(originalJwtSecretKey);
+        SaManager.setSaTokenContext(originalSaTokenContext);
     }
 
     @Test
@@ -82,6 +98,31 @@ class ChatApiServiceTest {
         when(chatTokenService.issueAnonymousToken(anyString(), anyMap())).thenReturn("chat-token");
 
         assertEquals("chat-token", chatApiService.authToken(authParams()));
+    }
+
+    @Test
+    void authTokenIgnoresInvalidChatToken() {
+        request.addHeader("Authorization", "Bearer invalid-chat-token");
+        when(accessTokenService.getByAccessToken(ACCESS_TOKEN))
+                .thenReturn(accessToken(false, List.of()));
+        when(chatTokenService.issueAnonymousToken(anyString(), anyMap())).thenReturn("chat-token");
+
+        assertEquals("chat-token", chatApiService.authToken(authParams()));
+        verify(chatTokenService).issueAnonymousToken(anyString(), anyMap());
+    }
+
+    @Test
+    void authTokenReusesUserIdFromValidChatToken() {
+        String tokenValue = StpKit.USER.createTokenValue(
+                "chat-user", null, -1L, Map.of("chatUserType", "ANONYMOUS"));
+        request.addHeader("Authorization", "Bearer " + tokenValue);
+        when(accessTokenService.getByAccessToken(ACCESS_TOKEN))
+                .thenReturn(accessToken(false, List.of()));
+        when(chatTokenService.issueAnonymousToken(anyString(), anyMap())).thenReturn("chat-token");
+
+        assertEquals("chat-token", chatApiService.authToken(authParams()));
+        verify(chatTokenService).issueAnonymousToken(
+                org.mockito.ArgumentMatchers.eq("chat-user"), anyMap());
     }
 
     private static ApplicationAccessTokenDTO accessToken(boolean whiteActive, List<String> whiteList) {

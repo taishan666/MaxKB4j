@@ -86,13 +86,14 @@ Enterprises face four common challenges when adopting LLM applications, and MaxK
 
 ### Option 1: Docker Compose (recommended)
 
-1. Create a `.env` file in the project root and set the JWT secret and initial admin password:
+1. To specify the initial admin password, optionally create a `.env` file in the project root:
 
    ```dotenv
-   # Replace both values before deploying to production
-   SA_TOKEN_JWT_SECRET_KEY=replace-with-a-random-secret-at-least-32-chars
    SYSTEM_DEFAULT_PASSWORD=tarzan@123456
    ```
+
+   No JWT configuration is required. A secret is generated on first startup, stored in the database, and reused on
+   subsequent startups. You can explicitly override it with `SA_TOKEN_JWT_SECRET_KEY`.
 
 2. Start the services and check their status:
 
@@ -112,7 +113,7 @@ docker compose logs -f maxKB4j
 docker compose down
 ```
 
-> Do not use the example secret or password in production. Change the admin password after your first login.
+> Do not use the example password in production. Change the admin password after your first login.
 
 ### Option 2: Docker single container
 
@@ -122,7 +123,6 @@ Use this option when PostgreSQL and MongoDB are already available. The example a
 ```bash
 docker run --name maxkb4j -d --restart always -p 8080:8080 \
   --add-host=host.docker.internal:host-gateway \
-  -e SA_TOKEN_JWT_SECRET_KEY=replace-with-a-random-secret-at-least-32-chars \
   -e SYSTEM_DEFAULT_PASSWORD=tarzan@123456 \
   -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/MaxKB4j \
   -e SPRING_DATASOURCE_USERNAME=postgres \
@@ -156,8 +156,8 @@ mvn clean package -DskipTests
 java -jar maxkb4j-start/target/maxkb4j-start.jar --spring.profiles.active=dev
 ```
 
-Set the `SA_TOKEN_JWT_SECRET_KEY` environment variable before starting the application. To override the default admin
-password, set `SYSTEM_DEFAULT_PASSWORD`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full build and test commands.
+The JWT secret is generated and persisted automatically on first startup. To override the default admin password, set
+`SYSTEM_DEFAULT_PASSWORD`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full build and test commands.
 
 ### Deploy to cloud platforms
 

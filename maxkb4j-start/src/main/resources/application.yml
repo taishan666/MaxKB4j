@@ -54,8 +54,8 @@ mybatis-plus:
   type-handlers-package: com.maxkb4j.common.typehandler,com.maxkb4j.application.typehandler,com.maxkb4j.model.typehandler,com.maxkb4j.tool.typehandler
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:
-  # jwt秘钥
-  jwt-secret-key: ${SA_TOKEN_JWT_SECRET_KEY:asdasdasifhueuiwyurfewbfjsdafjk}
+  # jwt秘钥，未显式配置时首次启动自动生成并持久化
+  jwt-secret-key: ${SA_TOKEN_JWT_SECRET_KEY:}
   # token 名称（同时也是 cookie 名称）
   token-name: token
   # token 有效期（单位：秒） 默认1天，-1 代表永久有效

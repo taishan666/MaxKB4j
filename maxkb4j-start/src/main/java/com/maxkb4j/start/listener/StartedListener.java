@@ -36,6 +36,7 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
 
     private final SystemSettingService systemSettingService;
     private final UserServiceImpl userService;
+    private final JwtSecretInitializer jwtSecretInitializer;
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationStartedEvent event) {
@@ -61,6 +62,7 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
         for (SystemSettingEntity systemSetting : systemSettings) {
             SystemCache.put(systemSetting.getType(), systemSetting.getMeta());
         }
+        jwtSecretInitializer.initialize();
         printStartInfo(event);
     }
 

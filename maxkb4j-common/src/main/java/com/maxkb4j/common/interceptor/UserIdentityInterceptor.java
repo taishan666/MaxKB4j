@@ -92,6 +92,10 @@ public class UserIdentityInterceptor implements HandlerInterceptor {
         } catch (NotLoginException e) {
             if (NotLoginException.NOT_TOKEN.equals(e.getType())) {
                 return null;
+            }else if (NotLoginException.INVALID_TOKEN.equals(e.getType())) {
+                return null;
+            } else if (NotLoginException.TOKEN_TIMEOUT.equals(e.getType())) {
+                return null;
             }
             throw e;
         }

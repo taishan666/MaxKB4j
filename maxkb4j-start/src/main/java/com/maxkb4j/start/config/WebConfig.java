@@ -45,10 +45,9 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/chat/api/**")
                 .excludePathPatterns(
+                        "/chat/api/profile",
                         // 匿名令牌换取入口，内部自行校验 accessToken
                         "/chat/api/auth/anonymous",
-                        // 登录前获取应用的鉴权方式配置
-                        "/chat/api/profile",
                         // 公开的第三方嵌入脚本
                         "/chat/api/embed",
                         // MCP 协议端点，控制器内部已校验应用 API Key
@@ -57,7 +56,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/chat/api/share/{id}");
         // 用户身份解析（填充 UserContext，供业务层获取当前用户；order=1 保证晚于 authInterceptor 解析 USER 会话）
         registry.addInterceptor(userIdentityInterceptor)
-                .addPathPatterns("/admin/api/**","/chat/api/**")
+                .addPathPatterns("/admin/api/**")
                 .excludePathPatterns("/admin/api/profile",
                         "/admin/api/user/login",
                         "/admin/api/user/captcha",

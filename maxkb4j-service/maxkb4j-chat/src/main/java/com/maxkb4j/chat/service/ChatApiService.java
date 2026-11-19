@@ -51,7 +51,9 @@ public class ChatApiService {
         String tokenValue = WebUtil.getTokenValue();
         if (StringUtils.isNotBlank(tokenValue)) {
             StpKit.USER.setTokenValue(tokenValue);
-            chatUserId = StpKit.USER.getLoginIdAsString();
+            if (StpKit.USER.isLogin()) {
+                chatUserId = StpKit.USER.getLoginIdAsString();
+            }
         }
         Map<String, Object> extraData = new HashMap<>();
         extraData.put("applicationId", accessTokenEntity.getApplicationId());

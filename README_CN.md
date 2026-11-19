@@ -83,13 +83,13 @@
 
 ### 方式一：Docker Compose（推荐）
 
-1. 在项目根目录创建 `.env` 文件，设置 JWT 密钥和初始管理员密码：
+1. 如需指定初始管理员密码，可在项目根目录创建 `.env` 文件：
 
    ```dotenv
-   # 生产环境请替换为至少 32 位的随机字符串
-   SA_TOKEN_JWT_SECRET_KEY=replace-with-a-random-secret-at-least-32-chars
    SYSTEM_DEFAULT_PASSWORD=tarzan@123456
    ```
+
+   JWT 密钥无需配置，首次启动会自动生成并保存到数据库，后续启动自动复用。也可通过 `SA_TOKEN_JWT_SECRET_KEY` 显式指定。
 
 2. 启动并检查服务：
 
@@ -108,7 +108,7 @@ docker compose logs -f maxKB4j
 docker compose down
 ```
 
-> 请勿将示例密钥或密码直接用于生产环境，并请在首次登录后修改管理员密码。
+> 请勿将示例密码直接用于生产环境，并请在首次登录后修改管理员密码。
 
 ### 方式二：Docker 单容器
 
@@ -117,7 +117,6 @@ docker compose down
 ```bash
 docker run --name maxkb4j -d --restart always -p 8080:8080 \
   --add-host=host.docker.internal:host-gateway \
-  -e SA_TOKEN_JWT_SECRET_KEY=replace-with-a-random-secret-at-least-32-chars \
   -e SYSTEM_DEFAULT_PASSWORD=tarzan@123456 \
   -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/MaxKB4j \
   -e SPRING_DATASOURCE_USERNAME=postgres \
@@ -149,7 +148,7 @@ mvn clean package -DskipTests
 java -jar maxkb4j-start/target/maxkb4j-start.jar --spring.profiles.active=dev
 ```
 
-运行前请设置 `SA_TOKEN_JWT_SECRET_KEY` 环境变量；如需修改默认管理员密码，可设置 `SYSTEM_DEFAULT_PASSWORD`。完整构建与测试命令参见 [贡献指南](CONTRIBUTING.md)。
+JWT 密钥会在首次启动时自动生成并持久化，无需手动配置。如需修改默认管理员密码，可设置 `SYSTEM_DEFAULT_PASSWORD`。完整构建与测试命令参见 [贡献指南](CONTRIBUTING.md)。
 
 ### 部署到第三方平台
 

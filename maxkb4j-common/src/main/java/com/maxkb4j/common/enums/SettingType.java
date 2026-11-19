@@ -22,7 +22,9 @@ public enum SettingType {
     /*认证配置*/
     CHAT_AUTH_CONFIG(7),
     /*平台来源*/
-    CHAT_PLATFORM_SOURCE(8);
+    CHAT_PLATFORM_SOURCE(8),
+    /*JWT 密钥*/
+    JWT_SECRET(9);
 
     private final int type;
 
