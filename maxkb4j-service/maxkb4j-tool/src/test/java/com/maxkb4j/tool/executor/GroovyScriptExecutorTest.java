@@ -603,10 +603,34 @@ class GroovyScriptExecutorTest {
         return map;
     }
 
+    private static List<Long> groovySandboxWorkerIds() {
+        return Thread.getAllStackTraces().keySet().stream()
+                .filter(thread -> "groovy-sandbox-worker".equals(thread.getName()))
+                .map(Thread::threadId)
+                .sorted()
+                .toList();
+    }
+
     @Test
     void execute_simpleExpression_returnsResult() {
         GroovyScriptExecutor executor = new GroovyScriptExecutor("a + b", null);
         assertEquals(3, executor.execute(params("a", 1, "b", 2)));
+    }
+
+    @Test
+    void execute_infiniteLoop_timeoutsDoNotAccumulateWorkers() {
+        assertEquals(42, new GroovyScriptExecutor("40 + 2", null).execute(params()));
+        List<Long> workersBefore = groovySandboxWorkerIds();
+
+        for (int i = 0; i < 3; i++) {
+            GroovyScriptExecutor executor = new GroovyScriptExecutor("while (true) {}", null, 100);
+            assertThrows(SecurityException.class, () -> executor.execute(params()));
+        }
+
+        assertEquals(42, new GroovyScriptExecutor("40 + 2", null).execute(params()),
+                "超时任务退出后，后续脚本应能在原执行池正常运行");
+        assertEquals(workersBefore, groovySandboxWorkerIds(),
+                "连续超时不应销毁、替换或累积 Groovy Worker");
     }
 
     @Test

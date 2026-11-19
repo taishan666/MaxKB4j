@@ -16,6 +16,10 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
 
     @Override
     public Object onMethodCall(Invoker invoker, Object receiver, String method, Object... args) throws Throwable {
+        if (receiver instanceof Thread && "isInterrupted".equals(method) && args.length == 0) {
+            // ThreadInterrupt 注入的只读中断检查；其他 Thread 方法仍按危险调用拒绝
+            return invoker.call(receiver, method, args);
+        }
         if (GroovySandboxPolicy.isDangerousMethod(receiver == null ? null : receiver.getClass(), method)) {
             throw new SecurityException("不允许调用危险方法: " + method);
         }
@@ -43,6 +47,10 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
 
     @Override
     public Object onStaticCall(Invoker invoker, Class sender, String method, Object... args) throws Throwable {
+        if (Thread.class.equals(sender) && "currentThread".equals(method) && args.length == 0) {
+            // 脚本源码不能直接引用 Thread；此处仅供编译期注入的中断检查获取当前线程
+            return invoker.call(sender, method, args);
+        }
         if (GroovySandboxPolicy.isNoOpStaticCall(sender, method)) {
             // @Grab 转换注入的 Grape.grab(...)：沙箱禁止联网下载依赖，
             // 静默忽略（不执行真实下载逻辑），脚本继续使用 classpath 已有依赖执行
@@ -71,6 +79,10 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
 
     @Override
     public Object onNewInstance(Invoker invoker, Class sender, Object... args) throws Throwable {
+        if (InterruptedException.class.equals(sender)) {
+            // ThreadInterrupt 检测到中断后抛出的内部控制异常，不属于脚本可调用的业务功能
+            return invoker.call(sender, "<init>", args);
+        }
         if (GroovySandboxPolicy.isDangerousClass(sender)) {
             throw new SecurityException("不允许实例化类: " + sender.getName());
         }

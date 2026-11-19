@@ -18,7 +18,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -43,46 +42,29 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
     private static final int EXECUTION_TIMEOUT_SECONDS = 60;
 
     /**
-     * 重建共享执行器时的同步锁，保证超时替换时只有一个新池被创建
-     */
-    private static final Object EXECUTOR_LOCK = new Object();
-
-    /**
-     * 共享的脚本执行线程池（单线程 daemon）。
+     * 共享的固定单线程执行池（daemon）。
      * <p>
-     * 复用以避免每次执行都新建线程池；超时且脚本死循环不响应中断时，关闭旧池并重建，
-     * 保证后续执行不会被卡死的脚本阻塞（每次超时至多滞留一个 daemon 线程）。
+     * 超时只中断当前任务，绝不关闭并重建执行池，避免不响应中断的脚本不断遗留 Worker。
+     * 编译期注入的 ThreadInterrupt 检查保证 Groovy 循环和方法能够响应此处的中断。
      * </p>
      */
-    private static volatile ExecutorService SCRIPT_EXECUTOR = newScriptExecutor();
+    private static final ExecutorService SCRIPT_EXECUTOR = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "groovy-sandbox-worker");
+        t.setDaemon(true);
+        return t;
+    });
     private final String code;
     private final Map<String, Object> initParams;
+    private final long executionTimeoutMillis;
 
     public GroovyScriptExecutor(String code, Map<String, Object> initParams) {
+        this(code, initParams, TimeUnit.SECONDS.toMillis(EXECUTION_TIMEOUT_SECONDS));
+    }
+
+    GroovyScriptExecutor(String code, Map<String, Object> initParams, long executionTimeoutMillis) {
         this.code = code;
         this.initParams = initParams;
-    }
-
-    private static ExecutorService scriptExecutor() {
-        ExecutorService executor = SCRIPT_EXECUTOR;
-        if (executor.isShutdown()) {
-            synchronized (EXECUTOR_LOCK) {
-                executor = SCRIPT_EXECUTOR;
-                if (executor.isShutdown()) {
-                    executor = newScriptExecutor();
-                    SCRIPT_EXECUTOR = executor;
-                }
-            }
-        }
-        return executor;
-    }
-
-    private static ExecutorService newScriptExecutor() {
-        return Executors.newSingleThreadExecutor(r -> {
-            Thread t = new Thread(r, "groovy-sandbox-worker");
-            t.setDaemon(true);
-            return t;
-        });
+        this.executionTimeoutMillis = executionTimeoutMillis;
     }
 
     /**
@@ -131,35 +113,23 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
         GroovyScriptCache.CompiledScript compiled = GroovyScriptCache.get(code);
 
         GroovySandboxInterceptor interceptor = new GroovySandboxInterceptor();
-        ExecutorService executor = scriptExecutor();
-        Future<Object> future;
-        while (true) {
+        Future<Object> future = SCRIPT_EXECUTOR.submit(() -> {
+            // 注册白名单拦截器（SandboxTransformer 已将调用注入到字节码中）
+            interceptor.register();
             try {
-                future = executor.submit(() -> {
-                    // 注册白名单拦截器（SandboxTransformer 已将调用注入到字节码中）
-                    interceptor.register();
-                    try {
-                        Script script = (Script) compiled.scriptClass().getDeclaredConstructor().newInstance();
-                        script.setBinding(binding);
-                        Object result = script.run();
-                        return result == null ? "" : result;
-                    } finally {
-                        interceptor.unregister();
-                    }
-                });
-                break;
-            } catch (RejectedExecutionException e) {
-                // 并发超时路径刚关闭了共享池，重建后重新提交
-                executor = scriptExecutor();
+                Script script = (Script) compiled.scriptClass().getDeclaredConstructor().newInstance();
+                script.setBinding(binding);
+                Object result = script.run();
+                return result == null ? "" : result;
+            } finally {
+                interceptor.unregister();
             }
-        }
+        });
 
         try {
-            return future.get(EXECUTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            return future.get(executionTimeoutMillis, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
             future.cancel(true);
-            // 关闭本次提交使用的执行池，避免死循环脚本阻塞后续执行；后续调用经 scriptExecutor() 重建新池
-            executor.shutdownNow();
             throw new SecurityException(I18nUtil.get("tool.groovy.script.execution.timeout", EXECUTION_TIMEOUT_SECONDS));
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
@@ -169,6 +139,7 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
             }
             throw new RuntimeException(I18nUtil.get("tool.groovy.script.execution.failed", cause.getMessage()), cause);
         } catch (InterruptedException e) {
+            future.cancel(true);
             Thread.currentThread().interrupt();
             throw new RuntimeException(I18nUtil.get("tool.groovy.script.execution.interrupted"), e);
         }

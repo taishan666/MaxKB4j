@@ -1,5 +1,6 @@
 package com.maxkb4j.tool.sandbox;
 
+import groovy.transform.ThreadInterrupt;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.expr.ClassExpression;
 import org.codehaus.groovy.ast.expr.Expression;
@@ -12,6 +13,7 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.ErrorCollector;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
+import org.codehaus.groovy.control.customizers.ASTTransformationCustomizer;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.codehaus.groovy.control.messages.ExceptionMessage;
@@ -22,6 +24,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -257,12 +260,18 @@ public final class GroovySandboxCompilerConfigurer {
         allowedConstants.add(dev.langchain4j.web.search.google.customsearch.GoogleCustomWebSearchEngine.GoogleCustomWebSearchEngineBuilder.class);
         ast.setAllowedConstantTypesClasses(allowedConstants);
 
-        // ========== 3. Groovy Sandbox 运行期沙箱 ==========
+        // ========== 3. 循环与方法中断检查 ==========
+        // 在循环及方法入口注入 Thread.currentThread().isInterrupted() 检查，
+        // 使 while (true) {} 等没有方法调用的脚本也能响应 Future.cancel(true)。
+        ASTTransformationCustomizer threadInterrupt = new ASTTransformationCustomizer(
+                Map.of("checkOnMethodStart", true), ThreadInterrupt.class);
+
+        // ========== 4. Groovy Sandbox 运行期沙箱 ==========
         // SandboxTransformer 默认启用所有拦截：方法、构造函数、属性、数组、属性访问
         SandboxTransformer sandboxTransformer = new SandboxTransformer();
 
-        // ========== 4. 组合配置 ==========
-        config.addCompilationCustomizers(importCustomizer, ast, sandboxTransformer);
+        // ========== 5. 组合配置 ==========
+        config.addCompilationCustomizers(importCustomizer, ast, threadInterrupt, sandboxTransformer);
         config.setScriptBaseClass("groovy.lang.Script");
         // 禁用 Grape 相关 AST 转换，避免运行期联网下载依赖。
         // 注意：Groovy 按 META-INF/services/org.codehaus.groovy.transform.ASTTransformation
