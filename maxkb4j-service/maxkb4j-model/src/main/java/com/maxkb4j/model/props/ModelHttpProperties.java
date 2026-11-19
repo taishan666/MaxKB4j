@@ -7,9 +7,9 @@ import org.springframework.stereotype.Component;
 /**
  * 模型调用 HTTP 客户端配置（对所有模型供应商生效）
  * <p>
- * 可通过 application.yml 中 maxkb.model.http.* 覆盖。
+ * 可通过 application.yml 中 model.http.* 覆盖。
  */
-@ConfigurationProperties(prefix = "maxkb.model.http")
+@ConfigurationProperties(prefix = "model.http")
 @Component
 @Data
 public class ModelHttpProperties {

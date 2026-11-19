@@ -49,7 +49,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
 
     /**
      * 重写父类方法，为 Ollama 提供 UTF-8 编码支持的 HTTP 客户端，
-     * 并复用统一的超时配置（maxkb.model.http.*）
+     * 并复用统一的超时配置（model.http.*）
      */
     @Override
     protected HttpClientBuilder getHttpClientBuilder() {

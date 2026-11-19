@@ -53,7 +53,7 @@ public abstract class AbsModelProvider {
     /**
      * 构建带超时配置的请求工厂。
      * <p>
-     * 超时可通过配置 {@code maxkb.model.http.connect-timeout / read-timeout} 调整，设为 0 表示不限制。
+     * 超时可通过配置 {@code model.http.connect-timeout / read-timeout} 调整，设为 0 表示不限制。
      * 注意 readTimeout 是流式响应中两次数据之间的最大等待间隔，思考/推理类模型在
      * 生成前可能长时间不返回任何 SSE 数据，该值过小会触发 Read timed out。
      */

@@ -54,7 +54,7 @@ mybatis-plus:
   type-handlers-package: com.maxkb4j.common.typehandler,com.maxkb4j.application.typehandler,com.maxkb4j.model.typehandler,com.maxkb4j.tool.typehandler
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:
-  # jwt秘钥 - 必须由环境变量提供，未配置时启动直接失败（见 SaTokenSecretValidator）
+  # jwt秘钥
   jwt-secret-key: ${SA_TOKEN_JWT_SECRET_KEY:asdasdasifhueuiwyurfewbfjsdafjk}
   # token 名称（同时也是 cookie 名称）
   token-name: token
@@ -80,14 +80,13 @@ decorator:
       enable-logging: false
 
 # 模型 HTTP 客户端配置（对所有模型供应商生效）
-maxkb:
-  model:
-    http:
-      # 建立连接超时（毫秒），0 表示不限制
-      connect-timeout: ${MODEL_CONNECT_TIMEOUT:60000}
-      # 流式(SSE)响应两次数据之间的读超时（毫秒），0 表示不限制。
-      # 思考/推理类模型生成前可能长时间无数据返回，超时过小会导致 Read timed out 中断流式输出
-      read-timeout: ${MODEL_READ_TIMEOUT:1800000}
+model:
+  http:
+    # 建立连接超时（毫秒），0 表示不限制
+    connect-timeout: ${MODEL_CONNECT_TIMEOUT:60000}
+    # 流式(SSE)响应两次数据之间的读超时（毫秒），0 表示不限制。
+    # 思考/推理类模型生成前可能长时间无数据返回，超时过小会导致 Read timed out 中断流式输出
+    read-timeout: ${MODEL_READ_TIMEOUT:1800000}
 
 system:
   default-username: admin
