@@ -57,7 +57,7 @@ public class ApplicationChatController {
     @SaCheckPerm(PermissionEnum.APPLICATION_EXPORT)
     @PostMapping("/application/{id}/chat/export")
     public void export(@PathVariable String id, @RequestBody List<String> selectIds, HttpServletResponse response) throws IOException {
-        chatService.chatExport(selectIds, response);
+        chatService.chatExport(id, selectIds, response);
     }
 
 

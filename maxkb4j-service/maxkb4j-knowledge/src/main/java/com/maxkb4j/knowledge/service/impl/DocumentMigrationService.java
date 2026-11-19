@@ -40,13 +40,29 @@ public class DocumentMigrationService {
         if (CollectionUtils.isEmpty(docIds)) {
             return false;
         }
-        compositeStore.deleteByDocumentIds(targetKnowledgeId, docIds);
+        docIds = documentService.lambdaQuery()
+                .select(DocumentEntity::getId)
+                .eq(DocumentEntity::getKnowledgeId, sourceKnowledgeId)
+                .in(DocumentEntity::getId, docIds)
+                .list()
+                .stream()
+                .map(DocumentEntity::getId)
+                .toList();
+        if (docIds.isEmpty()) {
+            return false;
+        }
+        compositeStore.deleteByDocumentIds(sourceKnowledgeId, docIds);
         documentTagService.lambdaUpdate().in(DocumentTagEntity::getDocumentId, docIds).remove();
-        paragraphService.lambdaUpdate().set(ParagraphEntity::getKnowledgeId, targetKnowledgeId).in(ParagraphEntity::getDocumentId, docIds).update();
+        paragraphService.lambdaUpdate()
+                .set(ParagraphEntity::getKnowledgeId, targetKnowledgeId)
+                .eq(ParagraphEntity::getKnowledgeId, sourceKnowledgeId)
+                .in(ParagraphEntity::getDocumentId, docIds)
+                .update();
         problemParagraphService.lambdaUpdate().eq(ProblemParagraphEntity::getKnowledgeId, sourceKnowledgeId).in(ProblemParagraphEntity::getDocumentId, docIds).remove();
         publishDocumentIndexEvent(targetKnowledgeId, docIds, List.of("0", "1", "2", "3", "4", "5", "n"));
         return documentService.lambdaUpdate()
                 .set(DocumentEntity::getKnowledgeId, targetKnowledgeId)
+                .eq(DocumentEntity::getKnowledgeId, sourceKnowledgeId)
                 .in(DocumentEntity::getId, docIds)
                 .update();
     }

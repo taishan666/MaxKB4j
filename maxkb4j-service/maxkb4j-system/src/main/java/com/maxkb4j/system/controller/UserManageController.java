@@ -60,7 +60,7 @@ public class UserManageController {
     public R<Boolean> updateUserById(@PathVariable("id") String id, @RequestBody UserUpdateDTO dto) {
         UserEntity user = BeanUtil.copy(dto, UserEntity.class);
         user.setId(id);
-        return R.status(userService.updateById(user));
+        return R.status(userService.updateUser(user));
     }
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)

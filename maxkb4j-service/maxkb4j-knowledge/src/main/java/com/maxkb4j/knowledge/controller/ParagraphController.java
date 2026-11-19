@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.constant.RoleConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.knowledge.dto.GenerateProblemDTO;
 import com.maxkb4j.knowledge.dto.IdListDTO;
 import com.maxkb4j.knowledge.dto.ParagraphAddDTO;
@@ -97,7 +99,14 @@ public class ParagraphController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE)
     @PutMapping("/knowledge/{id}/document/{sourceDocId}/paragraph/migrate/knowledge/{targetKnowledgeId}/document/{targetDocId}")
     public R<Boolean> paragraphMigrate(@PathVariable("id") String sourceKnowledgeId, @PathVariable String sourceDocId, @PathVariable String targetKnowledgeId, @PathVariable String targetDocId, @Valid @RequestBody IdListDTO dto) {
+        checkTargetMigrationPermission(targetKnowledgeId);
         return R.status(paragraphMigrationService.paragraphMigrate(sourceKnowledgeId, sourceDocId, targetKnowledgeId, targetDocId, dto.getIdList()));
+    }
+
+    private void checkTargetMigrationPermission(String targetKnowledgeId) {
+        if (!StpKit.ADMIN.hasRole(RoleConst.ADMIN)) {
+            StpKit.ADMIN.checkPermission(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE.getResourcePerm("default", targetKnowledgeId));
+        }
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)

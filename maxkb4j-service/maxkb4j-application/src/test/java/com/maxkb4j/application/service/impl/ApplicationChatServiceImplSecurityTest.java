@@ -5,13 +5,14 @@ import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapp
 import com.maxkb4j.application.dto.ShareChatDTO;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
 import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
+import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.mapper.ApplicationChatShareLinkMapper;
 import com.maxkb4j.application.service.*;
 import com.maxkb4j.common.cache.ChatCache;
 import com.maxkb4j.common.exception.ApiException;
-import com.maxkb4j.application.handler.PostResponseHandler;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -104,5 +105,19 @@ class ApplicationChatServiceImplSecurityTest {
     void isOwnedBy_mismatch_returnsFalse() {
         when(chatMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(0L);
         assertFalse(chatService.isOwnedBy(CHAT_ID, APP_ID, "other-user"));
+    }
+
+    @Test
+    void chatExport_scopesChatIdsToApplication() throws Exception {
+        List<String> chatIds = List.of(CHAT_ID, "chat-foreign");
+        when(chatMapper.chatRecordDetail(APP_ID, chatIds)).thenReturn(List.of());
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        ApplicationChatServiceImpl exportService = spy(chatService);
+        doNothing().when(exportService).writeChatExport(anyList(), eq(response));
+
+        exportService.chatExport(APP_ID, chatIds, response);
+
+        verify(chatMapper).chatRecordDetail(APP_ID, chatIds);
+        verify(exportService).writeChatExport(List.of(), response);
     }
 }

@@ -31,8 +31,8 @@ public class DocumentExportService {
     private final KnowledgeMapper knowledgeMapper;
     private final KnowledgeExcelDataBuilder excelDataBuilder;
 
-    public void exportExcel(String docId, HttpServletResponse response) throws IOException {
-        DocumentEntity doc = documentService.getById(docId);
+    public void exportExcel(String knowledgeId, String docId, HttpServletResponse response) throws IOException {
+        DocumentEntity doc = documentService.getByKnowledgeIdAndId(knowledgeId, docId);
         if (doc == null) return;
         ExcelExportSupport.prepareExcelResponse(response, doc.getName());
         EasyExcel.write(response.getOutputStream(), KnowledgeExcel.class)
@@ -42,7 +42,7 @@ public class DocumentExportService {
 
     public void exportExcel(String knowledgeId, List<String> docIds, HttpServletResponse response) throws IOException {
         KnowledgeEntity knowledge = loadKnowledgeName(knowledgeId);
-        List<DocumentEntity> docs = loadDocSummaries(docIds);
+        List<DocumentEntity> docs = loadDocSummaries(knowledgeId, docIds);
         if (docs.isEmpty()) return;
 
         ExcelExportSupport.prepareExcelResponse(response, knowledge.getName());
@@ -52,15 +52,15 @@ public class DocumentExportService {
         }
     }
 
-    public void exportZip(String docId, HttpServletResponse response) throws IOException {
-        DocumentEntity doc = documentService.getById(docId);
+    public void exportZip(String knowledgeId, String docId, HttpServletResponse response) throws IOException {
+        DocumentEntity doc = documentService.getByKnowledgeIdAndId(knowledgeId, docId);
         if (doc == null) return;
         writeZip(List.of(doc), doc.getName(), response);
     }
 
     public void exportZip(String knowledgeId, List<String> docIds, HttpServletResponse response) throws IOException {
         KnowledgeEntity knowledge = loadKnowledgeName(knowledgeId);
-        List<DocumentEntity> docs = loadDocSummaries(docIds);
+        List<DocumentEntity> docs = loadDocSummaries(knowledgeId, docIds);
         writeZip(docs, knowledge.getName(), response);
     }
 
@@ -77,9 +77,10 @@ public class DocumentExportService {
                 .eq(KnowledgeEntity::getId, knowledgeId));
     }
 
-    private List<DocumentEntity> loadDocSummaries(List<String> docIds) {
+    private List<DocumentEntity> loadDocSummaries(String knowledgeId, List<String> docIds) {
         return documentService.lambdaQuery()
                 .select(DocumentEntity::getId, DocumentEntity::getName)
+                .eq(DocumentEntity::getKnowledgeId, knowledgeId)
                 .in(DocumentEntity::getId, docIds)
                 .list();
     }

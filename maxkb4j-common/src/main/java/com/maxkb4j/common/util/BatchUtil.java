@@ -44,6 +44,9 @@ public class BatchUtil {
     }
 
     public static <T> void protectBach(List<T> list, int number, Consumer<List<T>> bach) {
+        if (number <= 0) {
+            throw new IllegalArgumentException("Batch size must be greater than 0");
+        }
         if (isEmpty(list)) {
             return;
         }

@@ -203,12 +203,15 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
     }
 
 
-    public void chatExport(List<String> ids, HttpServletResponse response) throws IOException {
+    public void chatExport(String appId, List<String> ids, HttpServletResponse response) throws IOException {
         if (CollectionUtils.isNotEmpty(ids)) {
-            List<ChatRecordDetailVO> list = baseMapper.chatRecordDetail(ids);
-            List<ChatRecordDetailExcel> rows = BeanUtil.copyList(list, ChatRecordDetailExcel.class);
-            EasyExcel.write(response.getOutputStream(), ChatRecordDetailExcel.class).sheet("sheet").doWrite(rows);
+            writeChatExport(baseMapper.chatRecordDetail(appId, ids), response);
         }
+    }
+
+    void writeChatExport(List<ChatRecordDetailVO> list, HttpServletResponse response) throws IOException {
+        List<ChatRecordDetailExcel> rows = BeanUtil.copyList(list, ChatRecordDetailExcel.class);
+        EasyExcel.write(response.getOutputStream(), ChatRecordDetailExcel.class).sheet("sheet").doWrite(rows);
     }
 
     @Transactional(rollbackFor = Exception.class)

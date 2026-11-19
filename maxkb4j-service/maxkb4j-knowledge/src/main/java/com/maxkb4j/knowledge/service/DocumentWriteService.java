@@ -2,6 +2,7 @@ package com.maxkb4j.knowledge.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.knowledge.event.DocumentIndexEvent;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
@@ -19,7 +20,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -37,6 +37,12 @@ public class DocumentWriteService extends ServiceImpl<DocumentMapper, DocumentEn
     private final IProblemParagraphService problemParagraphService;
     private final ApplicationEventPublisher eventPublisher;
 
+    @Override
+    public boolean existsByKnowledgeIdAndId(String knowledgeId, String docId) {
+        return this.count(Wrappers.<DocumentEntity>lambdaQuery()
+                .eq(DocumentEntity::getKnowledgeId, knowledgeId)
+                .eq(DocumentEntity::getId, docId)) > 0;
+    }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -92,7 +98,10 @@ public class DocumentWriteService extends ServiceImpl<DocumentMapper, DocumentEn
             }
             doc.setCharLength(docCharLength.get());
             String sourceFileId = Optional.ofNullable(d.getSourceFileId()).orElse("");
-            doc.setMeta(new JSONObject(Map.of("allow_download", true, "sourceFileId", sourceFileId)));
+            JSONObject meta = Optional.ofNullable(d.getMeta()).orElseGet(JSONObject::new);
+            meta.put("allow_download", true);
+            meta.put("sourceFileId", sourceFileId);
+            doc.setMeta(meta);
             documentEntities.add(doc);
         }
         this.saveBatch(documentEntities);

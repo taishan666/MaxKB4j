@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.constant.RoleConst;
 import com.maxkb4j.common.domain.dto.KeyAndValue;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
@@ -98,7 +100,14 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE)
     @PutMapping("/knowledge/{id}/document/migrate/{targetKnowledgeId}")
     public R<Boolean> migrateDoc(@PathVariable("id") String sourceKnowledgeId, @PathVariable("targetKnowledgeId") String targetKnowledgeId, @RequestBody List<String> docIds) {
+        checkTargetMigrationPermission(targetKnowledgeId);
         return R.status(documentMigrationService.migrateDoc(sourceKnowledgeId, targetKnowledgeId, docIds));
+    }
+
+    private void checkTargetMigrationPermission(String targetKnowledgeId) {
+        if (!StpKit.ADMIN.hasRole(RoleConst.ADMIN)) {
+            StpKit.ADMIN.checkPermission(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE.getResourcePerm("default", targetKnowledgeId));
+        }
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)

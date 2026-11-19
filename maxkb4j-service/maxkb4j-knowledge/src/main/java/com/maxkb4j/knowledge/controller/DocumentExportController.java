@@ -33,7 +33,7 @@ public class DocumentExportController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
     @GetMapping("/knowledge/{id}/document/{docId}/export")
     public void export(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) throws IOException {
-        documentExportService.exportExcel(docId, response);
+        documentExportService.exportExcel(id, docId, response);
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
@@ -46,7 +46,7 @@ public class DocumentExportController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
     @GetMapping("/knowledge/{id}/document/{docId}/export_zip")
     public void exportZip(@PathVariable("id") String id, @PathVariable("docId") String docId, HttpServletResponse response) throws IOException {
-        documentExportService.exportZip(docId, response);
+        documentExportService.exportZip(id, docId, response);
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EXPORT)
@@ -58,13 +58,13 @@ public class DocumentExportController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DOWNLOAD)
     @GetMapping("/knowledge/{id}/document/{docId}/download_source_file")
     public R<String> downloadSourceFile(@PathVariable String id, @PathVariable String docId, HttpServletResponse response) throws IOException {
-        return documentSourceFileService.download(docId, response) ? R.success() : R.fail(I18nUtil.get(SOURCE_FILE_MISSING));
+        return documentSourceFileService.download(id, docId, response) ? R.success() : R.fail(I18nUtil.get(SOURCE_FILE_MISSING));
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_REPLACE)
     @PostMapping("/knowledge/{id}/document/{docId}/replace_source_file")
     public R<String> replaceSourceFile(@PathVariable String id, @PathVariable String docId, MultipartFile file) throws IOException {
-        return documentSourceFileService.replace(docId, file) ? R.success() : R.fail(I18nUtil.get(SOURCE_FILE_MISSING));
+        return documentSourceFileService.replace(id, docId, file) ? R.success() : R.fail(I18nUtil.get(SOURCE_FILE_MISSING));
     }
 
 }

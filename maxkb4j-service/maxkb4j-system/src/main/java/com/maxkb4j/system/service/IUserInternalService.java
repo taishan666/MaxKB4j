@@ -32,6 +32,8 @@ public interface IUserInternalService extends IUserService, IService<UserEntity>
 
     boolean createUser(UserEntity user);
 
+    boolean updateUser(UserEntity user);
+
     UserProfileVO getUserProfileById(String userId);
 
     Boolean sendEmailCode(String email, String subject);

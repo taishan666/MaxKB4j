@@ -5,8 +5,12 @@ import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.knowledge.dto.DocumentTagAddDTO;
+import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.entity.DocumentTagEntity;
+import com.maxkb4j.knowledge.entity.TagEntity;
+import com.maxkb4j.knowledge.service.IDocumentInternalService;
 import com.maxkb4j.knowledge.service.IDocumentTagService;
+import com.maxkb4j.knowledge.service.ITagService;
 import com.maxkb4j.knowledge.vo.TagListVO;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
@@ -27,16 +31,24 @@ import java.util.Set;
 public class DocumentTagController {
 
     private final IDocumentTagService documentTagService;
+    private final IDocumentInternalService documentService;
+    private final ITagService tagService;
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
     @GetMapping("/knowledge/{id}/document/{docId}/tags")
     public R<List<TagListVO>> listTags(@PathVariable("id") String id, @PathVariable String docId, @RequestParam(required = false) String name) {
+        if (!documentExists(id, docId)) {
+            return R.data(List.of());
+        }
         return R.data(documentTagService.listTags(docId, name));
     }
 
-    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_READ)
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
     @PostMapping("/knowledge/{id}/document/{docId}/tags")
     public R<Boolean> addTags(@PathVariable("id") String id, @PathVariable String docId, @RequestBody List<String> tagIds) {
+        if (!documentExists(id, docId) || !tagsBelongToKnowledge(id, tagIds)) {
+            return R.status(false);
+        }
         List<DocumentTagEntity> documentTags = new ArrayList<>();
         if (tagIds.isEmpty()) {
             return R.status(true);
@@ -71,6 +83,9 @@ public class DocumentTagController {
         if (documentIds.isEmpty() || tagIds.isEmpty()) {
             return R.status(true);
         }
+        if (!documentsBelongToKnowledge(id, documentIds) || !tagsBelongToKnowledge(id, tagIds)) {
+            return R.status(false);
+        }
         Set<String> existDocumentTags = documentTagService.lambdaQuery()
                 .select(DocumentTagEntity::getDocumentId, DocumentTagEntity::getTagId)
                 .in(DocumentTagEntity::getDocumentId, documentIds)
@@ -98,8 +113,41 @@ public class DocumentTagController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DELETE)
     @PutMapping("/knowledge/{id}/document/{docId}/tags/batch_delete")
     public R<Boolean> batchDeleteTags(@PathVariable("id") String id, @PathVariable String docId, @RequestBody List<String> tagIds) {
-        return R.status(documentTagService.removeByIds(tagIds));
+        if (!documentExists(id, docId) || tagIds == null) {
+            return R.status(false);
+        }
+        if (tagIds.isEmpty()) {
+            return R.status(true);
+        }
+        return R.status(documentTagService.lambdaUpdate()
+                .eq(DocumentTagEntity::getDocumentId, docId)
+                .in(DocumentTagEntity::getTagId, tagIds)
+                .remove());
     }
 
+    private boolean documentExists(String knowledgeId, String docId) {
+        return documentService.getByKnowledgeIdAndId(knowledgeId, docId) != null;
+    }
 
+    private boolean documentsBelongToKnowledge(String knowledgeId, List<String> documentIds) {
+        long count = documentService.lambdaQuery()
+                .eq(DocumentEntity::getKnowledgeId, knowledgeId)
+                .in(DocumentEntity::getId, documentIds)
+                .count();
+        return count == documentIds.stream().distinct().count();
+    }
+
+    private boolean tagsBelongToKnowledge(String knowledgeId, List<String> tagIds) {
+        if (tagIds == null) {
+            return false;
+        }
+        if (tagIds.isEmpty()) {
+            return true;
+        }
+        long count = tagService.lambdaQuery()
+                .eq(TagEntity::getKnowledgeId, knowledgeId)
+                .in(TagEntity::getId, tagIds)
+                .count();
+        return count == tagIds.stream().distinct().count();
+    }
 }

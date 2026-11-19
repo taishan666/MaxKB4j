@@ -146,7 +146,8 @@
         FROM application_chat chat
         LEFT JOIN application_chat_record record
         ON chat.id=record.chat_id
-        WHERE chat.id IN
+        WHERE chat.application_id = #{appId}
+        AND chat.id IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>

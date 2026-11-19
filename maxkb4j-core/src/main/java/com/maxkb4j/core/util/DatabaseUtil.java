@@ -218,12 +218,17 @@ public class DatabaseUtil {
      */
     private static final Pattern SAFE_SQLITE_PATH_PATTERN = Pattern.compile("^[A-Za-z0-9_.$\\-/:\\\\ ]+$");
 
-    private static String buildJdbcUrl(String databaseType, String host, int port, String databaseName) {
+    private static String buildJdbcUrl(String databaseType, String host, Integer port, String databaseName) {
         if (databaseType == null) {
             throw new IllegalArgumentException("Database type must not be null");
         }
-        if (host == null || !SAFE_HOST_PATTERN.matcher(host).matches()) {
-            throw new IllegalArgumentException("Invalid database host: " + host);
+        if (!"sqlite".equalsIgnoreCase(databaseType)) {
+            if (host == null || !SAFE_HOST_PATTERN.matcher(host).matches()) {
+                throw new IllegalArgumentException("Invalid database host: " + host);
+            }
+            if (port == null) {
+                throw new IllegalArgumentException("Database port must not be null");
+            }
         }
         return switch (databaseType.toLowerCase()) {
             case "mysql" -> {

@@ -1,5 +1,7 @@
 package com.maxkb4j.knowledge.service.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.entity.ProblemParagraphEntity;
 import com.maxkb4j.knowledge.event.ParagraphIndexEvent;
@@ -32,9 +34,32 @@ public class ParagraphMigrationService {
 
     @Transactional(rollbackFor = Exception.class)
     public Boolean paragraphMigrate(String sourceKnowledgeId, String sourceDocId, String targetKnowledgeId, String targetDocId, List<String> paragraphIds) {
+        if (paragraphIds == null || paragraphIds.isEmpty()) {
+            return false;
+        }
+        Long targetDocumentCount = documentMapper.selectCount(Wrappers.<DocumentEntity>lambdaQuery()
+                .eq(DocumentEntity::getKnowledgeId, targetKnowledgeId)
+                .eq(DocumentEntity::getId, targetDocId));
+        if (targetDocumentCount == 0) {
+            return false;
+        }
+        paragraphIds = paragraphService.lambdaQuery()
+                .select(ParagraphEntity::getId)
+                .eq(ParagraphEntity::getKnowledgeId, sourceKnowledgeId)
+                .eq(ParagraphEntity::getDocumentId, sourceDocId)
+                .in(ParagraphEntity::getId, paragraphIds)
+                .list()
+                .stream()
+                .map(ParagraphEntity::getId)
+                .toList();
+        if (paragraphIds.isEmpty()) {
+            return false;
+        }
         compositeStore.deleteByParagraphIds(sourceKnowledgeId, paragraphIds);
         if (sourceKnowledgeId.equals(targetKnowledgeId)) {
             problemParagraphService.lambdaUpdate()
+                    .eq(ProblemParagraphEntity::getKnowledgeId, sourceKnowledgeId)
+                    .eq(ProblemParagraphEntity::getDocumentId, sourceDocId)
                     .in(ProblemParagraphEntity::getParagraphId, paragraphIds)
                     .set(ProblemParagraphEntity::getKnowledgeId, targetKnowledgeId)
                     .set(ProblemParagraphEntity::getDocumentId, targetDocId)
@@ -60,6 +85,8 @@ public class ParagraphMigrationService {
                     .set(ParagraphEntity::getDocumentId, targetDocId)
                     .set(ParagraphEntity::getPosition, targetCount + 1)
                     .eq(ParagraphEntity::getId, paragraphId)
+                    .eq(ParagraphEntity::getKnowledgeId, sourceKnowledgeId)
+                    .eq(ParagraphEntity::getDocumentId, sourceDocId)
                     .update();
             targetCount++;
         }

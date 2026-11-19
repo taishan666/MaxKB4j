@@ -310,9 +310,13 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
         }
         // 删除关联关系与问题本体（同一短事务）
         problemParagraphService.lambdaUpdate()
+                .eq(ProblemParagraphEntity::getKnowledgeId, knowledgeId)
                 .in(ProblemParagraphEntity::getProblemId, problemIds)
                 .remove();
-        boolean removed = this.removeByIds(problemIds);
+        boolean removed = this.lambdaUpdate()
+                .eq(ProblemEntity::getKnowledgeId, knowledgeId)
+                .in(ProblemEntity::getId, problemIds)
+                .remove();
         // 事务提交后再清理向量索引，避免外部存储调用延长事务
         if (removed) {
             registerAfterCommit(() -> {
@@ -362,7 +366,10 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
      */
     @Transactional(rollbackFor = Exception.class)
     public boolean updateProblemById(ProblemEntity problem) {
-        boolean updated = this.updateById(problem);
+        boolean updated = this.lambdaUpdate()
+                .eq(ProblemEntity::getId, problem.getId())
+                .eq(ProblemEntity::getKnowledgeId, problem.getKnowledgeId())
+                .update(problem);
         if (updated) {
             registerAfterCommit(() -> {
                 try {

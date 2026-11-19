@@ -21,11 +21,14 @@ import com.maxkb4j.application.service.IApplicationChatRecordInternalService;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.application.vo.ParagraphRecordVO;
 import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.knowledge.dto.ParagraphDTO;
+import com.maxkb4j.knowledge.service.IDocumentService;
 import com.maxkb4j.knowledge.service.IParagraphService;
+import com.maxkb4j.system.service.IResourceMappingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +52,40 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
 
     private final IParagraphService paragraphService;
     private final ApplicationChatMapper chatMapper;
+    private final IDocumentService documentService;
+    private final IResourceMappingService resourceMappingService;
+
+    private boolean chatBelongsToApp(String appId, String chatId) {
+        return chatMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery()
+                .eq(ApplicationChatEntity::getId, chatId)
+                .eq(ApplicationChatEntity::getApplicationId, appId)) > 0;
+    }
+
+    private ApplicationChatRecordEntity getOwnedChatRecord(String appId, String chatId, String chatRecordId) {
+        if (!chatBelongsToApp(appId, chatId)) {
+            return null;
+        }
+        return baseMapper.selectOne(Wrappers.<ApplicationChatRecordEntity>lambdaQuery()
+                .eq(ApplicationChatRecordEntity::getId, chatRecordId)
+                .eq(ApplicationChatRecordEntity::getChatId, chatId));
+    }
+
+    private boolean knowledgeDocumentBelongsToApp(String appId, String knowledgeId, String docId) {
+        return resourceMappingService.existsMapping(
+                ResourceType.APPLICATION, appId, ResourceType.KNOWLEDGE, knowledgeId)
+                && documentService.existsByKnowledgeIdAndId(knowledgeId, docId);
+    }
+
+    private boolean paragraphBelongsToRecord(ApplicationChatRecordEntity chatRecord, String knowledgeId,
+                                             String docId, String paragraphId) {
+        if (CollectionUtils.isEmpty(chatRecord.getImproveParagraphIdList())
+                || !chatRecord.getImproveParagraphIdList().contains(paragraphId)) {
+            return false;
+        }
+        return paragraphService.listDtoByIds(List.of(paragraphId)).stream()
+                .anyMatch(paragraph -> Objects.equals(knowledgeId, paragraph.getKnowledgeId())
+                        && Objects.equals(docId, paragraph.getDocumentId()));
+    }
 
     private ChatRecordDTO getChatRecordDTO(ChatInfo chatInfo, String chatId, String chatRecordId) {
         ChatRecordDTO chatRecord = null;
@@ -81,6 +118,14 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
         ChatInfo chatInfo = ChatCache.get(chatId);
         ChatRecordDTO chatRecord = getChatRecordDTO(chatInfo, chatId, chatRecordId);
         return convert(chatRecord);
+    }
+
+    @Override
+    public ApplicationChatRecordVO getChatRecordInfo(String appId, String chatId, String chatRecordId) {
+        if (!chatBelongsToApp(appId, chatId)) {
+            return null;
+        }
+        return getChatRecordInfo(chatId, chatRecordId);
     }
 
     private ApplicationChatRecordVO convert(ApplicationChatRecordEntity chatRecordEntity) {
@@ -134,6 +179,14 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     }
 
 
+    @Override
+    public IPage<ApplicationChatRecordVO> chatRecordPage(String appId, String chatId, int current, int size) {
+        if (!chatBelongsToApp(appId, chatId)) {
+            return new Page<>(current, size);
+        }
+        return chatRecordPage(chatId, current, size);
+    }
+
     public IPage<ApplicationChatRecordVO> chatRecordPage(String chatId, int current, int size) {
         Page<ApplicationChatRecordEntity> chatRecordpage = new Page<>(current, size);
         LambdaQueryWrapper<ApplicationChatRecordEntity> wrapper = Wrappers.lambdaQuery();
@@ -180,47 +233,88 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     }
 
 
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean addChatLogs(String appId, AddChatImproveDTO dto) {
-        List<ApplicationChatRecordEntity> chatRecords = this.lambdaQuery().select(ApplicationChatRecordEntity::getProblemText, ApplicationChatRecordEntity::getAnswerText).in(ApplicationChatRecordEntity::getChatId, dto.getChatIds()).list();
+        if (dto == null || CollectionUtils.isEmpty(dto.getChatIds())
+                || !knowledgeDocumentBelongsToApp(appId, dto.getKnowledgeId(), dto.getDocumentId())) {
+            return false;
+        }
+        List<String> chatIds = dto.getChatIds().stream().distinct().toList();
+        long ownedChatCount = chatMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery()
+                .eq(ApplicationChatEntity::getApplicationId, appId)
+                .in(ApplicationChatEntity::getId, chatIds));
+        if (ownedChatCount != chatIds.size()) {
+            return false;
+        }
+        List<ApplicationChatRecordEntity> chatRecords = baseMapper.selectList(
+                Wrappers.<ApplicationChatRecordEntity>lambdaQuery()
+                        .select(ApplicationChatRecordEntity::getProblemText, ApplicationChatRecordEntity::getAnswerText)
+                        .in(ApplicationChatRecordEntity::getChatId, chatIds));
         List<ParagraphDTO> paragraphs = new ArrayList<>();
         for (ApplicationChatRecordEntity e : chatRecords) {
-            ParagraphDTO paragraphDTO = new ParagraphDTO(IdWorker.get32UUID(),dto.getKnowledgeId(), dto.getDocumentId(), e.getProblemText(), e.getAnswerText(), null);
+            ParagraphDTO paragraphDTO = new ParagraphDTO(IdWorker.get32UUID(), dto.getKnowledgeId(), dto.getDocumentId(), e.getProblemText(), e.getAnswerText(), null);
             paragraphs.add(paragraphDTO);
         }
-        return paragraphService.saveDtoBatch(paragraphs);
+        return !paragraphs.isEmpty() && paragraphService.saveDtoBatch(paragraphs);
     }
 
+    @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApplicationChatRecordEntity improveChatLog(String chatId, String chatRecordId, String knowledgeId, String docId, ChatImproveDTO dto) {
-        ParagraphDTO paragraphDTO = new ParagraphDTO(IdWorker.get32UUID(),knowledgeId, docId, dto.getTitle(), dto.getContent(), null);
-        paragraphService.saveParagraphAndProblem(paragraphDTO, List.of(dto.getProblemText()));
+    public ApplicationChatRecordEntity improveChatLog(String appId, String chatId, String chatRecordId, String knowledgeId, String docId, ChatImproveDTO dto) {
+        ApplicationChatRecordEntity ownedRecord = getOwnedChatRecord(appId, chatId, chatRecordId);
+        if (ownedRecord == null || !knowledgeDocumentBelongsToApp(appId, knowledgeId, docId)) {
+            return null;
+        }
+        ParagraphDTO paragraphDTO = new ParagraphDTO(IdWorker.get32UUID(), knowledgeId, docId, dto.getTitle(), dto.getContent(), null);
+        if (!paragraphService.saveParagraphAndProblem(paragraphDTO, List.of(dto.getProblemText()))) {
+            return null;
+        }
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
-        chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of(paragraphDTO.getId()));
-        this.updateById(chatRecord);
+        baseMapper.update(chatRecord, Wrappers.<ApplicationChatRecordEntity>lambdaUpdate()
+                .eq(ApplicationChatRecordEntity::getId, chatRecordId)
+                .eq(ApplicationChatRecordEntity::getChatId, chatId));
         // 使用 setSql 实现原子自增，避免并发丢更新
         chatMapper.update(null, new LambdaUpdateWrapper<ApplicationChatEntity>()
                 .eq(ApplicationChatEntity::getId, chatId)
+                .eq(ApplicationChatEntity::getApplicationId, appId)
                 .setSql("mark_sum = COALESCE(mark_sum, 0) + 1"));
-        return this.getById(chatRecordId);
+        return baseMapper.selectOne(Wrappers.<ApplicationChatRecordEntity>lambdaQuery()
+                .eq(ApplicationChatRecordEntity::getId, chatRecordId)
+                .eq(ApplicationChatRecordEntity::getChatId, chatId));
     }
 
+    @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean removeImproveChatLog(String chatId, String chatRecordId, String knowledgeId, String paragraphId) {
+    public boolean removeImproveChatLog(String appId, String chatId, String chatRecordId, String knowledgeId, String docId, String paragraphId) {
+        ApplicationChatRecordEntity ownedRecord = getOwnedChatRecord(appId, chatId, chatRecordId);
+        if (ownedRecord == null || !knowledgeDocumentBelongsToApp(appId, knowledgeId, docId)
+                || !paragraphBelongsToRecord(ownedRecord, knowledgeId, docId, paragraphId)) {
+            return false;
+        }
+        if (!paragraphService.deleteById(knowledgeId, paragraphId)) {
+            return false;
+        }
         ApplicationChatRecordEntity chatRecord = new ApplicationChatRecordEntity();
-        chatRecord.setId(chatRecordId);
         chatRecord.setImproveParagraphIdList(List.of());
-        this.updateById(chatRecord);
+        baseMapper.update(chatRecord, Wrappers.<ApplicationChatRecordEntity>lambdaUpdate()
+                .eq(ApplicationChatRecordEntity::getId, chatRecordId)
+                .eq(ApplicationChatRecordEntity::getChatId, chatId));
         // 使用 setSql 实现原子递减，避免并发丢更新
         chatMapper.update(null, new LambdaUpdateWrapper<ApplicationChatEntity>()
                 .eq(ApplicationChatEntity::getId, chatId)
+                .eq(ApplicationChatEntity::getApplicationId, appId)
                 .setSql("mark_sum = GREATEST(COALESCE(mark_sum, 0) - 1, 0)"));
-        return paragraphService.deleteById(knowledgeId, paragraphId);
+        return true;
     }
 
-    public List<ParagraphDTO> improveChatLog(String chatRecordId) {
-        ApplicationChatRecordEntity chatRecord = this.getById(chatRecordId);
+    @Override
+    public List<ParagraphDTO> improveChatLog(String appId, String chatId, String chatRecordId) {
+        ApplicationChatRecordEntity chatRecord = getOwnedChatRecord(appId, chatId, chatRecordId);
+        if (chatRecord == null || CollectionUtils.isEmpty(chatRecord.getImproveParagraphIdList())) {
+            return List.of();
+        }
         return paragraphService.listDtoByIds(chatRecord.getImproveParagraphIdList());
     }
 

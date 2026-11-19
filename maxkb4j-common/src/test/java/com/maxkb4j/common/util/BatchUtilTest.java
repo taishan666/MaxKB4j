@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * 回归测试：批量分片处理流程。
@@ -35,6 +36,21 @@ class BatchUtilTest {
         Consumer<List<Integer>> recordSize = chunk -> seenSizes.add(chunk.size());
         BatchUtil.protectBach(list, 2, recordSize);
         assertThat(seenSizes).containsExactly(2, 2, 1);
+    }
+
+    @Test
+    void protectBach_consumer_rejectsNonPositiveCustomBatchSize() {
+        List<Integer> list = Collections.singletonList(1);
+        List<Integer> seenSizes = new ArrayList<>();
+        Consumer<List<Integer>> recordSize = chunk -> seenSizes.add(chunk.size());
+
+        assertThatThrownBy(() -> BatchUtil.protectBach(list, 0, recordSize))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Batch size must be greater than 0");
+        assertThatThrownBy(() -> BatchUtil.protectBach(list, -1, recordSize))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Batch size must be greater than 0");
+        assertThat(seenSizes).isEmpty();
     }
 
     @Test

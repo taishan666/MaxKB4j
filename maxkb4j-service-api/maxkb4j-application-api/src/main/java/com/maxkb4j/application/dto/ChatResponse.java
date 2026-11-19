@@ -64,6 +64,9 @@ public class ChatResponse {
      * 通用Token求和方法，消除重复的Stream处理逻辑
      */
     private int sumTokenField(String fieldName) {
+        if (runDetails == null) {
+            return 0;
+        }
         return runDetails.values().stream()
                 .map(row -> (JSONObject) row)
                 .filter(row -> row.containsKey(fieldName) && row.get(fieldName) != null)

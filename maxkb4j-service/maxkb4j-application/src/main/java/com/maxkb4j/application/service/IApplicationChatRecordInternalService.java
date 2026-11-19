@@ -1,5 +1,6 @@
 package com.maxkb4j.application.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.maxkb4j.application.dto.AddChatImproveDTO;
 import com.maxkb4j.application.dto.ChatImproveDTO;
@@ -17,13 +18,17 @@ public interface IApplicationChatRecordInternalService extends IApplicationChatR
 
     List<ChatRecordDTO> getChatRecords(String chatId);
 
+    ApplicationChatRecordVO getChatRecordInfo(String appId, String chatId, String chatRecordId);
+
+    IPage<ApplicationChatRecordVO> chatRecordPage(String appId, String chatId, int current, int size);
+
     boolean addChatLogs(String appId, AddChatImproveDTO dto);
 
-    ApplicationChatRecordEntity improveChatLog(String chatId, String chatRecordId, String knowledgeId, String docId, ChatImproveDTO dto);
+    ApplicationChatRecordEntity improveChatLog(String appId, String chatId, String chatRecordId, String knowledgeId, String docId, ChatImproveDTO dto);
 
-    boolean removeImproveChatLog(String chatId, String chatRecordId, String knowledgeId, String paragraphId);
+    boolean removeImproveChatLog(String appId, String chatId, String chatRecordId, String knowledgeId, String docId, String paragraphId);
 
-    List<ParagraphDTO> improveChatLog(String chatRecordId);
+    List<ParagraphDTO> improveChatLog(String appId, String chatId, String chatRecordId);
 
     List<ApplicationChatRecordEntity> listByAppIdAndChatUserId(String applicationId, String chatUserId, int pageSize, int offset);
 

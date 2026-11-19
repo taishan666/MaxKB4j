@@ -76,7 +76,10 @@ public class RerankerNodeHandler extends AbsNodeHandler {
                     return score > similarity;
                 }
                 return false;
-            }).toList();
+            }).sorted((left, right) -> Double.compare(
+                    (Double) right.getMetadata().get(NodeField.RELEVANCE_SCORE),
+                    (Double) left.getMetadata().get(NodeField.RELEVANCE_SCORE)
+            )).toList();
 
             int topN = params.getRerankerSetting().getTopN();
             int endListIndex = Math.min(topN, resultList.size());

@@ -55,6 +55,9 @@ public class StpInterfaceImpl implements StpInterface {
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
+        if (getActiveUser(loginId) == null) {
+            return List.of();
+        }
         List<UserResourcePermissionEntity> userResourcePermissions = userResourcePermissionService.getByUserId(String.valueOf(loginId));
         Set<String> permissions = new LinkedHashSet<>(DEFAULT_PERMISSIONS);
         for (UserResourcePermissionEntity userResourcePermission : userResourcePermissions) {
@@ -73,14 +76,19 @@ public class StpInterfaceImpl implements StpInterface {
      */
     @Override
     public List<String> getRoleList(Object loginId, String loginType) {
-        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(UserEntity::getId, loginId);
-        wrapper.select(UserEntity::getRole);
-        UserEntity user = userMapper.selectOne(wrapper);
-        if (user == null) {
+        UserEntity user = getActiveUser(loginId);
+        if (user == null || user.getRole() == null) {
             return List.of();
         }
         return List.of(user.getRole());
+    }
+
+    private UserEntity getActiveUser(Object loginId) {
+        LambdaQueryWrapper<UserEntity> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(UserEntity::getId, loginId);
+        wrapper.eq(UserEntity::getIsActive, true);
+        wrapper.select(UserEntity::getId, UserEntity::getRole);
+        return userMapper.selectOne(wrapper);
     }
 
 }

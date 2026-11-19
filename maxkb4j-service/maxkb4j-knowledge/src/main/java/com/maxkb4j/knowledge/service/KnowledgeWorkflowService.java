@@ -133,12 +133,12 @@ public class KnowledgeWorkflowService {
         params.setKnowledgeId(id);
         params.setDebug(debug);
         IWorkflow workflow = workflowFactory.create(WorkflowSpec.knowledge(logicFlow, params).build());
-        // 异步任务的异常存放在被丢弃的 future 中，既不触发 UncaughtExceptionHandler 也无日志，
-        // 必须通过 whenComplete 记录，否则文档处理失败后状态将永久停留在 STARTED 且无从排查
+        // 异步任务的异常存放在被丢弃的 future 中，必须通过 whenComplete 记录并更新动作状态
         CompletableFuture.runAsync(() -> workFlowActuator.execute(workflow), workflowTaskExecutor)
                 .whenComplete((ignored, throwable) -> {
                     if (throwable != null) {
                         log.error("知识库工作流异步执行失败, knowledgeId: {}, actionId: {}", id, knowledgeAction.getId(), throwable);
+                        knowledgeActionService.updateState(knowledgeAction.getId(), workflow.output().runtimeDetails(), "FAILURE");
                     }
                 });
         return knowledgeAction;

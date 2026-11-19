@@ -34,7 +34,7 @@ public class ApplicationResourceMappingService {
         List<String> modelIds = new ArrayList<>(Stream.of(app.getModelId(), app.getSttModelId(), app.getTtsModelId())
                 .filter(Objects::nonNull)
                 .toList());
-        List<String> applicationIds = app.getToolIds() == null ? new ArrayList<>() : app.getApplicationIds();
+        List<String> applicationIds = app.getApplicationIds() == null ? new ArrayList<>() : app.getApplicationIds();
         List<String> knowledgeIds = app.getKnowledgeIds() == null ? new ArrayList<>() : app.getKnowledgeIds();
         List<String> toolIds = app.getToolIds() == null ? new ArrayList<>() : app.getToolIds();
         JSONObject workFlow = app.getWorkFlow();

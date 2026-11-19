@@ -182,6 +182,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         }
     }
 
+    @Override
+    public boolean updateUser(UserEntity user) {
+        boolean updated = updateById(user);
+        if (updated && Boolean.FALSE.equals(user.getIsActive())) {
+            StpKit.ADMIN.logout(user.getId());
+        }
+        return updated;
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public void createDefaultAdminUser() {
         String defaultPassword = systemProperties.getDefaultPassword();

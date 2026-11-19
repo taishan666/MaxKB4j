@@ -24,8 +24,8 @@ public class DocumentSourceFileService {
     private final IDocumentInternalService documentService;
     private final IOssService ossService;
 
-    public boolean download(String docId, HttpServletResponse response) throws IOException {
-        DocumentEntity doc = documentService.getById(docId);
+    public boolean download(String knowledgeId, String docId, HttpServletResponse response) throws IOException {
+        DocumentEntity doc = documentService.getByKnowledgeIdAndId(knowledgeId, docId);
         if (doc == null || doc.getMeta() == null) return false;
 
         String fileId = doc.getMeta().getString(META_SOURCE_FILE_ID);
@@ -37,8 +37,8 @@ public class DocumentSourceFileService {
         }
     }
 
-    public boolean replace(String docId, MultipartFile file) throws IOException {
-        DocumentEntity doc = documentService.getById(docId);
+    public boolean replace(String knowledgeId, String docId, MultipartFile file) throws IOException {
+        DocumentEntity doc = documentService.getByKnowledgeIdAndId(knowledgeId, docId);
         if (doc == null) return false;
         String fileId = ossService.storeFile(file.getBytes(),file.getOriginalFilename(),file.getContentType());
         doc.setMeta(new JSONObject(Map.of(META_ALLOW_DOWNLOAD, true, META_SOURCE_FILE_ID, fileId)));

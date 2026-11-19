@@ -67,6 +67,15 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
     }
 
     @Override
+    public boolean existsMapping(String sourceType, String sourceId, String targetType, String targetId) {
+        return this.count(Wrappers.<ResourceMappingEntity>lambdaQuery()
+                .eq(ResourceMappingEntity::getSourceType, sourceType)
+                .eq(ResourceMappingEntity::getSourceId, sourceId)
+                .eq(ResourceMappingEntity::getTargetType, targetType)
+                .eq(ResourceMappingEntity::getTargetId, targetId)) > 0;
+    }
+
+    @Override
     public void deleteBySourceIds(String sourceType, List<String> sourceIds) {
         if (CollectionUtils.isEmpty(sourceIds)) {
             return;
@@ -140,6 +149,8 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
                 .toList());
         return BeanUtil.copyPage(resourcePage, resource -> {
             ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
+            // targetId 取自映射行本身，不依赖 copy 的同名属性隐式拷贝（分页查询一旦收窄 select 列就会丢失）
+            vo.setTargetId(resource.getTargetId());
             SourceResource sourceResource = sourceMap.get(direction.otherId.apply(resource));
             if (sourceResource != null) {
                 vo.setName(sourceResource.getName());
