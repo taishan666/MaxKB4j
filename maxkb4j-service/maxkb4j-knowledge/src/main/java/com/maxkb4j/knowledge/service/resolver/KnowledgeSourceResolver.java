@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -32,7 +33,7 @@ public class KnowledgeSourceResolver implements SourceResourceResolver {
                 .in(userIdFilter != null, KnowledgeEntity::getUserId, userIdFilter)
                 .in(KnowledgeEntity::getId, ids));
         return list.stream()
-                .map(e -> new SourceResource(e.getId(), e.getName(), e.getDesc(), "", String.valueOf(e.getType()), e.getUserId()))
+                .map(e -> new SourceResource(e.getId(), e.getName(), e.getDesc(), "", ResourceType.KNOWLEDGE, Objects.toString(e.getType(), null), e.getUserId()))
                 .toList();
     }
 }

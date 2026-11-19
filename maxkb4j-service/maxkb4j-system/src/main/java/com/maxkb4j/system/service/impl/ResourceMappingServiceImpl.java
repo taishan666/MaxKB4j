@@ -26,8 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -47,16 +49,21 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void relation(String sourceType, String sourceId, List<TargetResource> targets) {
-        this.remove(Wrappers.<ResourceMappingEntity>lambdaQuery().eq(ResourceMappingEntity::getSourceType, sourceType).eq(ResourceMappingEntity::getSourceId, sourceId));
-        List<ResourceMappingEntity> list = targets.stream().map(target -> {
+        this.remove(Wrappers.<ResourceMappingEntity>lambdaQuery()
+                .eq(ResourceMappingEntity::getSourceType, sourceType)
+                .eq(ResourceMappingEntity::getSourceId, sourceId));
+        if (CollectionUtils.isEmpty(targets)) {
+            return;
+        }
+        List<ResourceMappingEntity> mappings = targets.stream().map(target -> {
             ResourceMappingEntity entity = new ResourceMappingEntity();
-            entity.setTargetId(target.getTargetId());
             entity.setSourceType(sourceType);
             entity.setSourceId(sourceId);
+            entity.setTargetId(target.getTargetId());
             entity.setTargetType(target.getTargetType());
             return entity;
         }).toList();
-        this.saveBatch(list);
+        this.saveBatch(mappings);
     }
 
     @Override
@@ -64,12 +71,10 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
         if (CollectionUtils.isEmpty(sourceIds)) {
             return;
         }
-        LambdaQueryWrapper<ResourceMappingEntity> wrapper = Wrappers.<ResourceMappingEntity>lambdaQuery()
+        this.remove(Wrappers.<ResourceMappingEntity>lambdaQuery()
                 .eq(StringUtils.isNotBlank(sourceType), ResourceMappingEntity::getSourceType, sourceType)
-                .in(ResourceMappingEntity::getSourceId, sourceIds);
-        this.remove(wrapper);
+                .in(ResourceMappingEntity::getSourceId, sourceIds));
     }
-
 
     @Override
     public IPage<ResourceUseVO> selectDependOnPage(String resourceType, String resourceId, int current, int size, String resourceName, String userName, String[] sourceType) {
@@ -81,51 +86,66 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
         return doPage(resourceType, resourceId, current, size, resourceName, userName, sourceType, Direction.TARGET_TO_SOURCE);
     }
 
+    /**
+     * 按方向分页查询中心资源关联的对端资源。
+     *
+     * <p>资源名称/用户昵称分散在各业务表，无法在一条 SQL 内过滤，因此分三步：
+     * 先取该资源的映射行（只查对端类型/ID 两列），交由 {@link SourceResourceResolver}
+     * 按类型解析出符合名称/用户过滤的对端资源，最后按过滤后的对端 ID 分页。</p>
+     */
     private IPage<ResourceUseVO> doPage(String resourceType, String resourceId, int current, int size,
-                                        String resourceName, String userName, String[] sourceType, Direction direction) {
-        LambdaQueryWrapper<ResourceMappingEntity> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(direction.pivotType, resourceType);
-        wrapper.eq(direction.pivotId, resourceId);
-        if (sourceType != null && sourceType.length > 0) {
-            wrapper.in(ResourceMappingEntity::getSourceType, Arrays.asList(sourceType));
+                                        String resourceName, String userName, String[] sourceTypes, Direction direction) {
+        LambdaQueryWrapper<ResourceMappingEntity> wrapper = Wrappers.<ResourceMappingEntity>lambdaQuery()
+                .select(direction.otherType, direction.otherId)
+                .eq(direction.pivotType, resourceType)
+                .eq(direction.pivotId, resourceId);
+        // 注意：不能用 in(condition, column, Arrays.asList(sourceTypes)) 的条件重载——
+        // 实参 Arrays.asList(null) 仍会被求值，sourceTypes 未传时会 NPE
+        if (sourceTypes != null && sourceTypes.length > 0) {
+            wrapper.in(direction.otherType, Arrays.asList(sourceTypes));
         }
-        List<ResourceMappingEntity> targets = this.list(wrapper);
-        if (CollectionUtils.isEmpty(targets)) {
-            return new Page<>(current, size);
+        List<ResourceMappingEntity> mappings = this.list(wrapper);
+        if (CollectionUtils.isEmpty(mappings)) {
+            return emptyPage(current, size);
         }
-        Map<String, List<String>> groupedIds = targets.stream()
-                .collect(Collectors.groupingBy(
-                        direction.otherTypeGetter,
-                        Collectors.mapping(direction.otherIdGetter, Collectors.toList())
-                ));
-        List<String> userIdFilter = StringUtils.isNotBlank(userName) ? getUserIds(userName) : null;
+        List<String> userIdFilter = StringUtils.isNotBlank(userName) ? selectUserIds(userName) : null;
+        if (userIdFilter != null && userIdFilter.isEmpty()) {
+            return emptyPage(current, size);
+        }
+        Map<String, List<String>> groupedIds = mappings.stream()
+                .collect(Collectors.groupingBy(direction.otherType,
+                        Collectors.mapping(direction.otherId, Collectors.toList())));
         List<SourceResource> filterSources = resolveSources(groupedIds, resourceName, userIdFilter);
         if (CollectionUtils.isEmpty(filterSources)) {
-            return new Page<>(current, size);
+            return emptyPage(current, size);
         }
-        wrapper.in(direction.otherId, filterSources.stream().map(SourceResource::getId).toList());
-        wrapper.orderByDesc(ResourceMappingEntity::getCreateTime);
-        Page<ResourceMappingEntity> resourcePage = this.page(new Page<>(current, size), wrapper);
+        Page<ResourceMappingEntity> resourcePage = this.page(new Page<>(current, size),
+                Wrappers.<ResourceMappingEntity>lambdaQuery()
+                        .eq(direction.pivotType, resourceType)
+                        .eq(direction.pivotId, resourceId)
+                        .in(direction.otherType, groupedIds.keySet())
+                        .in(direction.otherId, filterSources.stream().map(SourceResource::getId).toList())
+                        .orderByDesc(ResourceMappingEntity::getCreateTime));
         if (CollectionUtils.isEmpty(resourcePage.getRecords())) {
-            return new Page<>(current, size);
+            return emptyPage(current, size);
         }
-        List<String> allUserIds = filterSources.stream()
+        Map<String, SourceResource> sourceMap = filterSources.stream()
+                .collect(Collectors.toMap(SourceResource::getId, Function.identity(), (a, b) -> a));
+        Map<String, String> nicknameMap = loadNicknames(resourcePage.getRecords().stream()
+                .map(resource -> sourceMap.get(direction.otherId.apply(resource)))
+                .filter(Objects::nonNull)
                 .map(SourceResource::getUserId)
+                .filter(StringUtils::isNotBlank)
                 .distinct()
-                .toList();
-        Map<String, String> nicknameMap = userMapper.selectList(Wrappers.<UserEntity>lambdaQuery()
-                        .select(UserEntity::getId, UserEntity::getNickname)
-                        .in(UserEntity::getId, allUserIds)).stream()
-                .collect(Collectors.toMap(UserEntity::getId, UserEntity::getNickname));
-        Map<String, SourceResource> resourceMaps = filterSources.stream()
-                .collect(Collectors.toMap(SourceResource::getId, Function.identity()));
+                .toList());
         return BeanUtil.copyPage(resourcePage, resource -> {
             ResourceUseVO vo = BeanUtil.copy(resource, ResourceUseVO.class);
-            SourceResource sourceResource = resourceMaps.get(direction.otherIdGetter.apply(resource));
+            SourceResource sourceResource = sourceMap.get(direction.otherId.apply(resource));
             if (sourceResource != null) {
                 vo.setName(sourceResource.getName());
                 vo.setDesc(sourceResource.getDesc());
                 vo.setIcon(sourceResource.getIcon());
+                vo.setSourceType(sourceResource.getSourceType());
                 vo.setType(sourceResource.getType());
                 vo.setFolderId(AppConst.DEFAULT_ID);
                 vo.setWorkspaceId(AppConst.DEFAULT_ID);
@@ -147,48 +167,68 @@ public class ResourceMappingServiceImpl extends ServiceImpl<ResourceMappingMappe
         return sources;
     }
 
-    private List<String> getUserIds(String userName) {
-        LambdaQueryWrapper<UserEntity> userWrapper = Wrappers.lambdaQuery();
-        userWrapper.select(UserEntity::getId);
-        userWrapper.like(UserEntity::getNickname, userName);
-        List<String> userIds = userMapper.selectList(userWrapper).stream().map(UserEntity::getId).toList();
-        if (CollectionUtils.isEmpty(userIds)) {
-            return List.of("-1");
-        }
-        return userIds;
+    /**
+     * 按昵称模糊匹配用户 ID；返回空列表表示无匹配用户，调用方据此直接返回空页。
+     */
+    private List<String> selectUserIds(String userName) {
+        return userMapper.selectList(Wrappers.<UserEntity>lambdaQuery()
+                        .select(UserEntity::getId)
+                        .like(UserEntity::getNickname, userName))
+                .stream()
+                .map(UserEntity::getId)
+                .toList();
     }
 
+    /**
+     * 查询用户昵称映射；昵称列允许为 null，不能用 {@link Collectors#toMap}（值为 null 会抛 NPE）。
+     */
+    private Map<String, String> loadNicknames(List<String> userIds) {
+        if (userIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, String> nicknameMap = new HashMap<>(userIds.size());
+        userMapper.selectList(Wrappers.<UserEntity>lambdaQuery()
+                        .select(UserEntity::getId, UserEntity::getNickname)
+                        .in(UserEntity::getId, userIds))
+                .forEach(user -> nicknameMap.put(user.getId(), user.getNickname()));
+        return nicknameMap;
+    }
+
+    private IPage<ResourceUseVO> emptyPage(int current, int size) {
+        return new Page<>(current, size);
+    }
+
+    /**
+     * 查询方向：pivot 为中心资源（查询入口），other 为要列出的对端资源。
+     */
     private enum Direction {
+        /** 被依赖视角：中心资源作为 target，列出引用它的 source。 */
         TARGET_TO_SOURCE(
                 ResourceMappingEntity::getTargetType,
                 ResourceMappingEntity::getTargetId,
                 ResourceMappingEntity::getSourceType,
-                ResourceMappingEntity::getSourceId,
                 ResourceMappingEntity::getSourceId
         ),
+        /** 依赖视角：中心资源作为 source，列出它引用的 target。 */
         SOURCE_TO_TARGET(
                 ResourceMappingEntity::getSourceType,
                 ResourceMappingEntity::getSourceId,
                 ResourceMappingEntity::getTargetType,
-                ResourceMappingEntity::getTargetId,
                 ResourceMappingEntity::getTargetId
         );
 
-        final SFunction<ResourceMappingEntity, ?> pivotType;
-        final SFunction<ResourceMappingEntity, ?> pivotId;
-        final Function<ResourceMappingEntity, String> otherTypeGetter;
-        final Function<ResourceMappingEntity, String> otherIdGetter;
-        final SFunction<ResourceMappingEntity, ?> otherId;
+        final SFunction<ResourceMappingEntity, String> pivotType;
+        final SFunction<ResourceMappingEntity, String> pivotId;
+        final SFunction<ResourceMappingEntity, String> otherType;
+        final SFunction<ResourceMappingEntity, String> otherId;
 
-        Direction(SFunction<ResourceMappingEntity, ?> pivotType,
-                  SFunction<ResourceMappingEntity, ?> pivotId,
-                  Function<ResourceMappingEntity, String> otherTypeGetter,
-                  Function<ResourceMappingEntity, String> otherIdGetter,
-                  SFunction<ResourceMappingEntity, ?> otherId) {
+        Direction(SFunction<ResourceMappingEntity, String> pivotType,
+                  SFunction<ResourceMappingEntity, String> pivotId,
+                  SFunction<ResourceMappingEntity, String> otherType,
+                  SFunction<ResourceMappingEntity, String> otherId) {
             this.pivotType = pivotType;
             this.pivotId = pivotId;
-            this.otherTypeGetter = otherTypeGetter;
-            this.otherIdGetter = otherIdGetter;
+            this.otherType = otherType;
             this.otherId = otherId;
         }
     }
