@@ -41,7 +41,8 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 public class LoopIterationRunner {
 
     // 循环类型常量
-    private static final int MAX_INFINITE_LOOP_COUNT = 1000;
+    private static final int MIN_LOOP_COUNT = 1;
+    private static final int MAX_LOOP_COUNT = 1000;
 
     private final IWorkFlowActuator workFlowActuator;
     private final WorkflowFactory workflowFactory;
@@ -60,7 +61,7 @@ public class LoopIterationRunner {
         if (LoopField.LOOP_TYPE_ARRAY.equals(loopType)) {
             return executeArrayLoop(workflow, node, params.getArray(), params.getLoopBody());
         } else if (LoopField.LOOP_TYPE_INFINITE.equals(loopType)) {
-            return executeCountLoop(workflow, node, MAX_INFINITE_LOOP_COUNT, params.getLoopBody());
+            return executeCountLoop(workflow, node, MAX_LOOP_COUNT, params.getLoopBody());
         } else {
             return executeCountLoop(workflow, node, params.getNumber(), params.getLoopBody());
         }
@@ -82,8 +83,10 @@ public class LoopIterationRunner {
      * 执行指定次数循环
      */
     private List<JSONObject> executeCountLoop(IWorkflow workflow, AbsNode node, Integer count, JSONObject loopBody) {
-        // count < 0 时 new ArrayList<>(count) 会抛 IllegalArgumentException，下限钳制为 0（与无限模式钳制 1000 上限对称）
-        int iterations = count != null ? Math.max(count, 0) : 0;
+        // 指定次数循环限制为 1～1000 次，空值按最小次数处理
+        int iterations = count != null
+                ? Math.min(Math.max(count, MIN_LOOP_COUNT), MAX_LOOP_COUNT)
+                : MIN_LOOP_COUNT;
         List<Object> items = createIndexList(iterations);
         return executeIterations(workflow, node, items, loopBody);
     }
