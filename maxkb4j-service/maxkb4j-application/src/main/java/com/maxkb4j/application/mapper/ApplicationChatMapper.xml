@@ -91,7 +91,7 @@
     <select id="userTokenUsage" resultType="com.maxkb4j.application.vo.ApplicationStatisticsVO">
         SELECT
         SUM(chat_record.tokens_num) as tokenUsage,
-        "user".nickname as userName
+        COALESCE("user".nickname, NULLIF(chat.asker ->> 'username', ''), '游客') as userName
         FROM
         application_chat chat
         LEFT JOIN (
@@ -110,7 +110,7 @@
         </where>
         GROUP BY r.chat_id
         ) chat_record ON chat."id" = chat_record.chat_id
-        INNER JOIN "user" ON chat.chat_user_id = "user"."id"
+        LEFT JOIN "user" ON chat.chat_user_id = "user"."id"
         <where>
             APPLICATION_ID = #{appId}
             <if test="query.startTime != null and query.startTime != ''">
@@ -120,15 +120,15 @@
                 and  <![CDATA[chat.CREATE_TIME < CAST(#{query.endTime} AS TIMESTAMP) + INTERVAL '1 day' ]]>
             </if>
         </where>
-        GROUP BY "user"."id";
+        GROUP BY chat.chat_user_id, chat.asker, "user".nickname;
     </select>
     <select id="topQuestions" resultType="com.maxkb4j.application.vo.ApplicationStatisticsVO">
         SELECT
         SUM(chat.chat_record_count) as chat_record_count,
-        "user".nickname as userName
+        COALESCE("user".nickname, NULLIF(chat.asker ->> 'username', ''), '游客') as userName
         FROM
         application_chat chat
-        INNER JOIN "user" ON chat.chat_user_id = "user"."id"
+        LEFT JOIN "user" ON chat.chat_user_id = "user"."id"
         <where>
             APPLICATION_ID = #{appId}
             <if test="query.startTime != null and query.startTime != ''">
@@ -138,7 +138,7 @@
                 and  <![CDATA[chat.CREATE_TIME < CAST(#{query.endTime} AS TIMESTAMP) + INTERVAL '1 day' ]]>
             </if>
         </where>
-        GROUP BY "user"."id";
+        GROUP BY chat.chat_user_id, chat.asker, "user".nickname;
     </select>
     <select id="chatRecordDetail" resultType="com.maxkb4j.application.vo.ChatRecordDetailVO">
         SELECT record.chat_id,chat.summary,record.vote_status,record.problem_text,record.answer_text,

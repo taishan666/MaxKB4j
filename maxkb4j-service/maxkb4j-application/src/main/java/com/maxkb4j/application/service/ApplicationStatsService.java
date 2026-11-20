@@ -81,7 +81,7 @@ public class ApplicationStatsService {
         List<ApplicationStatisticsVO> userTokenList = applicationChatMapper.userTokenUsage(appId, query);
         for (ApplicationStatisticsVO asv : userTokenList) {
             ApplicationStatisticsVO vo = new ApplicationStatisticsVO();
-            vo.setUserName(asv.getUserName());
+            vo.setUsername(asv.getUsername());
             vo.setTokenUsage(asv.getTokenUsage());
             result.add(vo);
         }
@@ -96,7 +96,7 @@ public class ApplicationStatsService {
         List<ApplicationStatisticsVO> userTokenList = applicationChatMapper.topQuestions(appId, query);
         for (ApplicationStatisticsVO asv : userTokenList) {
             ApplicationStatisticsVO vo = new ApplicationStatisticsVO();
-            vo.setUserName(asv.getUserName());
+            vo.setUsername(asv.getUsername());
             vo.setChatRecordCount(asv.getChatRecordCount());
             result.add(vo);
         }

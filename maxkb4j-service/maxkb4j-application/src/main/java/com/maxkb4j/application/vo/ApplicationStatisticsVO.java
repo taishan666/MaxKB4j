@@ -12,5 +12,5 @@ public class ApplicationStatisticsVO {
     private Integer trampleNum;
     private String day;
     private Integer tokenUsage;
-    private String userName;
+    private String username;
 }
