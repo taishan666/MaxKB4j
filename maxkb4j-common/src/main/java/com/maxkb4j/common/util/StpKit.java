@@ -1,6 +1,5 @@
 package com.maxkb4j.common.util;
 
-import cn.dev33.satoken.jwt.StpLogicJwtForSimple;
 import cn.dev33.satoken.jwt.StpLogicJwtForStateless;
 import cn.dev33.satoken.stp.StpLogic;
 import cn.dev33.satoken.stp.StpUtil;
@@ -15,7 +14,7 @@ public class StpKit {
     /**
      * Admin 后台管理员
      */
-    public static final StpLogic ADMIN = new StpLogicJwtForSimple(LoginType.ADMIN) {
+    public static final StpLogic ADMIN = new StpLogicJwtForStateless(LoginType.ADMIN) {
         // 重写 StpLogic 类下的 `splicingKeyTokenName` 函数，返回一个与 `StpUtil` 不同的token名称, 防止冲突
         @Override
         public String splicingKeyTokenName() {
