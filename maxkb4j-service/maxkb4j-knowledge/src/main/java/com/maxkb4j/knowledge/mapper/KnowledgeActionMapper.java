@@ -6,5 +6,5 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.maxkb4j.knowledge.entity.KnowledgeActionEntity;
 
 public interface KnowledgeActionMapper extends BaseMapper<KnowledgeActionEntity> {
-    IPage<KnowledgeActionEntity> pageList(Page<KnowledgeActionEntity> actionPage, String username, String state);
+    IPage<KnowledgeActionEntity> pageList(Page<KnowledgeActionEntity> actionPage, String knowledgeId, String username, String state);
 }

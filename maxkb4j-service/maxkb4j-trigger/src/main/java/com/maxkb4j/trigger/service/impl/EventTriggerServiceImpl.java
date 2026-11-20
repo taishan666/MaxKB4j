@@ -141,8 +141,13 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
             }
         }
         EventTriggerEntity savedTrigger = this.getById(dto.getId());
-        if (savedTrigger != null && TriggerType.SCHEDULED.name().equals(savedTrigger.getTriggerType())) {
-            triggerSchedulerProvider.getObject().rescheduleTrigger(savedTrigger);
+        if (savedTrigger != null) {
+            TriggerScheduler triggerScheduler = triggerSchedulerProvider.getObject();
+            if (TriggerType.SCHEDULED.name().equals(savedTrigger.getTriggerType())) {
+                triggerScheduler.rescheduleTrigger(savedTrigger);
+            } else {
+                triggerScheduler.cancelSchedule(savedTrigger.getId());
+            }
         }
     }
 

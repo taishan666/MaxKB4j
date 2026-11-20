@@ -20,6 +20,15 @@ common:
           allowed: 不支持的文件类型
       size:
         exceeded: 文件大小超出限制（最大 {0} MB）
+    zip:
+      entry:
+        count:
+          exceeded: 压缩包条目数量超出限制（最多 {0} 条）
+        size:
+          exceeded: 压缩包内单个文件解压后大小超出限制（最大 {0} MB）
+      total:
+        size:
+          exceeded: 压缩包总解压大小超出限制（最大 {0} MB）
     empty: 文件内容为空
   request:
     context:

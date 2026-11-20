@@ -12,7 +12,7 @@ cd /d "%~dp0.."
 set "PROJECT_DIR=%CD%"
 set "START_DIR=%PROJECT_DIR%\maxkb4j-start"
 set "JAR_PATH=%START_DIR%\target\maxkb4j-start.jar"
-set "DOCKERFILE_PATH=%START_DIR%\Dockerfile"
+set "DOCKERFILE_PATH=%PROJECT_DIR%\Dockerfile"
 set "LOG_DIR=%PROJECT_DIR%\logs"
 set "DOCKER_COMPOSE_FILE=%PROJECT_DIR%\docker-compose.yml"
 set "DOCKER_COMPOSE_DEV_FILE=%PROJECT_DIR%\docker-compose.dev.yml"
@@ -213,7 +213,7 @@ if not exist "%JAR_PATH%" (
 
 echo.
 echo [INFO] Step 2: Building Docker image %APP_IMAGE% ...
-cd /d "%START_DIR%"
+cd /d "%PROJECT_DIR%"
 docker build -t "%APP_IMAGE%" .
 if errorlevel 1 (
     echo [ERROR] Docker image build failed.

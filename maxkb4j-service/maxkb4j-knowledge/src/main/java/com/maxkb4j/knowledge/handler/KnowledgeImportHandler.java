@@ -1,6 +1,8 @@
 package com.maxkb4j.knowledge.handler;
 
 import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.ExcelReader;
+import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
@@ -23,7 +25,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -55,7 +59,7 @@ public class KnowledgeImportHandler {
      */
     public KnowledgeEntity importKnowledgeFromZip(MultipartFile file) throws IOException {
         JSONObject knowledgeJson = null;
-        List<KnowledgeExcel> excelDataList = new ArrayList<>();
+        Map<String, List<KnowledgeExcel>> excelDataBySheet = new LinkedHashMap<>();
 
         // 解析ZIP文件
         try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
@@ -73,7 +77,7 @@ public class KnowledgeImportHandler {
                 } else if ("knowledge.xlsx".equals(entryName)) {
                     // 读取Excel数据
                     byte[] excelBytes = zis.readAllBytes();
-                    excelDataList = readExcelData(new ByteArrayInputStream(excelBytes));
+                    excelDataBySheet = readExcelData(new ByteArrayInputStream(excelBytes));
                 }
             }
         }
@@ -86,8 +90,8 @@ public class KnowledgeImportHandler {
         KnowledgeEntity knowledge = createKnowledge(knowledgeJson);
 
         // 创建文档和段落
-        if (!excelDataList.isEmpty()) {
-            createDocuments(knowledge.getId(), excelDataList);
+        if (!excelDataBySheet.isEmpty()) {
+            createDocuments(knowledge.getId(), excelDataBySheet);
         }
 
         return knowledge;
@@ -100,7 +104,7 @@ public class KnowledgeImportHandler {
      * @param knowledgeId 知识库ID
      */
     public void importKnowledgeFromZip(MultipartFile file, String knowledgeId) throws IOException {
-        List<KnowledgeExcel> excelDataList = new ArrayList<>();
+        Map<String, List<KnowledgeExcel>> excelDataBySheet = new LinkedHashMap<>();
 
         // 解析ZIP文件
         try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
@@ -114,24 +118,31 @@ public class KnowledgeImportHandler {
                 if ("knowledge.xlsx".equals(entryName)) {
                     // 读取Excel数据
                     byte[] excelBytes = zis.readAllBytes();
-                    excelDataList = readExcelData(new ByteArrayInputStream(excelBytes));
+                    excelDataBySheet = readExcelData(new ByteArrayInputStream(excelBytes));
                 }
             }
         }
 
         // 创建文档和段落
-        if (!excelDataList.isEmpty()) {
-            createDocuments(knowledgeId, excelDataList);
+        if (!excelDataBySheet.isEmpty()) {
+            createDocuments(knowledgeId, excelDataBySheet);
         }
     }
 
     /**
      * 读取Excel数据
      */
-    private List<KnowledgeExcel> readExcelData(InputStream inputStream) {
+    private Map<String, List<KnowledgeExcel>> readExcelData(InputStream inputStream) {
+        Map<String, List<KnowledgeExcel>> excelDataBySheet = new LinkedHashMap<>();
         ExcelDataListener<KnowledgeExcel> listener = new ExcelDataListener<>();
-        EasyExcel.read(inputStream, KnowledgeExcel.class, listener).sheet().doRead();
-        return listener.getDataList();
+        try (ExcelReader excelReader = EasyExcel.read(inputStream, KnowledgeExcel.class, listener).build()) {
+            for (ReadSheet sheet : excelReader.excelExecutor().sheetList()) {
+                excelReader.read(sheet);
+                excelDataBySheet.put(sheet.getSheetName(), new ArrayList<>(listener.getDataList()));
+                listener.clear();
+            }
+        }
+        return excelDataBySheet;
     }
 
     /**
@@ -164,42 +175,43 @@ public class KnowledgeImportHandler {
     /**
      * 创建文档和段落
      */
-    private void createDocuments(String knowledgeId, List<KnowledgeExcel> excelDataList) {
-        if (excelDataList.isEmpty()) {
-            return;
-        }
-
-        // 按sheet名分组（这里简化处理，只创建一个文档）
+    private void createDocuments(String knowledgeId, Map<String, List<KnowledgeExcel>> excelDataBySheet) {
         List<DocumentSimple> docs = new ArrayList<>();
-        DocumentSimple doc = new DocumentSimple();
-        doc.setName("knowledge.xlsx");
-
-        List<ParagraphSimple> paragraphs = new ArrayList<>();
-        for (KnowledgeExcel excel : excelDataList) {
-            ParagraphSimple paragraph = ParagraphSimple.builder()
-                    .title(excel.getTitle())
-                    .content(excel.getContent())
-                    .build();
-
-            // 处理问题列表（多个问题用换行分隔）
-            if (excel.getProblems() != null && !excel.getProblems().isEmpty()) {
-                String[] problems = excel.getProblems().split("\n");
-                List<String> problemList = new ArrayList<>();
-                for (String problem : problems) {
-                    String trimmed = problem.trim();
-                    if (!trimmed.isEmpty()) {
-                        problemList.add(trimmed);
-                    }
-                }
-                paragraph.setProblemList(problemList);
+        for (Map.Entry<String, List<KnowledgeExcel>> sheetData : excelDataBySheet.entrySet()) {
+            if (sheetData.getValue().isEmpty()) {
+                continue;
             }
+            DocumentSimple doc = new DocumentSimple();
+            doc.setName(sheetData.getKey());
+            List<ParagraphSimple> paragraphs = new ArrayList<>();
+            for (KnowledgeExcel excel : sheetData.getValue()) {
+                ParagraphSimple paragraph = ParagraphSimple.builder()
+                        .title(excel.getTitle())
+                        .content(excel.getContent())
+                        .build();
 
-            paragraphs.add(paragraph);
+                // 处理问题列表（多个问题用换行分隔）
+                if (excel.getProblems() != null && !excel.getProblems().isEmpty()) {
+                    String[] problems = excel.getProblems().split("\n");
+                    List<String> problemList = new ArrayList<>();
+                    for (String problem : problems) {
+                        String trimmed = problem.trim();
+                        if (!trimmed.isEmpty()) {
+                            problemList.add(trimmed);
+                        }
+                    }
+                    paragraph.setProblemList(problemList);
+                }
+
+                paragraphs.add(paragraph);
+            }
+            doc.setParagraphs(paragraphs);
+            docs.add(doc);
         }
-        doc.setParagraphs(paragraphs);
-        docs.add(doc);
 
-        documentWriteService.batchCreateDocs(knowledgeId, KnowledgeType.BASE, docs);
+        if (!docs.isEmpty()) {
+            documentWriteService.batchCreateDocs(knowledgeId, KnowledgeType.BASE, docs);
+        }
     }
 
 

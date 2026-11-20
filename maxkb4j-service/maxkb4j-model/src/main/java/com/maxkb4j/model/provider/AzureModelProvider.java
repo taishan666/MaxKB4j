@@ -50,6 +50,7 @@ public class AzureModelProvider extends AbsModelProvider {
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return AzureOpenAiChatModel.builder()
                 .apiKey(credential.getApiKey())
+                .endpoint(credential.getBaseUrl())
                 .deploymentName(modelName)
                 .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
                 .maxTokens(getIntParam(params, ParamKey.MAX_TOKENS))
@@ -60,6 +61,7 @@ public class AzureModelProvider extends AbsModelProvider {
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return AzureOpenAiStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
+                .endpoint(credential.getBaseUrl())
                 .deploymentName(modelName)
                 .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
                 .maxTokens(getIntParam(params, ParamKey.MAX_TOKENS))
@@ -70,6 +72,7 @@ public class AzureModelProvider extends AbsModelProvider {
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return AzureOpenAiEmbeddingModel.builder()
                 .apiKey(credential.getApiKey())
+                .endpoint(credential.getBaseUrl())
                 .deploymentName(modelName)
                 .build();
     }
@@ -78,6 +81,7 @@ public class AzureModelProvider extends AbsModelProvider {
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
         return AzureOpenAiImageModel.builder()
                 .apiKey(credential.getApiKey())
+                .endpoint(credential.getBaseUrl())
                 .deploymentName(modelName)
                 .build();
     }

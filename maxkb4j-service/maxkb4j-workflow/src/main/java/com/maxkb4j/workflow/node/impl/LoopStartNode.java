@@ -25,11 +25,13 @@ public class LoopStartNode extends AbsNode {
         context.put(RuntimeDetailField.INDEX, detail.get(LoopField.CURRENT_INDEX));
         context.put(LoopField.ITEM, detail.get(LoopField.CURRENT_ITEM));
         JSONArray loopInputFieldList = (JSONArray) detail.get(LoopField.LOOP_INPUT_FIELD_LIST);
-        for (int i = 0; i < loopInputFieldList.size(); i++) {
-            JSONObject loopInputField = loopInputFieldList.getJSONObject(i);
-            String key = loopInputField.getString(NodeField.FIELD);
-            Object value = loopInputField.get(VariableField.VALUE);
-            workflow.getLoopContext().put(key, value);
+        if (loopInputFieldList != null) {
+            for (int i = 0; i < loopInputFieldList.size(); i++) {
+                JSONObject loopInputField = loopInputFieldList.getJSONObject(i);
+                String key = loopInputField.getString(NodeField.FIELD);
+                Object value = loopInputField.get(VariableField.VALUE);
+                workflow.getLoopContext().put(key, value);
+            }
         }
     }
 

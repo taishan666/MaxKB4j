@@ -20,6 +20,15 @@ common:
           allowed: File type is not allowed
       size:
         exceeded: File size exceeds the limit (max {0} MB)
+    zip:
+      entry:
+        count:
+          exceeded: Zip entry count exceeds the limit (max {0})
+        size:
+          exceeded: Uncompressed zip entry size exceeds the limit (max {0} MB)
+      total:
+        size:
+          exceeded: Total uncompressed zip size exceeds the limit (max {0} MB)
     empty: File is empty
   request:
     context:

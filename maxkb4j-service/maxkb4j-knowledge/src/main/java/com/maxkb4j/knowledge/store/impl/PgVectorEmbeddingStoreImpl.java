@@ -37,6 +37,10 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -63,6 +67,12 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
     private static final String META_DOCUMENT_ID = "documentId";
     private static final String META_SOURCE_ID = "sourceId";
     private static final String META_SOURCE_TYPE = "sourceType";
+    private static final String FIND_EMBEDDING_TABLES_SQL = """
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = current_schema() AND table_name LIKE 'embedding_%'
+            """;
+    private static final Pattern EMBEDDING_TABLE_PATTERN = Pattern.compile("^embedding_(\\d+)$");
     /**
      * 从Markdown文本中提取所有图片URL
      */
@@ -462,6 +472,30 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
     }
 
     private void removeAllStores(Filter filter) {
-        stores.forEach((dimension, store) -> store.removeAll(filter));
+        for (Integer dimension : discoverPersistedDimensions()) {
+            get(dimension).removeAll(filter);
+        }
+    }
+
+    private Set<Integer> discoverPersistedDimensions() {
+        Set<Integer> dimensions = new HashSet<>();
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(FIND_EMBEDDING_TABLES_SQL);
+             ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                Matcher matcher = EMBEDDING_TABLE_PATTERN.matcher(resultSet.getString(1));
+                if (!matcher.matches()) {
+                    continue;
+                }
+                try {
+                    dimensions.add(Integer.valueOf(matcher.group(1)));
+                } catch (NumberFormatException e) {
+                    log.warn("Ignore embedding table with invalid dimension: {}", resultSet.getString(1));
+                }
+            }
+            return dimensions;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to discover persisted embedding tables", e);
+        }
     }
 }

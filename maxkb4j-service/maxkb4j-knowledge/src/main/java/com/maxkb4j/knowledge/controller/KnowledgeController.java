@@ -165,6 +165,7 @@ public class KnowledgeController {
         knowledgeExportService.exportKnowledge(id, response);
     }
 
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_CREATE)
     @PostMapping("/knowledge/import_knowledge")
     public R<KnowledgeVO> importKnowledge(@RequestParam("file") MultipartFile file) throws IOException {
         KnowledgeEntity ke = knowledgeImportHandler.importKnowledgeFromZip(file);
@@ -177,22 +178,26 @@ public class KnowledgeController {
         return R.data(knowledgeWorkflowService.datasourceFormList(nodeType, params));
     }
 
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_WORKFLOW_EDIT)
     @PostMapping("/knowledge/{id}/debug")
     public R<KnowledgeActionVO> debug(@PathVariable("id") String id, @RequestBody KnowledgeParams params) {
         KnowledgeActionEntity ae = knowledgeWorkflowService.uploadDocument(id, params, true);
         return R.data(ae == null ? null : BeanUtil.copy(ae, KnowledgeActionVO.class));
     }
 
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_WORKFLOW_EDIT)
     @PutMapping("/knowledge/{id}/publish")
     public R<Boolean> publish(@PathVariable("id") String id) {
         return R.status(knowledgePublishService.publish(id));
     }
 
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_WORKFLOW_READ)
     @GetMapping("/knowledge/{id}/knowledge_version")
     public R<List<KnowledgeVersionVO>> knowledgeVersion(@PathVariable("id") String id) {
         return R.data(BeanUtil.copyList(knowledgePublishService.knowledgeVersion(id), KnowledgeVersionVO.class));
     }
 
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_WORKFLOW_EDIT)
     @PutMapping("/knowledge/{id}/knowledge_version/{versionId}")
     public R<Boolean> knowledgeVersion(@PathVariable("id") String id, @PathVariable("versionId") String versionId, @RequestBody KnowledgeVersionUpdateDTO dto) {
         KnowledgeVersionEntity knowledgeVersionEntity = new KnowledgeVersionEntity();
@@ -200,17 +205,20 @@ public class KnowledgeController {
         return R.status(knowledgePublishService.knowledgeVersion(versionId, knowledgeVersionEntity));
     }
 
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_WORKFLOW_READ)
     @GetMapping("/knowledge/{id}/action/{current}/{size}")
     public R<IPage<KnowledgeActionVO>> actionPage(@PathVariable("id") String id, @PathVariable("current") int current, @PathVariable("size") int size, String username, String state) {
         return R.data(BeanUtil.copyPage(knowledgePublishService.actionPage(id, current, size, username, state), KnowledgeActionVO.class));
     }
 
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_CREATE)
     @PostMapping("/knowledge/{id}/upload_document")
     public R<KnowledgeActionVO> uploadDocument(@PathVariable("id") String id, @RequestBody KnowledgeParams params) {
         KnowledgeActionEntity ae = knowledgeWorkflowService.uploadDocument(id, params, false);
         return R.data(ae == null ? null : BeanUtil.copy(ae, KnowledgeActionVO.class));
     }
 
+    @SaCheckPerm(PermissionEnum.KNOWLEDGE_WORKFLOW_READ)
     @GetMapping("/knowledge/{id}/action/{actionId}")
     public R<KnowledgeActionVO> action(@PathVariable("id") String id, @PathVariable("actionId") String actionId) {
         KnowledgeActionEntity ae = knowledgePublishService.action(actionId);

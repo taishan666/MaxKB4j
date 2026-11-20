@@ -24,7 +24,7 @@ public class KnowledgeActionServiceImpl extends ServiceImpl<KnowledgeActionMappe
     }
 
 
-    public IPage<KnowledgeActionEntity> pageList(Page<KnowledgeActionEntity> actionPage, String username, String state) {
-        return baseMapper.pageList(actionPage, username, state);
+    public IPage<KnowledgeActionEntity> pageList(Page<KnowledgeActionEntity> actionPage, String knowledgeId, String username, String state) {
+        return baseMapper.pageList(actionPage, knowledgeId, username, state);
     }
 }

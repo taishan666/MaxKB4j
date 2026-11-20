@@ -19,7 +19,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 START_DIR="${PROJECT_DIR}/maxkb4j-start"
 JAR_PATH="${START_DIR}/target/maxkb4j-start.jar"
-DOCKERFILE_PATH="${START_DIR}/Dockerfile"
+DOCKERFILE_PATH="${PROJECT_DIR}/Dockerfile"
 LOG_DIR="${PROJECT_DIR}/logs"
 DOCKER_COMPOSE_FILE="${PROJECT_DIR}/docker-compose.yml"
 DOCKER_COMPOSE_DEV_FILE="${PROJECT_DIR}/docker-compose.dev.yml"
@@ -181,7 +181,7 @@ deploy_build() {
 
     echo ""
     log_info "Step 2: Building Docker image ${APP_IMAGE} ..."
-    cd "${START_DIR}"
+    cd "${PROJECT_DIR}"
     if ! docker build -t "${APP_IMAGE}" .; then
         log_error "Docker image build failed."
         exit 1

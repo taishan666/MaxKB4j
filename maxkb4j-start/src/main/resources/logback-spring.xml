@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="false" debug="false">
-    <!-- 日志存放路径 -->
-    <property name="log.path" value="logs/maxkb4j"/>
+    <!-- 日志存放路径：容器通过 LOG_PATH 指向挂载目录，本地默认使用相对路径 -->
+    <property name="log.path" value="${LOG_PATH:-logs/maxkb4j}"/>
     <!-- 项目名称 -->
     <property name="log.appname" value="maxkb4j"/>
     <!-- 日志输出格式 -->

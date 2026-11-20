@@ -26,7 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -41,6 +44,11 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class DocumentImportService {
+
+    static final int ZIP_ENTRY_COUNT_LIMIT = 1000;
+    static final long ZIP_ENTRY_SIZE_LIMIT = 100L * 1024 * 1024;
+    static final long ZIP_TOTAL_SIZE_LIMIT = 100L * 1024 * 1024;
+    private static final int COPY_BUFFER_SIZE = 8192;
 
     private final IDocumentInternalService documentService;
     private final IDocumentParseService documentParseService;
@@ -132,6 +140,7 @@ public class DocumentImportService {
         List<TextSegmentVO> result = new ArrayList<>();
         List<DocFileVO> fileStreams = new ArrayList<>();
         if (files == null) return result;
+        long totalUncompressedSize = 0;
         for (MultipartFile file : files) {
             if (file == null || file.isEmpty()) continue;
             String name = file.getOriginalFilename();
@@ -142,22 +151,33 @@ public class DocumentImportService {
                 continue; // 跳过非法文件
             }
             if (name.toLowerCase().endsWith(".zip")) {
+                int entryCount = 0;
                 try (ZipArchiveInputStream zis = new ZipArchiveInputStream(file.getInputStream())) {
                     ZipArchiveEntry entry;
                     while ((entry = zis.getNextEntry()) != null) {
-                        if (!entry.isDirectory()) {
-                            // 验证压缩包内文件名的安全性
-                            String entryName = FilePathSecurityUtil.normalizeFilePath(entry.getName());
-                            if (entryName == null) {
-                                log.warn("压缩包中存在非法的文件路径: {}", entry.getName());
-                                continue; // 跳过非法文件
-                            }
-                            try {
-                                byte[] bytes = zis.readAllBytes();
-                                fileStreams.add(new DocFileVO(entryName, bytes, ""));
-                            } catch (java.io.EOFException e) {
-                                log.warn("压缩包中文件 {} 读取不完整，已跳过: {}", entryName, e.getMessage());
-                            }
+                        if (++entryCount > ZIP_ENTRY_COUNT_LIMIT) {
+                            throw new FileLimitExceededException("common.file.zip.entry.count.exceeded", ZIP_ENTRY_COUNT_LIMIT);
+                        }
+                        long remainingTotalSize = ZIP_TOTAL_SIZE_LIMIT - totalUncompressedSize;
+                        if (entry.isDirectory()) {
+                            totalUncompressedSize += copyBounded(zis, OutputStream.nullOutputStream(),
+                                    ZIP_ENTRY_SIZE_LIMIT, remainingTotalSize);
+                            continue;
+                        }
+                        // 验证压缩包内文件名的安全性
+                        String entryName = FilePathSecurityUtil.normalizeFilePath(entry.getName());
+                        if (entryName == null) {
+                            totalUncompressedSize += copyBounded(zis, OutputStream.nullOutputStream(),
+                                    ZIP_ENTRY_SIZE_LIMIT, remainingTotalSize);
+                            log.warn("压缩包中存在非法的文件路径: {}", entry.getName());
+                            continue; // 跳过非法文件
+                        }
+                        try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+                            totalUncompressedSize += copyBounded(zis, output, ZIP_ENTRY_SIZE_LIMIT, remainingTotalSize);
+                            fileStreams.add(new DocFileVO(entryName, output.toByteArray(), ""));
+                        } catch (java.io.EOFException e) {
+                            log.warn("压缩包中文件 {} 读取不完整，停止读取当前压缩包: {}", entryName, e.getMessage());
+                            throw e;
                         }
                     }
                 } catch (java.io.EOFException e) {
@@ -177,6 +197,26 @@ public class DocumentImportService {
             result.add(vo);
         }
         return result;
+    }
+
+    static long copyBounded(InputStream input, OutputStream output, long maxEntrySize,
+                            long remainingTotalSize) throws IOException {
+        long entrySize = 0;
+        byte[] buffer = new byte[COPY_BUFFER_SIZE];
+        int read;
+        while ((read = input.read(buffer)) != -1) {
+            if (read > maxEntrySize - entrySize) {
+                throw new FileLimitExceededException("common.file.zip.entry.size.exceeded",
+                        ZIP_ENTRY_SIZE_LIMIT / 1024 / 1024);
+            }
+            if (read > remainingTotalSize - entrySize) {
+                throw new FileLimitExceededException("common.file.zip.total.size.exceeded",
+                        ZIP_TOTAL_SIZE_LIMIT / 1024 / 1024);
+            }
+            output.write(buffer, 0, read);
+            entrySize += read;
+        }
+        return entrySize;
     }
 
     private boolean checkFileLimit(String id, MultipartFile[] files) {

@@ -158,8 +158,13 @@ public class TriggerScheduler implements ApplicationRunner {
     }
 
     private void executeTrigger(String triggerId) {
-        log.info("Executing trigger {}", triggerId);
         try {
+            EventTriggerEntity trigger = eventTriggerService.getById(triggerId);
+            if (!isActiveScheduledTrigger(trigger)) {
+                cancelSchedule(triggerId);
+                return;
+            }
+            log.info("Executing trigger {}", triggerId);
             triggerTaskExecutor.execute(triggerId);
         } catch (Exception e) {
             log.error("Error executing trigger {}: {}", triggerId, e.getMessage(), e);
@@ -168,7 +173,7 @@ public class TriggerScheduler implements ApplicationRunner {
 
     private void rescheduleDaily(String triggerId) {
         EventTriggerEntity trigger = eventTriggerService.getById(triggerId);
-        if (trigger == null || !Boolean.TRUE.equals(trigger.getIsActive())) {
+        if (!isActiveScheduledTrigger(trigger)) {
             cancelSchedule(triggerId);
             return;
         }
@@ -177,11 +182,17 @@ public class TriggerScheduler implements ApplicationRunner {
 
     private void rescheduleFromSetting(String triggerId) {
         EventTriggerEntity trigger = eventTriggerService.getById(triggerId);
-        if (trigger == null || !Boolean.TRUE.equals(trigger.getIsActive())) {
+        if (!isActiveScheduledTrigger(trigger)) {
             cancelSchedule(triggerId);
             return;
         }
         scheduleTrigger(trigger);
+    }
+
+    private boolean isActiveScheduledTrigger(EventTriggerEntity trigger) {
+        return trigger != null
+                && Boolean.TRUE.equals(trigger.getIsActive())
+                && TriggerType.SCHEDULED.name().equals(trigger.getTriggerType());
     }
 
     public void cancelSchedule(String triggerId) {

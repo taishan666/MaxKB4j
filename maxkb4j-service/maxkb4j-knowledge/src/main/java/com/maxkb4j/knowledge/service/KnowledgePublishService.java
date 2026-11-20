@@ -79,6 +79,6 @@ public class KnowledgePublishService {
      */
     public IPage<KnowledgeActionEntity> actionPage(String id, int current, int size, String username, String state) {
         Page<KnowledgeActionEntity> actionPage = new Page<>(current, size);
-        return knowledgeActionService.pageList(actionPage, username, state);
+        return knowledgeActionService.pageList(actionPage, id, username, state);
     }
 }

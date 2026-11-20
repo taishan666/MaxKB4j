@@ -26,18 +26,22 @@ public class StartNode extends AbsNode {
         context.put(NodeField.AUDIO, detail.get(NodeField.AUDIO_LIST));
         context.put(NodeField.OTHER, detail.get(NodeField.OTHER_LIST));
         JSONArray globalFields = (JSONArray) detail.get(ChatField.GLOBAL_FIELDS);
-        for (int i = 0; i < globalFields.size(); i++) {
-            JSONObject globalField = globalFields.getJSONObject(i);
-            String key = globalField.getString(VariableField.KEY);
-            Object value = globalField.get(VariableField.VALUE);
-            workflow.getGlobalContext().put(key, value);
+        if (globalFields != null) {
+            for (int i = 0; i < globalFields.size(); i++) {
+                JSONObject globalField = globalFields.getJSONObject(i);
+                String key = globalField.getString(VariableField.KEY);
+                Object value = globalField.get(VariableField.VALUE);
+                workflow.getGlobalContext().put(key, value);
+            }
         }
         JSONArray chatFields = (JSONArray) detail.get(ChatField.CHAT_FIELDS);
-        for (int i = 0; i < chatFields.size(); i++) {
-            JSONObject chatField = chatFields.getJSONObject(i);
-            String key = chatField.getString(VariableField.KEY);
-            Object value = chatField.get(VariableField.VALUE);
-            workflow.getChatContext().put(key, value);
+        if (chatFields != null) {
+            for (int i = 0; i < chatFields.size(); i++) {
+                JSONObject chatField = chatFields.getJSONObject(i);
+                String key = chatField.getString(VariableField.KEY);
+                Object value = chatField.get(VariableField.VALUE);
+                workflow.getChatContext().put(key, value);
+            }
         }
     }
 

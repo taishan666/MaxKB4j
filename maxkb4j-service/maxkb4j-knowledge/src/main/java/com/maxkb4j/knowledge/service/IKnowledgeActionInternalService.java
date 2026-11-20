@@ -11,5 +11,5 @@ import com.maxkb4j.knowledge.entity.KnowledgeActionEntity;
  */
 public interface IKnowledgeActionInternalService extends IKnowledgeActionService, IService<KnowledgeActionEntity> {
 
-    IPage<KnowledgeActionEntity> pageList(Page<KnowledgeActionEntity> actionPage, String username, String state);
+    IPage<KnowledgeActionEntity> pageList(Page<KnowledgeActionEntity> actionPage, String knowledgeId, String username, String state);
 }

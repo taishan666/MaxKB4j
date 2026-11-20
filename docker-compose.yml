@@ -66,6 +66,8 @@ services:
         max-size: "30m"
         max-file: "3"
     environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - LOG_PATH=/logs/maxkb4j
       # 可选：显式指定 JWT 密钥；不设置时首次启动自动生成并保存到数据库
       - SA_TOKEN_JWT_SECRET_KEY=${SA_TOKEN_JWT_SECRET_KEY:-}
       # 可选：默认管理员口令；不设置时首次启动自动生成随机口令并打印到日志
