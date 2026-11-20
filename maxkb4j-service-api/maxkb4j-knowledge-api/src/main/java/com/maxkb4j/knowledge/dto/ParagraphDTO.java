@@ -3,8 +3,10 @@ package com.maxkb4j.knowledge.dto;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class ParagraphDTO {
     private String id;
     private String title;

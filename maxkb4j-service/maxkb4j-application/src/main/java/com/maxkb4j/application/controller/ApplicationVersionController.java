@@ -1,5 +1,6 @@
 package com.maxkb4j.application.controller;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.application.entity.ApplicationVersionEntity;
 import com.maxkb4j.application.dto.ApplicationVersionUpdateDTO;
 import com.maxkb4j.application.vo.ApplicationVersionVO;
@@ -39,8 +40,10 @@ public class ApplicationVersionController {
         ApplicationVersionEntity versionEntity = new ApplicationVersionEntity();
         versionEntity.setName(dto.getName());
         versionEntity.setDesc(dto.getDesc());
-        versionEntity.setId(versionId);
-        return R.status(applicationVersionService.updateById(versionEntity));
+        return R.status(applicationVersionService.update(versionEntity,
+                Wrappers.<ApplicationVersionEntity>lambdaUpdate()
+                        .eq(ApplicationVersionEntity::getId, versionId)
+                        .eq(ApplicationVersionEntity::getApplicationId, id)));
     }
 
 
