@@ -15,7 +15,7 @@ import java.util.Collection;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class AuthInterceptor implements HandlerInterceptor {
+public class ChatAuthInterceptor implements HandlerInterceptor {
 
     private final Collection<AuthHandler> authHandlerList;
 

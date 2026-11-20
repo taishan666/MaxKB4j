@@ -4,15 +4,15 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.StpKit;
-import com.maxkb4j.system.entity.UserEntity;
-import com.maxkb4j.system.service.IUserInternalService;
 import com.maxkb4j.system.dto.ResetPasswordDTO;
 import com.maxkb4j.system.dto.UserLoginDTO;
+import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.security.PasswordService;
+import com.maxkb4j.system.service.IUserInternalService;
 import com.wf.captcha.SpecCaptcha;
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author tarzan
@@ -34,6 +33,7 @@ public class AuthController {
 
     private final IUserInternalService userService;
     private final PasswordService passwordService;
+    private final UserContext userContext;
 
     @PostMapping("/user/login")
     public R<Map<String,String>> login(@Valid @RequestBody UserLoginDTO dto, HttpServletRequest request) {
@@ -52,7 +52,7 @@ public class AuthController {
     }
 
     @PostMapping("/user/send_email")
-    public R<Boolean> sendEmail(@Valid @RequestBody ResetPasswordDTO dto) throws MessagingException {
+    public R<Boolean> sendEmail(@Valid @RequestBody ResetPasswordDTO dto) {
         return R.status(userService.sendEmailCode(dto.getEmail(), I18nUtil.get("email.subject.forget.password")));
     }
 
@@ -68,7 +68,7 @@ public class AuthController {
         String password = dto.getPassword();
         String rePassword = dto.getRePassword();
         if (Objects.equals(password, rePassword)) {
-            String userId = StpKit.ADMIN.getLoginIdAsString();
+            String userId = userContext.getUserId();
             // 验证旧口令，防止未授权修改
             UserEntity currentUser = userService.lambdaQuery()
                     .select(UserEntity::getPassword)

@@ -1,11 +1,11 @@
 package com.maxkb4j.tool.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.annotation.RateLimit;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.domain.dto.MessageDTO;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.enums.RateLimitKeyType;
@@ -29,7 +29,10 @@ import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author tarzan
@@ -44,6 +47,7 @@ public class ToolController {
     private final IToolInternalService toolService;
     private final IToolExecuteService toolExecuteService;
     private final ToolCodeGenerateService toolCodeGenerateService;
+    private final UserContext userContext;
 
     @SaCheckPerm(PermissionEnum.TOOL_READ)
     @GetMapping("/tool/{current}/{size}")
@@ -66,7 +70,8 @@ public class ToolController {
     @RateLimit(limit = 5, window = 10, keyType = RateLimitKeyType.USER)
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)
     @PostMapping("/tool/{templateId}/add_internal_tool")
-    public R<ToolVO> addInternalTool(@PathVariable String templateId, @RequestBody ToolSaveDTO dto, @CurrentUserId String userId) {
+    public R<ToolVO> addInternalTool(@PathVariable String templateId, @RequestBody ToolSaveDTO dto) {
+        String userId= userContext.getUserId();
         ToolEntity entity = BeanUtil.copy(dto, ToolEntity.class);
         entity.setId(null);
         entity.setUserId(userId);
@@ -87,7 +92,8 @@ public class ToolController {
     @RateLimit(limit = 5, window = 10, keyType = RateLimitKeyType.USER)
     @SaCheckPerm(PermissionEnum.TOOL_CREATE)
     @PostMapping("/tool")
-    public R<ToolVO> toolLib(@RequestBody ToolSaveDTO dto, @CurrentUserId String userId) {
+    public R<ToolVO> toolLib(@RequestBody ToolSaveDTO dto) {
+        String userId= userContext.getUserId();
         ToolEntity entity = BeanUtil.copy(dto, ToolEntity.class);
         entity.setIsActive(true);
         if (StringUtils.isBlank(entity.getToolType())) {

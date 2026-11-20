@@ -1,27 +1,23 @@
 package com.maxkb4j.start.config;
 
-import com.maxkb4j.common.interceptor.UserIdentityInterceptor;
-import com.maxkb4j.common.web.CurrentUserIdArgumentResolver;
-import com.maxkb4j.chat.interceptor.AuthInterceptor;
+import com.maxkb4j.common.interceptor.SystemAuthInterceptor;
+import com.maxkb4j.chat.interceptor.ChatAuthInterceptor;
 import com.maxkb4j.system.interceptor.LocaleInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.*;
 
-import java.util.List;
 
 
 @RequiredArgsConstructor
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    private final AuthInterceptor authInterceptor;
+    private final ChatAuthInterceptor chatAuthInterceptor;
     private final LocaleInterceptor localeInterceptor;
-    private final UserIdentityInterceptor userIdentityInterceptor;
-    private final CurrentUserIdArgumentResolver currentUserIdArgumentResolver;
+    private final SystemAuthInterceptor systemAuthInterceptor;
 
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
@@ -42,7 +38,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .order(Integer.MIN_VALUE);
         // 拦截聊天所有请求（默认全部要求携带合法的聊天令牌/应用API Key），
         // 仅放行真正的公开入口，防止会话改删、记录查询、投票、语音等接口被匿名访问
-        registry.addInterceptor(authInterceptor)
+        registry.addInterceptor(chatAuthInterceptor)
                 .addPathPatterns("/chat/api/**")
                 .excludePathPatterns(
                         "/chat/api/profile",
@@ -55,7 +51,7 @@ public class WebConfig implements WebMvcConfigurer {
                         // 公开分享链接查看（仅返回用户明确分享的记录）
                         "/chat/api/share/{id}");
         // 用户身份解析（填充 UserContext，供业务层获取当前用户；order=1 保证晚于 authInterceptor 解析 USER 会话）
-        registry.addInterceptor(userIdentityInterceptor)
+        registry.addInterceptor(systemAuthInterceptor)
                 .addPathPatterns("/admin/api/**")
                 .excludePathPatterns("/admin/api/profile",
                         "/admin/api/user/login",
@@ -65,10 +61,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .order(1);
     }
 
-    @Override
-    public void addArgumentResolvers(@NotNull List<HandlerMethodArgumentResolver> resolvers) {
-        resolvers.add(currentUserIdArgumentResolver);
-    }
+
 
     @Override
     public void addResourceHandlers(@NotNull ResourceHandlerRegistry registry) {
@@ -79,18 +72,6 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/webjars/**")
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");*/
     }
-/*
-    @Override
-    public void addViewControllers(@NotNull ViewControllerRegistry registry) {
-        registry.addViewController("/admin/{path:[^.]*}").setViewName("forward:/admin/index.html");
-        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}").setViewName("forward:/admin/index.html");
-        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}").setViewName("forward:/admin/index.html");
-        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}").setViewName("forward:/admin/index.html");
-        registry.addViewController("/admin/{path1:[^.]*}/{path2:[^.]*}/{path3:[^.]*}/{path4:[^.]*}/{path5:[^.]*}").setViewName("forward:/admin/index.html");
-        registry.addViewController("/chat/{path:[^.]*}").setViewName("forward:/chat/index.html");
-        registry.addViewController("/chat/share/{path:[^.]*}").setViewName("forward:/chat/index.html");
-        registry.addViewController("/chat-api-doc").setViewName("forward:/doc.html");
-    }*/
 
     /**
      * 注意：前端路由转发由 SpaForwardFilter 处理，不使用 ViewControllerRegistry

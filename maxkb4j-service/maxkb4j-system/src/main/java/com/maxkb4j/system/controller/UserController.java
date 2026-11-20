@@ -2,11 +2,11 @@ package com.maxkb4j.system.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.annotation.SaMode;
-import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.constant.RoleConst;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.system.dto.UserLanguageDTO;
 import com.maxkb4j.system.entity.UserEntity;
@@ -30,10 +30,11 @@ import java.util.List;
 public class UserController {
 
     private final IUserInternalService userService;
+    private final UserContext userContext;
 
     @GetMapping("user/profile")
-    public R<UserProfileVO> getUserProfile(@CurrentUserId String userId) {
-        return R.data(userService.getUserProfileById(userId));
+    public R<UserProfileVO> getUserProfile() {
+        return R.data(userService.getUserProfileById(userContext.getUserId()));
     }
 
     @SaCheckRole(type = LoginType.ADMIN, value = {RoleConst.ADMIN, RoleConst.USER}, mode = SaMode.OR)
@@ -52,7 +53,8 @@ public class UserController {
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @PostMapping("/user/current/send_email")
-    public R<Boolean> sendEmail(@CurrentUserId String userId) {
+    public R<Boolean> sendEmail() {
+        String userId= userContext.getUserId();
         String email = userService.getEmail(userId);
         return R.status(userService.sendEmailCode(email, I18nUtil.get("email.subject.modify.password")));
     }

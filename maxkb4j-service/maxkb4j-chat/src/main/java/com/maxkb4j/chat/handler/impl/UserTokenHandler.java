@@ -18,7 +18,6 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class UserTokenHandler implements AuthHandler {
 
-    private final IApplicationAccessTokenService accessTokenService;
 
     @Override
     public boolean handle(HttpServletResponse response) {

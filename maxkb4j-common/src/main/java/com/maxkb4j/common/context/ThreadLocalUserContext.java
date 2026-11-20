@@ -1,12 +1,12 @@
 package com.maxkb4j.common.context;
 
 import cn.dev33.satoken.jwt.exception.SaJwtException;
-import com.maxkb4j.common.interceptor.UserIdentityInterceptor;
+import com.maxkb4j.common.interceptor.SystemAuthInterceptor;
 import org.springframework.stereotype.Component;
 
 /**
  * 基于 {@link ThreadLocal} 的 {@link UserContext} 实现。
- * <p>由 {@link UserIdentityInterceptor} 在请求开始时填充、请求结束时清理,
+ * <p>由 {@link SystemAuthInterceptor} 在请求开始时填充、请求结束时清理,
  * 与 Spring {@code LocaleContextHolder} 同样的线程绑定模型。业务层通过依赖注入获取此单例实例,
  * 读方法只访问 {@link ThreadLocal} 快照,不依赖 sa-token,因此可独立单元测试。
  *

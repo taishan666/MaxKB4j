@@ -1,15 +1,15 @@
 package com.maxkb4j.application.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
-import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.application.service.IApplicationChatInternalService;
-import com.maxkb4j.common.annotation.CurrentUserId;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
-import com.maxkb4j.common.domain.vo.ChatMessageVO;
+import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
+import com.maxkb4j.common.domain.vo.ChatMessageVO;
+import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.util.WebUtil;
@@ -29,6 +29,7 @@ import reactor.core.publisher.Flux;
 public class ChatMessageController {
 
     private final IApplicationChatInternalService chatService;
+    private final UserContext userContext;
 
     @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/workspace/default/application/{id}/open")
@@ -38,10 +39,10 @@ public class ChatMessageController {
 
     @SaCheckLogin(type = LoginType.ADMIN)
     @PostMapping(path = "/chat_message/{chatId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params, @CurrentUserId String userId) {
+    public Flux<ChatMessageVO> chatMessage(@PathVariable String chatId, @RequestBody ChatParams params) {
         params.setChatId(chatId);
         ChatState chatState = ChatState.builder()
-                .chatUserId(userId)
+                .chatUserId(userContext.getUserId())
                 .chatUserType(ChatUserType.PLATFORM_USER)
                 .source(ChatSource.ONLINE)
                 .ipAddress(WebUtil.getIP())
