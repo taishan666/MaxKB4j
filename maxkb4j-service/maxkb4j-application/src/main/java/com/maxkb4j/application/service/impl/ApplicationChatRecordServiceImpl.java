@@ -58,11 +58,11 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     private boolean chatBelongsToApp(String appId, String chatId) {
         return chatMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery()
                 .eq(ApplicationChatEntity::getId, chatId)
-                .eq(ApplicationChatEntity::getApplicationId, appId)) > 0;
+                .eq(ApplicationChatEntity::getApplicationId, appId)) <= 0;
     }
 
     private ApplicationChatRecordEntity getOwnedChatRecord(String appId, String chatId, String chatRecordId) {
-        if (!chatBelongsToApp(appId, chatId)) {
+        if (chatBelongsToApp(appId, chatId)) {
             return null;
         }
         return baseMapper.selectOne(Wrappers.<ApplicationChatRecordEntity>lambdaQuery()
@@ -71,9 +71,9 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     }
 
     private boolean knowledgeDocumentBelongsToApp(String appId, String knowledgeId, String docId) {
-        return resourceMappingService.existsMapping(
+        return !resourceMappingService.existsMapping(
                 ResourceType.APPLICATION, appId, ResourceType.KNOWLEDGE, knowledgeId)
-                && documentService.existsByKnowledgeIdAndId(knowledgeId, docId);
+                || !documentService.existsByKnowledgeIdAndId(knowledgeId, docId);
     }
 
     private boolean paragraphBelongsToRecord(ApplicationChatRecordEntity chatRecord, String knowledgeId,
@@ -113,19 +113,11 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
         }
         return BeanUtil.copyList(chatRecordList, ChatRecordDTO.class);
     }
-
+    @Override
     public ApplicationChatRecordVO getChatRecordInfo(String chatId, String chatRecordId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
         ChatRecordDTO chatRecord = getChatRecordDTO(chatInfo, chatId, chatRecordId);
         return convert(chatRecord);
-    }
-
-    @Override
-    public ApplicationChatRecordVO getChatRecordInfo(String appId, String chatId, String chatRecordId) {
-        if (!chatBelongsToApp(appId, chatId)) {
-            return null;
-        }
-        return getChatRecordInfo(chatId, chatRecordId);
     }
 
     private ApplicationChatRecordVO convert(ApplicationChatRecordEntity chatRecordEntity) {
@@ -181,7 +173,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
 
     @Override
     public IPage<ApplicationChatRecordVO> chatRecordPage(String appId, String chatId, int current, int size) {
-        if (!chatBelongsToApp(appId, chatId)) {
+        if (chatBelongsToApp(appId, chatId)) {
             return new Page<>(current, size);
         }
         return chatRecordPage(chatId, current, size);
@@ -237,7 +229,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     @Transactional(rollbackFor = Exception.class)
     public boolean addChatLogs(String appId, AddChatImproveDTO dto) {
         if (dto == null || CollectionUtils.isEmpty(dto.getChatIds())
-                || !knowledgeDocumentBelongsToApp(appId, dto.getKnowledgeId(), dto.getDocumentId())) {
+                || knowledgeDocumentBelongsToApp(appId, dto.getKnowledgeId(), dto.getDocumentId())) {
             return false;
         }
         List<String> chatIds = dto.getChatIds().stream().distinct().toList();
@@ -263,7 +255,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     @Transactional(rollbackFor = Exception.class)
     public ApplicationChatRecordEntity improveChatLog(String appId, String chatId, String chatRecordId, String knowledgeId, String docId, ChatImproveDTO dto) {
         ApplicationChatRecordEntity ownedRecord = getOwnedChatRecord(appId, chatId, chatRecordId);
-        if (ownedRecord == null || !knowledgeDocumentBelongsToApp(appId, knowledgeId, docId)) {
+        if (ownedRecord == null || knowledgeDocumentBelongsToApp(appId, knowledgeId, docId)) {
             return null;
         }
         ParagraphDTO paragraphDTO = new ParagraphDTO(IdWorker.get32UUID(), knowledgeId, docId, dto.getTitle(), dto.getContent(), null);
@@ -289,7 +281,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     @Transactional(rollbackFor = Exception.class)
     public boolean removeImproveChatLog(String appId, String chatId, String chatRecordId, String knowledgeId, String docId, String paragraphId) {
         ApplicationChatRecordEntity ownedRecord = getOwnedChatRecord(appId, chatId, chatRecordId);
-        if (ownedRecord == null || !knowledgeDocumentBelongsToApp(appId, knowledgeId, docId)
+        if (ownedRecord == null || knowledgeDocumentBelongsToApp(appId, knowledgeId, docId)
                 || !paragraphBelongsToRecord(ownedRecord, knowledgeId, docId, paragraphId)) {
             return false;
         }

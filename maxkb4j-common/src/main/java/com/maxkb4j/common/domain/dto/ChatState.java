@@ -73,7 +73,7 @@ public class ChatState {
     }
 
     public JSONObject getChatUser() {
-        return ChatUserType.ANONYMOUS_USER.equals(chatUserType) ? new JSONObject(Map.of("username", "游客")) : new JSONObject();
+        return Objects.isNull(chatUser) ? new JSONObject(Map.of("username", "游客")) : chatUser;
     }
 
     public ChatSource getSource() {

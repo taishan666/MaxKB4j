@@ -90,9 +90,6 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
 
 
     private ChatInfo getChatInfo(String chatId, String appId, String chatUserId) {
-        if (StringUtils.isBlank(appId) || StringUtils.isBlank(chatUserId)) {
-            throw new ApiException("common.record.not.exists");
-        }
         ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo != null) {
             boolean appMismatch = StringUtils.isNotBlank(appId) && !Objects.equals(appId, chatInfo.getAppId());
@@ -105,6 +102,9 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
                 chatInfo.setChatUserId(chatUserId);
             }
             return chatInfo;
+        }
+        if (StringUtils.isBlank(appId) || StringUtils.isBlank(chatUserId)) {
+            throw new ApiException("common.record.not.exists");
         }
         ApplicationChatEntity chatEntity = this.lambdaQuery()
                 .select(ApplicationChatEntity::getApplicationId, ApplicationChatEntity::getChatUserId)

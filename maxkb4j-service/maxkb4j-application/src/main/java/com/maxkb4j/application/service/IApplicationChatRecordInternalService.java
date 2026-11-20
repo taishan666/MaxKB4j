@@ -18,7 +18,7 @@ public interface IApplicationChatRecordInternalService extends IApplicationChatR
 
     List<ChatRecordDTO> getChatRecords(String chatId);
 
-    ApplicationChatRecordVO getChatRecordInfo(String appId, String chatId, String chatRecordId);
+    ApplicationChatRecordVO getChatRecordInfo(String chatId, String chatRecordId);
 
     IPage<ApplicationChatRecordVO> chatRecordPage(String appId, String chatId, int current, int size);
 

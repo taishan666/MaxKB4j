@@ -164,7 +164,7 @@ public class TriggerTaskExecutor {
             TaskState state = (response != null) ? TaskState.SUCCESS : TaskState.FAILURE;
             JSONObject meta = new JSONObject();
             int status = response != null ? 200 : 500;
-            meta.put("tool_call", Map.of("index", 1, "type", "tool-node", "status", status, "params", parameter, "result", response != null ? response : ""));
+            meta.put("tool_call", Map.of("index", 1, "type", "tool-node", "status", status, "params", parameter != null ? parameter : Map.of(), "result", response != null ? response : ""));
             saveRecord(task.getTriggerId(), task.getId(), ResourceType.TOOL, toolId, state, runTime, meta);
             log.info("Tool task executed: toolId={}, state={}, runTime={}s", toolId, state, runTime);
         } catch (Exception e) {

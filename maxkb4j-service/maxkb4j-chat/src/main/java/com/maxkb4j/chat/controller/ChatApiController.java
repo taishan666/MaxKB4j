@@ -100,7 +100,6 @@ public class ChatApiController {
     public Object chatMessage(@PathVariable String chatId, @Valid @RequestBody ChatParams params) {
         String userId = StpKit.USER.getLoginIdAsString();
         String appId = (String) StpKit.USER.getExtra("applicationId");
-
         params.setChatId(chatId);
         ChatState chatState = ChatState.builder()
                 .appId(appId)

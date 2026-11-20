@@ -3,14 +3,15 @@ package com.maxkb4j.application.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.application.dto.ApplicationChatDTO;
 import com.maxkb4j.application.dto.ChatResponse;
-import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.application.dto.ShareChatDTO;
 import com.maxkb4j.application.vo.ShareChatVO;
-import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
+import com.maxkb4j.common.domain.vo.ChatMessageVO;
+import com.maxkb4j.common.domain.vo.ResultCallback;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public interface IApplicationChatService {
 
@@ -24,7 +25,7 @@ public interface IApplicationChatService {
      * 异步执行对话，返回该任务的 Future；调用方可在客户端断连时 cancel(true)
      * 中断底层执行线程。正常/异常收尾仍通过 callback 的 onComplete/onError 传递。
      */
-    java.util.concurrent.CompletableFuture<Void> chatMessageAsync(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback);
+    CompletableFuture<Void> chatMessageAsync(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback);
 
     Boolean deleteById(String chatId);
 
