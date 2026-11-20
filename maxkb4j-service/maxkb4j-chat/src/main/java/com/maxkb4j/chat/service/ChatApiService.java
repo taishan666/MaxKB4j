@@ -47,6 +47,11 @@ public class ChatApiService {
         if (accessTokenEntity == null) {
             throw new ApiException("application.app.not.found");
         }
+        List<String> whiteList = accessTokenEntity.getWhiteList();
+        if (Boolean.TRUE.equals(accessTokenEntity.getWhiteActive())
+                && (whiteList == null || !whiteList.contains(WebUtil.getIP()))) {
+            throw new ApiException("application.access.white.list.required");
+        }
         String chatUserId = IdWorker.get32UUID();
         String tokenValue = WebUtil.getTokenValue();
         if (StringUtils.isNotBlank(tokenValue)) {
