@@ -82,7 +82,9 @@ public class DocParser implements DocumentParser {
                 inputStream.transferTo(baoStream);
                 byte[] imageBytes = baoStream.toByteArray();
                 // 存储到 map，供后续替换 src 使用
-                embeddedResources.put(resourceName, imageBytes);
+                if (resourceName != null && !resourceName.isBlank()) {
+                    embeddedResources.put(resourceName, imageBytes);
+                }
             }
         };
         // 自定义 EmbeddedDocumentExtractor
