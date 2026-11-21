@@ -164,11 +164,21 @@ public class KnowledgeWorkflowService {
                 .select(ProblemEntity::getId)
                 .eq(ProblemEntity::getKnowledgeId, knowledgeId).list();
         List<String> problemIds = problems.stream().map(ProblemEntity::getId).toList();
-        // 异步执行知识库重嵌，避免请求线程阻塞超时
+        // 异步执行知识库重嵌，避免请求线程阻塞超时。
+        // 异步任务的异常存放在被丢弃的 future 中，必须逐步捕获记录日志；
+        // 且文档重嵌失败不应中断问题向量重建，两步各自独立容错。
         CompletableFuture.runAsync(() -> {
-            documentService.embedByDocIds(knowledgeId, docIds, List.of("0", "1", "2", "3", "n"));
+            try {
+                documentService.embedByDocIds(knowledgeId, docIds, List.of("0", "1", "2", "3", "n"));
+            } catch (Exception e) {
+                log.error("知识库文档重嵌失败, knowledgeId: {}, 文档数: {}", knowledgeId, docIds.size(), e);
+            }
             if (!problemIds.isEmpty()) {
-                problemService.reIndexBatch(knowledgeId, problemIds);
+                try {
+                    problemService.reIndexBatch(knowledgeId, problemIds);
+                } catch (Exception e) {
+                    log.error("知识库问题向量重建失败, knowledgeId: {}, 问题数: {}", knowledgeId, problemIds.size(), e);
+                }
             }
         }, workflowTaskExecutor);
         return true;

@@ -11,13 +11,13 @@
 </p>
 
 <p align="center">
-  <a href="https://www.gnu.org/licenses/gpl-3.0.html"><img src="https://img.shields.io/badge/License-GPLv3-blue" alt="GPLv3"></a>
-  <a href="https://openjdk.org/projects/jdk/21/"><img src="https://img.shields.io/badge/Java-21%2B-green" alt="Java21plus"></a>
-  <a href="https://spring.io/projects/spring-boot"><img src="https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen" alt="SpringBoot3"></a>
-  <a href="https://github.com/langchain4j/langchain4j"><img src="https://img.shields.io/badge/LangChain4j-1.x-green" alt="LangChain4j"></a>
+  <a href="https://www.gnu.org/licenses/gpl-3.0.html"><img src="image/badge-license.svg" alt="GPLv3"></a>
+  <a href="https://openjdk.org/projects/jdk/21/"><img src="image/badge-java.svg" alt="Java21plus"></a>
+  <a href="https://spring.io/projects/spring-boot"><img src="image/badge-springboot.svg" alt="SpringBoot3"></a>
+  <a href="https://github.com/langchain4j/langchain4j"><img src="image/badge-langchain4j.svg" alt="LangChain4j"></a>
   <a href="https://gitee.com/taisan/MaxKB4j"><img src="https://gitee.com/taisan/MaxKB4j/badge/star.svg" alt="GiteeStars"></a>
   <a href="https://gitee.com/taisan/MaxKB4j/members"><img src="https://gitee.com/taisan/MaxKB4j/badge/fork.svg" alt="GiteeForks"></a>
-  <a href="https://gitee.com/taisan/MaxKB4j/issues"><img src="https://img.shields.io/badge/Issues-Welcome-orange" alt="IssuesWelcome"></a><br/>
+  <a href="https://gitee.com/taisan/MaxKB4j/issues"><img src="image/badge-issues.svg" alt="IssuesWelcome"></a><br/>
   [<a href="README_CN.md">中文（简体）</a>] | [<a href="README.md">English</a>]
 </p>
 

@@ -138,11 +138,11 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
         if (status == null || status.length() < 3) return false;
         StringBuilder newStatus = new StringBuilder(status);
         if (taskType == TaskType.EMBEDDING) {
-            newStatus.setCharAt(2, (char) TaskStatus.FAILURE); // 向量化取消
+            newStatus.setCharAt(2, TaskStatus.FAILURE); // 向量化取消
         } else if (taskType == TaskType.GENERATE_PROBLEM) {
-            newStatus.setCharAt(1, (char) TaskStatus.FAILURE); // 问题生成取消
+            newStatus.setCharAt(1, TaskStatus.FAILURE); // 问题生成取消
         }else if (taskType == TaskType.SYNC) {
-            newStatus.setCharAt(0, (char) TaskStatus.FAILURE); // 问题生成取消
+            newStatus.setCharAt(0, TaskStatus.FAILURE); // 同步取消
         }
         return baseMapper.update(null,
                 Wrappers.<DocumentEntity>lambdaUpdate()

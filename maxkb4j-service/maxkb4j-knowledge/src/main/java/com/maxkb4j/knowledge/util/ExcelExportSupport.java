@@ -10,8 +10,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -21,6 +25,9 @@ import java.util.zip.ZipOutputStream;
 public final class ExcelExportSupport {
 
     private static final int SHEET_NAME_MAX_LEN = 31;
+    private static final String DEFAULT_SHEET_NAME = "Sheet1";
+    // POI 不允许 sheet 名包含 \ / ? * [ ] :，换行/制表符同样替换掉更稳妥
+    private static final Pattern ILLEGAL_SHEET_CHARS = Pattern.compile("[\\\\/:?*\\[\\]\\r\\n\\t]");
     private static final String EXCEL_CONTENT_TYPE = "application/vnd.ms-excel";
     private static final String ZIP_CONTENT_TYPE = "application/zip";
 
@@ -43,25 +50,81 @@ public final class ExcelExportSupport {
     }
 
     /**
-     * Excel 单 sheet 名长度上限 31，超长截断；包含扩展名时去除扩展名后再截断。
+     * Excel 单 sheet 名规范化：非法字符（\ / ? * [ ] : 及换行）替换为空格、含扩展名时去除扩展名、
+     * 截断到 31 字符上限，并去掉首尾空白与单引号（POI 不允许 sheet 名以单引号开头/结尾）；
+     * 结果为空时回退为默认名。
      */
     public static String normalizeSheetName(String rawName) {
-        if (rawName == null) return "Sheet1";
-        int dotIdx = rawName.lastIndexOf('.');
-        String base = dotIdx > 0 ? rawName.substring(0, dotIdx) : rawName;
-        return base.length() > SHEET_NAME_MAX_LEN ? base.substring(0, SHEET_NAME_MAX_LEN) : base;
+        String name = sanitizeSheetName(rawName);
+        return name.isEmpty() ? DEFAULT_SHEET_NAME : name;
+    }
+
+    private static String sanitizeSheetName(String rawName) {
+        if (rawName == null) {
+            return "";
+        }
+        String cleaned = ILLEGAL_SHEET_CHARS.matcher(rawName).replaceAll(" ");
+        int dotIdx = cleaned.lastIndexOf('.');
+        String base = dotIdx > 0 ? cleaned.substring(0, dotIdx) : cleaned;
+        base = base.length() > SHEET_NAME_MAX_LEN ? base.substring(0, SHEET_NAME_MAX_LEN) : base;
+        return trimSheetEdges(base);
+    }
+
+    private static String trimSheetEdges(String name) {
+        int start = 0;
+        int end = name.length();
+        while (start < end && isSheetNameEdgeChar(name.charAt(start))) {
+            start++;
+        }
+        while (end > start && isSheetNameEdgeChar(name.charAt(end - 1))) {
+            end--;
+        }
+        return name.substring(start, end);
+    }
+
+    private static boolean isSheetNameEdgeChar(char c) {
+        return c == '\'' || c == ' ';
     }
 
     /**
-     * 通用多 sheet 写入：把元素列表按 sheet 写入同一个 ExcelWriter。
+     * 为一组原始名生成互不冲突的 sheet 名：先逐个规范化，再对重名追加 "(n)" 序号，
+     * 追加序号后仍保证不超过 31 字符上限；比较不区分大小写（Excel 视大小写不同的同名 sheet 为冲突）。
+     */
+    public static List<String> uniqueSheetNames(List<String> rawNames) {
+        Set<String> used = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        List<String> names = new ArrayList<>(rawNames.size());
+        for (String rawName : rawNames) {
+            names.add(allocateUniqueSheetName(normalizeSheetName(rawName), used));
+        }
+        return names;
+    }
+
+    private static String allocateUniqueSheetName(String base, Set<String> used) {
+        if (used.add(base)) {
+            return base;
+        }
+        for (int index = 2; ; index++) {
+            String suffix = "(" + index + ")";
+            String truncated = base.length() > SHEET_NAME_MAX_LEN - suffix.length()
+                    ? base.substring(0, SHEET_NAME_MAX_LEN - suffix.length()) : base;
+            String candidate = truncated + suffix;
+            if (used.add(candidate)) {
+                return candidate;
+            }
+        }
+    }
+
+    /**
+     * 通用多 sheet 写入：把元素列表按 sheet 写入同一个 ExcelWriter，sheet 名先整批规范化去重。
      */
     public static <T, E> void writeSheets(ExcelWriter writer,
                                           List<T> items,
                                           Function<T, String> sheetNameFn,
                                           Function<T, List<E>> dataFn) {
-        for (T item : items) {
-            WriteSheet sheet = EasyExcel.writerSheet(normalizeSheetName(sheetNameFn.apply(item))).build();
-            writer.write(dataFn.apply(item), sheet);
+        List<String> sheetNames = uniqueSheetNames(items.stream().map(sheetNameFn).toList());
+        for (int i = 0; i < items.size(); i++) {
+            WriteSheet sheet = EasyExcel.writerSheet(sheetNames.get(i)).build();
+            writer.write(dataFn.apply(items.get(i)), sheet);
         }
     }
 

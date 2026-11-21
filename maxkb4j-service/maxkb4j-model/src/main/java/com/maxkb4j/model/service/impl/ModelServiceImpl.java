@@ -124,11 +124,18 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
         if (entity == null) {
             throw new ApiException(MessageCode.MODEL_NAME_NOT_FOUND);
         }
-        ModelCredential credential = entity.getCredential();
-        String maskApiKey = DataMaskUtil.maskApiKey(credential.getApiKey());
-        if (maskApiKey != null && maskApiKey.equals(model.getCredential().getApiKey())) {
-            credential.setBaseUrl(model.getCredential().getBaseUrl());
-            model.setCredential(credential);
+        ModelCredential entityCredential = entity.getCredential();
+        ModelCredential requestCredential = model.getCredential();
+        if (requestCredential == null) {
+            // 未传 credential：沿用库中原凭证，避免空指针，也保证后续校验拿得到密钥
+            model.setCredential(entityCredential);
+        } else if (entityCredential != null) {
+            String maskApiKey = DataMaskUtil.maskApiKey(entityCredential.getApiKey());
+            if (maskApiKey != null && maskApiKey.equals(requestCredential.getApiKey())) {
+                // 回传的是脱敏后的 apiKey：保留原密钥，仅更新 baseUrl
+                entityCredential.setBaseUrl(requestCredential.getBaseUrl());
+                model.setCredential(entityCredential);
+            }
         }
         AbsModelProvider modelProvider = providerRegistry.get(entity.getProvider());
         JSONObject params = extractDefaultModelParams(entity.getModelParamsForm());

@@ -8,7 +8,7 @@ import java.util.Date;
 public class ChatRecordDetailVO {
 
     private String chatId;
-    private String overview;
+    private String summary;
     private String voteStatus;
     private String problemText;
     private String answerText;

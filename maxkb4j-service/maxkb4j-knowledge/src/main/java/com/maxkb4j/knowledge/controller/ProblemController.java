@@ -74,7 +74,7 @@ public class ProblemController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_PROBLEM_READ)
     @GetMapping("/knowledge/{id}/problem/{problemId}/paragraph")
     public R<List<RelationParagraphVO>> getParagraphByProblemId(@PathVariable String id, @PathVariable("problemId") String problemId) {
-        return R.data(BeanUtil.copyList(datasetService.getParagraphByProblemId(problemId), RelationParagraphVO.class));
+        return R.data(BeanUtil.copyList(datasetService.getParagraphByProblemId(id, problemId), RelationParagraphVO.class));
     }
 
 

@@ -99,8 +99,12 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
     }
 
 
-    public List<ParagraphEntity> getParagraphByProblemId(String problemId) {
-        List<ProblemParagraphEntity> list = problemParagraphMapper.selectList(Wrappers.<ProblemParagraphEntity>lambdaQuery().select(ProblemParagraphEntity::getParagraphId).eq(ProblemParagraphEntity::getProblemId, problemId));
+    public List<ParagraphEntity> getParagraphByProblemId(String knowledgeId, String problemId) {
+        // 按路径中的 knowledgeId 过滤关联行，防止持 A 库权限的用户用 B 库的 problemId 跨库读取段落
+        List<ProblemParagraphEntity> list = problemParagraphMapper.selectList(Wrappers.<ProblemParagraphEntity>lambdaQuery()
+                .select(ProblemParagraphEntity::getParagraphId)
+                .eq(ProblemParagraphEntity::getKnowledgeId, knowledgeId)
+                .eq(ProblemParagraphEntity::getProblemId, problemId));
         if (!CollectionUtils.isEmpty(list)) {
             List<String> paragraphIds = list.stream().map(ProblemParagraphEntity::getParagraphId).toList();
             return paragraphMapper.selectByIds(paragraphIds);

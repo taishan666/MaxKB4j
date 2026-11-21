@@ -1,14 +1,12 @@
 package com.maxkb4j.knowledge.parser.impl;
 
 import com.maxkb4j.knowledge.parser.DocumentParser;
+import com.maxkb4j.knowledge.util.EncodingDetectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.tika.detect.EncodingDetector;
 import org.apache.tika.io.TikaInputStream;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.txt.UniversalEncodingDetector;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -34,17 +32,9 @@ public class CsvParser implements DocumentParser {
         }
 
         try (TikaInputStream tikaStream = TikaInputStream.get(inputStream)) {
-            // 检测字符编码
-            Metadata metadata = new Metadata();
-            // 可选：设置文件名帮助检测
-            // metadata.set(Metadata.RESOURCE_NAME_KEY, "file.csv");
-            EncodingDetector detector = new UniversalEncodingDetector();
-            Charset charset = detector.detect(tikaStream, metadata);
-            String charsetName = charset != null ? charset.name() : "UTF-8";
-            // 重要：重置流，因为 detect() 可能已读取部分内容
-            tikaStream.reset();
-            // 使用检测到的编码读取 CSV
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(tikaStream, Charset.forName(charsetName)))) {
+            // 检测字符编码（检测失败回退 UTF-8）并重置流，再按检测到的编码读取 CSV
+            Charset charset = EncodingDetectUtil.detectAndReset(tikaStream);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(tikaStream, charset))) {
                 CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
                         .setHeader().setSkipHeaderRecord(true)
                         .setIgnoreEmptyLines(true)

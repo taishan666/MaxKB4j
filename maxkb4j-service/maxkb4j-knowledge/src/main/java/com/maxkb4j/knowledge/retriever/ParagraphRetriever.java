@@ -21,6 +21,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ParagraphRetriever implements IRetrieveService {
 
+    /**
+     * similarity/topNumber 未传时的兜底值，与前端 hit_test 默认配置保持一致。
+     */
+    private static final float DEFAULT_SIMILARITY = 0.5f;
+    private static final int DEFAULT_TOP_NUMBER = 5;
+
     private final ParagraphMapper paragraphMapper;
     private final DataRetriever dataRetriever;
 
@@ -44,9 +50,12 @@ public class ParagraphRetriever implements IRetrieveService {
         if (CollectionUtils.isEmpty(knowledgeIds)) {
             return Collections.emptyList();
         }
+        // search 入参为基本类型，null 拆箱会 NPE；未传时兜底，内部调用路径（如应用检索配置缺省）同样生效
+        Float similarity = dto.getSimilarity() != null ? dto.getSimilarity() : DEFAULT_SIMILARITY;
+        Integer topNumber = dto.getTopNumber() != null ? dto.getTopNumber() : DEFAULT_TOP_NUMBER;
         List<TextChunkVO> chunks = dataRetriever.search(knowledgeIds, dto.getExcludeParagraphIds(),
-                dto.getQueryText(), dto.getTopNumber(),
-                dto.getSimilarity(), dto.getSearchMode());
+                dto.getQueryText(), topNumber,
+                similarity, dto.getSearchMode());
         if (CollectionUtils.isEmpty(chunks)) {
             return Collections.emptyList();
         }

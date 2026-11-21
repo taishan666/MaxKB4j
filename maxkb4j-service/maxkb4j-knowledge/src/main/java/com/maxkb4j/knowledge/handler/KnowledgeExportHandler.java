@@ -12,6 +12,7 @@ import com.maxkb4j.knowledge.entity.ParagraphEntity;
 import com.maxkb4j.knowledge.excel.KnowledgeExcel;
 import com.maxkb4j.knowledge.mapper.ParagraphMapper;
 import com.maxkb4j.knowledge.mapper.ProblemParagraphMapper;
+import com.maxkb4j.knowledge.util.ExcelExportSupport;
 import com.maxkb4j.knowledge.vo.ProblemParagraphVO;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -130,9 +131,13 @@ public class KnowledgeExportHandler {
     public void writeMultiSheetExcel(OutputStream outputStream, List<DocumentEntity> docs) {
         try (ExcelWriter excelWriter = EasyExcel.write(outputStream, KnowledgeExcel.class)
                 .autoCloseStream(false).build()) {
+            // 原始文档名可能超长/含非法字符/重名，直接作 sheet 名会被 POI 拒绝
+            List<String> sheetNames = ExcelExportSupport.uniqueSheetNames(
+                    docs.stream().map(DocumentEntity::getName).toList());
             boolean hasData = false;
-            for (DocumentEntity doc : docs) {
-                WriteSheet writeSheet = EasyExcel.writerSheet(doc.getName()).build();
+            for (int i = 0; i < docs.size(); i++) {
+                DocumentEntity doc = docs.get(i);
+                WriteSheet writeSheet = EasyExcel.writerSheet(sheetNames.get(i)).build();
                 boolean docHasData = processParagraphBatches(doc, rows -> excelWriter.write(rows, writeSheet));
                 if (!docHasData) {
                     log.debug("文档 {} 没有数据，跳过该sheet", doc.getName());

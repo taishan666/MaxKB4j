@@ -10,7 +10,7 @@ public class ChatRecordDetailExcel {
     @ExcelProperty("会话ID")
     private String chatId;
     @ExcelProperty("概述")
-    private String overview;
+    private String summary;
     @ExcelProperty("用户反馈")
     private String voteStatus;
     @ExcelProperty("用户问题")

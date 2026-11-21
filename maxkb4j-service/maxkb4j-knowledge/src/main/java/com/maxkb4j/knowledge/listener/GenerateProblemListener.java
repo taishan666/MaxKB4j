@@ -27,6 +27,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RequiredArgsConstructor
 public class GenerateProblemListener {
 
+    /**
+     * 生成问题数量的缺省值，与前端表单默认值一致
+     */
+    private static final int DEFAULT_PROBLEM_NUMBER = 5;
+
     private final IDocumentInternalService documentService;
     private final IParagraphInternalService paragraphService;
     private final IModelProviderService modelFactory;
@@ -41,6 +46,8 @@ public class GenerateProblemListener {
         EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(event.getKnowledgeId());
         documentService.updateStatusByIds(event.getDocumentIdList(), TaskType.GENERATE_PROBLEM, TaskStatus.PENDING);
         List<ProblemEntity> knowledgeProblems = problemService.lambdaQuery().eq(ProblemEntity::getKnowledgeId, event.getKnowledgeId()).list();
+        // number 为 Integer，接口层已 @NotNull 校验；此处兜底防止内部发布方传 null 时在下方拆箱 NPE，导致全文档段落被置 FAILURE
+        int problemNumber = event.getNumber() != null ? event.getNumber() : DEFAULT_PROBLEM_NUMBER;
         for (String docId : event.getDocumentIdList()) {
             try {
                 List<String> paragraphIds = paragraphService.listParagraphIdsByStates(docId, TaskType.GENERATE_PROBLEM, event.getStateList());
@@ -53,7 +60,7 @@ public class GenerateProblemListener {
                     AtomicInteger failureCount = new AtomicInteger(0);
                     paragraphs.forEach(paragraph -> {
                         try {
-                            problemService.generateRelated(chatModel, embeddingModel, event.getKnowledgeId(), docId, paragraph, knowledgeProblems, event.getNumber());
+                            problemService.generateRelated(chatModel, embeddingModel, event.getKnowledgeId(), docId, paragraph, knowledgeProblems, problemNumber);
                             paragraphService.updateStatusById(paragraph.getId(), TaskType.GENERATE_PROBLEM, TaskStatus.SUCCESS);
                         } catch (Exception e) {
                             failureCount.incrementAndGet();

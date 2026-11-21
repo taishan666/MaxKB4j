@@ -6,6 +6,7 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.fastjson.JSON;
+import com.maxkb4j.knowledge.util.EncodingDetectUtil;
 import com.maxkb4j.knowledge.util.FilePathSecurityUtil;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
 import com.maxkb4j.knowledge.dto.ParagraphSimple;
@@ -20,10 +21,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.detect.EncodingDetector;
 import org.apache.tika.io.TikaInputStream;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.txt.UniversalEncodingDetector;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -81,14 +79,7 @@ public class DocumentHandler {
      * 检测 CSV 文件编码，检测失败时回退为 UTF-8。
      */
     private String detectCsvCharset(byte[] bytes) {
-        try (TikaInputStream tikaStream = TikaInputStream.get(bytes)) {
-            EncodingDetector detector = new UniversalEncodingDetector();
-            Charset charset = detector.detect(tikaStream, new Metadata());
-            return charset != null ? charset.name() : "UTF-8";
-        } catch (IOException e) {
-            log.warn("无法检测 CSV 编码，使用 UTF-8 默认", e);
-            return "UTF-8";
-        }
+        return EncodingDetectUtil.detect(bytes).name();
     }
 
     /**

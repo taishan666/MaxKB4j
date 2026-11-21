@@ -15,12 +15,16 @@ import com.maxkb4j.knowledge.service.DocumentWriteService;
 import com.maxkb4j.knowledge.service.IKnowledgeInternalService;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.service.IModelService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -29,6 +33,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -42,10 +48,27 @@ import java.util.zip.ZipInputStream;
 @RequiredArgsConstructor
 public class KnowledgeImportHandler {
 
+    /** 单个 ZIP 条目解压后大小上限：100MB */
+    private static final long MAX_ENTRY_UNCOMPRESSED_SIZE = 100L * 1024 * 1024;
+    /** ZIP 全部条目解压后总大小上限：200MB，防止多个条目叠加构成解压炸弹 */
+    private static final long MAX_TOTAL_UNCOMPRESSED_SIZE = 200L * 1024 * 1024;
+    /** ZIP 条目数量上限 */
+    private static final int MAX_ENTRY_COUNT = 1000;
+    private static final int READ_BUFFER_SIZE = 8192;
+    private static final String KNOWLEDGE_JSON_ENTRY = "knowledge.json";
+    private static final String KNOWLEDGE_XLSX_ENTRY = "knowledge.xlsx";
+
     private final IKnowledgeInternalService knowledgeService;
     private final DocumentWriteService documentWriteService;
     private final IModelService modelService;
     private final UserContext userContext;
+    private final PlatformTransactionManager transactionManager;
+    private TransactionTemplate transactionTemplate;
+
+    @PostConstruct
+    private void initTransactionTemplate() {
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+    }
 
 
     /**
@@ -58,43 +81,21 @@ public class KnowledgeImportHandler {
      * @return 创建的知识库实体
      */
     public KnowledgeEntity importKnowledgeFromZip(MultipartFile file) throws IOException {
-        JSONObject knowledgeJson = null;
-        Map<String, List<KnowledgeExcel>> excelDataBySheet = new LinkedHashMap<>();
+        ZipContent content = parseZip(file);
 
-        // 解析ZIP文件
-        try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
-            ZipEntry entry;
-            while ((entry = zis.getNextEntry()) != null) {
-                if (entry.isDirectory()) {
-                    continue;
-                }
-
-                String entryName = entry.getName();
-                if ("knowledge.json".equals(entryName)) {
-                    // 读取知识库配置
-                    String jsonContent = new String(zis.readAllBytes(), StandardCharsets.UTF_8);
-                    knowledgeJson = JSONObject.parseObject(jsonContent);
-                } else if ("knowledge.xlsx".equals(entryName)) {
-                    // 读取Excel数据
-                    byte[] excelBytes = zis.readAllBytes();
-                    excelDataBySheet = readExcelData(new ByteArrayInputStream(excelBytes));
-                }
-            }
-        }
-
-        if (knowledgeJson == null) {
+        if (content.knowledgeJson() == null) {
             throw new IllegalArgumentException("ZIP文件中未找到knowledge.json");
         }
 
-        // 创建知识库
-        KnowledgeEntity knowledge = createKnowledge(knowledgeJson);
-
-        // 创建文档和段落
-        if (!excelDataBySheet.isEmpty()) {
-            createDocuments(knowledge.getId(), excelDataBySheet);
-        }
-
-        return knowledge;
+        // 建库与建文档必须同生共死：文档创建失败时回滚知识库，避免残留空库。
+        // 事务只覆盖数据库写入，ZIP/Excel 解析放在事务外，避免解析期间占用数据库连接。
+        return transactionTemplate.execute(status -> {
+            KnowledgeEntity knowledge = createKnowledge(content.knowledgeJson());
+            if (!content.excelDataBySheet().isEmpty()) {
+                createDocuments(knowledge.getId(), content.excelDataBySheet());
+            }
+            return knowledge;
+        });
     }
 
     /**
@@ -104,29 +105,71 @@ public class KnowledgeImportHandler {
      * @param knowledgeId 知识库ID
      */
     public void importKnowledgeFromZip(MultipartFile file, String knowledgeId) throws IOException {
+        ZipContent content = parseZip(file);
+
+        // 创建文档和段落
+        if (!content.excelDataBySheet().isEmpty()) {
+            createDocuments(knowledgeId, content.excelDataBySheet());
+        }
+    }
+
+    /**
+     * 解析ZIP文件内容
+     */
+    private ZipContent parseZip(MultipartFile file) throws IOException {
+        JSONObject knowledgeJson = null;
         Map<String, List<KnowledgeExcel>> excelDataBySheet = new LinkedHashMap<>();
 
-        // 解析ZIP文件
+        // 解析ZIP文件：全部条目有界读取，防止解压炸弹撑爆内存
+        AtomicLong totalUncompressed = new AtomicLong();
+        int entryCount = 0;
         try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 if (entry.isDirectory()) {
                     continue;
                 }
+                if (++entryCount > MAX_ENTRY_COUNT) {
+                    throw new IllegalArgumentException("ZIP文件条目数超过上限：" + MAX_ENTRY_COUNT);
+                }
 
                 String entryName = entry.getName();
-                if ("knowledge.xlsx".equals(entryName)) {
+                byte[] entryBytes = readEntryBounded(zis, entryName, totalUncompressed);
+                if (KNOWLEDGE_JSON_ENTRY.equals(entryName)) {
+                    // 读取知识库配置
+                    knowledgeJson = JSONObject.parseObject(new String(entryBytes, StandardCharsets.UTF_8));
+                } else if (KNOWLEDGE_XLSX_ENTRY.equals(entryName)) {
                     // 读取Excel数据
-                    byte[] excelBytes = zis.readAllBytes();
-                    excelDataBySheet = readExcelData(new ByteArrayInputStream(excelBytes));
+                    excelDataBySheet = readExcelData(new ByteArrayInputStream(entryBytes));
                 }
+                // 其余条目读取后丢弃
             }
         }
 
-        // 创建文档和段落
-        if (!excelDataBySheet.isEmpty()) {
-            createDocuments(knowledgeId, excelDataBySheet);
+        return new ZipContent(knowledgeJson, excelDataBySheet);
+    }
+
+    /**
+     * 有界读取当前条目：单个条目及全包累计解压字节数任一超限立即失败，防止ZIP炸弹导致OOM
+     */
+    private byte[] readEntryBounded(ZipInputStream zis, String entryName, AtomicLong totalUncompressed) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buffer = new byte[READ_BUFFER_SIZE];
+        long entrySize = 0;
+        int len;
+        while ((len = zis.read(buffer)) != -1) {
+            entrySize += len;
+            if (entrySize > MAX_ENTRY_UNCOMPRESSED_SIZE) {
+                throw new IllegalArgumentException(
+                        "ZIP条目[" + entryName + "]解压后大小超过上限：" + MAX_ENTRY_UNCOMPRESSED_SIZE / (1024 * 1024) + "MB");
+            }
+            if (totalUncompressed.addAndGet(len) > MAX_TOTAL_UNCOMPRESSED_SIZE) {
+                throw new IllegalArgumentException(
+                        "ZIP文件解压后总大小超过上限：" + MAX_TOTAL_UNCOMPRESSED_SIZE / (1024 * 1024) + "MB");
+            }
+            out.write(buffer, 0, len);
         }
+        return out.toByteArray();
     }
 
     /**
@@ -137,12 +180,32 @@ public class KnowledgeImportHandler {
         ExcelDataListener<KnowledgeExcel> listener = new ExcelDataListener<>();
         try (ExcelReader excelReader = EasyExcel.read(inputStream, KnowledgeExcel.class, listener).build()) {
             for (ReadSheet sheet : excelReader.excelExecutor().sheetList()) {
-                excelReader.read(sheet);
-                excelDataBySheet.put(sheet.getSheetName(), new ArrayList<>(listener.getDataList()));
+                // 只按 sheetNo 定位读取：带上 sheetName 时 EasyExcel 会在 sheetNo 未命中后按名字兜底匹配，
+                // 同名 sheet 会交叉读取并在第二次读取时抛 Cannot read sheet repeatedly
+                excelReader.read(new ReadSheet(sheet.getSheetNo()));
+                // sheet 名直接作 key，同名 sheet（Excel 界面造不出，程序生成的文件可携带）会整表覆盖，须先消重
+                excelDataBySheet.put(allocateDocName(sheet.getSheetName(), excelDataBySheet.keySet()),
+                        new ArrayList<>(listener.getDataList()));
                 listener.clear();
             }
         }
         return excelDataBySheet;
+    }
+
+    /**
+     * sheet 名转文档名：与已有名冲突时追加 "(n)" 序号（与导出侧 ExcelExportSupport 的命名约定一致），
+     * 避免同名 sheet 在 LinkedHashMap 中后者覆盖前者、整表数据静默丢失
+     */
+    private static String allocateDocName(String sheetName, Set<String> usedNames) {
+        if (!usedNames.contains(sheetName)) {
+            return sheetName;
+        }
+        for (int index = 2; ; index++) {
+            String candidate = sheetName + "(" + index + ")";
+            if (!usedNames.contains(candidate)) {
+                return candidate;
+            }
+        }
     }
 
     /**
@@ -214,5 +277,9 @@ public class KnowledgeImportHandler {
         }
     }
 
-
+    /**
+     * ZIP解析结果
+     */
+    private record ZipContent(JSONObject knowledgeJson, Map<String, List<KnowledgeExcel>> excelDataBySheet) {
+    }
 }

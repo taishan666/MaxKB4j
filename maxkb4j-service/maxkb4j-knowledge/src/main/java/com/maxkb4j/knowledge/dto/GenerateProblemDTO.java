@@ -2,6 +2,7 @@ package com.maxkb4j.knowledge.dto;
 
 import com.alibaba.fastjson.JSONObject;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
@@ -13,6 +14,7 @@ public class GenerateProblemDTO {
     @NotBlank(message = "模型ID不能为空")
     private String modelId;
     private JSONObject modelParamsSetting;
+    @NotNull(message = "问题生成数量不能为空")
     private Integer number;
     private String prompt;
     private List<String> stateList;

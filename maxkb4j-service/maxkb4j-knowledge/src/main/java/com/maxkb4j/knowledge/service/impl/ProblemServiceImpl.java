@@ -161,7 +161,14 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
     }
 
     public void reIndexBatch(String knowledgeId, List<String> problemIds) {
+        if (CollectionUtils.isEmpty(problemIds)) {
+            return;
+        }
+        // 先校验嵌入模型再删旧向量：模型缺失或配置错误时快速失败，避免旧向量被删后无法重建
         EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(knowledgeId);
+        if (embeddingModel == null) {
+            throw new IllegalStateException("知识库未配置嵌入模型，无法重建问题向量, knowledgeId: " + knowledgeId);
+        }
         compositeStore.deleteByProblemIds(knowledgeId, problemIds);
         createIndexBatch(problemIds, embeddingModel);
     }

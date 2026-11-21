@@ -22,7 +22,7 @@ public interface IKnowledgeInternalService extends IKnowledgeService, IService<K
 
     KnowledgeVO getKnowledgeById(String id);
 
-    List<ParagraphEntity> getParagraphByProblemId(String problemId);
+    List<ParagraphEntity> getParagraphByProblemId(String knowledgeId, String problemId);
 
     Boolean deleteById(String id);
 

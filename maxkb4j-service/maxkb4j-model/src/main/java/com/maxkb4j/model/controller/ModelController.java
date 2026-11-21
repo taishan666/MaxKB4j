@@ -86,7 +86,8 @@ public class ModelController {
     @SaCheckPerm(PermissionEnum.MODEL_READ)
     @GetMapping(ApiPath.MODEL_PARAMS_FORM)
     public R<JSONArray> modelParamsForm(@PathVariable String id) {
-        ModelEntity modelEntity = modelService.getById(id);
+        // 与 getInfo 保持一致：仅模型所有者可读取参数配置，非所有者返回空数组
+        ModelEntity modelEntity = modelService.getInfo(id);
         if (modelEntity == null) {
             return R.data(new JSONArray());
         }

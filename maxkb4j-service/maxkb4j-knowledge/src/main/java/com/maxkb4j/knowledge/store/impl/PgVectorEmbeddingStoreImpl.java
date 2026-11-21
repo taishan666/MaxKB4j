@@ -33,10 +33,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -82,6 +87,18 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
      */
     private static final int IMAGE_CONNECT_TIMEOUT_MS = 5000;
     private static final int IMAGE_READ_TIMEOUT_MS = 10000;
+    /**
+     * 允许抓取的绝对地址 URL scheme，其余 scheme（file/ftp/jar 等）一律拒绝。
+     */
+    private static final Set<String> ALLOWED_URL_SCHEMES = Set.of("http", "https");
+    /**
+     * 单张图片抓取的最大字节数：防止超大响应撑爆堆内存（旧实现 readAllBytes 无上限）。
+     */
+    private static final long MAX_IMAGE_BYTES = 10L * 1024 * 1024;
+    /**
+     * 手动跟随重定向的最大跳数，每一跳都重新校验目标地址，防止公网地址 302 转向内网。
+     */
+    private static final int MAX_REDIRECT_HOPS = 3;
     private final KnowledgeModelService knowledgeModelService;
     private final DataSource dataSource;
     /**
@@ -224,11 +241,13 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
      * 下载图片并将其转换为 Base64 编码的 Data URI，封装进 {@link ImageContent}。
      * <p>{@link ImageContent#from(String, String)} 会以 {@code data:<mimeType>;base64,<data>}
      * 的形式保存，从而避免下游模型直接访问外链图片。</p>
+     * <p>SSRF 加固：绝对地址仅接受解析到公网的 http/https 主机（拒绝回环/内网/云元数据端点），
+     * 重定向手动跟随并在每一跳重新校验；读取按 {@value #MAX_IMAGE_BYTES} 字节硬上限截断，防止 OOM。</p>
      *
      * @param imageUrl 图片地址（http/https 外链，或已经是 data: 形式的 Data URI）
-     * @return 转换后的 {@link ImageContent}；下载或解析失败时返回 {@code null}
+     * @return 转换后的 {@link ImageContent}；地址被拦截、下载或解析失败时返回 {@code null}
      */
-    private ImageContent toBase64ImageContent(String imageUrl) {
+    ImageContent toBase64ImageContent(String imageUrl) {
         if (StringUtils.isBlank(imageUrl)) {
             return null;
         }
@@ -236,41 +255,233 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
         if (imageUrl.startsWith("data:")) {
             return parseDataUri(imageUrl);
         }
-        // 相对路径拼接为完整的本机服务地址
-        String fullUrl = resolveFullUrl(imageUrl);
+        URI uri = buildFetchUri(imageUrl, serverPort);
+        if (uri == null) {
+            log.warn("Rejected unsafe or invalid image url: {}", imageUrl);
+            return null;
+        }
         try {
-            URL url = URI.create(fullUrl).toURL();
-            URLConnection connection = url.openConnection();
-            connection.setConnectTimeout(IMAGE_CONNECT_TIMEOUT_MS);
-            connection.setReadTimeout(IMAGE_READ_TIMEOUT_MS);
-            byte[] bytes;
-            String contentType;
-            try (InputStream in = connection.getInputStream()) {
-                bytes = in.readAllBytes();
-                contentType = connection.getContentType();
-            }
-            String mimeType = resolveMimeType(contentType, fullUrl);
-            String base64Data = Base64.getEncoder().encodeToString(bytes);
-            return ImageContent.from(base64Data, mimeType);
+            return fetchAsImageContent(uri, MAX_REDIRECT_HOPS);
         } catch (Exception e) {
-            log.warn("Failed to download image for base64 encoding: {}, cause: {}", fullUrl, e.getMessage());
+            log.warn("Failed to download image for base64 encoding: {}, cause: {}", uri, e.getMessage());
             return null;
         }
     }
 
     /**
-     * 将图片地址解析为可访问的完整 URL。
-     * <p>若已经是 {@code http://} / {@code https://} 绝对地址则原样返回；
-     * 否则视为相对访问路径，使用 {@code 127.0.0.1} 加项目服务端口拼接。</p>
+     * 抓取图片并转 Base64。关闭 JDK 的自动重定向（它不校验跳转目标），改为手动跟随：
+     * 301/302/303/307/308 每跳都经 {@link #resolveRedirectTarget} 重新校验 scheme 与主机。
      */
-    private String resolveFullUrl(String imageUrl) {
+    private ImageContent fetchAsImageContent(URI uri, int remainingRedirects) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
+        connection.setConnectTimeout(IMAGE_CONNECT_TIMEOUT_MS);
+        connection.setReadTimeout(IMAGE_READ_TIMEOUT_MS);
+        connection.setInstanceFollowRedirects(false);
+        int status = connection.getResponseCode();
+        if (isRedirect(status)) {
+            String location = connection.getHeaderField("Location");
+            connection.disconnect();
+            URI next = resolveRedirectTarget(uri, location, remainingRedirects);
+            if (next == null) {
+                return null;
+            }
+            return fetchAsImageContent(next, remainingRedirects - 1);
+        }
+        if (status < HttpURLConnection.HTTP_OK || status >= HttpURLConnection.HTTP_MULT_CHOICE) {
+            connection.disconnect();
+            log.debug("Image url returned http status {}: {}", status, uri);
+            return null;
+        }
+        try {
+            long contentLength = connection.getContentLengthLong();
+            if (contentLength > MAX_IMAGE_BYTES) {
+                log.warn("Image exceeds size limit ({} bytes): {}", contentLength, uri);
+                return null;
+            }
+            byte[] bytes;
+            String contentType;
+            try (InputStream in = connection.getInputStream()) {
+                // 多读 1 字节探测超限：恰好读满 MAX_IMAGE_BYTES 时无法区分“正好”与“被截断”
+                bytes = in.readNBytes((int) MAX_IMAGE_BYTES + 1);
+                contentType = connection.getContentType();
+            }
+            if (bytes.length > MAX_IMAGE_BYTES) {
+                log.warn("Image exceeds size limit ({} bytes max): {}", MAX_IMAGE_BYTES, uri);
+                return null;
+            }
+            String mimeType = resolveMimeType(contentType, uri.toString());
+            return ImageContent.from(Base64.getEncoder().encodeToString(bytes), mimeType);
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private static boolean isRedirect(int status) {
+        return status == HttpURLConnection.HTTP_MOVED_PERM
+                || status == HttpURLConnection.HTTP_MOVED_TEMP
+                || status == HttpURLConnection.HTTP_SEE_OTHER
+                || status == 307
+                || status == 308;
+    }
+
+    /**
+     * 解析重定向目标：仅接受 http/https；跳转同主机沿用首轮校验结论，
+     * 跨主机则必须通过公网地址校验（拒绝公网地址 302 转向内网/元数据端点）。
+     *
+     * @param remainingRedirects 剩余可跳次数，耗尽即拒绝
+     */
+    static URI resolveRedirectTarget(URI current, String location, int remainingRedirects) {
+        if (StringUtils.isBlank(location) || remainingRedirects <= 0) {
+            return null;
+        }
+        URI next;
+        try {
+            next = current.resolve(location.trim());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+        String scheme = next.getScheme();
+        if (scheme == null || !ALLOWED_URL_SCHEMES.contains(scheme.toLowerCase(Locale.ROOT))
+                || StringUtils.isBlank(next.getHost())) {
+            return null;
+        }
+        if (!StringUtils.equalsIgnoreCase(current.getHost(), next.getHost())
+                && !isAllowedPublicHost(next)) {
+            return null;
+        }
+        return next;
+    }
+
+    /**
+     * 将 markdown 图片地址解析为受控抓取地址：
+     * <ul>
+     *   <li>相对路径：用多参 {@link URI} 构造器拼接本机服务地址——路径被 percent-encoding，
+     *       相对内容中的 {@code @}、{@code ?} 等字符无法篡改 host/端口语义（旧实现的字符串
+     *       拼接可被 {@code /@evil.com} 之类注入 userinfo 逃逸到外部主机）；本机地址视为可信。</li>
+     *   <li>绝对地址：仅接受 http/https，且主机必须解析为公网地址（拒绝回环/内网/链路本地/
+     *       CGNAT 等保留网段，阻断对 169.254.169.254 等云元数据端点的探测）。</li>
+     * </ul>
+     * 不满足条件的地址返回 {@code null}。
+     */
+    static URI buildFetchUri(String imageUrl, int serverPort) {
         String trimmed = imageUrl.trim();
         String lower = trimmed.toLowerCase(Locale.ROOT);
         if (lower.startsWith("http://") || lower.startsWith("https://")) {
-            return trimmed;
+            URI uri = parseUriQuietly(trimmed);
+            if (uri == null
+                    || !ALLOWED_URL_SCHEMES.contains(uri.getScheme())
+                    || StringUtils.isBlank(uri.getHost())
+                    || !isAllowedPublicHost(uri)) {
+                return null;
+            }
+            return uri;
         }
-        String path = trimmed.startsWith("./") ? trimmed.substring(1) :trimmed;
-        return "http://127.0.0.1:" + serverPort + path;
+        String path = trimmed.startsWith("./") ? trimmed.substring(1) : trimmed;
+        String query = null;
+        int separatorIdx = path.indexOf('?');
+        if (separatorIdx >= 0) {
+            query = path.substring(separatorIdx + 1);
+            path = path.substring(0, separatorIdx);
+        }
+        // fragment 不参与服务端请求，直接丢弃
+        separatorIdx = path.indexOf('#');
+        if (separatorIdx >= 0) {
+            path = path.substring(0, separatorIdx);
+        }
+        if (!path.startsWith("/")) {
+            path = "/" + path;
+        }
+        try {
+            return new URI("http", null, "127.0.0.1", serverPort, path, query, null);
+        } catch (URISyntaxException e) {
+            return null;
+        }
+    }
+
+    private static URI parseUriQuietly(String url) {
+        try {
+            return new URI(url);
+        } catch (URISyntaxException e) {
+            return null;
+        }
+    }
+
+    /**
+     * 判断 URI 主机是否可安全抓取：解析全部 IP（防止内网域名绕过），
+     * 任一 IP 落在保留网段即拒绝。解析失败视为不安全。
+     */
+    static boolean isAllowedPublicHost(URI uri) {
+        String host = uri.getHost();
+        if (StringUtils.isBlank(host)) {
+            return false;
+        }
+        // URI.getHost() 对 IPv6 字面量返回带方括号的形式，InetAddress 需要去括号后的字面量
+        if (host.startsWith("[") && host.endsWith("]")) {
+            host = host.substring(1, host.length() - 1);
+        }
+        try {
+            InetAddress[] addresses = InetAddress.getAllByName(host);
+            if (addresses.length == 0) {
+                return false;
+            }
+            for (InetAddress address : addresses) {
+                if (!isPublicAddress(address)) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (UnknownHostException e) {
+            return false;
+        }
+    }
+
+    /**
+     * 判断地址是否为可公网路由的安全地址：回环/内网/链路本地（含云元数据端点
+     * 169.254.0.0/16）/CGNAT/组播等保留网段一律拒绝。
+     */
+    static boolean isPublicAddress(InetAddress address) {
+        if (address instanceof Inet4Address ipv4) {
+            return isPublicIpv4(ipv4.getAddress());
+        }
+        if (address instanceof Inet6Address ipv6) {
+            byte[] bytes = ipv6.getAddress();
+            // IPv4-mapped（::ffff:0:0/96）按内嵌 IPv4 判定，防止 [::ffff:10.0.0.1] 绕过网段检查
+            boolean ipv4Mapped = true;
+            for (int i = 0; i < 12; i++) {
+                if (i < 10 ? bytes[i] != 0 : (bytes[i] & 0xFF) != 0xFF) {
+                    ipv4Mapped = false;
+                    break;
+                }
+            }
+            if (ipv4Mapped) {
+                return isPublicIpv4(new byte[]{bytes[12], bytes[13], bytes[14], bytes[15]});
+            }
+            if (ipv6.isAnyLocalAddress() || ipv6.isLoopbackAddress()
+                    || ipv6.isLinkLocalAddress() || ipv6.isSiteLocalAddress()
+                    || ipv6.isMulticastAddress()) {
+                return false;
+            }
+            // fc00::/7 唯一本地地址（ULA）不在标准 flag 方法覆盖范围内
+            int first = bytes[0] & 0xFF;
+            return first < 0xFC || first > 0xFD;
+        }
+        return false;
+    }
+
+    private static boolean isPublicIpv4(byte[] octets) {
+        int o0 = octets[0] & 0xFF;
+        int o1 = octets[1] & 0xFF;
+        int o2 = octets[2] & 0xFF;
+        return !(o0 == 0                                        // 0.0.0.0/8 “本网络”
+                || o0 == 10                                     // 10.0.0.0/8 内网
+                || (o0 == 100 && o1 >= 64 && o1 <= 127)         // 100.64.0.0/10 CGNAT
+                || o0 == 127                                    // 127.0.0.0/8 回环
+                || (o0 == 169 && o1 == 254)                     // 169.254.0.0/16 链路本地（含云元数据端点）
+                || (o0 == 172 && o1 >= 16 && o1 <= 31)          // 172.16.0.0/12 内网
+                || (o0 == 192 && o1 == 168)                     // 192.168.0.0/16 内网
+                || (o0 == 192 && o1 == 0 && o2 == 2)            // 192.0.2.0/24 TEST-NET-1
+                || (o0 == 198 && (o1 == 18 || o1 == 19))        // 198.18.0.0/15 基准测试
+                || o0 >= 224);                                  // 组播 224/4 与保留 240/4、255.255.255.255
     }
 
     /**

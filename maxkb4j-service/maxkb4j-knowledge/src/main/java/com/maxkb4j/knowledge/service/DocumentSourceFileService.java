@@ -12,7 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -41,7 +40,12 @@ public class DocumentSourceFileService {
         DocumentEntity doc = documentService.getByKnowledgeIdAndId(knowledgeId, docId);
         if (doc == null) return false;
         String fileId = ossService.storeFile(file.getBytes(),file.getOriginalFilename(),file.getContentType());
-        doc.setMeta(new JSONObject(Map.of(META_ALLOW_DOWNLOAD, true, META_SOURCE_FILE_ID, fileId)));
+        if (StringUtils.isBlank(fileId)) return false;
+        // 在原 meta 上合并，保留 Web 文档的 sourceUrl/selector 等字段，避免 syncWebDoc 失效
+        JSONObject meta = doc.getMeta() == null ? new JSONObject() : doc.getMeta();
+        meta.put(META_SOURCE_FILE_ID, fileId);
+        meta.put(META_ALLOW_DOWNLOAD, true);
+        doc.setMeta(meta);
         return documentService.updateById(doc);
     }
 }
