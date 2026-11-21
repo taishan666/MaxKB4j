@@ -49,7 +49,7 @@ mybatis-plus:
       capital-mode: false
       table-format: "\"%s\""
       column-format: "\"%s\""
-  mapper-locations: classpath:mapper/**/*.xml,mapper/*.xml
+  mapper-locations: classpath*:com/maxkb4j/**/mapper/*.xml
   type-aliases-package: com.maxkb4j.**.entity
   type-handlers-package: com.maxkb4j.common.typehandler,com.maxkb4j.application.typehandler,com.maxkb4j.model.typehandler,com.maxkb4j.tool.typehandler
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
@@ -94,6 +94,12 @@ system:
   default-password: ${SYSTEM_DEFAULT_PASSWORD:tarzan@123456}
   default-phone: 18838812345
   default-email: 1334512682@qq.com
+  # 可信反向代理列表（精确 IP 或 IPv4 CIDR，如 ["172.16.0.0/12"]；回环地址始终可信）。
+  # 仅当请求 TCP 对端为可信代理时才采信 X-Forwarded-For / X-Real-IP，且 XFF 从链右侧取第一个非可信地址
+  # （XFF 为追加式头部，链首是客户端可伪造值）；未命中时一律用 TCP 对端地址，
+  # 防止伪造请求头绕过嵌入/分享 IP 白名单、@RateLimit 限流与验证码绑定。
+  # 部署在 nginx 等反代之后时，需把反代网段加入此列表（并确保反代追加而非透传 X-Forwarded-For）
+  trusted-proxies: []
 
 
 
@@ -115,4 +121,4 @@ doc-ling:
     - .pptx
     - .csv
     - .xlsx
-    - .HTML
+    - .html

@@ -6,6 +6,7 @@ import com.maxkb4j.workflow.enums.NodeType;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.util.ContextValueUtil;
 import lombok.Data;
 
 import java.util.List;
@@ -20,9 +21,10 @@ public class VariableAggregationNode extends AbsNode {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void saveContext(IWorkflow workflow, Map<String, Object> detail) {
-        List<Group> groupList = (List<Group>) detail.get(NodeField.GROUP_LIST);
+        // 恢复执行的 detail 来自持久化 JSON，groupList 为 JSONArray（元素 JSONObject），
+        // 需重建为 Group，否则迭代时抛 ClassCastException
+        List<Group> groupList = ContextValueUtil.toList(detail.get(NodeField.GROUP_LIST), Group.class);
         for (Group group : groupList) {
             context.put(group.getField(), group.getValue());
         }

@@ -35,9 +35,14 @@ public class ExcelParser implements DocumentParser {
             @Override
             public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
                 this.headMap = headMap;
-                // 按列索引顺序保存表头
-                for (int i = 0; i < headMap.size(); i++) {
-                    headers.add(headMap.get(i));
+                // 按列索引顺序保存表头；空表头单元格（缺键或 null 值）用占位名补齐，避免漏列或 null 元素
+                int lastCol = -1;
+                for (Integer key : headMap.keySet()) {
+                    lastCol = Math.max(lastCol, key);
+                }
+                for (int i = 0; i <= lastCol; i++) {
+                    String header = headMap.get(i);
+                    headers.add(header == null || header.isBlank() ? "列" + (i + 1) : header.trim());
                 }
             }
 

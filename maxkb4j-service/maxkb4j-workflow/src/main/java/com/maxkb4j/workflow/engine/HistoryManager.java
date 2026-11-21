@@ -56,6 +56,8 @@ public record HistoryManager(List<ChatRecordDTO> historyChatRecords) {
 
     /**
      * 获取指定节点的历史消息
+     * 注意：langchain4j 1.x 在构造时校验 UserMessage 的 contents 不能为空集合、AiMessage 的 text 不能为 null，
+     * 因此无有效问题或回答为 null 的记录需跳过或兜底，避免直接抛异常
      *
      * @param runtimeNodeId 运行时节点ID
      * @return 节点历史消息列表
@@ -65,31 +67,51 @@ public record HistoryManager(List<ChatRecordDTO> historyChatRecords) {
         for (ChatRecordDTO record : historyChatRecords) {
             // 获取节点详情
             JSONObject nodeDetails = record.getNodeDetailsByRuntimeNodeId(runtimeNodeId);
-            if (nodeDetails != null) {
-                Object question = nodeDetails.get(NodeField.QUESTION);
-                List<Content> contents = new ArrayList<>();
-                if (question instanceof List<?> list) {
-                    for (Object object : list) {
-                        JSONObject content = (JSONObject) object;
-                        String type = content.getString(ChatField.TYPE);
-                        if (ChatField.TEXT.equals(type)) {
-                            contents.add(TextContent.from(content.getString(ChatField.TEXT)));
-                        } else if (ChatField.IMAGE_URL.equals(type)) {
-                            String url = content.getString(ChatField.URL);
-                            if (url != null) {
-                                contents.add(ImageContent.from(content.getString(ChatField.URL)));
-                            }
-                        }
-                    }
-                    messages.add(new UserMessage(contents));
-                } else if (question instanceof String) {
-                    contents.add(TextContent.from(String.valueOf(question)));
-                    messages.add(new UserMessage(contents));
-                }
-                messages.add(new AiMessage(nodeDetails.getString(NodeField.ANSWER)));
+            if (nodeDetails == null) {
+                continue;
             }
+            // question 无有效内容（缺失/多模态项全部无效）时不产生 UserMessage，answer 仍被记录
+            UserMessage userMessage = buildQuestionMessage(nodeDetails.get(NodeField.QUESTION));
+            if (userMessage != null) {
+                messages.add(userMessage);
+            }
+            messages.add(new AiMessage(Objects.requireNonNullElse(nodeDetails.getString(NodeField.ANSWER), "")));
         }
         return messages;
+    }
+
+    /**
+     * 将节点 question 字段构造为 UserMessage，构造不出有效消息（如图片 url 缺失、文本为 null）时返回 null
+     *
+     * @param question 节点 question 字段值（String 或 JSONObject 列表）
+     * @return UserMessage，question 无有效内容时返回 null
+     */
+    private static UserMessage buildQuestionMessage(Object question) {
+        if (question instanceof String text) {
+            return new UserMessage(text);
+        }
+        if (question instanceof List<?> list) {
+            List<Content> contents = new ArrayList<>();
+            for (Object object : list) {
+                if (!(object instanceof JSONObject content)) {
+                    continue;
+                }
+                String type = content.getString(ChatField.TYPE);
+                if (ChatField.TEXT.equals(type)) {
+                    String text = content.getString(ChatField.TEXT);
+                    if (text != null) {
+                        contents.add(TextContent.from(text));
+                    }
+                } else if (ChatField.IMAGE_URL.equals(type)) {
+                    String url = content.getString(ChatField.URL);
+                    if (url != null) {
+                        contents.add(ImageContent.from(url));
+                    }
+                }
+            }
+            return contents.isEmpty() ? null : new UserMessage(contents);
+        }
+        return null;
     }
 
 }

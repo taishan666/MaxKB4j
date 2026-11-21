@@ -29,6 +29,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -185,5 +187,45 @@ class ChatOpenAiControllerTest {
         String responseBody = result.getResponse().getContentAsString();
         assertTrue(responseBody.contains("chat.token.invalid.or.disabled"), responseBody);
         assertFalse(responseBody.contains("chat.completion"), responseBody);
+    }
+
+    /**
+     * messages 无 user 角色时，手工构建的 ChatParams 会绕过 @NotBlank 使 message=null
+     * 穿透到持久化层（ChatPostHandler problemText.length() NPE）；必须在入口以 400 拒绝，
+     * 且不打开会话、不进入对话流水线。
+     */
+    @Test
+    void messagesWithoutUserRole_rejectedWithoutOpeningChat() throws Exception {
+        String noUserRole = "{\"model\":\"test-model\",\"stream\":false,"
+                + "\"messages\":[{\"role\":\"system\",\"content\":\"you are helpful\"},"
+                + "{\"role\":\"assistant\",\"content\":\"hello\"}]}";
+
+        MvcResult result = mvc.perform(post("/chat/api/app-1/chat/completions")
+                        .accept(MediaType.ALL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(noUserRole))
+                .andReturn();
+        String responseBody = result.getResponse().getContentAsString();
+        assertTrue(responseBody.contains("chat.message.required"), responseBody);
+        assertFalse(responseBody.contains("chat.completion"), responseBody);
+        verify(chatService, never()).chatOpen(anyString(), anyBoolean());
+        verify(chatService, never()).chatMessage(any(ChatParams.class), any(ChatState.class), any());
+    }
+
+    @Test
+    void userMessageWithBlankContent_rejectedWithoutOpeningChat() throws Exception {
+        String blankUserContent = "{\"model\":\"test-model\",\"stream\":false,"
+                + "\"messages\":[{\"role\":\"user\",\"content\":\"   \"}]}";
+
+        MvcResult result = mvc.perform(post("/chat/api/app-1/chat/completions")
+                        .accept(MediaType.ALL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(blankUserContent))
+                .andReturn();
+        String responseBody = result.getResponse().getContentAsString();
+        assertTrue(responseBody.contains("chat.message.required"), responseBody);
+        assertFalse(responseBody.contains("chat.completion"), responseBody);
+        verify(chatService, never()).chatOpen(anyString(), anyBoolean());
+        verify(chatService, never()).chatMessage(any(ChatParams.class), any(ChatState.class), any());
     }
 }

@@ -4,6 +4,7 @@ import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.knowledge.service.DocumentExportService;
 import com.maxkb4j.knowledge.service.DocumentSourceFileService;
@@ -57,8 +58,12 @@ public class DocumentExportController {
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_DOWNLOAD)
     @GetMapping("/knowledge/{id}/document/{docId}/download_source_file")
-    public R<String> downloadSourceFile(@PathVariable String id, @PathVariable String docId, HttpServletResponse response) throws IOException {
-        return documentSourceFileService.download(id, docId, response) ? R.success() : R.fail(I18nUtil.get(SOURCE_FILE_MISSING));
+    public void downloadSourceFile(@PathVariable String id, @PathVariable String docId, HttpServletResponse response) throws IOException {
+        // 文件字节已直接写入 response，必须返回 void，否则 Spring 会把返回值 JSON 序列化追加到文件尾部
+        // 失败时响应尚未写入任何字节，抛 ApiException 交给全局异常处理器返回 JSON 错误
+        if (!documentSourceFileService.download(id, docId, response)) {
+            throw new ApiException(SOURCE_FILE_MISSING);
+        }
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_REPLACE)

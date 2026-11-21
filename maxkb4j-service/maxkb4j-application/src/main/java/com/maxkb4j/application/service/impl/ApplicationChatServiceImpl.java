@@ -89,7 +89,30 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
     }
 
 
+    @Override
+    public ChatInfo getOrCreateChatInfo(String chatId, String appId, String chatUserId) {
+        ChatInfo chatInfo = lookupChatInfo(chatId, appId, chatUserId);
+        if (chatInfo != null) {
+            return chatInfo;
+        }
+        chatInfo = new ChatInfo(chatId, appId, chatUserId);
+        ChatCache.put(chatId, chatInfo);
+        return chatInfo;
+    }
+
     private ChatInfo getChatInfo(String chatId, String appId, String chatUserId) {
+        ChatInfo chatInfo = lookupChatInfo(chatId, appId, chatUserId);
+        if (chatInfo == null) {
+            throw new ApiException("common.record.not.exists");
+        }
+        return chatInfo;
+    }
+
+    /**
+     * 查找会话信息：缓存优先，缓存 miss 时按 (chatId, appId, chatUserId) 查库并回填缓存；
+     * 不存在时返回 null，命中但应用/用户归属不匹配时抛出异常。
+     */
+    private ChatInfo lookupChatInfo(String chatId, String appId, String chatUserId) {
         ChatInfo chatInfo = ChatCache.get(chatId);
         if (chatInfo != null) {
             boolean appMismatch = StringUtils.isNotBlank(appId) && !Objects.equals(appId, chatInfo.getAppId());
@@ -104,7 +127,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
             return chatInfo;
         }
         if (StringUtils.isBlank(appId) || StringUtils.isBlank(chatUserId)) {
-            throw new ApiException("common.record.not.exists");
+            return null;
         }
         ApplicationChatEntity chatEntity = this.lambdaQuery()
                 .select(ApplicationChatEntity::getApplicationId, ApplicationChatEntity::getChatUserId)
@@ -113,7 +136,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
                 .eq(ApplicationChatEntity::getChatUserId, chatUserId)
                 .one();
         if (chatEntity == null) {
-            throw new ApiException("common.record.not.exists");
+            return null;
         }
         chatInfo = new ChatInfo(chatId, chatEntity.getApplicationId(), chatEntity.getChatUserId());
         // ChatInfo.chatRecordList 设计为 CopyOnWriteArrayList 供多线程共享，
@@ -140,8 +163,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         List<ChatRecordDTO> historyChatRecordList = chatInfo.getChatRecordList();
         chatState.setHistoryChatRecords(historyChatRecordList);
         if (StringUtils.isNotBlank(chatParams.getChatRecordId())) {
-            ChatRecordDTO chatRecord = historyChatRecordList.stream().filter(e -> Objects.equals(e.getId(), chatParams.getChatRecordId())).findFirst().orElse(null);
-            chatState.setChatRecord(chatRecord);
+            chatState.setChatRecord(resolveChatRecord(chatInfo, chatParams.getChatRecordId()));
         } else {
             chatParams.setChatRecordId(IdWorker.get32UUID());
         }
@@ -151,6 +173,24 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         safeCallback.onEvent(new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true));
         safeCallback.onComplete();
         return chatResponse;
+    }
+
+    /**
+     * 解析重新回答的目标记录。缓存只保留最近 100 条，未命中时必须按 chatId + recordId 查库；
+     * 不存在的记录直接拒绝，避免被误当作新增记录而覆盖数据并重复增加会话计数。
+     */
+    ChatRecordDTO resolveChatRecord(ChatInfo chatInfo, String chatRecordId) {
+        ChatRecordDTO chatRecord = chatInfo.getChatRecordList().stream()
+                .filter(e -> Objects.equals(e.getId(), chatRecordId))
+                .findFirst()
+                .orElse(null);
+        if (chatRecord == null) {
+            chatRecord = chatRecordService.getChatRecord(chatInfo.getChatId(), chatRecordId);
+        }
+        if (chatRecord == null) {
+            throw new ApiException("common.record.not.exists");
+        }
+        return chatRecord;
     }
 
     /**

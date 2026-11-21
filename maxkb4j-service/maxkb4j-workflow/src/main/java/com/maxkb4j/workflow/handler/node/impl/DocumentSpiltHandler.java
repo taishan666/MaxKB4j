@@ -10,6 +10,7 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.DocumentSpiltNode;
+import com.maxkb4j.workflow.util.ContextValueUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -28,13 +29,13 @@ public class DocumentSpiltHandler extends AbsNodeHandler {
 
     private final IDocumentSplitService documentSpiltService;
 
-    @SuppressWarnings("unchecked")
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         DocumentSpiltNode.NodeParams params = parseParams(node, DocumentSpiltNode.NodeParams.class);
         List<String> fileIds = params.getDocumentList();
-        Object res = workflow.getReferenceField(fileIds);
-        List<DocumentSimple> documentList = res == null ? new ArrayList<>() : (List<DocumentSimple>) res;
+        // 引用值可能来自恢复的上下文（JSONArray，元素 JSONObject），需安全重建为 DocumentSimple
+        List<DocumentSimple> documentList = ContextValueUtil.toList(
+                workflow.getReferenceField(fileIds), DocumentSimple.class);
 
         for (DocumentSimple document : documentList) {
             if (DocumentStrategy.QA.equals(params.getSplitStrategy())) {

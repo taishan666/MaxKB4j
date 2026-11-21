@@ -42,16 +42,9 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
                 resultList.add(getGlobalHandleResult(workflow, variable, fields));
             }
             if (Scope.CHAT.equals(scope)) {
-                Map<String, Object> chatVariables = getChatHandleResult(workflow, variable, fields);
-                resultList.add(chatVariables);
-                String chatId = (String) workflow.getGlobalContext().get(ChatField.CHAT_ID);
-                if (chatId != null) {
-                    ChatInfo chatInfo = ChatCache.get(chatId);
-                    if (chatInfo != null) {
-                        chatInfo.putChatVariables(chatVariables);
-                        ChatCache.put(chatId, chatInfo);
-                    }
-                }
+                // getChatHandleResult 内部已写 workflow.getChatContext() 并同步 ChatCache，
+                // 返回的 {name,input_value,output_value} 仅用于节点详情展示，不可 putAll 进会话变量
+                resultList.add(getChatHandleResult(workflow, variable, fields));
             }
             if (Scope.LOOP.equals(scope)) {
                 resultList.add(getLoopHandleResult(workflow, variable, fields));

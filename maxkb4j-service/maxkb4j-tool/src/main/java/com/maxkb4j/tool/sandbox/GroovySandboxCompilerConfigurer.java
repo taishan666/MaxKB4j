@@ -321,6 +321,12 @@ public final class GroovySandboxCompilerConfigurer {
             if (receiverType == null || receiverType == Object.class) {
                 return true;
             }
+            // Path 接收者的文件变更方法（withWriter/setText/<< 等）编译期即拒绝：
+            // 文件写能力只保留 Files 静态方法 + 临时目录边界，Path 实例上无写通道；
+            // 接收者静态类型未知（Object）时由运行期拦截器按实际类型兜底
+            if (GroovySandboxPolicy.isPathMutatingMethod(receiverType, methodName)) {
+                return false;
+            }
             // 受信静态调用例外：接收者为类引用（如 Sql.newInstance(...)）时，
             // 显式静态白名单优先于危险方法名黑名单，否则内置「PostgreSQL 查询」工具的
             // Sql.newInstance 会在编译期被 "newInstance" 危险方法名拦截

@@ -1,8 +1,10 @@
 package com.maxkb4j.common.interceptor;
 
 import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.jwt.StpLogicJwtForStateless;
 import cn.dev33.satoken.jwt.exception.SaJwtException;
 import cn.dev33.satoken.stp.StpLogic;
+import com.maxkb4j.common.cache.UserTokenRevokeCache;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.context.ThreadLocalUserContext;
 import com.maxkb4j.common.context.UserIdentity;
@@ -26,6 +28,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * </ol>
  *
  * <p>本拦截器只负责"填充上下文",不承担鉴权(鉴权由 {@code AuthInterceptor}、{@code SaCheckPermAspect} 等负责)。
+ * 唯一例外是令牌撤销校验:stateless JWT 下 {@code logout} 无法使已签发令牌失效,
+ * 禁用/删除用户后需比对 {@link UserTokenRevokeCache} 中的撤销时间戳,使存量令牌立即失效。
  * 非认证异常降级为未登录上下文;token 过期、无效等认证异常继续抛出,由全局异常处理器返回明确提示。
  *
  * <p>注册时 order 需大于 {@code AuthInterceptor}(默认 0),以保证 USER 会话已由 AuthHandler 建立。
@@ -38,6 +42,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class SystemAuthInterceptor implements HandlerInterceptor {
 
     private final ThreadLocalUserContext userContext;
+    private final UserTokenRevokeCache tokenRevokeCache;
 
     @Override
     public boolean preHandle(HttpServletRequest request,
@@ -74,7 +79,14 @@ public class SystemAuthInterceptor implements HandlerInterceptor {
 
     private UserIdentity resolveIdentity(StpLogic stpLogic, String loginType) {
         try {
-            return new UserIdentity(stpLogic.getLoginIdAsString(), stpLogic.getTokenValue(), loginType);
+            String userId = stpLogic.getLoginIdAsString();
+            String tokenValue = stpLogic.getTokenValue();
+            if (LoginType.ADMIN.equals(loginType)) {
+                // stateless JWT 下禁用/删除用户无法经 logout 失效存量令牌，
+                // 按撤销缓存比对令牌签发时间兜底，被撤销令牌抛 TOKEN_FREEZE 异常
+                tokenRevokeCache.assertNotRevoked(userId, tokenValue, (StpLogicJwtForStateless) stpLogic);
+            }
+            return new UserIdentity(userId, tokenValue, loginType);
         } catch (NotLoginException e) {
             if (NotLoginException.NOT_TOKEN.equals(e.getType())) {
                 return null;

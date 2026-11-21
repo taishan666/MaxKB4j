@@ -78,7 +78,6 @@ services:
       - SPRING_DATASOURCE_PASSWORD=ycn4NRhjN2
     volumes:
       - ./logs:/logs
-      - ./server.crt:/tmp/certs/server.crt
     healthcheck:
       # 应用镜像未引入 actuator，用 bash /dev/tcp 探测端口就绪（amazoncorretto:21 自带 bash）
       test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/8080'"]

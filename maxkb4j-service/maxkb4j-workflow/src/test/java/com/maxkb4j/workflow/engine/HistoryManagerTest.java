@@ -79,6 +79,35 @@ class HistoryManagerTest {
     }
 
     @Test
+    void getHistoryMessages_nodeType_allInvalidMultimodalEntriesYieldsNoUserMessage() {
+        // langchain4j 1.x 对空 contents 的 UserMessage 直接抛异常，多模态项全部无效时不应构造 UserMessage
+        JSONArray question = new JSONArray();
+        question.add(imageNode(null));
+        question.add(textNode(null));
+        ChatRecordDTO record = recordWithNodeQuestion("rt-1", question, "ok");
+        HistoryManager manager = new HistoryManager(List.of(record));
+
+        List<ChatMessage> messages = manager.getHistoryMessages(5, DialogueType.NODE.name(), "rt-1");
+
+        assertThat(messages).hasSize(1);
+        assertThat(messages.get(0)).isInstanceOf(AiMessage.class);
+        assertThat(((AiMessage) messages.get(0)).text()).isEqualTo("ok");
+    }
+
+    @Test
+    void getHistoryMessages_nodeType_nullAnswerFallsBackToEmptyString() {
+        // langchain4j 1.x 对 text 为 null 的 AiMessage 直接抛异常，answer 缺失时兜底为空串
+        ChatRecordDTO record = recordWithNode("rt-1", "你好", null);
+        HistoryManager manager = new HistoryManager(List.of(record));
+
+        List<ChatMessage> messages = manager.getHistoryMessages(5, DialogueType.NODE.name(), "rt-1");
+
+        assertThat(messages).hasSize(2);
+        assertThat(((UserMessage) messages.get(0)).singleText()).isEqualTo("你好");
+        assertThat(((AiMessage) messages.get(1)).text()).isEmpty();
+    }
+
+    @Test
     void getHistoryMessages_nodeType_missingNodeReturnsEmpty() {
         ChatRecordDTO record = recordWithNode("rt-1", "q", "a");
         HistoryManager manager = new HistoryManager(List.of(record));

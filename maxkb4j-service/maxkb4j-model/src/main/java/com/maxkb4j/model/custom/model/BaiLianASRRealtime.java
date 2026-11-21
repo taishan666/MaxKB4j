@@ -60,9 +60,9 @@ public class BaiLianASRRealtime extends AbsSTTModel {
         log.info("使用模型: {}", modelName);
         log.info("音频数据大小: {} bytes", audioBytes.length);
         log.info("文件后缀: {}", suffix);
-        int sampleRate = getSampleRate(audioBytes, FileToken.DOT + suffix);
+        int sampleRate = getSampleRate(audioBytes, suffix);
         this.param.setSampleRate(sampleRate);
-        String format = suffix != null ? suffix.toLowerCase() : Value.MP3;
+        String format = normalizeFormat(suffix);
         this.param.setFormat(format);
         log.info("使用格式: {}, 采样率: {}", format, sampleRate);
         AtomicReference<String> resultText = new AtomicReference<>("");

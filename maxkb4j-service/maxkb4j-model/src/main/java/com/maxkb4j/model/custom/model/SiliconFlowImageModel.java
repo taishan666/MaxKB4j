@@ -68,15 +68,18 @@ public class SiliconFlowImageModel implements ImageModel {
                 .orElse(new JSONArray())
                 .stream()
                 .filter(item -> item instanceof JSONObject) // 防御性类型过滤
-                .map(item -> Image.builder()
-                        .url(((JSONObject) item).getString(RequestField.URL))
-                        .build())
+                .map(item -> (JSONObject) item)
+                .filter(entry -> entry.getString(RequestField.URL) != null) // 跳过缺少 URL 的异常条目
+                .map(entry -> Image.builder().url(entry.getString(RequestField.URL)).build())
                 .toList();
     }
 
     @Override
     public Response<Image> generate(String prompt) {
         Response<List<Image>> res = generate(prompt, 1);
+        if (res.content().isEmpty()) {
+            throw new RuntimeException("SiliconFlow 图像接口返回成功但未包含图像数据, model=" + modelName);
+        }
         return Response.from(res.content().getFirst());
     }
 
@@ -92,7 +95,7 @@ public class SiliconFlowImageModel implements ImageModel {
         appendImage(params, image);
         List<Image> images = executeForImages(params);
         if (images.isEmpty()) {
-            return Response.from(Image.builder().build());
+            throw new RuntimeException("SiliconFlow 图像编辑接口返回成功但未包含图像数据, model=" + modelName);
         }
         return Response.from(images.getFirst());
     }
@@ -131,16 +134,17 @@ public class SiliconFlowImageModel implements ImageModel {
     }
 
     /**
-     * 执行请求并解析图像列表；请求失败时记录日志并返回空列表
+     * 执行请求并解析图像列表；非 2xx 时抛出异常，将真实错误（key 无效/欠费/限流等）传递给调用方
      */
     private List<Image> executeForImages(JSONObject params) {
         try (HttpResponse response = request.body(params.toJSONString()).execute()) {
             if (response.isOk()) {
                 return parseImages(response.body());
             }
-            log.warn("SiliconFlow 图像接口调用失败, model={}, status={}, body={}",
-                    modelName, response.getStatus(), response.body());
+            String message = "SiliconFlow 图像接口调用失败, model=" + modelName
+                    + ", status=" + response.getStatus() + ", body=" + response.body();
+            log.error(message);
+            throw new RuntimeException(message);
         }
-        return List.of();
     }
 }

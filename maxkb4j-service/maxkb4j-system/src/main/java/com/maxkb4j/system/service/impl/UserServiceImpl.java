@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.maxkb4j.common.cache.SystemCache;
+import com.maxkb4j.common.cache.UserTokenRevokeCache;
 import com.maxkb4j.common.constant.RoleConst;
 import com.maxkb4j.common.context.UserContext;
 import com.maxkb4j.common.exception.ApiException;
@@ -24,6 +25,7 @@ import com.maxkb4j.system.security.LoginAttemptLimiter;
 import com.maxkb4j.system.security.PasswordService;
 import com.maxkb4j.system.service.EmailService;
 import com.maxkb4j.system.service.IUserInternalService;
+import com.maxkb4j.system.service.IUserResourcePermissionInternalService;
 import com.maxkb4j.system.vo.UserNameVO;
 import com.maxkb4j.system.vo.UserProfileVO;
 import com.maxkb4j.system.vo.UserVO;
@@ -67,6 +69,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     private final PasswordService passwordService;
     private final LoginAttemptLimiter loginAttemptLimiter;
     private final AuthCodeCache authCodeCache;
+    private final IUserResourcePermissionInternalService userResourcePermissionService;
+    private final UserTokenRevokeCache tokenRevokeCache;
 
     @Override
     public IPage<UserVO> selectUserPage(int page, int size, UserQuery dto) {
@@ -95,9 +99,41 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         });
     }
 
+    /**
+     * 删除单个用户（管理端）。
+     * <p>防护规则：
+     * <ol>
+     *   <li>管理员账号不可删除（含最后一个管理员兜底），避免系统失去管理入口；</li>
+     *   <li>名下存在应用/知识库/模型/工具等自有资源时拒绝删除——knowledge/tool 的 user_id
+     *       外键为 NO ACTION，直接删除必然触发约束异常，而级联删除用户资源会造成数据丢失，
+     *       应由管理员先行删除或转移资源；</li>
+     *   <li>删除前清理 user_resource_permission 与 application_api_key 引用数据；</li>
+     *   <li>删除后撤销其存量登录令牌（stateless JWT 无法由 logout 使已签发令牌失效）。</li>
+     * </ol>
+     */
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteUserById(String userId) {
-        return removeById(userId);
+        UserEntity user = this.lambdaQuery()
+                .select(UserEntity::getId, UserEntity::getRole)
+                .eq(UserEntity::getId, userId)
+                .one();
+        if (Objects.isNull(user)) {
+            return false;
+        }
+        if (RoleConst.ADMIN.equals(user.getRole())) {
+            throw new ApiException("user.delete.admin.forbidden");
+        }
+        if (baseMapper.countOwnedResource(userId) > 0) {
+            throw new ApiException("user.delete.resource.exists");
+        }
+        userResourcePermissionService.removeByUserIds(List.of(userId));
+        baseMapper.deleteApplicationApiKeyByUserIds(List.of(userId));
+        boolean removed = removeById(userId);
+        if (removed) {
+            tokenRevokeCache.revoke(userId);
+        }
+        return removed;
     }
 
 
@@ -186,7 +222,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     public boolean updateUser(UserEntity user) {
         boolean updated = updateById(user);
         if (updated && Boolean.FALSE.equals(user.getIsActive())) {
-            StpKit.ADMIN.logout(user.getId());
+            // stateless JWT 下 StpLogicJwtForStateless.logout 无法使已签发令牌失效，
+            // 改由撤销缓存令该用户签发于禁用之前的令牌全部失效
+            tokenRevokeCache.revoke(user.getId());
         }
         return updated;
     }
@@ -323,22 +361,67 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     public boolean resetPassword(PasswordDTO dto) {
         if (Objects.equals(dto.getPassword(), dto.getRePassword())) {
             UserEntity userEntity = new UserEntity();
-            userEntity.setId(userContext.getUserId());
+            String userId = userContext.getUserId();
+            userEntity.setId(userId);
             userEntity.setPassword(passwordService.encode(dto.getPassword()));
-            return updateById(userEntity);
+            boolean updated = updateById(userEntity);
+            if (updated) {
+                // 重置口令后撤销存量令牌，要求各端使用新口令重新登录
+                tokenRevokeCache.revoke(userId);
+            }
+            return updated;
         }
         return false;
     }
 
+    /**
+     * 批量删除用户（管理端）。
+     * <p>仅删除 USER 角色成员（管理员账号跳过，与既有行为一致）；任一用户名下存在
+     * 自有资源时整体失败并回滚；删除前统一清理 user_resource_permission 与
+     * application_api_key 引用数据，删除后撤销存量令牌。
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean batchDelete(List<String> ids) {
-        return this.lambdaUpdate().eq(UserEntity::getRole, RoleConst.USER).in(UserEntity::getId, ids).remove();
+        if (ids == null || ids.isEmpty()) {
+            return false;
+        }
+        List<UserEntity> users = this.lambdaQuery()
+                .select(UserEntity::getId, UserEntity::getRole)
+                .eq(UserEntity::getRole, RoleConst.USER)
+                .in(UserEntity::getId, ids)
+                .list();
+        if (users.isEmpty()) {
+            return false;
+        }
+        List<String> userIds = users.stream().map(UserEntity::getId).toList();
+        for (String userId : userIds) {
+            if (baseMapper.countOwnedResource(userId) > 0) {
+                throw new ApiException("user.delete.resource.exists");
+            }
+        }
+        userResourcePermissionService.removeByUserIds(userIds);
+        baseMapper.deleteApplicationApiKeyByUserIds(userIds);
+        boolean removed = true;
+        for (String userId : userIds) {
+            removed &= removeById(userId);
+        }
+        if (removed) {
+            tokenRevokeCache.revokeAll(userIds);
+        }
+        return removed;
     }
 
     public boolean updatePassword(String id, PasswordDTO dto) {
         UserEntity user = new UserEntity();
         user.setId(id);
         user.setPassword(passwordService.encode(dto.getPassword()));
-        return updateById(user);
+        boolean updated = updateById(user);
+        if (updated) {
+            // 管理员重置口令后撤销存量令牌，旧口令签发的登录态立即失效
+            tokenRevokeCache.revoke(id);
+        }
+        return updated;
     }
 
     public boolean updateLanguage(UserEntity user) {

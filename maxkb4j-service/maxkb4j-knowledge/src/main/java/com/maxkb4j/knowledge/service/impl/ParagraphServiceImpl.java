@@ -156,6 +156,8 @@ public class ParagraphServiceImpl extends ServiceImpl<ParagraphMapper, Paragraph
                 ProblemEntity problemEntity = problemMap.get(problemContent);
                 if (problemEntity == null) {
                     problemEntity = ProblemEntity.createDefault();
+                    // id 采用 ASSIGN_UUID，saveBatch 插入时才回填；此处预生成，保证下方映射行能取到 problemId
+                    problemEntity.setId(IdWorker.get32UUID());
                     problemEntity.setHitNum(0);
                     problemEntity.setContent(problemContent);
                     problemEntity.setKnowledgeId(paragraph.getKnowledgeId());

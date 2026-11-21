@@ -66,10 +66,9 @@ public class GummySTT extends AbsSTTModel {
                 log.error("RecognitionCallback error: {}", e.getMessage());
             }
         };
-        int sampleRate = getSampleRate(audioBytes, FileToken.DOT + suffix);
+        int sampleRate = getSampleRate(audioBytes, suffix);
         this.param.setSampleRate(sampleRate);
-        String format = suffix != null ? suffix.toLowerCase() : Value.MP3;
-        this.param.setFormat(format);
+        this.param.setFormat(normalizeFormat(suffix));
         try {
             // 将录音音频数据发送给流式识别服务
             translator.call(param, callback);

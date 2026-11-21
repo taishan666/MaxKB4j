@@ -11,6 +11,7 @@ import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.RerankerNode;
+import com.maxkb4j.workflow.util.ContextValueUtil;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.output.Response;
@@ -47,6 +48,14 @@ public class RerankerNodeHandler extends AbsNodeHandler {
         if (CollectionUtils.isNotEmpty(rerankerReferenceList)) {
             double similarity = params.getRerankerSetting().getSimilarity();
             List<TextSegment> textSegments = getRerankerList(workflow, rerankerReferenceList);
+            if (question == null || question.isBlank() || textSegments.isEmpty()) {
+                // 问题解析为 null/空，或所有引用路径均无可用段落（上游被 SKIP/配置错误/恢复后 JSON 类型已由
+                // ContextValueUtil.toList 兜底为空列表）时，跳过远程重排序调用，返回空结果，
+                // 避免打分模型对空输入抛出与真实原因无关的异常
+                log.warn("Reranker node {} skips scoring: question blank = {}, usable paragraphs = {}",
+                        node.getId(), question == null || question.isBlank(), textSegments.size());
+                return new NodeResult(Map.of(NodeField.RESULT_LIST, resultList, NodeField.RESULT, ""));
+            }
             ModelConfig modelConfig = resolveModelConfig(workflow, params);
             // 获取重排序模型实例
             ScoringModel rerankerModel = modelFactory.buildScoringModel(modelConfig.getModelId());
@@ -103,18 +112,17 @@ public class RerankerNodeHandler extends AbsNodeHandler {
         ));
     }
 
-    @SuppressWarnings("unchecked")
     public List<TextSegment> getRerankerList(IWorkflow workflow, List<List<String>> rerankerReferenceList) {
         List<TextSegment> textSegments = new ArrayList<>();
         for (List<String> reference : rerankerReferenceList) {
-            Object value = workflow.getReferenceField(reference);
-            List<ParagraphRagVO> paragraphs = (List<ParagraphRagVO>) value;
+            // 引用值可能来自恢复的上下文（JSONArray/JSONObject）或为 null（上游被 SKIP 等），需安全重建
+            List<ParagraphRagVO> paragraphs = ContextValueUtil.toList(workflow.getReferenceField(reference), ParagraphRagVO.class);
             textSegments.addAll(paragraphs.stream()
                     .filter(paragraph -> paragraph != null && paragraph.getContent() != null && !paragraph.getContent().isBlank())
                     .map(paragraph -> {
                         Map<String, Object> metadata = new HashMap<>();
                         metadata.put(MetadataField.TITLE, paragraph.getTitle() != null ? paragraph.getTitle() : "");
-                        metadata.put(MetadataField.SIMILARITY, paragraph.getSimilarity());
+                        metadata.put(MetadataField.SIMILARITY, paragraph.getSimilarity() != null ? paragraph.getSimilarity() : 0D);
                         metadata.put(MetadataField.KNOWLEDGE_TYPE, paragraph.getKnowledgeType() != null ? paragraph.getKnowledgeType() : "");
                         metadata.put(MetadataField.KNOWLEDGE_NAME, paragraph.getKnowledgeName() != null ? paragraph.getKnowledgeName() : "");
                         metadata.put(MetadataField.DOCUMENT_NAME, paragraph.getDocumentName() != null ? paragraph.getDocumentName() : "");

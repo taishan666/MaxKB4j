@@ -126,7 +126,10 @@ public class ChatPostHandler implements PostResponseHandler {
         ApplicationChatEntity chatEntity = new ApplicationChatEntity();
         chatEntity.setId(chatId);
         chatEntity.setApplicationId(chatInfo.getAppId());
-        String problemOverview = problemText.length() > SUMMARY_MAX_LENGTH ? problemText.substring(0, SUMMARY_MAX_LENGTH) : problemText;
+        // problemText 理论上已被上游校验非空（@NotBlank）；此处兜底判空，防御手工构建 ChatParams
+        // 的内部调用链（如 AgentExecutor、OpenAI 兼容接口）绕过校验传入 null
+        String overview = problemText == null ? "" : problemText;
+        String problemOverview = overview.length() > SUMMARY_MAX_LENGTH ? overview.substring(0, SUMMARY_MAX_LENGTH) : overview;
         chatEntity.setSummary(problemOverview);
         chatEntity.setChatUserId(chatState.getChatUserId());
         ChatUserType chatUserType = chatState.getChatUserType();

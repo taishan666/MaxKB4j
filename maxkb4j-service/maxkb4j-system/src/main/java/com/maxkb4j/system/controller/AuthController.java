@@ -2,6 +2,7 @@ package com.maxkb4j.system.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.maxkb4j.common.api.R;
+import com.maxkb4j.common.cache.UserTokenRevokeCache;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
 import com.maxkb4j.common.context.UserContext;
@@ -34,6 +35,7 @@ public class AuthController {
     private final IUserInternalService userService;
     private final PasswordService passwordService;
     private final UserContext userContext;
+    private final UserTokenRevokeCache tokenRevokeCache;
 
     @PostMapping("/user/login")
     public R<Map<String,String>> login(@Valid @RequestBody UserLoginDTO dto, HttpServletRequest request) {
@@ -80,7 +82,12 @@ public class AuthController {
             UserEntity user = new UserEntity();
             user.setId(userId);
             user.setPassword(passwordService.encode(password));
-            return R.status(userService.updateById(user));
+            boolean updated = userService.updateById(user);
+            if (updated) {
+                // stateless JWT 下 logout 无法使已签发令牌失效，修改口令后撤销存量令牌
+                tokenRevokeCache.revoke(userId);
+            }
+            return R.status(updated);
         }
         return R.status(false);
     }

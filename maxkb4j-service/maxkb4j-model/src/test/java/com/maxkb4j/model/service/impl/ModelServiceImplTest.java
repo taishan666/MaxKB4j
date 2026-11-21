@@ -9,27 +9,36 @@ import com.maxkb4j.model.entity.ModelEntity;
 import com.maxkb4j.model.mapper.ModelMapper;
 import com.maxkb4j.model.provider.AbsModelProvider;
 import com.maxkb4j.model.registry.ModelProviderRegistry;
+import com.maxkb4j.system.constant.AuthTargetType;
+import com.maxkb4j.user.service.IUserResourcePermissionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
  * {@link ModelServiceImpl#updateModel(String, ModelEntity)} 凭证回退逻辑测试：
  * 未传 credential、回传脱敏 apiKey、回传新 apiKey 三条路径均不应 NPE 且密钥不被脱敏值覆盖。
+ * 另含 {@link ModelServiceImpl#createModel(ModelEntity)} 事务边界测试：
+ * 远程校验必须发生在事务开启之前，避免长校验占死数据库连接。
  */
 @ExtendWith(MockitoExtension.class)
 class ModelServiceImplTest {
@@ -46,17 +55,23 @@ class ModelServiceImplTest {
     private ModelProviderRegistry providerRegistry;
     @Mock
     private AbsModelProvider provider;
+    @Mock
+    private IUserResourcePermissionService userResourcePermissionService;
+    @Mock
+    private PlatformTransactionManager transactionManager;
 
     private ModelServiceImpl service;
 
     @BeforeEach
     void setUp() throws Exception {
-        service = new ModelServiceImpl(null, userContext, null, providerRegistry);
+        service = new ModelServiceImpl(userResourcePermissionService, userContext, null, providerRegistry, transactionManager);
         // ServiceImpl 的 getById/updateById/lambdaQuery 均走 baseMapper，注入 mock 即可脱离数据库
         setField(CrudRepository.class, service, "baseMapper", modelMapper);
         // 3.5.9 起实体类经由 MybatisMapperProxy 反推，mock mapper 推不出来，直接预置缓存字段
         setField(AbstractRepository.class, service, "entityClass", ModelEntity.class);
         setField(AbstractRepository.class, service, "mapperClass", ModelMapper.class);
+        // @PostConstruct 在单测中不会执行，手工注入模板
+        setField(ModelServiceImpl.class, service, "transactionTemplate", new TransactionTemplate(transactionManager));
     }
 
     private static void setField(Class<?> declaringClass, Object target, String name, Object value) throws Exception {
@@ -144,6 +159,35 @@ class ModelServiceImplTest {
         verify(provider).modelIsValid(eq("LLM"), eq("gpt-4o"), isNull(), any());
         verify(modelMapper).updateById(same(request));
         assertSame(request, result);
+    }
+
+    @Test
+    void createModel_remoteValidationRunsBeforeTransaction() {
+        when(userContext.getUserId()).thenReturn(USER_ID);
+        when(modelMapper.selectCount(any())).thenReturn(0L);
+        when(providerRegistry.get("OpenAI")).thenReturn(provider);
+        // 模拟 MyBatis-Plus 插入时回填 id
+        when(modelMapper.insert(any(ModelEntity.class))).thenAnswer(inv -> {
+            inv.getArgument(0, ModelEntity.class).setId(MODEL_ID);
+            return 1;
+        });
+        when(userResourcePermissionService.ownerSave(AuthTargetType.MODEL, MODEL_ID, USER_ID)).thenReturn(true);
+
+        ModelEntity request = requestModel();
+        request.setProvider("OpenAI");
+
+        boolean result = service.createModel(request);
+
+        assertTrue(result);
+        assertEquals(USER_ID, request.getUserId());
+        // 顺序约束：远程校验 → 开事务 → 落库 → 权限映射 → 提交。
+        // 校验若被移回事务内（getTransaction 先于 modelIsValid），此断言失败
+        InOrder inOrder = inOrder(provider, transactionManager, modelMapper, userResourcePermissionService);
+        inOrder.verify(provider).modelIsValid(eq("LLM"), eq("gpt-4o"), any(), any());
+        inOrder.verify(transactionManager).getTransaction(any());
+        inOrder.verify(modelMapper).insert(any(ModelEntity.class));
+        inOrder.verify(userResourcePermissionService).ownerSave(AuthTargetType.MODEL, MODEL_ID, USER_ID);
+        inOrder.verify(transactionManager).commit(any());
     }
 
     private static ModelEntity storedModel() {

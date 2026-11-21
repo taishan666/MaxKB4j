@@ -25,10 +25,13 @@ import com.maxkb4j.model.vo.ModelListVO;
 import com.maxkb4j.model.vo.ModelVO;
 import com.maxkb4j.system.constant.AuthTargetType;
 import com.maxkb4j.user.service.IUserResourcePermissionService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -65,6 +68,13 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     private final UserContext userContext;
     private final DataPermissionSupport dataPermissionSupport;
     private final ModelProviderRegistry providerRegistry;
+    private final PlatformTransactionManager transactionManager;
+    private TransactionTemplate transactionTemplate;
+
+    @PostConstruct
+    private void initTransactionTemplate() {
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+    }
 
     @Override
     public List<ModelVO> models(ModelQuery query) {
@@ -77,7 +87,12 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     }
 
 
-    @Transactional(rollbackFor = Exception.class)
+    /**
+     * 注意：本方法故意不加 @Transactional——方法级事务会在入口即占用数据库连接，
+     * 而 modelIsValid 的 LLM 校验是阻塞式远程调用（flux.blockLast()，读超时默认 30 分钟），
+     * 若包进事务，校验挂到 read-timeout 期间会一直占住连接，并发创建几个模型即可耗尽连接池。
+     * 事务只覆盖数据库写入（见 transactionTemplate），校验保持在事务之外。
+     */
     public boolean createModel(ModelEntity model) {
         String userId = userContext.getUserId();
         if (checkModelExists(null, model.getName(), userId)) {
@@ -86,15 +101,18 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
         if (model.getModelParamsForm() == null) {
             model.setModelParamsForm(new JSONArray());
         }
-        // LLM 远程校验移出事务，避免长事务占死数据库连接
+        // 远程校验在事务外执行，避免长校验期间占死数据库连接
         AbsModelProvider modelProvider = providerRegistry.get(model.getProvider());
         JSONObject params = extractDefaultModelParams(model.getModelParamsForm());
         modelProvider.modelIsValid(model.getModelType(), model.getModelName(), model.getCredential(), params);
         model.setUserId(userId);
         model.setMeta(new JSONObject());
         model.setStatus(ModelStatus.SUCCESS.getKey());
-        save(model);
-        return userResourcePermissionService.ownerSave(AuthTargetType.MODEL, model.getId(), model.getUserId());
+        // 模型与权限映射同生共死：任一写入失败整体回滚
+        return Boolean.TRUE.equals(transactionTemplate.execute(status -> {
+            save(model);
+            return userResourcePermissionService.ownerSave(AuthTargetType.MODEL, model.getId(), model.getUserId());
+        }));
     }
 
 

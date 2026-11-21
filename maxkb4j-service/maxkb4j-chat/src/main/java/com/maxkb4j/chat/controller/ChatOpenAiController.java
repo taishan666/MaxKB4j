@@ -138,6 +138,12 @@ public class ChatOpenAiController {
      * and build ChatParams / ChatState used by the business execution.
      */
     private PreparedChat prepareChat(String appId, OpenAIChatCompletionRequest request) {
+        // 手工构建 ChatParams 不经过 @Valid/@NotBlank：messages 无 user 角色（或内容为空）时
+        // getLastUserMessage() 返回 null，必须在此显式拦截，避免 null 问题穿透到持久化层
+        // （ChatPostHandler.saveChat 中 problemText.length() NPE）；先校验再开会话，无效请求不建会话
+        if (StringUtils.isBlank(request.getLastUserMessage())) {
+            throw new ApiException("chat.message.required");
+        }
         String chatId = chatService.chatOpen(appId, false);
         seedConversationHistory(chatId, request);
         ChatParams params = convertToChatParams(request, chatId);

@@ -29,4 +29,9 @@ public interface IUserResourcePermissionInternalService extends IUserResourcePer
     boolean resourcePermissionUpdate(String resourceId, String resourceType, List<ResourcePermissionUpdateVO> list);
 
     List<UserResourcePermissionEntity> getByUserId(String userId);
+
+    /**
+     * 删除指定用户的全部资源权限记录（删除用户时清理，避免残留孤儿权限数据）。
+     */
+    boolean removeByUserIds(List<String> userIds);
 }

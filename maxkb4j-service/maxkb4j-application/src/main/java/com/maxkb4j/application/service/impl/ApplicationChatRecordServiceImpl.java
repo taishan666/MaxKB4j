@@ -121,10 +121,13 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
         return BeanUtil.copyList(chatRecordList, ChatRecordDTO.class);
     }
     @Override
+    public ChatRecordDTO getChatRecord(String chatId, String chatRecordId) {
+        return getChatRecordDTO(ChatCache.get(chatId), chatId, chatRecordId);
+    }
+
+    @Override
     public ApplicationChatRecordVO getChatRecordInfo(String chatId, String chatRecordId) {
-        ChatInfo chatInfo = ChatCache.get(chatId);
-        ChatRecordDTO chatRecord = getChatRecordDTO(chatInfo, chatId, chatRecordId);
-        return convert(chatRecord);
+        return convert(getChatRecord(chatId, chatRecordId));
     }
 
     private ApplicationChatRecordVO convert(ApplicationChatRecordEntity chatRecordEntity) {

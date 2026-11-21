@@ -46,8 +46,11 @@ public class DocLingParseEngine implements DocumentParseEngine {
         if (StrUtil.isBlank(properties.getBaseUrl())) {
             return false;
         }
+        // 文件名与配置项统一转小写再比较，避免 .HTML 之类的大写配置永远无法命中
         String lower = fileName.toLowerCase();
-        return properties.getSupportedExtensions().stream().anyMatch(lower::endsWith);
+        return properties.getSupportedExtensions().stream()
+                .filter(StrUtil::isNotBlank)
+                .anyMatch(ext -> lower.endsWith(ext.trim().toLowerCase()));
     }
 
     @Override

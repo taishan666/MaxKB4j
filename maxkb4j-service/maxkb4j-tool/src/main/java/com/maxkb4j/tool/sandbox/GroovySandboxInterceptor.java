@@ -20,6 +20,12 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
             // ThreadInterrupt 注入的只读中断检查；其他 Thread 方法仍按危险调用拒绝
             return invoker.call(receiver, method, args);
         }
+        if (GroovySandboxPolicy.isPathMutatingMethod(receiver == null ? null : receiver.getClass(), method)) {
+            // Path 接收者的写/删通道（withWriter/setText/leftShift 等 DGM 扩展）：
+            // Files 静态写删已收敛到临时目录边界，Path 实例方法不允许任何变更能力，
+            // 防止借实例扩展方法绕过 Files 白名单写出任意路径文件
+            throw new SecurityException("不允许通过 Path 执行文件写入/删除操作: " + method);
+        }
         if (GroovySandboxPolicy.isDangerousMethod(receiver == null ? null : receiver.getClass(), method)) {
             throw new SecurityException("不允许调用危险方法: " + method);
         }
@@ -74,6 +80,8 @@ public class GroovySandboxInterceptor extends GroovyInterceptor {
         if (!GroovySandboxPolicy.isStaticCallAllowed(sender, method)) {
             throw new SecurityException("不允许调用静态方法: " + className + "." + method);
         }
+        // Files 的所有静态调用均校验真实路径边界，防止任意文件读取、写入或删除
+        GroovySandboxPolicy.validateFilesAccess(sender, method, args);
         return GroovySandboxPolicy.validateReturnValue(invoker.call(sender, method, args));
     }
 

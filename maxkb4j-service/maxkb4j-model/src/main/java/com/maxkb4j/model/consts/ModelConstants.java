@@ -283,6 +283,19 @@ public interface ModelConstants {
     }
 
     /**
+     * 语音识别支持的音频格式（'pcm'、'wav'、'mp3'、'opus'、'speex'、'aac'、'amr'）
+     */
+    interface Format {
+        String MP3 = "mp3";
+        String WAV = "wav";
+        String PCM = "pcm";
+        String OPUS = "opus";
+        String SPEEX = "speex";
+        String AAC = "aac";
+        String AMR = "amr";
+    }
+
+    /**
      * 请求与响应 JSON 字段名
      */
     interface RequestField {

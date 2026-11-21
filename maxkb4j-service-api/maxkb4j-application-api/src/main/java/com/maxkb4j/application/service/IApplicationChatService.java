@@ -5,6 +5,7 @@ import com.maxkb4j.application.dto.ApplicationChatDTO;
 import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.application.dto.ShareChatDTO;
 import com.maxkb4j.application.vo.ShareChatVO;
+import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.vo.ChatMessageVO;
@@ -18,6 +19,14 @@ public interface IApplicationChatService {
     String chatOpen(String appId, boolean debug);
 
     String chatOpen(String appId, boolean debug, String chatUserId);
+
+    /**
+     * 以调用方指定的 chatId 获取或创建会话，供子应用场景使用（AgentExecutor / 应用节点）：
+     * 其会话 id 由父会话派生，需跨请求保持稳定，因此不能走 {@link #chatOpen} 的随机 id。
+     * <p>缓存或库中已存在则复用（库中存在时回填历史记录）；均不存在时新建并写入缓存；
+     * 命中会话但应用/用户归属不匹配时抛出异常。</p>
+     */
+    ChatInfo getOrCreateChatInfo(String chatId, String appId, String chatUserId);
 
     ChatResponse chatMessage(ChatParams chatParams, ChatState chatState, ResultCallback<ChatMessageVO> callback);
 

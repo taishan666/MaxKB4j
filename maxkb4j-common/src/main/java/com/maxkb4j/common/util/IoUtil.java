@@ -8,6 +8,7 @@ import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 
 @Slf4j
@@ -37,14 +38,13 @@ public class IoUtil extends StreamUtils {
     }
 
     public static String readToString(@Nullable InputStream input, Charset charset) {
-        String var8 = "";
         try {
-            var8 = copyToString(input, charset);
+            return copyToString(input, charset);
         } catch (IOException var6) {
-            log.error(var6.getMessage(), var6);
+            // 读取失败必须向上抛出（BUG-9）：吞掉异常会返回已读部分或空串，导致空段落静默入库、导入失败无感知
+            throw new UncheckedIOException("读取输入流失败", var6);
         } finally {
             closeQuietly(input);
         }
-        return var8;
     }
 }

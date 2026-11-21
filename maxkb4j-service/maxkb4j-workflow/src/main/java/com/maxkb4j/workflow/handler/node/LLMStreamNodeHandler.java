@@ -185,7 +185,8 @@ public abstract class LLMStreamNodeHandler extends StreamNodeHandler {
      * @param tokenStream Token 流
      * @param workflow    工作流上下文
      * @param node        节点实例
-     * @return 节点执行结果的 CompletableFuture
+     * @return 节点执行结果的 CompletableFuture；节点超时被引擎取消后，本 future 以取消态结束，
+     *         且流回调全部短路（见方法内注释），不会继续累积或推送
      */
     protected CompletableFuture<NodeResult> writeContextStreamAsync(StreamOptions options, TokenStream tokenStream, IWorkflow workflow, AbsNode node) {
         // 写入详情
@@ -196,18 +197,31 @@ public abstract class LLMStreamNodeHandler extends StreamNodeHandler {
         StreamTextAccumulator answerText = new StreamTextAccumulator();
         StreamTextAccumulator reasoningText = new StreamTextAccumulator();
         CompletableFuture<NodeResult> resultFuture = new CompletableFuture<>();
+        // 节点超时结算后，引擎会异常完成 resultFuture 以通知底层流停止副作用。langchain4j 的
+        // TokenStream 不提供取消 API，无法主动断开底层连接，因此下方所有流回调先检查
+        // resultFuture.isDone()（已结算：要么被取消，要么已完成）并短路——不再累积文本、
+        // 不再向前端推送消息、也不再触发完成/失败回调，避免节点超时后继续产出副作用或二次回调。
         tokenStream.onPartialThinking(thinking -> {
+                    if (resultFuture.isDone()) {
+                        return;
+                    }
                     reasoningText.append(thinking.text());
                     if (options.isResult() && options.reasoningContentEnable()) {
                         emitMessage(workflow, node, "", thinking.text());
                     }
                 }).beforeToolExecution(toolExecute -> {
+                    if (resultFuture.isDone()) {
+                        return;
+                    }
                     String toolMessage = onBeforeToolExecution(toolExecute, workflow, node);
                     if (options.isResult() && options.toolOutputEnable()) {
                         emitMessage(workflow, node, toolMessage, toolMessage);
                     }
                 })
                 .onToolExecuted(toolExecute -> {
+                    if (resultFuture.isDone()) {
+                        return;
+                    }
                     String toolMessage = onToolExecuted(toolExecute, workflow, node);
                     answerText.append(toolMessage);
                     if (options.isResult() && options.toolOutputEnable()) {
@@ -217,12 +231,20 @@ public abstract class LLMStreamNodeHandler extends StreamNodeHandler {
                     }
                 })
                 .onPartialResponse(content -> {
+                    if (resultFuture.isDone()) {
+                        return;
+                    }
                     answerText.append(content);
                     if (options.isResult()) {
                         emitMessage(workflow, node, content, "");
                     }
                 })
-                .onCompleteResponse(response -> resultFuture.complete(handleChatResponse(response.tokenUsage(), reasoningText, answerText, node))).onError(resultFuture::completeExceptionally)
+                .onCompleteResponse(response -> {
+                    if (resultFuture.isDone()) {
+                        return;
+                    }
+                    resultFuture.complete(handleChatResponse(response.tokenUsage(), reasoningText, answerText, node));
+                }).onError(resultFuture::completeExceptionally)
                 .start();
         return resultFuture;
     }

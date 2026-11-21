@@ -91,9 +91,10 @@ public class WorkflowExecutionAccessor implements IWorkflowExecutionAccessor {
      * @param sourceEdges       下游边列表
      * @return 命中断言分支的目标节点ID集合
      */
-    private static Set<String> findAssertionTargetNodeIds(NodeResult currentNodeResult, List<LfEdge> sourceEdges) {
+    static Set<String> findAssertionTargetNodeIds(NodeResult currentNodeResult, List<LfEdge> sourceEdges) {
         Map<String, Object> nodeVariables = currentNodeResult.getNodeVariable();
-        String branchId = nodeVariables != null ? (String) nodeVariables.getOrDefault(NodeField.BRANCH_ID, "") : "";
+        // 不能用 getOrDefault：key 存在但值为 null 时会原样返回 null，拼出 "{nodeId}_null_right" 锚点而不匹配任何边
+        String branchId = nodeVariables != null ? Objects.toString(nodeVariables.get(NodeField.BRANCH_ID), "") : "";
         return sourceEdges.stream()
                 .filter(edge -> (edge.getSourceNodeId() + "_" + branchId + "_right").equals(edge.getSourceAnchorId()))
                 .map(LfEdge::getTargetNodeId)

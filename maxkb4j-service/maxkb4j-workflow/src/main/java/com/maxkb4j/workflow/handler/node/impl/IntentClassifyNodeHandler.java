@@ -1,6 +1,7 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.MessageConverter;
 import com.maxkb4j.core.assistant.IntentClassifyAssistant;
 import com.maxkb4j.core.langchain4j.AiServiceFactory;
@@ -63,12 +64,7 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
         Result<String> result = assistant.route(options, chatMemory, queryStr);
 
         Collection<Integer> classificationIds = parse(result.content());
-        Integer classificationId = classificationIds.stream().findFirst().orElse(null);
-        if (classificationId == null) {
-            log.warn("Intent classification returned no valid branch ID for query: {}", queryStr);
-            classificationId = -1; // 默认分支或标记为未分类
-        }
-        String branchId = idToClassification.get(classificationId);
+        String branchId = resolveBranchId(idToClassification, classificationIds);
         String category = branchMap.get(branchId);
 
         Map<String, Object> details = new HashMap<>();
@@ -83,6 +79,23 @@ public class IntentClassifyNodeHandler extends AbsNodeHandler {
         nodeVariable.put(NodeField.CATEGORY, category);
         nodeVariable.put(NodeField.REASON, "");
         return new NodeResult(nodeVariable);
+    }
+
+    /**
+     * 将意图分类结果解析为分支 ID。
+     * <p>仅接受 {@code idToClassification} 中存在的合法分支序号；解析失败或越界（未命中任何分支）
+     * 时按失败处理抛出异常，避免向下游写入 null BRANCH_ID —— 断言路由按 key 存在取到 null
+     * 后不匹配任何边，会导致所有下游节点被静默 SKIP 而工作流无报错终止。</p>
+     */
+    protected String resolveBranchId(Map<Integer, String> idToClassification, Collection<Integer> classificationIds) {
+        Integer classificationId = classificationIds.stream()
+                .filter(idToClassification::containsKey)
+                .findFirst()
+                .orElse(null);
+        if (classificationId == null) {
+            throw new ApiException(MessageCode.INTENT_NO_MATCH);
+        }
+        return idToClassification.get(classificationId);
     }
 
     protected String optionsFormat(Map<Integer, String> idToClassification, List<IntentClassifyNode.Branch> branches) {

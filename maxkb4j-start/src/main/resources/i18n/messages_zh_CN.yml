@@ -74,6 +74,11 @@ user:
     empty: 密码不能为空
     not:
       match: 密码输入不一致
+  delete:
+    admin:
+      forbidden: 不允许删除管理员账号
+    resource:
+      exists: 该用户名下存在应用、知识库、模型或工具等资源，请先删除或转移后再删除用户
 
 email:
   subject:
@@ -120,6 +125,8 @@ chat:
     invalid:
       or:
         disabled: token不合法或被禁用
+  message:
+    required: 请求的 messages 中必须包含一条内容非空的 user 角色消息
 
 rate:
   limit:
@@ -175,10 +182,16 @@ trigger:
   token:
     auth:
       failed: token鉴权失败
+  rate:
+    limit:
+      exceeded: 请求过于频繁，请稍后再试
 workflow:
   condition:
     "no":
       match: 条件节点未匹配到任何分支
+  intent:
+    "no":
+      match: 意图分类节点未匹配到任何分支
 
 knowledge:
   document:

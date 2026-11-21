@@ -1,9 +1,11 @@
 package com.maxkb4j.workflow.engine;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.enums.WorkflowMode;
 import com.maxkb4j.workflow.node.AbsNode;
+import com.maxkb4j.workflow.node.impl.VariableAggregationNode;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -114,5 +116,40 @@ class NodeStateLoaderTest {
         assertThat(n1.getProperties().getJSONObject(RuntimeDetailField.NODE_DATA)).isNull();
         assertThat(n2.getProperties().getJSONObject(RuntimeDetailField.NODE_DATA))
                 .containsEntry("form_data", currentNodeData);
+    }
+
+    /**
+     * BUG-46 回归：恢复执行时 groupList 为持久化 JSON 反序列化的 JSONArray（元素 JSONObject），
+     * saveContext 不能直接强转 List&lt;Group&gt;，需重建 POJO 后写入上下文。
+     */
+    @Test
+    void loadNodeState_restoresVariableAggregationFromPersistedJson() {
+        VariableAggregationNode aggNode = new VariableAggregationNode("agg1", new JSONObject());
+        WorkflowContext context = new WorkflowContext();
+        NodeStateLoader stateLoader = loader(List.of(aggNode), context);
+
+        // 模拟 chat record details 经 fastjson 反序列化的结果
+        JSONObject details = JSON.parseObject("""
+                {
+                  "d1": {
+                    "index": 0,
+                    "nodeId": "agg1",
+                    "upNodeIdList": [],
+                    "runtimeNodeId": "rt-agg1",
+                    "status": 200,
+                    "groupList": [
+                      {"id": "g1", "label": "分组1", "field": "name", "value": "Tom", "variableList": []},
+                      {"id": "g2", "label": "分组2", "field": "age", "value": 18, "variableList": []}
+                    ]
+                  }
+                }
+                """);
+
+        AbsNode restored = stateLoader.loadNodeState(null, details, "rt-agg1", null);
+
+        assertThat(restored).isSameAs(aggNode);
+        assertThat(aggNode.getContext())
+                .containsEntry("name", "Tom")
+                .containsEntry("age", 18);
     }
 }

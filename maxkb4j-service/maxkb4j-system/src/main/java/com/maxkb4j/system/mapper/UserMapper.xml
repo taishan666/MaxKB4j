@@ -2,34 +2,20 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.maxkb4j.system.mapper.UserMapper">
 
-    <select id="getUserPermissionById" resultType="com.maxkb4j.system.vo.PermissionVO">
+    <!-- 用户名下自有资源数量：应用/知识库/模型/工具，删除用户前校验 -->
+    <select id="countOwnedResource" resultType="long">
         SELECT
-        "id",
-        'DATASET' AS "type",
-        user_id,
-        ARRAY [ 'MANAGE','USE','DELETE' ] AS "operate"
-        FROM
-        dataset
-        WHERE
-        "user_id" =#{userId} UNION
-        SELECT
-        "id",
-        'APPLICATION' AS "type",
-        user_id,
-        ARRAY [ 'MANAGE','USE','DELETE' ] AS "operate"
-        FROM
-        application
-        WHERE
-        "user_id" = #{userId} UNION
-        SELECT
-        team_member_permission.target_id AS "id",
-        team_member_permission.auth_target_type AS "type",
-        team_member.user_id AS user_id,
-        team_member_permission.operate AS "operate"
-        FROM
-        team_member team_member
-        LEFT JOIN team_member_permission team_member_permission ON team_member.ID = team_member_permission.member_id
-        WHERE
-        team_member.user_id = #{userId} AND team_member_permission.target_id IS NOT NULL
+        (SELECT count(*) FROM application WHERE "user_id" = #{userId})
+        + (SELECT count(*) FROM knowledge WHERE "user_id" = #{userId})
+        + (SELECT count(*) FROM model WHERE "user_id" = #{userId})
+        + (SELECT count(*) FROM tool WHERE "user_id" = #{userId})
     </select>
+
+    <!-- 删除用户创建的应用 API Key（外键引用用户，删除用户前清理） -->
+    <delete id="deleteApplicationApiKeyByUserIds">
+        DELETE FROM "application_api_key" WHERE "user_id" IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
 </mapper>

@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 import static com.maxkb4j.workflow.consts.WorkflowConstants.RuntimeDetailField;
@@ -44,15 +45,42 @@ public class NodeLifecycleExecutor<W extends IWorkflow> {
 
     /**
      * 上报调度/等待阶段发现的节点失败，与执行阶段失败共用同一监听器出口，
-     * 供 {@link NodeChainRunner} 在超时或等待异常时调用。
+     * 供 {@link NodeChainRunner} 在等待异常时调用（超时结算见 {@link #timeout}）。
      */
     public void reportError(W workflow, AbsNode node, Exception ex) {
         listener.onNodeError(workflow, node, ex);
     }
 
     /**
+     * 超时结算节点：以 {@link TimeoutException} 异常完成 stage future，恰一次地竞得该节点的
+     * 终态上报权 —— 竞得后才经 {@link #reportError} 上报；未竞得说明节点已在并发完成路径中
+     * 正常结算并自行上报，本次超时静默放弃。
+     *
+     * <p>stage 的异常结算会同步向上游取消节点处理器的 source future（见 {@link #execute}），
+     * 节点处理器据此切断底层流式副作用，避免超时后继续产出与回调。</p>
+     */
+    public void timeout(W workflow, AbsNode node, CompletableFuture<List<INode>> stage, long timeoutMinutes) {
+        TimeoutException timeoutEx = new TimeoutException(
+                "node [" + node.getType() + "] execution timeout after " + timeoutMinutes + " minutes");
+        synchronized (stage) {
+            if (stage.completeExceptionally(timeoutEx)) {
+                reportError(workflow, node, timeoutEx);
+            }
+        }
+    }
+
+    /**
      * 执行一个就绪节点：依赖未就绪时直接空完成；否则启动回调 → 记录执行 → 调用节点处理器，
-     * 在节点处理器返回的 future 上链式完成，成功与失败收敛到同一完成路径。
+     * 在节点处理器返回的 source future 上收敛完成，成功与失败走同一完成路径。
+     *
+     * <p>返回给 {@link NodeChainRunner} 的是独立的 stage future，两条接线保证超时取消
+     * 不产生二次生命周期回调：</p>
+     * <ul>
+     *   <li>stage 被异常结算（{@link #timeout} 或取消）时，同步向上游取消 source，
+     *   通知节点处理器切断底层流式副作用；</li>
+     *   <li>source 在 stage 已结算后的迟到完成一律丢弃 —— 终态上报权已归结算方所有，
+     *   {@link #complete} 不再被触发，与超时上报恰好互斥。</li>
+     * </ul>
      */
     public CompletableFuture<List<INode>> execute(W workflow, AbsNode node) {
         if (workflow.execution().dependenciesNotExecuted(node)) {
@@ -62,8 +90,27 @@ public class NodeLifecycleExecutor<W extends IWorkflow> {
         workflow.execution().recordExecution(node);
         INodeHandler nodeHandler = nodeCenter.getHandler(node.getType());
         long startTime = System.currentTimeMillis();
-        return startNodeExecution(nodeHandler, workflow, node)
-                .handle((result, ex) -> complete(workflow, node, startTime, result, ex));
+        CompletableFuture<NodeResult> source = startNodeExecution(nodeHandler, workflow, node);
+        CompletableFuture<List<INode>> stage = new CompletableFuture<>();
+        source.whenComplete((result, ex) -> {
+            // complete 会先触发状态写入和回调，再结算 stage；必须与 timeout 共用同一把锁，
+            // 否则正常完成通过 isDone 检查后，超时线程仍可能在副作用执行途中竞得终态。
+            synchronized (stage) {
+                if (!stage.isDone()) {
+                    try {
+                        stage.complete(complete(workflow, node, startTime, result, ex));
+                    } catch (RuntimeException completionEx) {
+                        stage.completeExceptionally(completionEx);
+                    }
+                }
+            }
+        });
+        stage.whenComplete((result, ex) -> {
+            if (ex != null) {
+                source.cancel(true);
+            }
+        });
+        return stage;
     }
 
     /**

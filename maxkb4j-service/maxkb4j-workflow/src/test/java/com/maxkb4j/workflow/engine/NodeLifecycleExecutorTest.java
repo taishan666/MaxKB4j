@@ -17,6 +17,9 @@ import org.mockito.InOrder;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static com.maxkb4j.workflow.consts.WorkflowConstants.NodeField;
 import static com.maxkb4j.workflow.consts.WorkflowConstants.RuntimeDetailField;
@@ -25,8 +28,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -196,5 +202,118 @@ class NodeLifecycleExecutorTest {
         executor.reportError(workflow, node, ex);
 
         verify(listener).onNodeError(workflow, node, ex);
+    }
+
+    // ==================== 超时结算（修复：cancel 不中断底层流 + 双重回调） ====================
+
+    @Test
+    void timeoutShouldReportOnceAndCancelSource() throws Exception {
+        AbsNode node = newNode("n1", new JSONObject());
+        CompletableFuture<NodeResult> source = new CompletableFuture<>();
+        when(nodeHandler.execute(workflow, node)).thenReturn(source);
+
+        CompletableFuture<List<INode>> stage = executor.execute(workflow, node);
+        executor.timeout(workflow, node, stage, 10);
+
+        verify(listener).onNodeError(same(workflow), same(node),
+                argThat(ex -> ex instanceof TimeoutException
+                        && ex.getMessage() != null && ex.getMessage().contains("timeout after 10 minutes")));
+        assertThat(stage).isCompletedExceptionally();
+        // 超时结算须同步向上游取消 source，节点处理器据此切断底层流副作用
+        assertThat(source).isCancelled();
+    }
+
+    @Test
+    void timeoutShouldDropLateSourceCompletion() throws Exception {
+        AbsNode node = newNode("n1", new JSONObject());
+        CompletableFuture<NodeResult> source = new CompletableFuture<>();
+        when(nodeHandler.execute(workflow, node)).thenReturn(source);
+
+        CompletableFuture<List<INode>> stage = executor.execute(workflow, node);
+        executor.timeout(workflow, node, stage, 10);
+
+        // 迟到的成功完成不得改写节点终态或再次触发成功回调
+        source.complete(new NodeResult(Map.of("k", "v")));
+        verify(listener, never()).onNodeSuccess(any(), any(), any());
+        verify(listener, times(1)).onNodeError(any(), any(), any());
+        assertThat(node.getStatus()).isNotEqualTo(NodeStatus.SUCCESS.getStatus());
+        assertThat(node.getDetail()).doesNotContainKey("k");
+
+        // 迟到的失败完成同样丢弃：超时上报保持唯一
+        source.completeExceptionally(new IllegalStateException("late boom"));
+        verify(listener, times(1)).onNodeError(any(), any(), any());
+    }
+
+    @Test
+    void timeoutShouldBeIdempotent() throws Exception {
+        AbsNode node = newNode("n1", new JSONObject());
+        CompletableFuture<NodeResult> source = new CompletableFuture<>();
+        when(nodeHandler.execute(workflow, node)).thenReturn(source);
+
+        CompletableFuture<List<INode>> stage = executor.execute(workflow, node);
+        executor.timeout(workflow, node, stage, 10);
+        executor.timeout(workflow, node, stage, 10);
+
+        verify(listener, times(1)).onNodeError(any(), any(), any());
+        verify(listener, never()).onNodeSuccess(any(), any(), any());
+    }
+
+    @Test
+    void timeoutShouldYieldToConcurrentCompletion() throws Exception {
+        AbsNode node = newNode("n1", new JSONObject());
+        AbsNode next = newNode("n2", new JSONObject());
+        NodeResult result = new NodeResult(Map.of("k", "v"));
+        CompletableFuture<NodeResult> source = new CompletableFuture<>();
+        when(nodeHandler.execute(workflow, node)).thenReturn(source);
+        when(execution.nextNodes(same(node), same(result))).thenReturn(List.of(next));
+
+        CompletableFuture<List<INode>> stage = executor.execute(workflow, node);
+        // 节点恰在超时触发前正常完成：超时不得覆盖其终态上报
+        source.complete(result);
+        executor.timeout(workflow, node, stage, 10);
+
+        verify(listener).onNodeSuccess(same(workflow), same(node), same(result));
+        verify(listener, never()).onNodeError(any(), any(), any());
+        assertThat(stage).isCompletedWithValue(List.of(next));
+    }
+
+    @Test
+    void timeoutShouldWaitForInFlightCompletionWithoutDoubleCallbacks() throws Exception {
+        AbsNode node = newNode("n1", new JSONObject());
+        AbsNode next = newNode("n2", new JSONObject());
+        NodeResult result = new NodeResult(Map.of("k", "v"));
+        CompletableFuture<NodeResult> source = new CompletableFuture<>();
+        CountDownLatch successCallbackStarted = new CountDownLatch(1);
+        CountDownLatch allowSuccessCallback = new CountDownLatch(1);
+        CountDownLatch timeoutStarted = new CountDownLatch(1);
+        when(nodeHandler.execute(workflow, node)).thenReturn(source);
+        when(execution.nextNodes(same(node), same(result))).thenReturn(List.of(next));
+        doAnswer(invocation -> {
+            successCallbackStarted.countDown();
+            assertThat(allowSuccessCallback.await(5, TimeUnit.SECONDS)).isTrue();
+            return null;
+        }).when(listener).onNodeSuccess(workflow, node, result);
+
+        CompletableFuture<List<INode>> stage = executor.execute(workflow, node);
+        CompletableFuture<Void> completing = CompletableFuture.runAsync(() -> source.complete(result));
+        assertThat(successCallbackStarted.await(5, TimeUnit.SECONDS)).isTrue();
+        CompletableFuture<Void> timingOut = CompletableFuture.runAsync(() -> {
+            timeoutStarted.countDown();
+            executor.timeout(workflow, node, stage, 10);
+        });
+        try {
+            assertThat(timeoutStarted.await(5, TimeUnit.SECONDS)).isTrue();
+            // 成功回调尚在执行时，超时不得插入并完成另一套失败生命周期
+            org.junit.jupiter.api.Assertions.assertThrows(TimeoutException.class,
+                    () -> timingOut.get(200, TimeUnit.MILLISECONDS));
+        } finally {
+            allowSuccessCallback.countDown();
+        }
+        completing.get(5, TimeUnit.SECONDS);
+        timingOut.get(5, TimeUnit.SECONDS);
+
+        verify(listener, times(1)).onNodeSuccess(workflow, node, result);
+        verify(listener, never()).onNodeError(any(), any(), any());
+        assertThat(stage).isCompletedWithValue(List.of(next));
     }
 }

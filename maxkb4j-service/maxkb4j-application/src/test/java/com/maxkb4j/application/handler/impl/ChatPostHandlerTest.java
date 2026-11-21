@@ -15,6 +15,7 @@ import com.maxkb4j.common.domain.dto.ChatState;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -183,5 +184,25 @@ class ChatPostHandlerTest {
         List<ChatRecordDTO> records = ChatCache.get(CHAT_ID).getChatRecordList();
         assertEquals(1, records.size(), "调试模式下记录仅进缓存不落库");
         assertNotNull(records.get(0).getId(), "缓存中的记录 id 不应为 null");
+    }
+
+    // ==================== 空值防护 ====================
+
+    @Test
+    void handler_nullProblemText_upsertsWithEmptySummary() {
+        // 手工构建 ChatParams 的内部调用链（AgentExecutor / OpenAI 兼容接口）可绕过 @NotBlank
+        // 使 message=null 穿透进来；summary 截断须判空兜底，不得在 problemText.length() 处 NPE
+        TransactionSynchronizationManager.initSynchronization();
+        ChatParams nullMessageParams = ChatParams.builder()
+                .chatId(CHAT_ID)
+                .chatRecordId(CHAT_RECORD_ID)
+                .message(null)
+                .build();
+
+        handler.handler(nullMessageParams, chatState().build(), chatResponse(), 0L);
+
+        ArgumentCaptor<ApplicationChatEntity> captor = ArgumentCaptor.forClass(ApplicationChatEntity.class);
+        verify(chatMapper).insertOrIncrementRecordCount(captor.capture());
+        assertEquals("", captor.getValue().getSummary(), "null 问题文本应以空串落库，而非抛 NPE");
     }
 }

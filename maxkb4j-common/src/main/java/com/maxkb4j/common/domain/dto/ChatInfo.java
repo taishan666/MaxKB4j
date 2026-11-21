@@ -37,7 +37,7 @@ public class ChatInfo implements Serializable {
     }
 
 
-    public void addChatRecord(ChatRecordDTO chatRecord) {
+    public synchronized void addChatRecord(ChatRecordDTO chatRecord) {
         String chatRecordId = chatRecord.getId();
         // 存在相同 id 的记录时替换，否则添加
         for (int i = 0; i < this.chatRecordList.size(); i++) {

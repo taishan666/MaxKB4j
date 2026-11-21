@@ -16,10 +16,11 @@ import java.util.concurrent.TimeoutException;
 /**
  * 节点链调度器（引擎层协作者）。
  * <p>
- * 批量调度一批节点并在调用线程上逐个等待其完成 future（含超时取消），随后递归执行
+ * 批量调度一批节点并在调用线程上逐个等待其完成 future（含超时结算），随后递归执行
  * 后继节点链。单节点的执行、完成语义与节点事件出口统一由 {@link NodeLifecycleExecutor}
- * 承担：调度与等待期的失败经 {@link NodeLifecycleExecutor#reportError} 上报，
- * 不中断其余节点的调度。
+ * 承担：等待期的异常经 {@link NodeLifecycleExecutor#reportError} 上报，超时则经
+ * {@link NodeLifecycleExecutor#timeout} 结算（恰一次上报并取消上游 future 以切断底层流），
+ * 均不中断其余节点的调度。
  * </p>
  *
  * @param <W> 执行的工作流契约
@@ -48,9 +49,9 @@ public class NodeChainRunner<W extends IWorkflow> {
                 List<INode> nextNodeList = scheduled.future().get(timeoutMinutes, TimeUnit.MINUTES);
                 run(workflow, nextNodeList);
             } catch (TimeoutException e) {
-                scheduled.future().cancel(true);
-                lifecycleExecutor.reportError(workflow, node, new TimeoutException(
-                        "node [" + node.getType() + "] execution timeout after " + timeoutMinutes + " minutes"));
+                // 交由执行器超时结算：恰一次上报，并同步取消上游 future 以切断节点底层流，
+                // 避免 CompletableFuture.cancel(true) 不中断底层流、迟到完成又触发二次回调的缺陷
+                lifecycleExecutor.timeout(workflow, node, scheduled.future(), timeoutMinutes);
             } catch (ExecutionException e) {
                 lifecycleExecutor.reportError(workflow, node, NodeLifecycleExecutor.unwrapException(e));
             } catch (InterruptedException e) {

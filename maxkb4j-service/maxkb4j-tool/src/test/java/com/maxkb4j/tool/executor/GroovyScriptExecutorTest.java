@@ -634,25 +634,122 @@ class GroovyScriptExecutorTest {
     }
 
     @Test
-    void execute_filesReadAndWriteScript_allowed() throws Exception {
-        // 文件操作白名单：java.nio.file.Files 静态方法与 Path.of 应通过编译期与运行期校验
+    void execute_filesReadAndTempDirWriteScript_allowed() throws Exception {
+        // 文件操作白名单：读取、元数据检查与 write/writeString 均仅允许系统临时目录内的路径
+        // （createTempFile 未指定 dir 时 JDK 默认落在临时目录内）
         java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("maxkb4j-groovy-", ".txt");
         try {
             java.nio.file.Files.writeString(tempFile, "hello maxkb");
             String code = """
                     import java.nio.file.Files
                     import java.nio.file.Path
-                    
+
                     def p = Path.of("%s")
                     def content = Files.readString(p)
                     Files.writeString(p, content + "!")
-                    return Files.readString(p) + "|" + Files.exists(p)
+                    return Files.readString(p) + "|" + Files.exists(p) + "|" + (Files.size(p) > 0)
                     """.formatted(tempFile.toString().replace("\\", "\\\\"));
             GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
-            assertEquals("hello maxkb!|true", executor.execute(params()));
+            assertEquals("hello maxkb!|true|true", executor.execute(params()));
         } finally {
             java.nio.file.Files.deleteIfExists(tempFile);
         }
+    }
+
+    @Test
+    void execute_filesTempDirCreateWriteDeleteScript_allowed() {
+        // 内置「Rapid-OCR图片识别」工具的临时文件流程：createTempFile(前缀, 后缀) 由 JDK
+        // 落在系统临时目录内，write 写入字节、size/exists 读取元数据、deleteIfExists 清理
+        String code = """
+                import java.nio.file.Files
+
+                def tmp = Files.createTempFile("maxkb4j-sbx-", ".tmp")
+                Files.write(tmp, "payload".getBytes("UTF-8"))
+                def size = Files.size(tmp)
+                def deleted = Files.deleteIfExists(tmp)
+                return size > 0 && deleted && !Files.exists(tmp)
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertEquals(Boolean.TRUE, executor.execute(params()));
+    }
+
+    @Test
+    void execute_filesReadOutsideTempDir_rejectedAtRuntime() {
+        // 读取与元数据检查同样受路径边界限制，避免脚本读取配置、密钥等任意文件
+        for (String call : new String[]{
+                "Files.readString(Path.of(\"pom.xml\"))",
+                "Files.readAllBytes(Path.of(\"pom.xml\"))",
+                "Files.isRegularFile(Path.of(\"pom.xml\"))"}) {
+            GroovyScriptExecutor executor = new GroovyScriptExecutor(
+                    "import java.nio.file.Files\nimport java.nio.file.Path\nreturn " + call, null);
+            assertThrows(SecurityException.class, () -> executor.execute(params()),
+                    "临时目录外的文件访问应被拒绝: " + call);
+        }
+    }
+
+    @Test
+    void execute_filesMutatingOutsideTempDir_rejectedAtRuntime() throws Exception {
+        // 越界写/删：临时目录之外的 write/writeString/write字节/createTempFile(dir)/delete/
+        // deleteIfExists 在真实落盘或删除之前被运行期路径边界校验拒绝（目标文件无需存在）
+        java.nio.file.Path outside = java.nio.file.Path.of(
+                System.getProperty("user.dir"), "sandbox-outside.txt");
+        try {
+            for (String call : new String[]{
+                    "Files.writeString(Path.of(\"%s\"), \"boom\")",
+                    "Files.write(Path.of(\"%s\"), \"boom\".getBytes())",
+                    "Files.createTempFile(Path.of(\"%s\").parent, \"x\", \".tmp\")",
+                    "Files.delete(Path.of(\"%s\"))",
+                    "Files.deleteIfExists(Path.of(\"%s\"))"}) {
+                final String code = ("import java.nio.file.Files\n"
+                        + "import java.nio.file.Path\n"
+                        + "return " + call).formatted(outside.toString().replace("\\", "\\\\"));
+                GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+                assertThrows(SecurityException.class, () -> executor.execute(params()),
+                        "临时目录外的文件变更应被拒绝: " + call);
+            }
+            assertFalse(java.nio.file.Files.exists(outside), "越界写入应在校验阶段被拒绝，不得落盘");
+        } finally {
+            java.nio.file.Files.deleteIfExists(outside);
+        }
+    }
+
+    @Test
+    void execute_pathMutatingInstanceMethod_rejectedAtRuntime() throws Exception {
+        // Path 接收者的写通道封堵：withWriter/setText/leftShift 为 DGM 文件变更扩展，
+        // 即使目标位于临时目录内也必须拒绝（写能力只保留 Files 静态方法 + 临时目录边界）
+        java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("maxkb4j-groovy-", ".txt");
+        try {
+            java.nio.file.Files.writeString(tempFile, "preset");
+            for (String expr : new String[]{
+                    "p.withWriter { writer -> writer << \"boom\" }",
+                    "p.setText(\"boom\")",
+                    "p << \"boom\""}) {
+                final String code = ("import java.nio.file.Files\n"
+                        + "import java.nio.file.Path\n"
+                        + "def p = Path.of(\"%s\")\n"
+                        + "return " + expr).formatted(tempFile.toString().replace("\\", "\\\\"));
+                GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+                assertThrows(SecurityException.class, () -> executor.execute(params()),
+                        "Path 上的文件变更方法应被拒绝: " + expr);
+            }
+            assertEquals("preset", java.nio.file.Files.readString(tempFile), "文件内容不得被修改");
+        } finally {
+            java.nio.file.Files.deleteIfExists(tempFile);
+        }
+    }
+
+    @Test
+    void execute_pathTypedMutatingCall_rejectedAtCompileTime() {
+        // 显式 Path 类型声明的接收者：withWriter 在编译期即被 SecureAST 表达式检查拒绝
+        // （def 声明的接收者静态类型未知，由运行期拦截器按实际类型兜底）
+        String code = """
+                import java.nio.file.Path
+
+                Path p = Path.of("dummy.txt")
+                return p.withWriter { writer -> writer << "boom" }
+                """;
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
+        assertThrows(SecurityException.class, () -> executor.execute(params()));
     }
 
     @Test
@@ -1964,6 +2061,26 @@ class GroovyScriptExecutorTest {
     }
 
     /**
+     * 内置「Rapid-OCR图片识别」模板脚本必须通过文本预检与沙箱编译期校验：
+     * 该工具依赖 Files.createTempFile/Files.write/Files.deleteIfExists 将 OSS 图片字节
+     * 落盘到系统临时目录（OCR 引擎只支持文件路径），文件白名单的「临时目录受限写」能力
+     * 正是为此保留；InferenceEngine/Model/OcrResult/SpringUtil/IOssService 类引用、
+     * String.join、闭包内 try/finally 均应放行。仅编译不执行：执行需 OCR 原生库与 OSS 凭证。
+     */
+    @Test
+    void rapidocrToolTemplateScript_passesTokenScanAndCompiles() throws Exception {
+        java.nio.file.Path template = java.nio.file.Path.of("..", "..", "maxkb4j-start", "src", "main",
+                "resources", "templates", "tool", "content_handle", "Rapid-OCR图片识别-1.0.0.tool");
+        org.junit.jupiter.api.Assumptions.assumeTrue(java.nio.file.Files.exists(template),
+                "模板文件不存在，跳过：" + template.toAbsolutePath());
+        String script = JSONUtil.parseObj(java.nio.file.Files.readString(template,
+                java.nio.charset.StandardCharsets.UTF_8)).getStr("code");
+        assertNull(GroovySandboxPolicy.findDangerousToken(script));
+        GroovyScriptCache.get(script);
+        assertTrue(GroovyScriptExecutor.isScriptCached(script));
+    }
+
+    /**
      * 模板脚本的结果处理链路（离线执行，不联网）：
      * results.results().stream().map(e->{...}).toList() 中 WebSearchResults 接收者、
      * Stream.map、WebSearchOrganicResult 访问器（title/url/snippet/content/metadata）
@@ -1973,7 +2090,7 @@ class GroovyScriptExecutorTest {
     void execute_webSearchResultsMapping_allowed() {
         String code = """
                 import com.alibaba.fastjson.JSONObject
-                
+
                 return results.results().stream().map(e->{
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("title",e.title());

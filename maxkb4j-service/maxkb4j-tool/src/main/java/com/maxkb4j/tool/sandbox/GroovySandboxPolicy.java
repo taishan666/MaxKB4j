@@ -470,12 +470,16 @@ public final class GroovySandboxPolicy {
                     "isValid", "isValidArray", "isValidObject")),
             Map.entry("io.github.mymonstercat.ocr.InferenceEngine", Set.of("getInstance")),
             Map.entry("com.maxkb4j.common.util.SpringUtil", Set.of("getBean", "getBeansOfType")),
+            // 文件操作（java.nio.file 白名单入口）：读取、元数据检查与变更方法均仅放行
+            // 真实目标位于系统临时目录内的调用，运行期由 validateFilesAccess 校验路径边界
+            // （内置 Rapid-OCR 工具落盘临时图片依赖此受限能力）；createDirectories 等
+            // 其余变更方法移出白名单
             Map.entry("java.nio.file.Files", Set.of(
                     "readString", "readAllLines", "readAllBytes",
                     "write", "writeString",
                     "exists", "notExists", "size",
                     "isRegularFile", "isDirectory", "isReadable", "isWritable",
-                    "createDirectories", "createTempFile", "delete", "deleteIfExists")),
+                    "createTempFile", "delete", "deleteIfExists")),
             // MongoDB：MongoClients.create(connectionString) 创建客户端；
             // Document.parse(json) 解析 JSON 查询条件
             Map.entry("com.mongodb.client.MongoClients", Set.of("create")),
@@ -607,6 +611,38 @@ public final class GroovySandboxPolicy {
      * 受控 HTTP 客户端允许的 URL 协议：仅 http/https，禁止 file:/jar:/ftp: 等读取本地资源。
      */
     private static final Set<String> ALLOWED_URL_PROTOCOLS = Set.of("http", "https");
+    /**
+     * 文件访问边界：系统临时目录的真实绝对路径（{@code createTempFile} 未指定 dir 时
+     * JDK 的落点与该目录一致，因此受限文件能力覆盖内置 OCR 等工具的临时文件流程）。
+     */
+    private static final java.nio.file.Path TEMP_DIR_ROOT = canonicalTempDirRoot();
+
+    private static java.nio.file.Path canonicalTempDirRoot() {
+        java.nio.file.Path root = java.nio.file.Path.of(
+                        System.getProperty("java.io.tmpdir", System.getProperty("user.dir", ".")))
+                .toAbsolutePath().normalize();
+        try {
+            return root.toRealPath();
+        } catch (java.io.IOException e) {
+            return root;
+        }
+    }
+    /**
+     * Path 接收者上禁止调用的文件变更类方法（含 ResourceGroovyMethods 扩展方法）。
+     * <p>
+     * Files 静态变更方法已收敛到临时目录边界；但写文件还能以实例方法形式经 DGM 扩展
+     * 落到任意路径，其中 withWriter/setText/leftShift 因 HTTP 写请求体、邮件正文、
+     * List 追加等需要存在于通用方法白名单 {@link #ALLOWED_METHODS}，而接收者 Path 又
+     * 在类白名单中，若不按接收者类型封堵，脚本可用 {@code path.withWriter { ... }}、
+     * {@code path.setText(...)}、{@code path << "..."} 绕过临时目录边界写出文件。
+     * 其余写入方法名（write/append/newOutputStream 等）本就不在通用方法白名单中，
+     * 此处一并登记以固化「Path 无写通道」语义。
+     * </p>
+     */
+    private static final Set<String> PATH_MUTATING_METHODS = Set.of(
+            "withWriter", "withWriterAppend", "setText", "leftShift",
+            "write", "append", "newWriter", "newBufferedWriter", "newOutputStream",
+            "withOutputStream", "withDataOutputStream", "delete", "deleteDir");
 
     // ==================================================================
     // 编译期 / 运行期共用的判定方法
@@ -921,6 +957,55 @@ public final class GroovySandboxPolicy {
             return idx > 0 ? first.substring(0, idx) : null;
         }
         return first;
+    }
+
+    /**
+     * Files 静态调用的路径边界校验（运行期）：所有 Path 参数的 lexical path 与真实路径
+     * 都必须位于系统临时目录内，覆盖读取、元数据检查、写入和删除，阻止任意文件访问。
+     * 对已存在目标使用 toRealPath 跟随符号链接；对尚不存在的写入目标校验其真实父目录，
+     * 防止通过临时目录内的符号链接访问外部文件。delete/deleteIfExists 额外拒绝临时目录根。
+     */
+    public static void validateFilesAccess(Class<?> sender, String method, Object... args) {
+        if (sender == null || !java.nio.file.Files.class.equals(sender) || args == null) {
+            return;
+        }
+        boolean isDelete = "delete".equals(method) || "deleteIfExists".equals(method);
+        for (Object arg : args) {
+            if (arg instanceof java.nio.file.Path target) {
+                java.nio.file.Path absolute = target.toAbsolutePath().normalize();
+                java.nio.file.Path realTarget = resolveRealTarget(absolute);
+                if (!absolute.startsWith(TEMP_DIR_ROOT) || !realTarget.startsWith(TEMP_DIR_ROOT)
+                        || (isDelete && absolute.equals(TEMP_DIR_ROOT))) {
+                    throw new SecurityException("Files." + method + " 仅允许操作系统临时目录内的路径: "
+                            + target + "（临时目录: " + TEMP_DIR_ROOT + "）");
+                }
+            }
+        }
+    }
+
+    private static java.nio.file.Path resolveRealTarget(java.nio.file.Path target) {
+        try {
+            if (java.nio.file.Files.exists(target, java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+                return target.toRealPath();
+            }
+            java.nio.file.Path parent = target.getParent();
+            if (parent == null) {
+                return target;
+            }
+            return parent.toRealPath().resolve(target.getFileName()).normalize();
+        } catch (java.io.IOException | SecurityException e) {
+            throw new SecurityException("无法校验文件访问路径: " + target, e);
+        }
+    }
+
+    /**
+     * 接收者为 {@link java.nio.file.Path} 且方法具备文件变更（写/删/追加）能力时返回 true：
+     * 编译期（接收者静态类型已知时）与运行期共同封堵，确保 Path 上不存在任何写通道。
+     */
+    public static boolean isPathMutatingMethod(Class<?> receiverClass, String method) {
+        return receiverClass != null
+                && java.nio.file.Path.class.isAssignableFrom(receiverClass)
+                && PATH_MUTATING_METHODS.contains(method);
     }
 
     /**

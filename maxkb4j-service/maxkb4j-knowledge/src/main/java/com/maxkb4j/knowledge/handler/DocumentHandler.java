@@ -227,10 +227,19 @@ public class DocumentHandler {
             EasyExcel.read(new ByteArrayInputStream(bytes), new AnalysisEventListener<Map<Integer, String>>() {
                 Map<Integer, String> headMap = new LinkedHashMap<>();
 
-                // 表头信息会在此方法中获取
+                // 表头信息会在此方法中获取；空表头单元格（缺键或 null 值）补齐为占位名，避免后续拼出 "null:值"
                 @Override
                 public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
-                    this.headMap = headMap;
+                    Map<Integer, String> normalized = new LinkedHashMap<>();
+                    int lastCol = -1;
+                    for (Integer key : headMap.keySet()) {
+                        lastCol = Math.max(lastCol, key);
+                    }
+                    for (int i = 0; i <= lastCol; i++) {
+                        String header = headMap.get(i);
+                        normalized.put(i, header == null || header.trim().isEmpty() ? "列" + (i + 1) : header);
+                    }
+                    this.headMap = normalized;
                 }
 
                 // 每一行数据都会调用此方法
@@ -240,7 +249,8 @@ public class DocumentHandler {
                     List<String> row = new ArrayList<>();
                     for (Integer i : data.keySet()) {
                         String value = data.get(i) == null ? "" : data.get(i);
-                        row.add(headMap.get(i) + ":" + value);
+                        String header = headMap.get(i);
+                        row.add((header == null ? "列" + (i + 1) : header) + ":" + value);
                     }
                     ParagraphSimple paragraph = ParagraphSimple.builder()
                             .title("")

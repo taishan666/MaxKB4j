@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 触发器管理控制器
@@ -35,16 +36,22 @@ public class WebhookTriggerController {
     private final TriggerTaskExecutor triggerTaskExecutor;
 
     /**
-     * Webhook 访问频率限制缓存（IP -> 最后访问时间）。
-     * 限制每个 IP 在 1 分钟内最多访问 60 次。
+     * Webhook 访问频率限制缓存（窗口 key -> 计数器）。
+     * 窗口桶编号 = 时间戳(秒) / 窗口长度，写入永远落在当前窗口的新 key 上，
+     * 旧窗口条目到期自动淘汰，不会因持续访问被重写而续期。
      */
-    private final Cache<String, Long> rateLimitCache = Caffeine.newBuilder()
+    private final Cache<String, AtomicInteger> rateLimitCache = Caffeine.newBuilder()
             .maximumSize(10000)
-            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .expireAfterWrite(2, TimeUnit.MINUTES)
             .build();
 
     /**
-     * 每分钟允许的最大请求次数。
+     * 限流窗口长度（秒）。
+     */
+    private static final long RATE_LIMIT_WINDOW_SECONDS = 60;
+
+    /**
+     * 单个窗口内每个 IP 允许的最大请求次数。
      */
     private static final int RATE_LIMIT_PER_MINUTE = 60;
 
@@ -55,18 +62,18 @@ public class WebhookTriggerController {
 
     @PostMapping("/trigger/v1/webhook/{id}")
     public R<Boolean> webhook(@PathVariable String id, @RequestBody JSONObject data) {
-        // 访问频率限制，防止滥用
+        // 访问频率限制，防止滥用：固定窗口计数，窗口 key 随时间滚动
         String clientIp = WebUtil.getIP();
-        Long lastAccess = rateLimitCache.getIfPresent(clientIp);
-        if (lastAccess != null) {
-            long count = rateLimitCache.estimatedSize();
-            // 简化实现：使用时间窗口计数
-            rateLimitCache.put(clientIp, lastAccess + 1);
-            if (lastAccess >= RATE_LIMIT_PER_MINUTE) {
-                return R.fail(429, "trigger.rate.limit.exceeded");
-            }
-        } else {
-            rateLimitCache.put(clientIp, 1L);
+        if (clientIp == null || clientIp.isEmpty()) {
+            clientIp = "unknown";
+        }
+        String cacheKey = clientIp + ":" + (System.currentTimeMillis() / 1000L / RATE_LIMIT_WINDOW_SECONDS);
+        AtomicInteger counter = rateLimitCache.get(cacheKey, k -> new AtomicInteger(0));
+        assert counter != null;
+        if (counter.incrementAndGet() > RATE_LIMIT_PER_MINUTE) {
+            log.warn("Webhook 限流触发: id={}, ip={}, count={}, limit={}/{}s",
+                    id, clientIp, counter.get(), RATE_LIMIT_PER_MINUTE, RATE_LIMIT_WINDOW_SECONDS);
+            return R.fail(429, I18nUtil.get("trigger.rate.limit.exceeded"));
         }
 
         EventTriggerEntity eventTrigger = eventTriggerService.getById(id);

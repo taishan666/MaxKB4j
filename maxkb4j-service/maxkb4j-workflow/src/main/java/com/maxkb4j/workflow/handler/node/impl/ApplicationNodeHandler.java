@@ -53,6 +53,9 @@ public class ApplicationNodeHandler extends StreamNodeHandler {
         ChatParams chatParams = chatWorkflow.getChatParams();
         ChatState chatState = chatWorkflow.getChatState();
         String chatId = chatParams.getChatId() + "_" + params.getApplicationId();
+        // chatMessage 仅认缓存或库中已初始化的会话，先补初始化：
+        // 新会话写入缓存，已持久化的子会话从库中恢复历史记录
+        chatService.getOrCreateChatInfo(chatId, params.getApplicationId(), chatState.getChatUserId());
         // 获取各种文件列表
         List<OssFile> docList = getOssFiles(workflow, params.getDocumentList());
         List<OssFile> imageList = getOssFiles(workflow, params.getImageList());

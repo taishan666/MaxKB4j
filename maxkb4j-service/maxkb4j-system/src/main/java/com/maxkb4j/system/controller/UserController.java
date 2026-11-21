@@ -43,7 +43,7 @@ public class UserController {
         return R.data(userService.listActiveUserNames());
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = {RoleConst.ADMIN, RoleConst.USER}, mode = SaMode.OR)
     @PostMapping("/user/language")
     public R<Boolean> language(@Valid @RequestBody UserLanguageDTO dto) {
         UserEntity user = new UserEntity();

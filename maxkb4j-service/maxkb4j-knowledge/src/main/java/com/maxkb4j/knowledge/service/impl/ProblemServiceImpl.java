@@ -22,10 +22,13 @@ import com.maxkb4j.knowledge.vo.ProblemVO;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.service.Result;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.CollectionUtils;
@@ -47,6 +50,13 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
     private final IProblemParagraphService problemParagraphService;
     private final IDataStore compositeStore;
     private final KnowledgeModelService knowledgeModelService;
+    private final PlatformTransactionManager transactionManager;
+    private TransactionTemplate transactionTemplate;
+
+    @PostConstruct
+    private void initTransactionTemplate() {
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+    }
 
     /**
      * 分页查询指定知识库下的问题
@@ -86,48 +96,41 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
             log.info("AI 未生成有效问题，段落 ID: {}", paragraph.getId());
             return;
         }
-        // 去重并准备新增问题
+        // LLM 可能返回重复或空问题：过滤空值并按内容去重，避免同一 problemId 的实体重复入批、关联表插入重复行
+        generatedQuestions = generatedQuestions.stream().filter(q -> q != null && !q.isBlank()).distinct().toList();
+        // content -> problemId：已有问题与本批新问题共用一张映射表，保证同一内容只分配一个 ID
         Map<String, String> problemMap = existingProblems.stream()
                 .collect(Collectors.toMap(ProblemEntity::getContent, ProblemEntity::getId, (n, o) -> n));
 
-        // 预收集所有需要检查关联的问题ID，批量查询避免 N+1
+        // 新问题实体在此一次性创建并按内容登记，杜绝同 ID 实体重复入批
+        Map<String, ProblemEntity> newProblemMap = new LinkedHashMap<>();
         List<String> allProblemIds = new ArrayList<>();
-        List<String> newQuestions = new ArrayList<>();
         for (String question : generatedQuestions) {
-            if (problemMap.containsKey(question)) {
-                allProblemIds.add(problemMap.get(question));
-            } else {
-                String problemId = IdWorker.get32UUID();
+            String problemId = problemMap.get(question);
+            if (problemId == null) {
+                problemId = IdWorker.get32UUID();
                 problemMap.put(question, problemId);
                 ProblemEntity newProblem = ProblemEntity.createDefault();
                 newProblem.setId(problemId);
                 newProblem.setKnowledgeId(knowledgeId);
                 newProblem.setContent(question);
-                allProblemIds.add(problemId);
-                newQuestions.add(question);
+                newProblemMap.put(question, newProblem);
             }
+            allProblemIds.add(problemId);
         }
 
         // 批量查询已存在的关联
         Set<String> existingAssocSet = findExistingAssociations(allProblemIds, paragraph.getId());
 
-        List<ProblemEntity> newProblems = new ArrayList<>();
+        // 关联表每行只构建一次：已存在的关联跳过，其余按 problemId 建行
         List<ProblemParagraphVO> associations = new ArrayList<>();
         for (String question : generatedQuestions) {
             String problemId = problemMap.get(question);
-            // 检查关联是否已存在（用预查询的 Set）
             if (!existingAssocSet.contains(problemId)) {
                 associations.add(buildProblemParagraph(knowledgeId, docId, paragraph.getId(), problemId, question));
             }
-            // 如果是新问题，添加到新增列表
-            if (newQuestions.contains(question)) {
-                ProblemEntity newProblem = ProblemEntity.createDefault();
-                newProblem.setId(problemId);
-                newProblem.setKnowledgeId(knowledgeId);
-                newProblem.setContent(question);
-                newProblems.add(newProblem);
-            }
         }
+        List<ProblemEntity> newProblems = new ArrayList<>(newProblemMap.values());
         // 短事务：仅落库，不包含远程调用
         if (!newProblems.isEmpty()) {
             boolean saved = this.saveBatchProblems(newProblems);
@@ -153,11 +156,17 @@ public class ProblemServiceImpl extends ServiceImpl<ProblemMapper, ProblemEntity
     }
 
     /**
-     * 仅做 DB 落库的短事务方法；向量索引由调用方在事务外触发
+     * 仅做 DB 落库的短事务方法；向量索引由调用方在事务外触发。
+     *
+     * <p>本方法只被同类 {@code this.} 自调用（generateRelated / createProblemsByDatasetId），
+     * 代理会被绕过导致 {@code @Transactional} 失效，故改用 {@link TransactionTemplate} 编程式事务。
+     * 事务激活后，MyBatis-Plus {@code saveBatch} 内部的批量会话会加入当前事务，随其统一提交/回滚。
      */
-    @Transactional(rollbackFor = Exception.class)
     public boolean saveBatchProblems(List<ProblemEntity> problems) {
-        return problems.isEmpty() || this.saveBatch(problems);
+        if (problems.isEmpty()) {
+            return true;
+        }
+        return Boolean.TRUE.equals(transactionTemplate.execute(status -> this.saveBatch(problems)));
     }
 
     public void reIndexBatch(String knowledgeId, List<String> problemIds) {

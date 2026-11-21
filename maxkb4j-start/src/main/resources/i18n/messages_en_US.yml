@@ -74,6 +74,11 @@ user:
     empty: Password cannot be empty
     not:
       match: Passwords do not match
+  delete:
+    admin:
+      forbidden: Admin accounts cannot be deleted
+    resource:
+      exists: The user owns applications, knowledge bases, models or tools. Remove or transfer them before deleting the user
 
 email:
   subject:
@@ -120,6 +125,8 @@ chat:
     invalid:
       or:
         disabled: Token is invalid or disabled
+  message:
+    required: The messages field must contain a non-empty message with the user role
 
 rate:
   limit:
@@ -175,10 +182,16 @@ trigger:
   token:
     auth:
       failed: Token authentication failed
+  rate:
+    limit:
+      exceeded: Too many requests, please try again later
 workflow:
   condition:
     "no":
       match: The condition node did not match any branch
+  intent:
+    "no":
+      match: The intent classification node did not match any branch
 
 knowledge:
   document:

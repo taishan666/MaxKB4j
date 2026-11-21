@@ -231,4 +231,12 @@ public class UserResourcePermissionServiceImpl extends ServiceImpl<UserResourceP
         return this.lambdaQuery().eq(UserResourcePermissionEntity::getUserId, userId).list();
     }
 
+    @Override
+    public boolean removeByUserIds(List<String> userIds) {
+        if (CollectionUtils.isEmpty(userIds)) {
+            return false;
+        }
+        return this.lambdaUpdate().in(UserResourcePermissionEntity::getUserId, userIds).remove();
+    }
+
 }
