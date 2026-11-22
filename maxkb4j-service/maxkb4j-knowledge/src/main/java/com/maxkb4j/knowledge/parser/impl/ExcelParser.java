@@ -48,6 +48,15 @@ public class ExcelParser implements DocumentParser {
 
             @Override
             public void invoke(Map<Integer, String> data, AnalysisContext context) {
+                // 以数据实际列数为准：行宽超出表头时用占位名扩展表头，避免多出的列被静默丢弃；
+                // 无表头 sheet（headMap 为空）也由此按数据列数生成占位表头，避免整表数据丢失
+                int lastCol = -1;
+                for (Integer key : data.keySet()) {
+                    lastCol = Math.max(lastCol, key);
+                }
+                for (int i = headers.size(); i <= lastCol; i++) {
+                    headers.add("列" + (i + 1));
+                }
                 List<String> row = new ArrayList<>();
                 for (int i = 0; i < headers.size(); i++) {
                     String value = data.get(i);
@@ -84,8 +93,13 @@ public class ExcelParser implements DocumentParser {
         markdown.append("\n");
         // 数据行
         for (List<String> row : rows) {
+            // 表头可能被后续更宽的数据行扩展，补齐先加入的短行，保证各行列数与表头一致
+            while (row.size() < headers.size()) {
+                row.add("");
+            }
             for (String cell : row) {
-                markdown.append("| ").append(cell.replaceAll("\n", "<br>"));
+                // 转义竖线并处理换行，避免单元格内容破坏 Markdown 表格（与 DocParser 口径一致）
+                markdown.append("| ").append(cell.replace("|", "\\|").replace("\r", "").replace("\n", "<br>"));
             }
             markdown.append(" |\n");
         }

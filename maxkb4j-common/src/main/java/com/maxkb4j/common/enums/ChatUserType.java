@@ -16,7 +16,9 @@ public enum ChatUserType {
     /* 应用API_KEY*/
     APPLICATION_API_KEY("APPLICATION_API_KEY", "应用API_KEY"),
     /*平台用户*/
-    PLATFORM_USER("PLATFORM_USER", "平台用户");
+    PLATFORM_USER("PLATFORM_USER", "平台用户"),
+    /*触发器（事件触发器的机器调用方，非真实客户）*/
+    TRIGGER_USER("TRIGGER_USER", "触发器");
 
     private final String key;
     private final String name;

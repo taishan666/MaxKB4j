@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,6 +33,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.mockito.ArgumentCaptor;
+import com.maxkb4j.common.enums.ChatUserType;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
@@ -53,6 +56,7 @@ class ChatOpenAiControllerTest {
 
     private static ApplicationApiKeyDTO validApiKey() {
         ApplicationApiKeyDTO apiKey = new ApplicationApiKeyDTO();
+        apiKey.setId("api-key-1");
         apiKey.setIsActive(true);
         apiKey.setApplicationId("app-1");
         return apiKey;
@@ -173,6 +177,28 @@ class ChatOpenAiControllerTest {
         assertTrue(result.getResponse().getStatus() == 200, "status=" + result.getResponse().getStatus());
         assertTrue(body.contains("rate.limit.exceeded"), body);
         assertFalse(body.contains("Unrecognized Type"), body);
+    }
+
+    /**
+     * chatUserId 必须取 API Key 实体 id（稳定身份）：同一 Key 的调用共享同一统计行，
+     * accessNum 每日上限才能对 API 调用生效；若每次调用随机生成，统计表会每次新增一行
+     * （INSERT ... ON CONFLICT 恒为 firstVisit）且客户数趋势把每个请求算成新客户。
+     */
+    @Test
+    void chatStateCarriesStableApiKeyUserId() throws Exception {
+        ArgumentCaptor<ChatState> captor = ArgumentCaptor.forClass(ChatState.class);
+        when(chatService.chatMessage(any(ChatParams.class), any(ChatState.class), any()))
+                .thenReturn(sampleChatResponse());
+
+        mvc.perform(post("/chat/api/app-1/chat/completions")
+                        .accept(MediaType.ALL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body(false)))
+                .andReturn();
+
+        verify(chatService).chatMessage(any(ChatParams.class), captor.capture(), any());
+        assertEquals("api-key-1", captor.getValue().getChatUserId());
+        assertEquals(ChatUserType.APPLICATION_API_KEY, captor.getValue().getChatUserType());
     }
 
     @Test

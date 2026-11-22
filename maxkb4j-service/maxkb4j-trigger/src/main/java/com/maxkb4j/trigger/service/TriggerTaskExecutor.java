@@ -11,6 +11,7 @@ import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatSource;
+import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.tool.dto.ToolDTO;
 import com.maxkb4j.tool.service.IToolExecuteService;
 import com.maxkb4j.tool.service.IToolService;
@@ -123,6 +124,11 @@ public class TriggerTaskExecutor {
                         .build();
                 ChatState chatState = ChatState.builder()
                         .appId(appId)
+                        // 以触发器 id 作为稳定 chatUserId（任务在触发器编辑时会被删除重建，triggerId 才稳定）：
+                        // 同一触发器的执行共享同一统计行，accessNum 每日上限对触发器生效，
+                        // 也不会每次执行都新增统计行（客户数趋势虚高）
+                        .chatUserId(task.getTriggerId())
+                        .chatUserType(ChatUserType.TRIGGER_USER)
                         .source(ChatSource.TRIGGER)
                         .build();
                 // 异步执行 LLM 会话，避免阻塞调度线程；添加超时保护

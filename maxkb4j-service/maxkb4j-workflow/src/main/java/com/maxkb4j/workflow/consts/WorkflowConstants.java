@@ -255,13 +255,6 @@ public interface WorkflowConstants {
     }
 
     /**
-     * Spring Bean 名称
-     */
-    interface BeanName {
-        String WORKFLOW_TASK_EXECUTOR = "workflowTaskExecutor";
-    }
-
-    /**
      * 业务消息码
      */
     interface MessageCode {

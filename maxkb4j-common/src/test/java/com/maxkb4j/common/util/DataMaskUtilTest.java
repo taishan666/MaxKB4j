@@ -49,6 +49,20 @@ class DataMaskUtilTest {
     }
 
     @Test
+    void maskEmail_handlesTrailingAtWithoutThrowing() {
+        // split 会丢弃尾部空串导致 parts[1] 越界，此处固定回归
+        assertThat(DataMaskUtil.maskEmail("user@")).isEqualTo("us****r@");
+        assertThat(DataMaskUtil.maskEmail("ab@")).isEqualTo("*@");
+    }
+
+    @Test
+    void maskEmail_handlesEmptyUsernameAndMultipleAt() {
+        assertThat(DataMaskUtil.maskEmail("@")).isEqualTo("*@");
+        assertThat(DataMaskUtil.maskEmail("@example.com")).isEqualTo("*@example.com");
+        assertThat(DataMaskUtil.maskEmail("a@b@c")).isEqualTo("*@b@c");
+    }
+
+    @Test
     void maskBankCard_keepsFirstSixAndLastFour() {
         assertThat(DataMaskUtil.maskBankCard("6222021234567890123")).isEqualTo("622202****0123");
     }

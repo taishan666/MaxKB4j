@@ -176,9 +176,10 @@ public class ChatApiService {
                             .build();
                     ChatState chatState = ChatState.builder()
                             .appId(apiKey.getApplicationId())
-                            // 使用稳定的 chatUserId，避免每次调用都在统计表新增一行
-                            .chatUserId(IdWorker.get32UUID())
-                            .chatUserType(ChatUserType.ANONYMOUS_USER)
+                            // 以 API Key 实体 id 作为稳定 chatUserId：同一 Key 的调用共享同一统计行，
+                            // accessNum 每日上限对 MCP 调用生效，也不会每次调用都新增统计行（客户数趋势虚高）
+                            .chatUserId(apiKey.getId())
+                            .chatUserType(ChatUserType.APPLICATION_API_KEY)
                             .source(ChatSource.API_CALL)
                             .debug(false)
                             .build();

@@ -1,7 +1,6 @@
 package com.maxkb4j.chat.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.maxkb4j.application.dto.ApplicationApiKeyDTO;
 import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.common.domain.vo.ResultCallback;
@@ -107,37 +106,40 @@ public class ChatOpenAiController {
     @Operation(summary = "聊天对话", description = "兼容 OpenAI Chat Completions API 格式")
     @PostMapping(value = "/{appId}/chat/completions", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> chatCompletionStream(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
-        authenticate(appId);
-        PreparedChat prepared = prepareChat(appId, request);
+        ApplicationApiKeyDTO apiKey = authenticate(appId);
+        PreparedChat prepared = prepareChat(appId, request, apiKey);
         return handleStreamResponse(request, prepared.params(), prepared.chatState());
     }
 
     @Operation(summary = "聊天对话", description = "兼容 OpenAI Chat Completions API 格式")
     @PostMapping(value = "/{appId}/chat/completions", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> chatCompletionSync(@PathVariable String appId, @RequestBody OpenAIChatCompletionRequest request) {
-        authenticate(appId);
-        PreparedChat prepared = prepareChat(appId, request);
+        ApplicationApiKeyDTO apiKey = authenticate(appId);
+        PreparedChat prepared = prepareChat(appId, request, apiKey);
         return handleSyncResponse(request, prepared.params(), prepared.chatState());
     }
 
     /**
      * 通过 Authorization Bearer secretKey 认证；API Key 按应用签发，
      * 须与路径中的 appId 匹配，防止跨应用越权调用。
+     *
+     * @return 认证通过的 API Key（供调用链作为稳定身份使用）
      */
-    private void authenticate(String appId) {
+    private ApplicationApiKeyDTO authenticate(String appId) {
         String secretKey = WebUtil.getTokenValue();
         ApplicationApiKeyDTO apiKey = apiKeyService.getBySecretKey(secretKey);
         if (apiKey == null || !Boolean.TRUE.equals(apiKey.getIsActive())
                 || !Objects.equals(apiKey.getApplicationId(), appId)) {
             throw new ApiException("chat.token.invalid.or.disabled");
         }
+        return apiKey;
     }
 
     /**
      * Prepare the shared request context: open a chat session, seed conversation history,
      * and build ChatParams / ChatState used by the business execution.
      */
-    private PreparedChat prepareChat(String appId, OpenAIChatCompletionRequest request) {
+    private PreparedChat prepareChat(String appId, OpenAIChatCompletionRequest request, ApplicationApiKeyDTO apiKey) {
         // 手工构建 ChatParams 不经过 @Valid/@NotBlank：messages 无 user 角色（或内容为空）时
         // getLastUserMessage() 返回 null，必须在此显式拦截，避免 null 问题穿透到持久化层
         // （ChatPostHandler.saveChat 中 problemText.length() NPE）；先校验再开会话，无效请求不建会话
@@ -149,7 +151,9 @@ public class ChatOpenAiController {
         ChatParams params = convertToChatParams(request, chatId);
         ChatState chatState = ChatState.builder()
                 .appId(appId)
-                .chatUserId(IdWorker.get32UUID())
+                // 以 API Key 实体 id 作为稳定 chatUserId：同一 Key 的调用共享同一统计行，
+                // accessNum 每日上限对 API 调用生效，也不会每次调用都新增统计行（客户数趋势虚高）
+                .chatUserId(apiKey.getId())
                 .chatUserType(ChatUserType.APPLICATION_API_KEY)
                 .source(ChatSource.API_CALL)
                 .ipAddress(WebUtil.getIP())

@@ -68,42 +68,43 @@ public class HttpRequestExecutor extends AbsToolExecutor {
             variables.putAll(initParams);
         }
         HttpRequest request = HttpUtil.createRequest(data.getMethod(), data.getUrl());
-        List<KeyAndValue> headers = data.getHeaders();
-        for (KeyAndValue header : headers) {
+        // 模板渲染结果只写入局部变量，严禁回写共享字段 data：
+        // langchain4j 在一次 AiService 调用的 agentic 循环里复用同一 ToolExecutor 实例，
+        // 若原地写回，占位符会被首次调用的值永久替换，第二次调用将携带首次调用的参数值，
+        // 且凭据字段（username/password/token）被改写后无法还原
+        for (KeyAndValue header : data.getHeaders()) {
             if (StringUtils.isNotBlank(header.getKey()) && Objects.nonNull(header.getValue())) {
-                header.setKey(renderPrompt(header.getKey(), variables));
-                header.setValue(renderPrompt(String.valueOf(header.getValue()), variables));
-                request.header(header.getKey(), String.valueOf(header.getValue()));
+                String key = renderPrompt(header.getKey(), variables);
+                String value = renderPrompt(String.valueOf(header.getValue()), variables);
+                request.header(key, value);
             }
         }
         if (StringUtils.isNotBlank(data.getBody())) {
-            data.setBody(renderPrompt(data.getBody(), variables));
-            request.body(data.getBody());
+            String body = renderPrompt(data.getBody(), variables);
+            request.body(body);
         }
-        List<KeyAndValue> params = data.getParams();
-        for (KeyAndValue param : params) {
+        for (KeyAndValue param : data.getParams()) {
             if (StringUtils.isNotBlank(param.getKey()) && Objects.nonNull(param.getValue())) {
-                param.setKey(renderPrompt(param.getKey(), variables));
-                param.setValue(renderPrompt(String.valueOf(param.getValue()), variables));
-                request.form(param.getKey(), param.getValue());
+                String key = renderPrompt(param.getKey(), variables);
+                String value = renderPrompt(String.valueOf(param.getValue()), variables);
+                request.form(key, value);
             }
         }
         if (StringUtils.isNotBlank(data.getAuthType())) {
             switch (data.getAuthType()) {
                 case "basic":
-                    data.setUsername(renderPrompt(data.getUsername(), variables));
-                    data.setPassword(renderPrompt(data.getPassword(), variables));
-                    request.basicAuth(data.getUsername(), data.getPassword());
+                    request.basicAuth(renderPrompt(data.getUsername(), variables),
+                            renderPrompt(data.getPassword(), variables));
                     break;
                 case "bearer":
-                    data.setToken(renderPrompt(data.getToken(), variables));
-                    request.bearerAuth(data.getToken());
+                    request.bearerAuth(renderPrompt(data.getToken(), variables));
                     break;
             }
         }
-        data.setTimeout(data.getTimeout() == null ? 30 : data.getTimeout());
+        Integer configuredTimeout = data.getTimeout();
+        int timeoutSeconds = configuredTimeout == null ? 30 : configuredTimeout;
         // 用 long 计算避免 int 溢出（timeout 秒值来自用户工具配置，无上限校验）
-        long timeoutMillis = data.getTimeout() * 1000L;
+        long timeoutMillis = timeoutSeconds * 1000L;
         request.timeout((int) Math.min(timeoutMillis, Integer.MAX_VALUE));
         // 响应所有权移交给调用方：消费完 body 后必须关闭（HttpResponse 为 Closeable）
         return request.execute();

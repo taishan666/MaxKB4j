@@ -1,7 +1,6 @@
 package com.maxkb4j.start.listener;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.cache.SystemCache;
 import com.maxkb4j.common.cache.SystemKeySetting;
 import com.maxkb4j.common.enums.SettingType;
@@ -24,6 +23,7 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author tarzan
@@ -45,7 +45,7 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
             userService.createDefaultAdminUser();
         }
         List<SystemSettingEntity> systemSettings = systemSettingService.list();
-        if (CollectionUtils.isEmpty(systemSettings)) {
+        if (systemSettings.stream().noneMatch(setting -> Objects.equals(setting.getType(), SettingType.KEY.getType()))) {
             try {
                 KeyPair keyPair = RSAUtil.generateRSAKeyPair();
                 PublicKey publicKey = keyPair.getPublic();

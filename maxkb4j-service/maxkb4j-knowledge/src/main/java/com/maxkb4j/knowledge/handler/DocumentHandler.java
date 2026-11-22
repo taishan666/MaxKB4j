@@ -6,6 +6,7 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.fastjson.JSON;
+import com.maxkb4j.common.exception.FileLimitExceededException;
 import com.maxkb4j.knowledge.util.EncodingDetectUtil;
 import com.maxkb4j.knowledge.util.FilePathSecurityUtil;
 import com.maxkb4j.knowledge.dto.DocumentSimple;
@@ -42,28 +43,70 @@ public class DocumentHandler {
 
     private final IOssService ossService;
 
+    /** ZIP 条目数量上限 */
+    private static final int ZIP_ENTRY_COUNT_LIMIT = 1000;
+    /** 单个 ZIP 条目解压后大小上限：100MB */
+    private static final long ZIP_ENTRY_SIZE_LIMIT = 100L * 1024 * 1024;
+    /** ZIP 全部条目解压后总大小上限：100MB，防止多个条目叠加构成解压炸弹 */
+    private static final long ZIP_TOTAL_SIZE_LIMIT = 100L * 1024 * 1024;
+    private static final int READ_BUFFER_SIZE = 8192;
+
     /**
      * 处理ZIP格式的QA文件
      */
     public List<DocumentSimple> processZipQaFile(MultipartFile zipFile) throws IOException {
         List<DocumentSimple> docs = new ArrayList<>();
+        // 全部条目有界读取：条目数、单条目解压大小、累计解压大小三重上限，防止解压炸弹撑爆内存
+        long totalUncompressedSize = 0;
+        int entryCount = 0;
         try (InputStream fis = zipFile.getInputStream(); ZipArchiveInputStream zipIn = new ZipArchiveInputStream(fis)) {
             ArchiveEntry entry;
             while ((entry = zipIn.getNextEntry()) != null) {
-                if (!entry.isDirectory() && isExcelOrCsv(entry.getName())) {
-                    // 防止路径穿越攻击
-                    String entryName = FilePathSecurityUtil.normalizeFilePath(entry.getName());
-                    if (entryName == null) {
-                        log.warn("非法的文件路径: {}", entry.getName());
-                        continue;
-                    }
-                    byte[] content = zipIn.readAllBytes();
-                    docs.addAll(processQaFile(content, entryName));
-                    break;
+                if (++entryCount > ZIP_ENTRY_COUNT_LIMIT) {
+                    throw new FileLimitExceededException("common.file.zip.entry.count.exceeded", ZIP_ENTRY_COUNT_LIMIT);
                 }
+                long remainingTotalSize = ZIP_TOTAL_SIZE_LIMIT - totalUncompressedSize;
+                if (entry.isDirectory() || !isExcelOrCsv(entry.getName())) {
+                    totalUncompressedSize += copyBounded(zipIn, OutputStream.nullOutputStream(), remainingTotalSize);
+                    continue;
+                }
+                // 防止路径穿越攻击
+                String entryName = FilePathSecurityUtil.normalizeFilePath(entry.getName());
+                if (entryName == null) {
+                    totalUncompressedSize += copyBounded(zipIn, OutputStream.nullOutputStream(), remainingTotalSize);
+                    log.warn("非法的文件路径: {}", entry.getName());
+                    continue;
+                }
+                try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+                    totalUncompressedSize += copyBounded(zipIn, output, remainingTotalSize);
+                    docs.addAll(processQaFile(output.toByteArray(), entryName));
+                }
+                break;
             }
         }
         return docs;
+    }
+
+    /**
+     * 有界读取当前条目：单条目及全包累计解压字节数任一超限立即失败，防止ZIP炸弹导致OOM
+     */
+    private long copyBounded(InputStream input, OutputStream output, long remainingTotalSize) throws IOException {
+        long entrySize = 0;
+        byte[] buffer = new byte[READ_BUFFER_SIZE];
+        int read;
+        while ((read = input.read(buffer)) != -1) {
+            if (read > ZIP_ENTRY_SIZE_LIMIT - entrySize) {
+                throw new FileLimitExceededException("common.file.zip.entry.size.exceeded",
+                        ZIP_ENTRY_SIZE_LIMIT / 1024 / 1024);
+            }
+            if (read > remainingTotalSize - entrySize) {
+                throw new FileLimitExceededException("common.file.zip.total.size.exceeded",
+                        ZIP_TOTAL_SIZE_LIMIT / 1024 / 1024);
+            }
+            output.write(buffer, 0, read);
+            entrySize += read;
+        }
+        return entrySize;
     }
 
     /**

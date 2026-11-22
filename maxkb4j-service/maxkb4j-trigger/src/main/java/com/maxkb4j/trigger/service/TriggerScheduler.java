@@ -16,6 +16,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -34,6 +35,12 @@ public class TriggerScheduler implements ApplicationRunner {
     private final NextRunTimeCalculator nextRunTimeCalculator;
 
     private final ConcurrentHashMap<String, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
+
+    /** 重调度失败后的补偿重试次数上限 */
+    private static final int RESCHEDULE_MAX_RETRIES = 3;
+
+    /** 重调度补偿重试间隔，用于熬过 DB 抖动等瞬时故障 */
+    private static final Duration RESCHEDULE_RETRY_DELAY = Duration.ofMinutes(5);
 
 
     @Override
@@ -132,15 +139,16 @@ public class TriggerScheduler implements ApplicationRunner {
         Instant instant = DateTimeUtil.toInstant(runTime);
 
         ScheduledFuture<?> future = taskScheduler.schedule(() -> {
-            executeTrigger(triggerId);
-            if (isDaily) {
-                rescheduleDaily(triggerId);
-            } else {
-                rescheduleFromSetting(triggerId);
+            try {
+                executeTrigger(triggerId);
+            } finally {
+                // executeTrigger 内部已捕获 Exception，finally 兜底极端情况（如 Error），
+                // 确保重调度必定被尝试，daily/weekly 调度链不因单次异常而断链
+                safeReschedule(triggerId, isDaily);
             }
         }, instant);
 
-        scheduledTasks.put(triggerId, future);
+        replaceScheduledTask(triggerId, future);
         log.info("Scheduled trigger {} to run at {}", triggerId, runTime);
     }
 
@@ -150,11 +158,70 @@ public class TriggerScheduler implements ApplicationRunner {
         ScheduledFuture<?> future = taskScheduler.scheduleAtFixedRate(
                 () -> executeTrigger(triggerId),
                 startInstant,
-                java.time.Duration.ofMillis(periodMillis)
+                Duration.ofMillis(periodMillis)
         );
 
-        scheduledTasks.put(triggerId, future);
+        replaceScheduledTask(triggerId, future);
         log.info("Scheduled trigger {} with interval {} {}", triggerId, intervalValue, intervalUnit);
+    }
+
+    /**
+     * 用新任务替换同 triggerId 的旧调度；若旧任务仍在等待触发则取消之，
+     * 防止补偿重调度与人工编辑保存并发时残留两条并行调度链导致重复执行。
+     */
+    private void replaceScheduledTask(String triggerId, ScheduledFuture<?> future) {
+        ScheduledFuture<?> old = scheduledTasks.put(triggerId, future);
+        if (old != null && !old.isDone() && !old.isCancelled()) {
+            old.cancel(false);
+            log.info("Replaced pending schedule for trigger {}", triggerId);
+        }
+    }
+
+    /**
+     * 一次性任务触发后的重调度入口。重调度链路上的任何异常（getById 的 DB 抖动、
+     * TriggerSetting.from 的非法 scheduleType、时间/天配置解析失败等）都在此捕获并进入有限次补偿重试，
+     * 保证异常不会逃逸到 ScheduledExecutorService 导致 daily/weekly 触发器静默停摆。
+     */
+    private void safeReschedule(String triggerId, boolean isDaily) {
+        try {
+            doReschedule(triggerId, isDaily);
+        } catch (Exception e) {
+            log.error("Failed to reschedule trigger {}: {}", triggerId, e.getMessage(), e);
+            scheduleRescheduleRetry(triggerId, isDaily, 1);
+        }
+    }
+
+    private void scheduleRescheduleRetry(String triggerId, boolean isDaily, int attempt) {
+        if (attempt > RESCHEDULE_MAX_RETRIES) {
+            log.error("Reschedule of trigger {} failed after {} retries, giving up; "
+                    + "the trigger will stay idle until it is edited again or the application is restarted",
+                    triggerId, RESCHEDULE_MAX_RETRIES);
+            return;
+        }
+        Instant retryAt = Instant.now().plus(RESCHEDULE_RETRY_DELAY);
+        try {
+            taskScheduler.schedule(() -> {
+                try {
+                    doReschedule(triggerId, isDaily);
+                } catch (Exception e) {
+                    log.error("Reschedule retry {}/{} failed for trigger {}: {}",
+                            attempt, RESCHEDULE_MAX_RETRIES, triggerId, e.getMessage(), e);
+                    scheduleRescheduleRetry(triggerId, isDaily, attempt + 1);
+                }
+            }, retryAt);
+            log.warn("Scheduled reschedule retry {}/{} for trigger {} at {}",
+                    attempt, RESCHEDULE_MAX_RETRIES, triggerId, retryAt);
+        } catch (Exception e) {
+            log.error("Failed to schedule reschedule retry for trigger {}: {}", triggerId, e.getMessage(), e);
+        }
+    }
+
+    private void doReschedule(String triggerId, boolean isDaily) {
+        if (isDaily) {
+            rescheduleDaily(triggerId);
+        } else {
+            rescheduleFromSetting(triggerId);
+        }
     }
 
     private void executeTrigger(String triggerId) {
@@ -171,6 +238,10 @@ public class TriggerScheduler implements ApplicationRunner {
         }
     }
 
+    /**
+     * 按 daily 重调度。可能抛出异常（getById 的 DB 抖动、TriggerSetting.from 的非法 scheduleType、
+     * 时间/天配置解析失败），仅由 {@link #safeReschedule(String, boolean)} 调用并守护。
+     */
     private void rescheduleDaily(String triggerId) {
         EventTriggerEntity trigger = eventTriggerService.getById(triggerId);
         if (!isActiveScheduledTrigger(trigger)) {
@@ -180,6 +251,11 @@ public class TriggerScheduler implements ApplicationRunner {
         scheduleDaily(triggerId, TriggerSetting.from(trigger.getTriggerSetting()));
     }
 
+    /**
+     * 按当前持久化配置重调度（尊重配置在两次触发之间被修改的情形）。
+     * 可能抛出异常（同 {@link #rescheduleDaily(String)}，另含 interval 配置非法时的 IAE），
+     * 仅由 {@link #safeReschedule(String, boolean)} 调用并守护。
+     */
     private void rescheduleFromSetting(String triggerId) {
         EventTriggerEntity trigger = eventTriggerService.getById(triggerId);
         if (!isActiveScheduledTrigger(trigger)) {

@@ -1,0 +1,14 @@
+-- ----------------------------
+-- 清理历史"每次调用一行"的机器调用方垃圾统计行
+-- 背景：修复前 OpenAI 兼容 API / MCP / 触发器每次调用都随机生成 chatUserId（或依赖
+-- ChatState 懒生成），visitCountOver 的 INSERT ... ON CONFLICT DO NOTHING 每次都新建
+-- 统计行并按"首次访问"放行，导致：① accessNum 每日访问上限对机器调用方完全不生效；
+-- ② 本表每次调用膨胀一行；③ 客户数趋势把每个请求都算成新客户。
+-- 修复后按稳定身份（API Key 实体 id / 触发器 id）复用单一统计行，本迁移清理存量垃圾。
+-- 判定依据：chat_user_type = 'APPLICATION_API_KEY' 的统计行仅可能由修复前的缺陷路径产生
+-- （OpenAI 兼容 API 每次调用写入一行，其余路径均写入 ANONYMOUS_USER 等类型），
+-- 其 chat_user_id 为每次调用随机生成，不与任何 application_api_key.id 对应，可安全删除。
+-- 说明：MCP / 触发器历史缺陷行写入的是 ANONYMOUS_USER 类型，与真实一次性匿名访客
+-- 无法区分，不做清理。
+-- ----------------------------
+DELETE FROM application_chat_user_stats WHERE chat_user_type = 'APPLICATION_API_KEY';

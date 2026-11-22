@@ -27,12 +27,16 @@ public class DataMaskUtil {
      * 邮箱脱敏：user****@domain.com
      */
     public static String maskEmail(String email) {
-        if (email == null || !email.contains("@")) {
+        if (email == null) {
             return email;
         }
-        String[] parts = email.split("@");
-        String username = parts[0];
-        String domain = parts[1];
+        // 用 indexOf 定位，避免 split 丢弃尾部空串导致 "user@" 形式输入 parts[1] 越界
+        int atIndex = email.indexOf('@');
+        if (atIndex < 0) {
+            return email;
+        }
+        String username = email.substring(0, atIndex);
+        String domain = email.substring(atIndex + 1);
         if (username.length() <= 2) {
             return "*@" + domain;
         }

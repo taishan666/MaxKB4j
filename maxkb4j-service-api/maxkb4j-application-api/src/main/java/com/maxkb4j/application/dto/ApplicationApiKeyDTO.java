@@ -6,6 +6,7 @@ import java.util.List;
 
 @Data
 public class ApplicationApiKeyDTO {
+    private String id;
     private String secretKey;
     private Boolean isActive;
     private String applicationId;

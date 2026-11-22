@@ -10,6 +10,8 @@
         application_chat_user_stats
         <where>
             APPLICATION_ID = #{appId}
+            <!-- 客户数只统计真实访客，排除 API Key / 触发器等机器调用方（其统计行用于访问上限计数） -->
+            AND (chat_user_type IS NULL OR chat_user_type NOT IN ('APPLICATION_API_KEY', 'TRIGGER_USER'))
             <if test="query.startTime != null and query.startTime != ''">
                 and  <![CDATA[TO_CHAR(create_time, 'YYYY-MM-DD') >= #{query.startTime} ]]>
             </if>
