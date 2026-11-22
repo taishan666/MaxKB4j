@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public abstract class AbsChatStep extends AbsStep {
@@ -88,17 +89,15 @@ public abstract class AbsChatStep extends AbsStep {
     /**
      * 检索结果为空且启用兜底时返回兜底回答，否则返回 null（继续走 AI 对话）。
      */
-    private AnswerResult resolveFallbackAnswer(ApplicationVO application, List<ParagraphRagVO> paragraphList) {
-        if (!paragraphList.isEmpty()) {
-            return null;
+    private AnswerResult resolveFallbackAnswer(ApplicationVO app, List<ParagraphRagVO> paragraphList) {
+        if (Objects.nonNull(app) && !CollectionUtils.isEmpty(app.getKnowledgeIds())) {
+            KnowledgeSetting knowledgeSetting = Optional.ofNullable(app.getKnowledgeSetting())
+                    .orElseGet(KnowledgeSetting::new);
+            if (Boolean.TRUE.equals(knowledgeSetting.getFallbackEnable()) && !CollectionUtils.isEmpty(paragraphList)) {
+                return AnswerResult.ofText(knowledgeSetting.getFallbackResponse());
+            }
         }
-        KnowledgeSetting knowledgeSetting = Optional.ofNullable(application.getKnowledgeSetting())
-                .orElseGet(KnowledgeSetting::new);
-        List<String> knowledgeIds = application.getKnowledgeIds();
-        if (!Boolean.TRUE.equals(knowledgeSetting.getFallbackEnable()) && CollectionUtils.isEmpty(knowledgeIds)) {
-            return null;
-        }
-        return AnswerResult.ofText(knowledgeSetting.getFallbackResponse());
+        return null;
     }
 
     // ==================== 结果落库 ====================
