@@ -100,14 +100,7 @@ public class DocumentController {
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE)
     @PutMapping("/knowledge/{id}/document/migrate/{targetKnowledgeId}")
     public R<Boolean> migrateDoc(@PathVariable("id") String sourceKnowledgeId, @PathVariable("targetKnowledgeId") String targetKnowledgeId, @RequestBody List<String> docIds) {
-        checkTargetMigrationPermission(targetKnowledgeId);
         return R.status(documentMigrationService.migrateDoc(sourceKnowledgeId, targetKnowledgeId, docIds));
-    }
-
-    private void checkTargetMigrationPermission(String targetKnowledgeId) {
-        if (!StpKit.ADMIN.hasRole(RoleConst.ADMIN)) {
-            StpKit.ADMIN.checkPermission(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE.getResourcePerm(targetKnowledgeId));
-        }
     }
 
     @SaCheckPerm(PermissionEnum.KNOWLEDGE_DOCUMENT_EDIT)
