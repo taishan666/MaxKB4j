@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface IApplicationChatRecordService {
 
-    ApplicationChatRecordVO getChatRecordInfo(String chatId, String chatRecordId);
+    ApplicationChatRecordVO getChatRecordInfo(String appId,String chatId, String chatRecordId);
 
     IPage<ApplicationChatRecordVO> chatRecordPage(String chatId, int current, int size);
 

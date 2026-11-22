@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.maxkb4j.application.dto.ShareChatDTO;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
-import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
@@ -168,18 +167,18 @@ class ApplicationChatServiceImplSecurityTest {
         ChatInfo chatInfo = new ChatInfo(CHAT_ID, APP_ID, USER_ID);
         ChatRecordDTO stored = new ChatRecordDTO();
         stored.setId("old-record");
-        when(chatRecordService.getChatRecord(CHAT_ID, "old-record")).thenReturn(stored);
+        when(chatRecordService.getChatRecord(APP_ID,CHAT_ID, "old-record")).thenReturn(stored);
 
         ChatRecordDTO result = chatService.resolveChatRecord(chatInfo, "old-record");
 
         assertSame(stored, result);
-        verify(chatRecordService).getChatRecord(CHAT_ID, "old-record");
+        verify(chatRecordService).getChatRecord(APP_ID,CHAT_ID, "old-record");
     }
 
     @Test
     void resolveChatRecord_notFound_rejectsInsteadOfTreatingAsNewRecord() {
         ChatInfo chatInfo = new ChatInfo(CHAT_ID, APP_ID, USER_ID);
-        when(chatRecordService.getChatRecord(CHAT_ID, "missing-record")).thenReturn(null);
+        when(chatRecordService.getChatRecord(APP_ID,CHAT_ID, "missing-record")).thenReturn(null);
 
         assertThrows(ApiException.class,
                 () -> chatService.resolveChatRecord(chatInfo, "missing-record"));

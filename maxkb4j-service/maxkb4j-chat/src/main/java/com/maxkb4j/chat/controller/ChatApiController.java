@@ -167,7 +167,8 @@ public class ChatApiController {
     @GetMapping("/historical_conversation/{chatId}/record/{chatRecordId}")
     public R<ApplicationChatRecordVO> historicalConversation(@PathVariable String chatId, @PathVariable String chatRecordId) {
         chatApiService.checkChatOwner(chatId);
-        return R.data(chatRecordService.getChatRecordInfo(chatId, chatRecordId));
+        String appId = (String) StpKit.USER.getExtra("applicationId");
+        return R.data(chatRecordService.getChatRecordInfo(appId,chatId, chatRecordId));
     }
 
     @Hidden

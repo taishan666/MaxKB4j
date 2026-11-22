@@ -5,7 +5,13 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.Statements;
+import net.sf.jsqlparser.statement.select.ParenthesedSelect;
+import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SetOperationList;
+import net.sf.jsqlparser.statement.select.WithItem;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -60,38 +66,109 @@ public class DatabaseUtil {
     }
 
     public static String executeSqlQuery(String sqlQuery, DataSource dataSource) {
-        // 只允许 SELECT 查询，防止数据被修改
-        if (!isSelect(sqlQuery)) {
-            log.warn("Blocked non-SELECT query attempt: {}", sqlQuery);
-            throw new IllegalArgumentException("Only SELECT queries are allowed");
-        }
-        // 验证 SQL（大小写不敏感）
-        validate(sqlQuery);
+        // 解析校验并规范化为单条只读 SELECT，执行规范化后的 SQL 而非原始输入，
+        // 确保实际执行的内容与解析校验的内容严格一致，杜绝多语句注入
+        String safeSql = toReadOnlySelectSql(sqlQuery);
         // 使用 try-with-resources 自动管理资源
-        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
-            connection.setReadOnly(true);
-            return execute(sqlQuery, statement);
+        try (Connection connection = dataSource.getConnection()) {
+            // 事务级只读：setReadOnly 在 autocommit 下对 PostgreSQL 不生效，
+            // 必须显式开启事务，由 pgjdbc 发出 BEGIN READ ONLY，服务端拒绝一切写操作
+            // （含数据修改型 CTE、SELECT INTO、DDL、FOR UPDATE）
+            connection.setAutoCommit(false);
+            try {
+                connection.setReadOnly(true);
+                try (Statement statement = connection.createStatement()) {
+                    return execute(safeSql, statement);
+                }
+            } finally {
+                try {
+                    connection.rollback();
+                } catch (SQLException e) {
+                    log.warn("Failed to rollback read-only query transaction", e);
+                }
+                connection.setReadOnly(false);
+                connection.setAutoCommit(true);
+            }
         } catch (SQLException e) {
             log.error("Failed to execute SQL query", e);
             throw new RuntimeException("SQL query execution failed", e);
         }
     }
 
-    protected static void validate(String sqlQuery) {
-        // 大小写不敏感，防止 select/Select 等小写变体绕过
-        if (!sqlQuery.trim().toUpperCase().startsWith("SELECT")) {
+    /**
+     * 校验 SQL 并规范化为单条只读 SELECT：
+     * <ul>
+     *     <li>仅允许单条语句：parse() 只解析第一条语句并静默丢弃其后内容，
+     *         可被 "select id from users; drop table users" 这类多语句注入绕过，
+     *         因此改用 parseStatements() 并要求恰好一条语句；</li>
+     *     <li>拒绝 SELECT INTO：在 PostgreSQL / SQL Server 上会实际建表写数据，
+     *         且 INTO 可能隐藏在 WITH 子查询（WithItem）或 UNION 分支内，需递归检查；</li>
+     *     <li>返回由解析结果重新渲染的 SQL，丢弃注释及语句之外的任何附加内容。</li>
+     * </ul>
+     */
+    protected static String toReadOnlySelectSql(String sqlQuery) {
+        if (sqlQuery == null || sqlQuery.trim().isEmpty()) {
+            throw new IllegalArgumentException("SQL query must not be blank");
+        }
+        // 快速失败防线（大小写不敏感）：放行 SELECT / WITH / 括号包裹的查询，
+        // 其余语句族（INSERT、UPDATE、EXPLAIN、VALUES 等）直接拒绝
+        String upperSql = sqlQuery.trim().toUpperCase();
+        if (!upperSql.startsWith("SELECT") && !upperSql.startsWith("WITH") && !upperSql.startsWith("(")) {
             throw new IllegalArgumentException("Only SELECT queries are allowed");
         }
+        Statements statements;
+        try {
+            statements = CCJSqlParserUtil.parseStatements(sqlQuery);
+        } catch (JSQLParserException e) {
+            throw new IllegalArgumentException("Only SELECT queries are allowed");
+        }
+        if (statements.size() != 1) {
+            log.warn("Blocked multi-statement query attempt: {}", sqlQuery);
+            throw new IllegalArgumentException("Only a single SELECT statement is allowed");
+        }
+        // jsqlparser 的 Statement 与 java.sql.Statement 同名，沿用全限定名避免冲突
+        net.sf.jsqlparser.statement.Statement statement = statements.get(0);
+        if (!(statement instanceof Select select)) {
+            throw new IllegalArgumentException("Only SELECT queries are allowed");
+        }
+        if (containsSelectInto(select)) {
+            log.warn("Blocked SELECT INTO attempt: {}", sqlQuery);
+            throw new IllegalArgumentException("SELECT INTO is not allowed");
+        }
+        // 用解析结果重新渲染，保证执行内容不含任何未被解析的附加语句
+        return statement.toString();
     }
 
-
-    protected static boolean isSelect(String sqlQuery) {
-        try {
-            net.sf.jsqlparser.statement.Statement statement = CCJSqlParserUtil.parse(sqlQuery);
-            return statement instanceof Select;
-        } catch (JSQLParserException e) {
+    /**
+     * 递归检查 SELECT 语法树是否带有 INTO 子句（含 WITH 子查询与 UNION 等集合操作分支）。
+     */
+    private static boolean containsSelectInto(Select select) {
+        if (select == null) {
             return false;
         }
+        List<WithItem> withItems = select.getWithItemsList();
+        if (withItems != null) {
+            for (WithItem withItem : withItems) {
+                if (containsSelectInto(withItem)) {
+                    return true;
+                }
+            }
+        }
+        if (select instanceof PlainSelect plainSelect) {
+            List<Table> intoTables = plainSelect.getIntoTables();
+            return intoTables != null && !intoTables.isEmpty();
+        }
+        if (select instanceof SetOperationList setOperationList) {
+            for (Select child : setOperationList.getSelects()) {
+                if (containsSelectInto(child)) {
+                    return true;
+                }
+            }
+        }
+        if (select instanceof ParenthesedSelect parenthesedSelect) {
+            return containsSelectInto(parenthesedSelect.getSelect());
+        }
+        return false;
     }
 
     private static String execute(String sqlQuery, Statement statement) throws SQLException {

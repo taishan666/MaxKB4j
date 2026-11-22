@@ -32,7 +32,7 @@ public class ApplicationChatRecordController {
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/application/{id}/chat/{chatId}/chat_record/{chatRecordId}")
     public R<ApplicationChatRecordVO> chatRecord(@PathVariable String id, @PathVariable String chatId, @PathVariable String chatRecordId) {
-        return R.data(chatRecordService.getChatRecordInfo(chatId, chatRecordId));
+        return R.data(chatRecordService.getChatRecordInfo(id,chatId, chatRecordId));
     }
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)

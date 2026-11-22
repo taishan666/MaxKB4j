@@ -185,7 +185,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
                 .findFirst()
                 .orElse(null);
         if (chatRecord == null) {
-            chatRecord = chatRecordService.getChatRecord(chatInfo.getChatId(), chatRecordId);
+            chatRecord = chatRecordService.getChatRecord(chatInfo.getAppId(),chatInfo.getChatId(), chatRecordId);
         }
         if (chatRecord == null) {
             throw new ApiException("common.record.not.exists");

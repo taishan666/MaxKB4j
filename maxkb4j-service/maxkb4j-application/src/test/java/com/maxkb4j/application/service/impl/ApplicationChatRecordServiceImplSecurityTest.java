@@ -11,6 +11,8 @@ import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
+import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.knowledge.dto.ParagraphDTO;
 import com.maxkb4j.knowledge.service.IDocumentService;
 import com.maxkb4j.knowledge.service.IParagraphService;
@@ -21,7 +23,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -69,6 +70,8 @@ class ApplicationChatRecordServiceImplSecurityTest {
 
     @BeforeEach
     void setUp() {
+        // ChatCache 为静态缓存，重置以保证测试隔离
+        ChatCache.reset();
         recordService = new ApplicationChatRecordServiceImpl(
                 paragraphService, chatMapper, documentService, resourceMappingService);
         ReflectionTestUtils.setField(recordService, "baseMapper", recordMapper);
@@ -78,9 +81,10 @@ class ApplicationChatRecordServiceImplSecurityTest {
 
     @Test
     void getChatRecordInfo_dbFallback_includesChatId() {
+        when(chatMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(1L);
         when(recordMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(null);
 
-        assertNull(recordService.getChatRecordInfo(CHAT_ID, RECORD_ID));
+        assertNull(recordService.getChatRecordInfo(APP_ID,CHAT_ID, RECORD_ID));
 
         // selectOne 参数中应包含 chat_id 和 id 条件
         ArgumentCaptor<LambdaQueryWrapper<ApplicationChatRecordEntity>> captor = ArgumentCaptor.captor();
@@ -89,6 +93,26 @@ class ApplicationChatRecordServiceImplSecurityTest {
         renderSqlSegment(wrapper);
         assertTrue(wrapper.getParamNameValuePairs().containsValue(CHAT_ID));
         assertTrue(wrapper.getParamNameValuePairs().containsValue(RECORD_ID));
+    }
+
+    @Test
+    void getChatRecordInfo_coldCacheForeignChat_rejectsWithoutQueryingRecords() {
+        when(chatMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(0L);
+
+        assertNull(recordService.getChatRecordInfo("app-other", CHAT_ID, RECORD_ID));
+
+        verify(recordMapper, never()).selectOne(any(LambdaQueryWrapper.class));
+    }
+
+    @Test
+    void getChatRecordInfo_cachedForeignChat_rejectsWithoutQueryingRecords() {
+        ChatInfo foreignChat = new ChatInfo(CHAT_ID, "app-other", "user-1");
+        ChatCache.put(CHAT_ID, foreignChat);
+
+        assertNull(recordService.getChatRecordInfo(APP_ID, CHAT_ID, RECORD_ID));
+
+        verify(recordMapper, never()).selectOne(any(LambdaQueryWrapper.class));
+        verify(chatMapper, never()).selectCount(any(LambdaQueryWrapper.class));
     }
 
     // ============ listVOByIds 包含 chatId ============
