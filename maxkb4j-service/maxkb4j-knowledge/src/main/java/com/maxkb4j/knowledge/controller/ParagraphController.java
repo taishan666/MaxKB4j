@@ -105,7 +105,7 @@ public class ParagraphController {
 
     private void checkTargetMigrationPermission(String targetKnowledgeId) {
         if (!StpKit.ADMIN.hasRole(RoleConst.ADMIN)) {
-            StpKit.ADMIN.checkPermission(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE.getResourcePerm("default", targetKnowledgeId));
+            StpKit.ADMIN.checkPermission(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE.getResourcePerm(targetKnowledgeId));
         }
     }
 

@@ -53,7 +53,7 @@ public class SaCheckPermAspect {
         if (pathVars != null) {
             String resourceId = pathVars.get("id");
             if (resourceId != null) {
-                permissionStr = permission.getResourcePerm("default", resourceId); // 使用实际资源ID替换
+                permissionStr = permission.getResourcePerm(resourceId); // 使用实际资源ID替换
             }
         }
         return permissionStr;

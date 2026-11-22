@@ -3,20 +3,20 @@ package com.maxkb4j.knowledge.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
-import com.maxkb4j.common.util.BeanUtil;
-import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.RoleConst;
 import com.maxkb4j.common.domain.dto.KeyAndValue;
 import com.maxkb4j.common.enums.PermissionEnum;
+import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.knowledge.consts.KnowledgeType;
 import com.maxkb4j.knowledge.dto.*;
 import com.maxkb4j.knowledge.entity.DocumentEntity;
 import com.maxkb4j.knowledge.service.DocumentWriteService;
 import com.maxkb4j.knowledge.service.IDocumentInternalService;
+import com.maxkb4j.knowledge.service.IDocumentSplitService;
 import com.maxkb4j.knowledge.service.impl.DocumentImportService;
 import com.maxkb4j.knowledge.service.impl.DocumentMigrationService;
-import com.maxkb4j.knowledge.service.IDocumentSplitService;
 import com.maxkb4j.knowledge.vo.DocumentVO;
 import com.maxkb4j.knowledge.vo.TextSegmentVO;
 import jakarta.validation.Valid;
@@ -106,7 +106,7 @@ public class DocumentController {
 
     private void checkTargetMigrationPermission(String targetKnowledgeId) {
         if (!StpKit.ADMIN.hasRole(RoleConst.ADMIN)) {
-            StpKit.ADMIN.checkPermission(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE.getResourcePerm("default", targetKnowledgeId));
+            StpKit.ADMIN.checkPermission(PermissionEnum.KNOWLEDGE_DOCUMENT_MIGRATE.getResourcePerm(targetKnowledgeId));
         }
     }
 
