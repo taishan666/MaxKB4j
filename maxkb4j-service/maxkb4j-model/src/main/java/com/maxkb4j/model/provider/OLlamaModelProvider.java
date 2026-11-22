@@ -123,8 +123,8 @@ public class OLlamaModelProvider extends AbsModelProvider {
                 .modelName(modelName)
                 .width(1024)
                 .height(768)
-                .steps(params.getInteger(ParamKey.STEPS))
-                .seed(params.getInteger(ParamKey.SEED))
+                .steps(getIntParam(params, ParamKey.STEPS))
+                .seed(getIntParam(params, ParamKey.SEED))
                 .build();
     }
 }

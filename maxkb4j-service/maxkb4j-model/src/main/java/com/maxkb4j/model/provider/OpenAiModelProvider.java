@@ -86,13 +86,15 @@ public class OpenAiModelProvider extends AbsModelProvider {
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         boolean enableThinking = getBooleanParam(params, ParamKey.ENABLE_THINKING);
         String flag = enableThinking ? Value.ENABLED : Value.DISABLED;
-        params.put(ParamKey.THINKING, Map.of(ParamKey.TYPE, flag));
+        // params 可能为 null，且不应突变调用方入参：复制后追加 THINKING
+        JSONObject effectiveParams = params != null ? new JSONObject(params) : new JSONObject();
+        effectiveParams.put(ParamKey.THINKING, Map.of(ParamKey.TYPE, flag));
         return OpenAiChatModel.builder()
                 .httpClientBuilder(getHttpClientBuilder())
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .customParameters(params)
+                .customParameters(effectiveParams)
                 .sendThinking(true)
                 .returnThinking(true)
                 .build();

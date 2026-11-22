@@ -12,7 +12,12 @@ public class McpClientExecutor {
     private final JSONObject mcpServers;
 
     public McpClientExecutor(String code) {
-        this.mcpServers = JSONObject.parseObject(code);
+        // 非法/空 JSON（节点配置损坏）时给出可读错误，避免下游 getMcpClient NPE
+        JSONObject parsed = JSONObject.parseObject(code);
+        if (parsed == null || parsed.isEmpty()) {
+            throw new ApiException("tool.mcp.config.invalid");
+        }
+        this.mcpServers = parsed;
     }
 
     public String execute(String toolName, JSONObject params) {

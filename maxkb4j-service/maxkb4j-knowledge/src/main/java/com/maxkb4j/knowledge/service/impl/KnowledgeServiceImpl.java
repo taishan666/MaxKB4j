@@ -230,7 +230,16 @@ public class KnowledgeServiceImpl extends ServiceImpl<KnowledgeMapper, Knowledge
                             toolIds.add(nodeData.getString("mcpToolId"));
                         }
                         if (nodeData != null && nodeData.containsKey("toolIds")) {
-                            toolIds.addAll((Collection<? extends String>) nodeData.get("toolIds"));
+                            // toolIds 可能为 JSON null 或非数组值，逐个取字符串元素避免 NPE/CCE
+                            Object toolIdsValue = nodeData.get("toolIds");
+                            if (toolIdsValue instanceof JSONArray toolIdArray) {
+                                for (int j = 0; j < toolIdArray.size(); j++) {
+                                    String toolId = toolIdArray.getString(j);
+                                    if (toolId != null) {
+                                        toolIds.add(toolId);
+                                    }
+                                }
+                            }
                         }
                         if (nodeData != null && nodeData.containsKey("modelId")) {
                             modelIds.add(nodeData.getString("modelId"));

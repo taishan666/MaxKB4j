@@ -135,7 +135,6 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
         return convert(chatRecord);
     }
 
-    @SuppressWarnings("unchecked")
     private ApplicationChatRecordVO convert(ChatRecordDTO chatRecord) {
         if (Objects.isNull(chatRecord)) {
             return null;
@@ -165,10 +164,11 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
                 if (SEARCH_KNOWLEDGE.getKey().equals(detail.getString("type"))) {
                     boolean showKnowledge = detail.getBooleanValue("showKnowledge");
                     if (showKnowledge) {
-                        Object paragraphListObj = detail.get("paragraphList"); // 假设每个节点都有 id 字段
+                        Object paragraphListObj = detail.get("paragraphList");
                         if (paragraphListObj != null) {
-                            List<ParagraphRecordVO> list = (List<ParagraphRecordVO>) paragraphListObj;
-                            chatRecordVO.getParagraphList().addAll(list);
+                            // elements 是 JSONObject，直接强转会在下游按 VO 类型访问时抛 ClassCastException，需经序列化后按类型反解
+                            String json = JSONObject.toJSONString(paragraphListObj);
+                            chatRecordVO.getParagraphList().addAll(JSON.parseArray(json, ParagraphRecordVO.class));
                         }
                     }
                 }

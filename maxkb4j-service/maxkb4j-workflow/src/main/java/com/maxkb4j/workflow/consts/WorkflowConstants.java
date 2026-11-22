@@ -267,6 +267,8 @@ public interface WorkflowConstants {
     interface MessageCode {
         String CONDITION_NO_MATCH = "workflow.condition.no.match";
         String INTENT_NO_MATCH = "workflow.intent.no.match";
+        String REFERENCE_NOT_RESOLVED = "workflow.reference.not.resolved";
+        String NODE_DATA_MISSING = "workflow.node.data.missing";
     }
 
     /**

@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -103,6 +104,9 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
         }
         // 远程校验在事务外执行，避免长校验期间占死数据库连接
         AbsModelProvider modelProvider = providerRegistry.get(model.getProvider());
+        if (modelProvider == null) {
+            throw new ApiException("model.provider.not.exists", model.getProvider());
+        }
         JSONObject params = extractDefaultModelParams(model.getModelParamsForm());
         modelProvider.modelIsValid(model.getModelType(), model.getModelName(), model.getCredential(), params);
         model.setUserId(userId);
@@ -156,6 +160,9 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
             }
         }
         AbsModelProvider modelProvider = providerRegistry.get(entity.getProvider());
+        if (modelProvider == null) {
+            throw new ApiException("model.provider.not.exists", entity.getProvider());
+        }
         JSONObject params = extractDefaultModelParams(entity.getModelParamsForm());
         modelProvider.modelIsValid(model.getModelType(), model.getModelName(), model.getCredential(), params);
         this.updateById(model);
@@ -215,7 +222,8 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
             return null;
         }
         String userId = userContext.getUserId();
-        if (!model.getUserId().equals(userId)) {
+        // 存量数据 user_id 可能为 NULL，用 Objects.equals 避免拆箱/空指针
+        if (!Objects.equals(model.getUserId(), userId)) {
             return null;
         }
         return mapper.apply(model);

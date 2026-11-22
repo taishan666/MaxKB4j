@@ -3,10 +3,8 @@ package com.maxkb4j.application.job;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.application.entity.ApplicationChatEntity;
-import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.application.service.IApplicationChatInternalService;
-import com.maxkb4j.application.service.IApplicationChatRecordInternalService;
 import com.maxkb4j.application.service.IApplicationInternalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +24,6 @@ import java.util.List;
 public class ApplicationChatRecordCleanJob {
     private final IApplicationInternalService applicationService;
     private final IApplicationChatInternalService chatService;
-    private final IApplicationChatRecordInternalService chatRecordService;
 
 
     @Scheduled(cron = "0 0 22 * * *")
@@ -54,12 +51,8 @@ public class ApplicationChatRecordCleanJob {
                 if (expiredChatIds.isEmpty()) {
                     continue;
                 }
-                LambdaQueryWrapper<ApplicationChatRecordEntity> chatRecordWrapper = Wrappers.lambdaQuery();
-                chatRecordWrapper.in(ApplicationChatRecordEntity::getChatId, expiredChatIds);
-                chatRecordService.remove(chatRecordWrapper);
-                LambdaQueryWrapper<ApplicationChatEntity> removeChatWrapper = Wrappers.lambdaQuery();
-                removeChatWrapper.in(ApplicationChatEntity::getId, expiredChatIds);
-                chatService.remove(removeChatWrapper);
+                // 事务内级联删除聊天记录与会话，避免中途失败留下无记录的会话
+                chatService.deleteByChatIds(expiredChatIds);
             } catch (Exception e) {
                 log.error("清理应用[{}]聊天记录失败", application.getId(), e);
             }

@@ -120,6 +120,9 @@ public class ApplicationExportService {
 
     public void appExport(String id, HttpServletResponse response) throws IOException {
         ApplicationEntity app = applicationService.getById(id);
+        if (app == null) {
+            throw new ApiException("common.record.not.exists");
+        }
         List<String> toolIds = new ArrayList<>();
         if (app.getToolIds() != null) {
             toolIds.addAll(app.getToolIds());

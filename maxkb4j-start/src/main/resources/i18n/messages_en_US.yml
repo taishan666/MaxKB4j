@@ -119,6 +119,9 @@ model:
       found: Model not found
   params:
     invalid: Invalid model parameters. Please check the model configuration.
+  provider:
+    not:
+      exists: Model provider {0} does not exist
 
 chat:
   token:
@@ -137,6 +140,9 @@ tool:
     found: Tool not found
   config:
     invalid: Please check the configuration information
+  mcp:
+    config:
+      invalid: Invalid MCP server configuration. Please check the MCP node settings.
   groovy:
     script:
       execution:
@@ -192,6 +198,12 @@ workflow:
   intent:
     "no":
       match: The intent classification node did not match any branch
+  reference:
+    not:
+      resolved: The reference field was not resolved to a valid value. Please check the upstream node configuration.
+  node:
+    data:
+      missing: Configuration data of node {0} is missing
 
 knowledge:
   document:

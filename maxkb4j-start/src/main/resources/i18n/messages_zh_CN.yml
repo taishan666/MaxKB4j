@@ -119,6 +119,9 @@ model:
       found: 未找到模型
   params:
     invalid: 模型参数无效，请检查模型配置
+  provider:
+    not:
+      exists: 模型供应商 {0} 不存在
 
 chat:
   token:
@@ -137,6 +140,9 @@ tool:
     found: 未找到工具
   config:
     invalid: 请检查配置信息
+  mcp:
+    config:
+      invalid: MCP 服务配置无效，请检查 MCP 节点配置
   groovy:
     script:
       execution:
@@ -192,6 +198,12 @@ workflow:
   intent:
     "no":
       match: 意图分类节点未匹配到任何分支
+  reference:
+    not:
+      resolved: 引用字段未解析到有效值，请检查上游节点配置
+  node:
+    data:
+      missing: 节点 {0} 的配置数据缺失
 
 knowledge:
   document:

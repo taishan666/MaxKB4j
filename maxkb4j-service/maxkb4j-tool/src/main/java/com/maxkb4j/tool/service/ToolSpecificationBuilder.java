@@ -31,8 +31,14 @@ public class ToolSpecificationBuilder {
         for (ToolInputField param : params) {
             String type = param.getType();
             String name = param.getName();
-            if (param.getIsRequired()) {
+            // 旧数据/模板可能缺 isRequired 字段，缺省视为非必填
+            if (Boolean.TRUE.equals(param.getIsRequired())) {
                 required.add(name);
+            }
+            // 旧数据/模板可能缺 type 字段：无法构建 schema，跳过并告警
+            if (type == null) {
+                log.warn("Missing parameter type for field: {}, skipped", name);
+                continue;
             }
             // 参数说明必须一并下发给模型，否则模型只能靠 name 猜格式
             // （例如 MongoDB 工具的 query 会被填成 db.xxx.find({...}) 这类 shell 语句）

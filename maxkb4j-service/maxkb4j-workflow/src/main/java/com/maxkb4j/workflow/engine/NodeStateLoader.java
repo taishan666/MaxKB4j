@@ -74,8 +74,11 @@ public class NodeStateLoader {
                 restoredCurrentNode = configuration.getNodeInstance(nodeId, upNodeIdList, n -> {
                     JSONObject nodeProperties = n.getProperties();
                     if (nodeProperties.containsKey(RuntimeDetailField.NODE_DATA)) {
+                        // node_data 键存在但值为 null（恢复数据损坏）时跳过表单回填，避免 NPE
                         JSONObject nodeData = nodeProperties.getJSONObject(RuntimeDetailField.NODE_DATA);
-                        nodeData.put(FormField.FORM_DATA, currentNodeData);
+                        if (nodeData != null) {
+                            nodeData.put(FormField.FORM_DATA, currentNodeData);
+                        }
                     }
                     return nodeProperties;
                 });

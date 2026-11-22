@@ -284,6 +284,17 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         return false;
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteByChatIds(List<String> chatIds) {
+        if (CollectionUtils.isEmpty(chatIds)) {
+            return false;
+        }
+        // 先删关联的 chat_record，再删会话，事务保证避免中途失败留下无记录的会话
+        chatRecordService.lambdaUpdate().in(ApplicationChatRecordEntity::getChatId, chatIds).remove();
+        return this.remove(Wrappers.<ApplicationChatEntity>lambdaQuery().in(ApplicationChatEntity::getId, chatIds));
+    }
+
     private boolean belongsToApp(String chatId, String appId) {
         return baseMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery()
                 .eq(ApplicationChatEntity::getId, chatId)

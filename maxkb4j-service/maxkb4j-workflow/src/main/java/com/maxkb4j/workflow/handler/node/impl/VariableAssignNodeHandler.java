@@ -29,7 +29,13 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         VariableAssignNode.NodeParams params = parseParams(node, VariableAssignNode.NodeParams.class);
         List<Map<String, Object>> resultList = new ArrayList<>();
-        for (Map<String, Object> variable : params.getVariableList()) {
+        // 赋值列表缺省时无事可做，直接返回
+        List<Map<String, Object>> variableList = params.getVariableList();
+        if (variableList == null) {
+            putDetail(node, NodeField.RESULT_LIST, resultList);
+            return new NodeResult(Map.of());
+        }
+        for (Map<String, Object> variable : variableList) {
             if (variable == null || !variable.containsKey(NodeField.FIELDS)) {
                 continue;
             }

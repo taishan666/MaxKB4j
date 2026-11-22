@@ -12,20 +12,29 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class GenerateHumanMessageStep extends AbsGenerateHumanMessageStep {
 
     public static final RagContentInjector contentInjector = new RagContentInjector();
 
+    /**
+     * 引用上限缺省值，与前端应用默认配置（maxParagraphCharNumber=5000）保持一致；
+     * MK 模板导入 / API 直建 / 旧数据可能缺失该键。
+     */
+    private static final int DEFAULT_MAX_PARAGRAPH_CHAR_NUMBER = 5000;
+
     @Override
     protected String execute(LlmModelSetting llmModelSetting, KnowledgeSetting knowledgeSetting, String problemText, List<ParagraphRagVO> paragraphList) {
         String safeProblemText = problemText != null ? problemText : "";
-        int maxCharNumber = knowledgeSetting.getMaxParagraphCharNumber();
-        if (!CollectionUtils.isEmpty(paragraphList)) {
-            return contentInjector.inject(paragraphList, safeProblemText, maxCharNumber);
+        if (CollectionUtils.isEmpty(paragraphList)) {
+            return safeProblemText;
         }
-        return safeProblemText;
+        int maxCharNumber = Optional.ofNullable(knowledgeSetting)
+                .map(KnowledgeSetting::getMaxParagraphCharNumber)
+                .orElse(DEFAULT_MAX_PARAGRAPH_CHAR_NUMBER);
+        return contentInjector.inject(paragraphList, safeProblemText, maxCharNumber);
     }
 
     @Override

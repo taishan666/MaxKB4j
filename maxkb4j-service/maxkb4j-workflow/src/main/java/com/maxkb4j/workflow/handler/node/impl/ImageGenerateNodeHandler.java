@@ -68,7 +68,8 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
             int n = modelParamsSetting == null ? 1 : modelParamsSetting.getIntValue(NodeField.N);
             n = n == 0 ? 1 : n;
             Response<List<Image>> res = imageModel.generate(prompt, n);
-            outImages = res.content();
+            // 模型可能返回 null 内容，兜底为空列表避免后续遍历 NPE
+            outImages = res.content() != null ? res.content() : new ArrayList<>();
         }
 
         for (Image image : outImages) {
@@ -82,7 +83,8 @@ public class ImageGenerateNodeHandler extends AbsNodeHandler {
             imageUrls.add(imageUrlStr);
         }
 
-        if (params.getIsResult()) {
+        // isResult 缺省视为不输出
+        if (Boolean.TRUE.equals(params.getIsResult())) {
             setAnswerText(node, String.join(" ", answerTexts));
         }
 

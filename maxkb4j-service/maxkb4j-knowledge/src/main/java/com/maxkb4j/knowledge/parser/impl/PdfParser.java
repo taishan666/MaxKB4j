@@ -61,6 +61,10 @@ public class PdfParser implements DocumentParser {
     private static final Pattern PAGE_NUM_PURE = Pattern.compile("^\\d+$");
     private static final int MAX_TITLE_SIZE = 100;
     /**
+     * 限量读取输入流时的缓冲区大小
+     */
+    private static final int READ_BUFFER_SIZE = 8192;
+    /**
      * 图片上传最大并发数，避免对对象存储产生过大并行压力
      */
     private static final int MAX_PARALLEL_UPLOADS = 8;
@@ -95,7 +99,11 @@ public class PdfParser implements DocumentParser {
             Path tempFile = Files.createTempFile("pdf_page_", ".png");
             try {
                 ImageIO.write(image, "png", tempFile.toFile());
-                OcrResult result = engine.runOcr(tempFile.toString());
+                OcrResult result;
+                // engine 为 JNI 原生静态单例，非线程安全：并发调用可能崩溃或结果串扰，必须串行执行
+                synchronized (engine) {
+                    result = engine.runOcr(tempFile.toString());
+                }
                 fullText.append(result.getStrRes()).append("\n\n");
             } finally {
                 Files.deleteIfExists(tempFile);
@@ -256,10 +264,8 @@ public class PdfParser implements DocumentParser {
     @Override
     public String handle(InputStream inputStream) {
         try {
-            byte[] bytes = inputStream.readAllBytes();
-            if (bytes.length > maxPdfSizeMb * 1024L * 1024L) {
-                throw new FileLimitExceededException("common.file.size.exceeded", maxPdfSizeMb);
-            }
+            // 限量读取：一旦超过 maxPdfSizeMb 立即中止，避免超大文件先完整读入堆内存后才校验
+            byte[] bytes = readBounded(inputStream);
 
             // 第一步：提取所有图片（XObject 图像与内联图像统一由 drawImage 回调捕获）
             List<ImageData> pendingImages = new ArrayList<>();
@@ -297,6 +303,26 @@ public class PdfParser implements DocumentParser {
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse PDF from input stream", e);
         }
+    }
+
+    /**
+     * 限量读取输入流：累计读取字节数一旦超过 {@code maxPdfSizeMb} 立即中止并抛出
+     * {@link FileLimitExceededException}，避免超大文件先完整读入堆内存后才校验。
+     */
+    private byte[] readBounded(InputStream inputStream) throws IOException {
+        long limitBytes = maxPdfSizeMb * 1024L * 1024L;
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] chunk = new byte[READ_BUFFER_SIZE];
+        long total = 0;
+        int read;
+        while ((read = inputStream.read(chunk)) != -1) {
+            if (read > limitBytes - total) {
+                throw new FileLimitExceededException("common.file.size.exceeded", maxPdfSizeMb);
+            }
+            buffer.write(chunk, 0, read);
+            total += read;
+        }
+        return buffer.toByteArray();
     }
 
     /**

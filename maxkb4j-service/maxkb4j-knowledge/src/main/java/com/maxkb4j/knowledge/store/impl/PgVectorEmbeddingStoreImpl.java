@@ -630,18 +630,24 @@ public class PgVectorEmbeddingStoreImpl extends BaseStoreImpl {
      * 按来源类型做向量检索：仅依据 {@link SearchRequest} 入参构造 langchain4j {@link Filter}，
      * 不再自行解析排除段落（该策略已上移到 {@link com.maxkb4j.knowledge.retriever.SearchOrchestrator}）。
      * <p>段落路按 excludeDocumentIds / excludeParagraphIds 过滤；问题路不应用这两类排除。</p>
+     * <p>查询向量优先复用 {@link SearchRequest#getQueryEmbedding()} 请求级缓存，
+     * miss 才调用 embedding 模型并回填——同一请求的段落/问题双路召回只向量化一次。</p>
      */
     @Override
     public List<TextChunkVO> searchBySource(SearchRequest request, int sourceType) {
         if (shouldShortCircuit(request)) {
             return Collections.emptyList();
         }
-        EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(request.getKnowledgeIds().getFirst());
-        if (embeddingModel == null) {
-            log.warn("No embedding model found for knowledge: {}", request.getKnowledgeIds().getFirst());
-            return Collections.emptyList();
+        Embedding queryEmbedding = request.getQueryEmbedding();
+        if (queryEmbedding == null) {
+            EmbeddingModel embeddingModel = knowledgeModelService.getEmbeddingModel(request.getKnowledgeIds().getFirst());
+            if (embeddingModel == null) {
+                log.warn("No embedding model found for knowledge: {}", request.getKnowledgeIds().getFirst());
+                return Collections.emptyList();
+            }
+            queryEmbedding = embeddingModel.embed(request.getQuery().trim()).content();
+            request.setQueryEmbedding(queryEmbedding);
         }
-        Embedding queryEmbedding = embeddingModel.embed(request.getQuery().trim()).content();
         EmbeddingStore<TextSegment> store = get(queryEmbedding.dimension());
         EmbeddingSearchResult<TextSegment> searchResult = store.search(buildSearchRequest(request, queryEmbedding, sourceType));
         return toTextChunkVOs(searchResult);

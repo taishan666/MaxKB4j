@@ -72,13 +72,21 @@ public class VariableAggregationNodeHandler extends AbsNodeHandler {
     }
 
     private void resetVariable(List<VariableAggregationNode.Variable> variableList, IWorkflow workflow) {
+        if (variableList == null) {
+            return;
+        }
         for (VariableAggregationNode.Variable e : variableList) {
-            String nodeId = e.getVariable().getFirst();
+            // 引用必须为 [nodeId, field] 结构，不完整时跳过重置，避免 NPE/IOOBE
+            List<String> reference = e.getVariable();
+            if (reference == null || reference.size() < 2) {
+                continue;
+            }
+            String nodeId = reference.getFirst();
             INode node = workflow.getNode(nodeId);
             String nodeName = node == null ? "未知节点" : node.getNodeName();
             e.setNodeName(nodeName == null ? "未知节点" : nodeName);
-            String field = e.getVariable().get(1);
-            Object value = workflow.getReferenceField(e.getVariable());
+            String field = reference.get(1);
+            Object value = workflow.getReferenceField(reference);
             e.setField(field);
             e.setValue(value);
         }

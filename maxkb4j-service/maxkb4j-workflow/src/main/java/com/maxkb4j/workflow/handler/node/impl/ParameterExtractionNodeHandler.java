@@ -50,6 +50,10 @@ public class ParameterExtractionNodeHandler extends AbsNodeHandler {
 
         Map<String, Object> nodeVariable = new HashMap<>();
         Map<String, Object> arguments = result.content();
+        if (arguments == null) {
+            // 模型未返回有效内容时以空结果兜底，避免 NPE
+            arguments = new HashMap<>();
+        }
         nodeVariable.put(NodeField.RESULT, new JSONObject(arguments));
         nodeVariable.putAll(arguments);
         return new NodeResult(nodeVariable);

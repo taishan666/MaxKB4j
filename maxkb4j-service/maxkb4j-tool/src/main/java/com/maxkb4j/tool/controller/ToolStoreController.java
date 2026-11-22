@@ -52,7 +52,8 @@ public class ToolStoreController {
             }
         }
         if (StringUtils.isNotBlank(name)) {
-            list = list.stream().filter(tool -> tool.getName().contains(name)).collect(Collectors.toList());
+            // 模板 JSON 可能缺 name 字段，过滤时空值不参与匹配而非 NPE
+            list = list.stream().filter(tool -> tool.getName() != null && tool.getName().contains(name)).collect(Collectors.toList());
         }
         return R.data(BeanUtil.copyList(list, ToolVO.class));
     }

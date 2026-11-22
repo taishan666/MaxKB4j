@@ -20,5 +20,10 @@ public interface IApplicationChatInternalService extends IApplicationChatService
 
     boolean deleteByApplicationId(String appId, String chatId);
 
+    /**
+     * 按 chatId 批量级联删除会话及其聊天记录（事务保证）。
+     */
+    boolean deleteByChatIds(List<String> chatIds);
+
     void chatExport(String appId, List<String> ids, HttpServletResponse response) throws IOException;
 }

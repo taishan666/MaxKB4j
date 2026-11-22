@@ -172,7 +172,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             loginAttemptLimiter.recordFailure(limiterKey);
             throw new LoginException("login.user.not.exists");
         }
-        if (!userEntity.getIsActive()) {
+        // 存量数据 is_active 可能为 NULL，视为未启用
+        if (!Boolean.TRUE.equals(userEntity.getIsActive())) {
             throw new LoginException("login.user.disabled");
         }
         // 存量 MD5 口令验证通过后自动升级为 BCrypt

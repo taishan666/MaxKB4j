@@ -36,6 +36,12 @@ public class RerankerNodeHandler extends AbsNodeHandler {
 
     private final IModelProviderService modelFactory;
 
+    /**
+     * 引用上限缺省值，与前端应用默认配置（maxParagraphCharNumber=5000）保持一致；
+     * 节点配置缺省该字段时兜底。
+     */
+    private static final int DEFAULT_MAX_PARAGRAPH_CHAR_NUMBER = 5000;
+
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
         RerankerNode.NodeParams params = parseParams(node, RerankerNode.NodeParams.class);
@@ -44,9 +50,11 @@ public class RerankerNodeHandler extends AbsNodeHandler {
         List<RerankerNode.RerankResult> documentList = new ArrayList<>();
         List<RerankerNode.RerankResult> resultList = new ArrayList<>();
         List<List<String>> rerankerReferenceList = params.getRerankerReferenceList();
+        RerankerNode.RerankerSetting rerankerSetting = params.getRerankerSetting();
 
-        if (CollectionUtils.isNotEmpty(rerankerReferenceList)) {
-            double similarity = params.getRerankerSetting().getSimilarity();
+        if (CollectionUtils.isNotEmpty(rerankerReferenceList) && rerankerSetting != null) {
+            // 相似度阈值缺省时不过滤，topN 缺省时保留全部
+            double similarity = rerankerSetting.getSimilarity() != null ? rerankerSetting.getSimilarity() : 0;
             List<TextSegment> textSegments = getRerankerList(workflow, rerankerReferenceList);
             if (question == null || question.isBlank() || textSegments.isEmpty()) {
                 // 问题解析为 null/空，或所有引用路径均无可用段落（上游被 SKIP/配置错误/恢复后 JSON 类型已由
@@ -90,19 +98,21 @@ public class RerankerNodeHandler extends AbsNodeHandler {
                     (Double) left.getMetadata().get(NodeField.RELEVANCE_SCORE)
             )).toList();
 
-            int topN = params.getRerankerSetting().getTopN();
-            int endListIndex = Math.min(topN, resultList.size());
+            Integer topN = rerankerSetting.getTopN();
+            int endListIndex = topN != null ? Math.min(topN, resultList.size()) : resultList.size();
             resultList = resultList.subList(0, endListIndex);
         }
 
         String result = String.join("", resultList.stream().map(RerankerNode.RerankResult::getPageContent).toList());
-        int maxParagraphCharNumber = params.getRerankerSetting().getMaxParagraphCharNumber();
+        // 引用上限缺省值与前端应用默认配置（maxParagraphCharNumber=5000）保持一致
+        int maxParagraphCharNumber = rerankerSetting != null && rerankerSetting.getMaxParagraphCharNumber() != null
+                ? rerankerSetting.getMaxParagraphCharNumber() : DEFAULT_MAX_PARAGRAPH_CHAR_NUMBER;
         int endIndex = Math.min(result.length(), maxParagraphCharNumber);
         result = result.substring(0, endIndex);
 
-        // 使用辅助方法写入详情
+        // 使用辅助方法写入详情（question 解析失败时以空串兜底，Map.of 不接受 null 值）
         putDetails(node, Map.of(
-                NodeField.QUESTION, question,
+                NodeField.QUESTION, question != null ? question : "",
                 NodeField.DOCUMENT_LIST, documentList
         ));
 

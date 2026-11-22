@@ -2,6 +2,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 
 import com.maxkb4j.common.domain.dto.OssFile;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.model.service.IModelProviderService;
 import com.maxkb4j.model.base.TTSModel;
 import com.maxkb4j.oss.service.IOssService;
@@ -37,10 +38,15 @@ public class TextToSpeechNodeHandler extends AbsNodeHandler {
         TTSModel ttsModel = modelFactory.buildTTSModel(modelConfig.getModelId(), modelConfig.getModelParamsSetting());
         List<String> contentList = params.getContentList();
         Object content = workflow.getReferenceField(contentList);
+        if (content == null) {
+            // 引用未解析（上游被跳过/配置错误）时给出可读错误而非 NPE
+            throw new ApiException(MessageCode.REFERENCE_NOT_RESOLVED, contentList);
+        }
         byte[] audioData = ttsModel.textToSpeech(content.toString());
         OssFile ossFile = ossService.uploadFile(AudioField.GENERATED_AUDIO_PREFIX + UUID.randomUUID() + AudioField.MP3_SUFFIX, audioData);
         putDetail(node, NodeField.CONTENT, content);
-        if (params.getIsResult()) {
+        // isResult 缺省视为不输出
+        if (Boolean.TRUE.equals(params.getIsResult())) {
             String answer = "<audio src=\"" + ossFile.getUrl() + "\" controls style=\"width: 300px; height: 43px\"></audio>";
             setAnswerText(node, answer);
         }

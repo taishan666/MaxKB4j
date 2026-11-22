@@ -37,9 +37,12 @@ public class ResetProblemStep extends AbsResetProblemStep {
         Map<String, Object> context = stepContext(manage);
         context.put("modelId", modelId);
         context.put("problemText", question);
+        // 部分 OpenAI 兼容代理/模型不返回 usage，与 ChatStep.recordTokenUsage 保持一致
         TokenUsage tokenUsage = result.tokenUsage();
-        context.put("messageTokens", tokenUsage.inputTokenCount());
-        context.put("answerTokens", tokenUsage.outputTokenCount());
+        if (tokenUsage != null) {
+            context.put("messageTokens", tokenUsage.inputTokenCount());
+            context.put("answerTokens", tokenUsage.outputTokenCount());
+        }
         context.put("paddingProblemText", paddingProblem);
         log.info("BaseResetProblemStep 耗时 {} ms", System.currentTimeMillis() - startTime);
         return paddingProblem;

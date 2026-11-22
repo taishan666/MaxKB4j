@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 public class ChatResponse {
@@ -21,18 +22,23 @@ public class ChatResponse {
 
     public JSONArray getAnswerTextList() {
         JSONArray arrays = new JSONArray();
+        if (answers == null || answers.isEmpty()) {
+            return arrays;
+        }
         List<Answer> currentGroup = new ArrayList<>();
         String currentViewType = null;
+        boolean firstElement = true;
         for (Answer answer : answers) {
             String viewType = answer.getViewType();
-            // 如果是第一个元素，或者 viewType 与当前组一致，则加入当前组
-            if (currentViewType != null && !currentViewType.equals(viewType)) {
+            // 首元素直接开组；此后 viewType 变化（含 null 与非 null 互转）则切组
+            if (!firstElement && !Objects.equals(currentViewType, viewType)) {
                 // viewType 改变，将当前组加入结果，并开启新组
                 arrays.add(currentGroup);
                 currentGroup = new ArrayList<>();
             }
             currentGroup.add(answer);
             currentViewType = viewType;
+            firstElement = false;
         }
         // 循环结束后，别忘了添加最后一组
         if (!currentGroup.isEmpty()) {

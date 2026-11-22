@@ -25,14 +25,9 @@ public class GummySTT extends AbsSTTModel {
     private String translationLanguage;
 
     public GummySTT(String modelName, ModelCredential modelCredential, JSONObject params) {
-        if (params != null) {
-            String targetLanguage = params.getString(ParamKey.TARGET_LANGUAGE);
-            if (targetLanguage != null) {
-                this.translationLanguage = targetLanguage;
-            }
-        } else {
-            this.translationLanguage = Value.EN;
-        }
+        // 缺省目标语言兜底为英文，存量模型参数缺失时不再产生 null 元素
+        String targetLanguage = params != null ? params.getString(ParamKey.TARGET_LANGUAGE) : null;
+        this.translationLanguage = targetLanguage != null ? targetLanguage : Value.EN;
         this.param = TranslationRecognizerParam.builder()
                 .apiKey(modelCredential.getApiKey())
                 .model(modelName)

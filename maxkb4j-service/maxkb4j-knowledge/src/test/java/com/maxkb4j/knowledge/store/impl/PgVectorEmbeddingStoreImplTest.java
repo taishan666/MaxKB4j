@@ -1,7 +1,14 @@
 package com.maxkb4j.knowledge.store.impl;
 
+import com.maxkb4j.knowledge.consts.SourceType;
+import com.maxkb4j.knowledge.retrieval.SearchRequest;
 import com.maxkb4j.knowledge.service.KnowledgeModelService;
+import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.output.Response;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
+import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.filter.Filter;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,16 +28,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -182,5 +194,32 @@ class PgVectorEmbeddingStoreImplTest {
     @Test
     void toBase64ImageContentParsesDataUriDirectly() {
         assertNotNull(vectorStore.toBase64ImageContent("data:image/png;base64,aGVsbG8="));
+    }
+
+    @Test
+    void searchBySourceReusesQueryEmbeddingAcrossParagraphAndProblemRecall() {
+        // 双路召回（PARAGRAPH + PROBLEM）共用同一 SearchRequest：query 只应向量化一次并回填缓存
+        Embedding embedding = Embedding.from(new float[]{0.1f, 0.2f, 0.3f});
+        EmbeddingModel embeddingModel = mock(EmbeddingModel.class);
+        when(knowledgeModelService.getEmbeddingModel("kb-1")).thenReturn(embeddingModel);
+        when(embeddingModel.embed("什么是 MaxKB")).thenReturn(Response.from(embedding));
+        doReturn(store1024).when(vectorStore).get(3);
+        when(store1024.search(any(EmbeddingSearchRequest.class)))
+                .thenReturn(new EmbeddingSearchResult<>(List.of()));
+
+        SearchRequest request = new SearchRequest();
+        request.setKnowledgeIds(List.of("kb-1"));
+        request.setQuery("什么是 MaxKB");
+        request.setTopK(5);
+
+        vectorStore.searchBySource(request, SourceType.PARAGRAPH);
+        vectorStore.searchBySource(request, SourceType.PROBLEM);
+
+        verify(embeddingModel, times(1)).embed("什么是 MaxKB");
+        assertSame(embedding, request.getQueryEmbedding());
+        ArgumentCaptor<EmbeddingSearchRequest> captor = ArgumentCaptor.forClass(EmbeddingSearchRequest.class);
+        verify(store1024, times(2)).search(captor.capture());
+        assertSame(embedding, captor.getAllValues().get(0).queryEmbedding());
+        assertSame(embedding, captor.getAllValues().get(1).queryEmbedding());
     }
 }

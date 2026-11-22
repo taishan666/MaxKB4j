@@ -32,6 +32,12 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
     public static final RagContentInjector contentInjector = new RagContentInjector();
     private final IRetrieveService retrieveService;
 
+    /**
+     * 引用上限缺省值，与前端应用默认配置（maxParagraphCharNumber=5000）保持一致；
+     * 节点配置缺省该字段时兜底。
+     */
+    private static final int DEFAULT_MAX_PARAGRAPH_CHAR_NUMBER = 5000;
+
     @Override
     @SuppressWarnings("unchecked")
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
@@ -61,7 +67,9 @@ public class SearchKnowledgeNodeHandler extends AbsNodeHandler {
                 NodeField.QUESTION, question,
                 KnowledgeField.SHOW_KNOWLEDGE, params.getShowKnowledge()
         ));
-        int maxParagraphCharNumber = knowledgeSetting.getMaxParagraphCharNumber();
+        // 引用上限缺省值与前端应用默认配置（maxParagraphCharNumber=5000）保持一致
+        int maxParagraphCharNumber = knowledgeSetting != null && knowledgeSetting.getMaxParagraphCharNumber() != null
+                ? knowledgeSetting.getMaxParagraphCharNumber() : DEFAULT_MAX_PARAGRAPH_CHAR_NUMBER;
         return new NodeResult(Map.of(
                 NodeField.PARAGRAPH_LIST, paragraphList,
                 NodeField.IS_HIT_HANDLING_METHOD_LIST, isHitHandlingMethodList,

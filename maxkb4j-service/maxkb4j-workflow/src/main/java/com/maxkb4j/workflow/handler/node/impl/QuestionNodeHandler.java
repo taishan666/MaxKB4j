@@ -39,7 +39,9 @@ public class QuestionNodeHandler extends AbsNodeHandler {
         QuestionNode.NodeParams params = parseParams(node, QuestionNode.NodeParams.class);
         ModelConfig modelConfig = resolveModelConfig(workflow, params);
         ChatModel chatModel = modelFactory.buildChatModel(modelConfig.getModelId(), modelConfig.getModelParamsSetting());
-        List<ChatMessage> historyMessages = workflow.getHistoryMessages(params.getDialogueNumber(), DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
+        // 携带历史轮数缺省为 0（不携带历史），避免 Integer 拆箱 NPE
+        int dialogueNumber = params.getDialogueNumber() != null ? params.getDialogueNumber() : 0;
+        List<ChatMessage> historyMessages = workflow.getHistoryMessages(dialogueNumber, DialogueType.WORK_FLOW.name(), node.getRuntimeNodeId());
 
         putDetail(node, ChatField.HISTORY_MESSAGE, MessageConverter.formatHistoryMessages(historyMessages));
 
@@ -62,7 +64,8 @@ public class QuestionNodeHandler extends AbsNodeHandler {
 
         recordTokenUsage(node, result.tokenUsage());
 
-        if (params.getIsResult()) {
+        // isResult 缺省视为不输出
+        if (Boolean.TRUE.equals(params.getIsResult())) {
             setAnswerText(node, result.content());
         }
 

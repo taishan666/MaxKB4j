@@ -137,10 +137,13 @@ public class MongoFileService implements IOssService {
     }
 
     public byte[] getBytes(String fileId) {
-        GridFsResource resource = gridFsTemplate.getResource(getById(fileId));
-        if (!resource.exists()) {
+        // fileId 无效（文件已删除等）时 getById 返回 null，直接抛可读异常而非getResource(null) NPE
+        GridFSFile file = getById(fileId);
+        if (file == null) {
             log.error("File not found for ID: {}", fileId);
+            throw new IllegalStateException("File not found: " + fileId);
         }
+        GridFsResource resource = gridFsTemplate.getResource(file);
         try {
             return resource.getContentAsByteArray();
         } catch (IOException e) {

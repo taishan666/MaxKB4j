@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,15 +25,16 @@ public class ExcelParser implements DocumentParser {
 
     @Override
     public String handle(InputStream inputStream) {
-        // 用于保存表头和所有行数据
+        // 每个 sheet 独立成表：doReadAll() 顺序解析所有 sheet，invokeHeadMap/doAfterAllAnalysed 每 sheet 各回调一次，
+        // 因此缓冲区必须在每个 sheet 开始时重置、结束时输出，否则表头跨 sheet 累积会导致列错乱
         List<String> headers = new ArrayList<>();
         List<List<String>> rows = new ArrayList<>();
+        StringBuilder markdown = new StringBuilder();
         EasyExcel.read(inputStream, new AnalysisEventListener<Map<Integer, String>>() {
-            Map<Integer, String> headMap = new LinkedHashMap<>();
-
             @Override
             public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
-                this.headMap = headMap;
+                headers.clear();
+                rows.clear();
                 // 按列索引顺序保存表头；空表头单元格（缺键或 null 值）用占位名补齐，避免漏列或 null 元素
                 int lastCol = -1;
                 for (Integer key : headMap.keySet()) {
@@ -58,28 +58,36 @@ public class ExcelParser implements DocumentParser {
 
             @Override
             public void doAfterAllAnalysed(AnalysisContext analysisContext) {
-                log.info("所有数据解析完成！");
+                appendSheet(markdown, headers, rows);
+                headers.clear();
+                rows.clear();
             }
         }).doReadAll();
-        // 构建 Markdown 表格
-        StringBuilder markdown = new StringBuilder();
-        // 表头
-        if (!headers.isEmpty()) {
-            markdown.append("| ").append(String.join(" | ", headers)).append(" |\n");
-            // 分隔线
-            markdown.append("|");
-            markdown.append(" --- |".repeat(headers.size()));
-            markdown.append("\n");
-
-            // 数据行
-            for (List<String> row : rows) {
-                for (String cell : row) {
-                    cell = cell.replaceAll("\n", "<br>");
-                    markdown.append("| ").append(cell);
-                }
-                markdown.append(" |\n");
-            }
-        }
         return markdown.toString();
+    }
+
+    /**
+     * 将单个 sheet 的表头和数据行追加为一段 Markdown 表格，多个 sheet 之间用空行分隔
+     */
+    private void appendSheet(StringBuilder markdown, List<String> headers, List<List<String>> rows) {
+        if (headers.isEmpty()) {
+            return;
+        }
+        if (markdown.length() > 0) {
+            markdown.append("\n");
+        }
+        // 表头
+        markdown.append("| ").append(String.join(" | ", headers)).append(" |\n");
+        // 分隔线
+        markdown.append("|");
+        markdown.append(" --- |".repeat(headers.size()));
+        markdown.append("\n");
+        // 数据行
+        for (List<String> row : rows) {
+            for (String cell : row) {
+                markdown.append("| ").append(cell.replaceAll("\n", "<br>"));
+            }
+            markdown.append(" |\n");
+        }
     }
 }

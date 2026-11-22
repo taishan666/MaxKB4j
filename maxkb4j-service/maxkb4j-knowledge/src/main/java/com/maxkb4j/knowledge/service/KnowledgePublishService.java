@@ -3,6 +3,7 @@ package com.maxkb4j.knowledge.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.maxkb4j.common.context.UserContext;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.common.util.DateTimeUtil;
 import com.maxkb4j.knowledge.entity.KnowledgeActionEntity;
 import com.maxkb4j.knowledge.entity.KnowledgeEntity;
@@ -42,6 +43,9 @@ public class KnowledgePublishService {
         knowledge.setIsPublish(true);
         knowledgeService.updateById(knowledge);
         knowledge = knowledgeService.getById(id);
+        if (knowledge == null) {
+            throw new ApiException("common.record.not.exists");
+        }
         KnowledgeVersionEntity knowledgeVersion = new KnowledgeVersionEntity();
         knowledgeVersion.setKnowledgeId(id);
         knowledgeVersion.setName(DateTimeUtil.now());

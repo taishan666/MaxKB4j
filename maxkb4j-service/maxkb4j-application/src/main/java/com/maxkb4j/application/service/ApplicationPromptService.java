@@ -3,6 +3,7 @@ package com.maxkb4j.application.service;
 import com.maxkb4j.application.dto.PromptGenerateDTO;
 import com.maxkb4j.application.entity.ApplicationEntity;
 import com.maxkb4j.common.domain.dto.MessageDTO;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.core.langchain4j.ChatStreamGenerator;
 import com.maxkb4j.model.service.IModelProviderService;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -23,6 +24,9 @@ public class ApplicationPromptService {
     private final IModelProviderService modelFactory;
 
     public Flux<MessageDTO> promptGenerate(ApplicationEntity app, String modelId, PromptGenerateDTO dto) {
+        if (app == null) {
+            throw new ApiException("common.record.not.exists");
+        }
         StreamingChatModel chatModel = modelFactory.buildStreamingChatModel(modelId);
         String detail = StringUtils.isBlank(app.getDesc()) ? app.getName() : app.getDesc();
         return ChatStreamGenerator.generate(chatModel, dto.getMessages(), userInput -> dto.getPrompt()

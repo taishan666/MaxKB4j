@@ -211,7 +211,8 @@ public class DocumentSplitServiceImpl implements IDocumentSplitService {
 
     public List<ParagraphSimple> split(String docText, String[] patterns, Integer limit, Boolean withFilter) {
         if (patterns != null && patterns.length > 0) {
-            return recursive(docText, patterns, limit, withFilter);
+            // limit 未传时使用 DEFAULT_LIMIT，避免 Integer→int 拆箱 NPE
+            return recursive(docText, patterns, limit != null ? limit : DEFAULT_LIMIT, withFilter);
         } else {
             return smartSplit(docText);
         }

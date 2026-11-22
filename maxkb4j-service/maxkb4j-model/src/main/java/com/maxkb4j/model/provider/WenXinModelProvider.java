@@ -42,8 +42,8 @@ public class WenXinModelProvider extends AbsModelProvider {
         return QianfanChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .maxOutputTokens(params.getInteger(ParamKey.MAX_TOKENS))
-                .temperature(params.getDouble(ParamKey.TEMPERATURE))
+                .maxOutputTokens(getIntParam(params, ParamKey.MAX_TOKENS))
+                .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
                 .build();
     }
 
@@ -52,8 +52,8 @@ public class WenXinModelProvider extends AbsModelProvider {
         return QianfanStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
-                .maxOutputTokens(params.getInteger(ParamKey.MAX_TOKENS))
-                .temperature(params.getDouble(ParamKey.TEMPERATURE))
+                .maxOutputTokens(getIntParam(params, ParamKey.MAX_TOKENS))
+                .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
                 .build();
     }
 
