@@ -1,11 +1,12 @@
 package com.maxkb4j.trigger.controller;
 
+import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.maxkb4j.common.api.R;
-import com.maxkb4j.common.constant.LoginType;
-import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.constant.LoginType;
+import com.maxkb4j.common.constant.RoleConst;
+import com.maxkb4j.common.util.BeanUtil;
 import com.maxkb4j.trigger.dto.EventTaskQuery;
 import com.maxkb4j.trigger.service.IEventTriggerTaskRecordService;
 import com.maxkb4j.trigger.vo.EventTriggerTaskRecordVO;
@@ -33,13 +34,13 @@ public class TriggerTaskRecordController {
     /**
      * 分页查询触发器列表
      */
-    @SaCheckLogin(type = LoginType.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @GetMapping("/trigger/{id}/task_record/{current}/{size}")
     public R<IPage<EventTriggerTaskRecordVO>> page(@PathVariable String id, @PathVariable int current, @PathVariable int size, EventTaskQuery query) {
         return R.data(eventTriggerTaskRecordService.pageList(id, current, size, query));
     }
 
-    @SaCheckLogin(type = LoginType.ADMIN)
+    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
     @GetMapping("/trigger/{id}/trigger_task/{taskId}/trigger_task_record/{recordId}")
     public R<EventTriggerTaskRecordVO> get(@PathVariable String id, @PathVariable String taskId, @PathVariable String recordId) {
         return R.data(BeanUtil.copy(eventTriggerTaskRecordService.get(id, taskId, recordId), EventTriggerTaskRecordVO.class));

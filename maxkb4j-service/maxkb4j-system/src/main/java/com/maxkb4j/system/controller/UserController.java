@@ -1,5 +1,6 @@
 package com.maxkb4j.system.controller;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.dev33.satoken.annotation.SaMode;
 import com.maxkb4j.common.api.R;
@@ -32,6 +33,7 @@ public class UserController {
     private final IUserInternalService userService;
     private final UserContext userContext;
 
+    @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("user/profile")
     public R<UserProfileVO> getUserProfile() {
         return R.data(userService.getUserProfileById(userContext.getUserId()));

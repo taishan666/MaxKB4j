@@ -53,6 +53,6 @@ public class FormNodeHandler extends AbsNodeHandler {
 
     @Override
     public boolean shouldInterrupt(INode node) {
-        return !(boolean) node.getContext().getOrDefault(FormField.IS_SUBMIT, false);
+        return !Boolean.TRUE.equals(node.getContext().get(FormField.IS_SUBMIT));
     }
 }

@@ -75,6 +75,19 @@ public class PdfParser implements DocumentParser {
     @Value("${knowledge.pdf.max-size-mb:100}")
     private int maxPdfSizeMb;
 
+    /**
+     * 单个 PDF 允许提取的最大图片数量，超出部分跳过，防止海量内嵌图片累积占满堆内存。
+     */
+    @Value("${knowledge.pdf.max-image-count:50}")
+    private int maxImageCount;
+
+    /**
+     * 单张图片允许的最大像素数（宽 × 高，单位：百万像素），超限跳过，
+     * 在解码为 {@link BufferedImage} 前按元数据预判，避免超大图片解码时即触发 OOM。
+     */
+    @Value("${knowledge.pdf.max-image-megapixels:25}")
+    private int maxImageMegapixels;
+
     private static boolean isScannedPDF(PDDocument document) {
         int checkPages = Math.min(3, document.getNumberOfPages());
         try {
@@ -277,7 +290,8 @@ public class PdfParser implements DocumentParser {
                 int pageNo = 0;
                 for (PDPage page : document.getPages()) {
                     pageNo++;
-                    ImageExtractor imageExtractor = new ImageExtractor(page, pageNo, pendingImages, pageImages);
+                    ImageExtractor imageExtractor = new ImageExtractor(page, pageNo, pendingImages, pageImages,
+                            maxImageCount, maxImageMegapixels);
                     imageExtractor.processPage(page);
                 }
             }
@@ -409,22 +423,58 @@ public class PdfParser implements DocumentParser {
         private final Map<Integer, List<TextLine>> pageImages;
         private final int pageNo;
         private final PDRectangle cropBox;
+        /**
+         * 单文档图片数量上限
+         */
+        private final int maxImageCount;
+        /**
+         * 单张图片像素数上限（百万像素）
+         */
+        private final int maxImageMegapixels;
 
         ImageExtractor(PDPage page, int pageNo,
                        List<ImageData> pendingImages,
-                       Map<Integer, List<TextLine>> pageImages) {
+                       Map<Integer, List<TextLine>> pageImages,
+                       int maxImageCount,
+                       int maxImageMegapixels) {
             super(page);
             this.pageNo = pageNo;
             this.cropBox = page.getCropBox();
             this.pendingImages = pendingImages;
             this.pageImages = pageImages;
+            this.maxImageCount = maxImageCount;
+            this.maxImageMegapixels = maxImageMegapixels;
         }
 
         @Override
         public void drawImage(PDImage pdImage) throws IOException {
+            int width = pdImage.getWidth();
+            int height = pdImage.getHeight();
+
+            // 数量上限：防止海量内嵌图片累积导致 pendingImages 占满堆内存
+            if (pendingImages.size() >= maxImageCount) {
+                log.warn("PDF 图片数量超出上限 {}，跳过后续图片：宽度={}, 高度={}", maxImageCount, width, height);
+                return;
+            }
+
+            // 尺寸上限：在 getImage() 解码前按元数据预判像素数，避免超大图片解码即触发 OOM
+            long pixelLimit = maxImageMegapixels * 1_000_000L;
+            if (width > 0 && height > 0 && (long) width * (long) height > pixelLimit) {
+                log.warn("PDF 图片像素数超出上限 {} 百万像素，跳过：宽度={}, 高度={}",
+                        maxImageMegapixels, width, height);
+                return;
+            }
+
             BufferedImage image = pdImage.getImage();
             if (image == null) {
-                log.debug("图像无法解码，跳过：宽度={}, 高度={}", pdImage.getWidth(), pdImage.getHeight());
+                log.debug("图像无法解码，跳过：宽度={}, 高度={}", width, height);
+                return;
+            }
+
+            // 元数据维度缺失（如 -1）时，解码后再兜底校验一次，避免漏放超大图片
+            if ((long) image.getWidth() * (long) image.getHeight() > pixelLimit) {
+                log.warn("PDF 图片解码后像素数超出上限 {} 百万像素，跳过：宽度={}, 高度={}",
+                        maxImageMegapixels, image.getWidth(), image.getHeight());
                 return;
             }
             /*

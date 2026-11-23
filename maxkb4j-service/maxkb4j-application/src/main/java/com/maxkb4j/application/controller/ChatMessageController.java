@@ -2,6 +2,7 @@ package com.maxkb4j.application.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.maxkb4j.application.service.IApplicationChatInternalService;
+import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
@@ -12,6 +13,7 @@ import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
+import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.common.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -31,7 +33,7 @@ public class ChatMessageController {
     private final IApplicationChatInternalService chatService;
     private final UserContext userContext;
 
-    @SaCheckLogin(type = LoginType.ADMIN)
+    @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/workspace/default/application/{id}/open")
     public R<String> open(@PathVariable("id") String id) {
         return R.data(chatService.chatOpen(id, true));

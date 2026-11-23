@@ -147,7 +147,7 @@ public class LoopIterationRunner {
         List<JSONObject> existingDetails = (List<JSONObject>) node.getDetail().get(LoopField.LOOP_NODE_DATA);
         List<JSONObject> loopDetails = existingDetails != null ? existingDetails : new ArrayList<>();
         Object savedIndex = node.getDetail().get(LoopField.CURRENT_INDEX);
-        int startIndex = savedIndex != null ? (int) savedIndex : 0;
+        int startIndex = savedIndex != null ? ((Number) savedIndex).intValue() : 0;
         return new LoopExecutionContext(startIndex, loopDetails);
     }
 
