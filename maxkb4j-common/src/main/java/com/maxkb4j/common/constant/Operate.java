@@ -11,6 +11,7 @@ public interface Operate {
     String IMPORT = "READ+IMPORT";
     String DOWNLOAD = "READ+DOWNLOAD";
     String REPLACE = "READ+REPLACE";
+    String RELATE_VIEW = "READ+RELATE_VIEW";
     String MIGRATE = "READ+MIGRATE";
     String SYNC = "READ+SYNC";
     String VECTOR = "READ+VECTOR";

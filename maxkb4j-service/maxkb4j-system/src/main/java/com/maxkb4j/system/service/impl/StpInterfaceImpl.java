@@ -12,10 +12,7 @@ import com.maxkb4j.system.service.IUserResourcePermissionInternalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -36,21 +33,21 @@ public class StpInterfaceImpl implements StpInterface {
         if (getActiveUser(loginId) == null) {
             return List.of();
         }
+        Set<String> permissions = new LinkedHashSet<>(getWorkspaceDefaultPermission());
         List<UserResourcePermissionEntity> userResourcePermissions = userResourcePermissionService.getByUserId(String.valueOf(loginId));
-        Set<String> permissions = new LinkedHashSet<>();
         for (UserResourcePermissionEntity userResourcePermission : userResourcePermissions) {
             permissions.addAll(getWorkspaceResourcePermission(userResourcePermission));
         }
         return new ArrayList<>(permissions);
     }
 
+    private Set<String> getWorkspaceDefaultPermission(){
+        return Arrays.stream(PermissionEnum.values()).filter(e-> Operate.CREATE.equals(e.getOperate())||Operate.READ.equals(e.getOperate())).map(PermissionEnum::getResourcePerm).collect(Collectors.toSet());
+    }
     private Set<String> getWorkspaceResourcePermission(UserResourcePermissionEntity userResourcePermission){
         List<PermissionEnum> resourcePermissionEnums = PermissionEnum.getPermissions(
                 userResourcePermission.getAuthTargetType(), userResourcePermission.getPermissionList());
         return resourcePermissionEnums.stream().map(e-> {
-            if(Operate.CREATE.equals(e.getOperate())){
-                return e.getResourcePerm();
-            }
             String targetId=userResourcePermission.getTargetId();
             return e.getResourcePerm(targetId);
         }).collect(Collectors.toSet());

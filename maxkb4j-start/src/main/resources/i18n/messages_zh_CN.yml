@@ -60,6 +60,8 @@ auth:
   token:
     expired: token已过期，请重新登录
     invalid: token无效，请重新登录
+  permission:
+    denied: 无此权限
 
 resource:
   "no":

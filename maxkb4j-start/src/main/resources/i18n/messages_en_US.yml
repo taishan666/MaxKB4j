@@ -60,6 +60,8 @@ auth:
   token:
     expired: Token has expired. Please log in again.
     invalid: Token is invalid. Please log in again.
+  permission:
+    denied: No permission
 
 resource:
   "no":

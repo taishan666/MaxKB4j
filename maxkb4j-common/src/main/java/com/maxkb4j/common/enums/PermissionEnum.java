@@ -21,7 +21,7 @@ public enum PermissionEnum {
     APPLICATION_READ(ResourceType.APPLICATION, ResourceGroup.APPLICATION, Operate.READ, Permission.VIEW),
     APPLICATION_EXPORT(ResourceType.APPLICATION, ResourceGroup.APPLICATION, Operate.EXPORT, Permission.MANAGE),
     APPLICATION_IMPORT(ResourceType.APPLICATION, ResourceGroup.APPLICATION, Operate.IMPORT, Permission.MANAGE),
-
+    APPLICATION_RELATE_RESOURCE_VIEW(ResourceType.APPLICATION, ResourceGroup.APPLICATION, Operate.RELATE_VIEW, Permission.MANAGE),
     APPLICATION_OVERVIEW_PUBLIC_ACCESS(ResourceType.APPLICATION, ResourceGroup.APPLICATION_OVERVIEW, Operate.PUBLIC_ACCESS, Permission.MANAGE),
     APPLICATION_OVERVIEW_ACCESS(ResourceType.APPLICATION, ResourceGroup.APPLICATION_OVERVIEW, Operate.ACCESS, Permission.MANAGE),
     APPLICATION_OVERVIEW_EMBED(ResourceType.APPLICATION, ResourceGroup.APPLICATION_OVERVIEW, Operate.EMBED, Permission.MANAGE),
@@ -48,10 +48,11 @@ public enum PermissionEnum {
     KNOWLEDGE_GENERATE(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE, Operate.GENERATE, Permission.MANAGE),
     KNOWLEDGE_SYNC(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE, Operate.SYNC, Permission.MANAGE),
     KNOWLEDGE_HIT_TEST_READ(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_HIT_TEST, Operate.READ, Permission.VIEW),
-
+    KNOWLEDGE_RELATE_RESOURCE_VIEW(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE, Operate.RELATE_VIEW, Permission.MANAGE),
     KNOWLEDGE_WORKFLOW_READ(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_WORKFLOW, Operate.READ, Permission.VIEW),
     KNOWLEDGE_WORKFLOW_EDIT(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_WORKFLOW,  Operate.EDIT, Permission.MANAGE),
 
+    KNOWLEDGE_DOCUMENT_READ(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_DOCUMENT, Operate.READ, Permission.VIEW),
     KNOWLEDGE_DOCUMENT_CREATE(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_DOCUMENT, Operate.CREATE, Permission.MANAGE),
     KNOWLEDGE_DOCUMENT_EDIT(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_DOCUMENT, Operate.EDIT, Permission.MANAGE),
     KNOWLEDGE_DOCUMENT_DELETE(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_DOCUMENT, Operate.DELETE, Permission.MANAGE),
@@ -62,27 +63,32 @@ public enum PermissionEnum {
     KNOWLEDGE_DOCUMENT_DOWNLOAD(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_DOCUMENT, Operate.DOWNLOAD, Permission.MANAGE),
     KNOWLEDGE_DOCUMENT_REPLACE(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_DOCUMENT, Operate.REPLACE, Permission.MANAGE),
     KNOWLEDGE_DOCUMENT_EXPORT(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_DOCUMENT, Operate.EXPORT, Permission.MANAGE),
-    KNOWLEDGE_DOCUMENT_READ(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_DOCUMENT, Operate.READ, Permission.VIEW),
-
     KNOWLEDGE_PROBLEM_CREATE(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_PROBLEM, Operate.CREATE, Permission.MANAGE),
     KNOWLEDGE_PROBLEM_EDIT(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_PROBLEM, Operate.EDIT, Permission.MANAGE),
     KNOWLEDGE_PROBLEM_DELETE(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_PROBLEM, Operate.DELETE, Permission.MANAGE),
     KNOWLEDGE_PROBLEM_RELATE(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_PROBLEM, Operate.RELATE, Permission.MANAGE),
     KNOWLEDGE_PROBLEM_READ(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_PROBLEM, Operate.READ, Permission.VIEW),
 
+    KNOWLEDGE_TAG_READ(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_TAG, Operate.READ, Permission.VIEW),
+    KNOWLEDGE_TAG_CREATE(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_TAG, Operate.CREATE, Permission.MANAGE),
+    KNOWLEDGE_TAG_EDIT(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_TAG, Operate.EDIT, Permission.MANAGE),
+    KNOWLEDGE_TAG_DELETE(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE_TAG, Operate.DELETE, Permission.MANAGE),
+
+    TOOL_READ(ResourceType.TOOL, ResourceGroup.TOOL,Operate.READ, Permission.VIEW),
     TOOL_CREATE(ResourceType.TOOL, ResourceGroup.TOOL, Operate.CREATE, Permission.MANAGE),
     TOOL_DEBUG(ResourceType.TOOL, ResourceGroup.TOOL,Operate.DEBUG, Permission.MANAGE),
     TOOL_EDIT(ResourceType.TOOL, ResourceGroup.TOOL,Operate.EDIT, Permission.MANAGE),
     TOOL_DELETE(ResourceType.TOOL, ResourceGroup.TOOL,Operate.DELETE, Permission.MANAGE),
     TOOL_BATCH_DELETE(ResourceType.TOOL, ResourceGroup.TOOL,Operate.BATCH_DELETE, Permission.MANAGE),
-    TOOL_READ(ResourceType.TOOL, ResourceGroup.TOOL,Operate.READ, Permission.VIEW),
     TOOL_IMPORT(ResourceType.TOOL, ResourceGroup.TOOL,Operate.IMPORT, Permission.MANAGE),
     TOOL_EXPORT(ResourceType.TOOL, ResourceGroup.TOOL,Operate.EXPORT, Permission.MANAGE),
+    TOOL_RELATE_RESOURCE_VIEW(ResourceType.TOOL, ResourceGroup.TOOL, Operate.RELATE_VIEW, Permission.MANAGE),
 
+    MODEL_READ(ResourceType.MODEL, ResourceGroup.MODEL, Operate.READ, Permission.VIEW),
     MODEL_CREATE(ResourceType.MODEL, ResourceGroup.MODEL, Operate.CREATE, Permission.MANAGE),
     MODEL_EDIT(ResourceType.MODEL, ResourceGroup.MODEL, Operate.EDIT, Permission.MANAGE),
     MODEL_DELETE(ResourceType.MODEL, ResourceGroup.MODEL, Operate.DELETE, Permission.MANAGE),
-    MODEL_READ(ResourceType.MODEL, ResourceGroup.MODEL, Operate.READ, Permission.VIEW),
+    MODEL_RELATE_RESOURCE_VIEW(ResourceType.MODEL, ResourceGroup.MODEL, Operate.RELATE_VIEW, Permission.MANAGE),
     ;
 
     /**
@@ -118,7 +124,7 @@ public enum PermissionEnum {
     }
 
     public String getResourcePerm() {
-        return getResourcePerm(AppConst.DEFAULT_ID);
+        return resourceGroup + ":" + operate + ":/WORKSPACE/" + AppConst.DEFAULT_ID;
     }
 
     public String getResourcePerm(String targetId) {
