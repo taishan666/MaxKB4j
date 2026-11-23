@@ -48,7 +48,7 @@ public interface IUserInternalService extends IUserService, IService<UserEntity>
 
     boolean updateLanguage(UserEntity user);
 
-    List<UserNameVO> listActiveUserNames();
+    List<UserNameVO> listActiveUserNames(String nickname);
 
     List<UserEntity> listActiveMembers();
 

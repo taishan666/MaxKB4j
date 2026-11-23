@@ -22,8 +22,8 @@ public class KnowledgeToolMetaResolver implements IKnowledgeToolMetaResolver {
     private final IKnowledgeService knowledgeService;
 
     @Override
-    public ToolRenderMeta resolve(String agentId) {
-        KnowledgeSimple knowledge = knowledgeService.getSimpleKnowledgeById(agentId);
+    public ToolRenderMeta resolve(String knowledgeId) {
+        KnowledgeSimple knowledge = knowledgeService.getSimpleKnowledgeById(knowledgeId);
         return knowledge == null ? null : new ToolRenderMeta(String.valueOf(knowledge.getType()), knowledge.getName());
     }
 }

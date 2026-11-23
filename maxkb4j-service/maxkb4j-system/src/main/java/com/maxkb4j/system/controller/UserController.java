@@ -42,7 +42,7 @@ public class UserController {
     @SaCheckRole(type = LoginType.ADMIN, value = {RoleConst.ADMIN, RoleConst.USER}, mode = SaMode.OR)
     @GetMapping("/user/list")
     public R<List<UserNameVO>> userList() {
-        return R.data(userService.listActiveUserNames());
+        return R.data(userService.listActiveUserNames(null));
     }
 
     @SaCheckRole(type = LoginType.ADMIN, value = {RoleConst.ADMIN, RoleConst.USER}, mode = SaMode.OR)

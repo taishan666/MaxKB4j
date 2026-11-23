@@ -445,8 +445,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
                 .collect(HashMap::new, (m, e) -> m.put(e.getId(), e.getNickname()), HashMap::putAll);
     }
 
-    public List<UserNameVO> listActiveUserNames() {
-        List<UserEntity> userList = this.lambdaQuery().eq(UserEntity::getIsActive, true).list();
+    public List<UserNameVO> listActiveUserNames(String nickname) {
+        List<UserEntity> userList = this.lambdaQuery()
+                .eq(UserEntity::getIsActive, true)
+                .like(StringUtils.isNotBlank(nickname), UserEntity::getNickname, nickname)
+                .list();
         return BeanUtil.copyList(userList, UserNameVO.class);
     }
 

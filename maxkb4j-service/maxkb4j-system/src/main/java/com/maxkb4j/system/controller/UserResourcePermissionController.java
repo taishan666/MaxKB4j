@@ -32,8 +32,8 @@ public class UserResourcePermissionController {
 
     @SaCheckRole(type= LoginType.ADMIN,value = {RoleConst.ADMIN, RoleConst.USER},mode = SaMode.OR)
     @GetMapping("/user_list")
-    public R<List<UserNameVO>> userList() {
-        return R.data(userService.listActiveUserNames());
+    public R<List<UserNameVO>> userList(String nickname) {
+        return R.data(userService.listActiveUserNames(nickname));
     }
 
     @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)

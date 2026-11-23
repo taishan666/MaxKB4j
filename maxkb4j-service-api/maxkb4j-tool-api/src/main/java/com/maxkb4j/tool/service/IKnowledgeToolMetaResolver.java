@@ -17,8 +17,8 @@ public interface IKnowledgeToolMetaResolver {
     /**
      * 按 agent（应用）ID 解析展示元数据。
      *
-     * @param agentId 应用 ID
+     * @param knowledgeId 知识库 ID
      * @return 展示元数据；不存在时返回 null，由调用方走 fallback
      */
-    ToolRenderMeta resolve(String agentId);
+    ToolRenderMeta resolve(String knowledgeId);
 }
