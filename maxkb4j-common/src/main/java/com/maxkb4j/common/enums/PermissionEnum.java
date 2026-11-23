@@ -38,6 +38,11 @@ public enum PermissionEnum {
     APPLICATION_ACCESS_READ(ResourceType.APPLICATION, ResourceGroup.APPLICATION_ACCESS,  Operate.READ, Permission.VIEW),
     APPLICATION_ACCESS_EDIT(ResourceType.APPLICATION,  ResourceGroup.APPLICATION_ACCESS,  Operate.EDIT, Permission.MANAGE),
 
+    APPLICATION_TRIGGER_READ(ResourceType.APPLICATION, ResourceGroup.APPLICATION,  Operate.TRIGGER_READ, Permission.MANAGE),
+    APPLICATION_TRIGGER_CREATE(ResourceType.APPLICATION,  ResourceGroup.APPLICATION,  Operate.TRIGGER_CREATE, Permission.MANAGE),
+    APPLICATION_TRIGGER_EDIT(ResourceType.APPLICATION, ResourceGroup.APPLICATION,  Operate.TRIGGER_EDIT, Permission.MANAGE),
+    APPLICATION_TRIGGER_DELETE(ResourceType.APPLICATION,  ResourceGroup.APPLICATION,  Operate.TRIGGER_DELETE, Permission.MANAGE),
+
     KNOWLEDGE_CREATE(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE, Operate.CREATE, Permission.MANAGE),
     KNOWLEDGE_EDIT(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE, Operate.EDIT, Permission.MANAGE),
     KNOWLEDGE_DELETE(ResourceType.KNOWLEDGE, ResourceGroup.KNOWLEDGE, Operate.DELETE, Permission.MANAGE),
@@ -83,6 +88,11 @@ public enum PermissionEnum {
     TOOL_IMPORT(ResourceType.TOOL, ResourceGroup.TOOL,Operate.IMPORT, Permission.MANAGE),
     TOOL_EXPORT(ResourceType.TOOL, ResourceGroup.TOOL,Operate.EXPORT, Permission.MANAGE),
     TOOL_RELATE_RESOURCE_VIEW(ResourceType.TOOL, ResourceGroup.TOOL, Operate.RELATE_VIEW, Permission.MANAGE),
+
+    TOOL_TRIGGER_READ(ResourceType.TOOL, ResourceGroup.TOOL,  Operate.TRIGGER_READ, Permission.MANAGE),
+    TOOL_TRIGGER_CREATE(ResourceType.TOOL,  ResourceGroup.TOOL,  Operate.TRIGGER_CREATE, Permission.MANAGE),
+    TOOL_TRIGGER_EDIT(ResourceType.TOOL, ResourceGroup.TOOL,  Operate.TRIGGER_EDIT, Permission.MANAGE),
+    TOOL_TRIGGER_DELETE(ResourceType.TOOL,  ResourceGroup.TOOL,  Operate.TRIGGER_DELETE, Permission.MANAGE),
 
     MODEL_READ(ResourceType.MODEL, ResourceGroup.MODEL, Operate.READ, Permission.VIEW),
     MODEL_CREATE(ResourceType.MODEL, ResourceGroup.MODEL, Operate.CREATE, Permission.MANAGE),
