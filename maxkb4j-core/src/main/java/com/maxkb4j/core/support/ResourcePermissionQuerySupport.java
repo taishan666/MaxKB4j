@@ -72,6 +72,7 @@ public final class ResourcePermissionQuerySupport {
         if (extraConditions != null) {
             extraConditions.accept(wrapper);
         }
+        wrapper.orderByDesc(BaseEntity::getCreateTime);
         mapper.selectPage(page, wrapper);
         return BeanUtil.copyPage(page, e -> buildResourceVO(e.getId(), nameField.apply(e), iconField == null ? "" : iconField.apply(e), type, permissionMap.getOrDefault(e.getId(), Permission.NOT_AUTH)));
     }
