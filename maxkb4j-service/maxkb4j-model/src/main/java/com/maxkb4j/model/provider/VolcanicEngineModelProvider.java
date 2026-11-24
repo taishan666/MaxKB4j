@@ -23,7 +23,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.VOLCANIC_ENGINE, name = "火山引擎", icon = Provider.ICON_VOLCANIC_ENGINE)
 public class VolcanicEngineModelProvider extends OpenAiModelProvider {
 
-    private static final String BASE_URL = BaseUrl.VOLCANIC_ENGINE;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(ModelName.DOUBAO_1_5_PRO_32K, "", ModelType.LLM),
             new ModelInfo(ModelName.DOUBAO_SEED_1_6, "", ModelType.LLM),
@@ -60,6 +59,6 @@ public class VolcanicEngineModelProvider extends OpenAiModelProvider {
 
     @Override
     public String getDefaultBaseUrl() {
-        return BASE_URL;
+        return BaseUrl.VOLCANIC_ENGINE;
     }
 }

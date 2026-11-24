@@ -73,8 +73,9 @@ public interface ModelConstants {
         String TENCENT = "https://api.hunyuan.cloud.tencent.com/v1";
         String VOLCANIC_ENGINE = "https://ark.cn-beijing.volces.com/api/v3";
         String X_INFERENCE = "http://host.docker.internal:9997";
-        String XUN_FEI = "https://spark-api-open.xf-yun.com/v1/";
+        String XUN_FEI = "https://spark-api-open.xf-yun.com/v1";
         String ZHI_PU = "https://open.bigmodel.cn/api/paas/v4";
+        String AZURE = "https://{your-resource-name}.openai.azure.com/openai/v1";
     }
 
     /**
@@ -174,7 +175,7 @@ public interface ModelConstants {
         String TELE_SPEECH_ASR = "TeleAI/TeleSpeechASR";
         String SENSE_VOICE_SMALL = "FunAudioLLM/SenseVoiceSmall";
         String COSY_VOICE_2_0_5B = "FunAudioLLM/CosyVoice2-0.5B";
-
+        String HY4 = "hy4";
         String HY3 = "hy3";
         String HUNYUAN_PRO = "hunyuan-pro";
         String HUNYUAN_STANDARD = "hunyuan-standard";

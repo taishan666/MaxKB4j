@@ -18,7 +18,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.KIMI, name = "Kimi", icon = Provider.ICON_KIMI)
 public class KimiModelProvider extends OpenAiModelProvider {
 
-    private static final String BASE_URL = BaseUrl.KIMI;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(ModelName.KIMI_K2_6, "", ModelType.LLM),
             new ModelInfo(ModelName.KIMI_K2_5, "", ModelType.LLM),
@@ -38,6 +37,6 @@ public class KimiModelProvider extends OpenAiModelProvider {
 
     @Override
     public String getDefaultBaseUrl() {
-        return BASE_URL;
+        return BaseUrl.KIMI;
     }
 }

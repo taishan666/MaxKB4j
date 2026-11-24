@@ -17,8 +17,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.ZHI_PU, name = "智谱清言", icon = Provider.ICON_ZHI_PU)
 public class ZhiPuModelProvider extends OpenAiModelProvider {
 
-    private static final String BASE_URL = BaseUrl.ZHI_PU;
-
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(ModelName.GLM_5_3_FLASH, "", ModelType.LLM),
             new ModelInfo(ModelName.GLM_5_3, "", ModelType.LLM),
@@ -44,6 +42,6 @@ public class ZhiPuModelProvider extends OpenAiModelProvider {
 
     @Override
     public String getDefaultBaseUrl() {
-        return BASE_URL;
+        return BaseUrl.ZHI_PU;
     }
 }

@@ -36,7 +36,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.OLLAMA, name = "OLlama", icon = Provider.ICON_OLLAMA)
 public class OLlamaModelProvider extends AbsModelProvider {
 
-    private static final String BASE_URL = BaseUrl.OLLAMA;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(ModelName.QWEN_7B, "", ModelType.LLM),
             new ModelInfo(ModelName.LLAMA3_8B, "", ModelType.LLM),
@@ -74,7 +73,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(false, BASE_URL);
+        return new ModelCredentialForm(false, BaseUrl.OLLAMA);
     }
 
     @Override

@@ -36,7 +36,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @Component
 @ModelProviderType(provider = Provider.OPENAI, name = "OpenAI", icon = Provider.ICON_OPENAI)
 public class OpenAiModelProvider extends AbsModelProvider {
-    private static final String BASE_URL = BaseUrl.OPENAI;
 
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(ModelName.GPT_3_5_TURBO, "GPT-3.5 Turbo", ModelType.LLM),
@@ -54,7 +53,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
 
 
     public String getDefaultBaseUrl() {
-        return BASE_URL;
+        return BaseUrl.OPENAI;
     }
 
     public String getBaseUrl(String baseUrl) {

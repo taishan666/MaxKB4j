@@ -22,7 +22,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.SILICON_FLOW, name = "Silicon Flow", icon = Provider.ICON_SILICON_FLOW)
 public class SiliconFlowModelProvider extends OpenAiModelProvider {
 
-    private static final String BASE_URL = BaseUrl.SILICON_FLOW;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(ModelName.DEEPSEEK_AI_V3_2, "", ModelType.LLM),
             new ModelInfo(ModelName.PRO_KIMI_K2_5, "", ModelType.LLM),
@@ -51,7 +50,7 @@ public class SiliconFlowModelProvider extends OpenAiModelProvider {
 
     @Override
     public String getDefaultBaseUrl() {
-        return BASE_URL;
+        return BaseUrl.SILICON_FLOW;
     }
 
     @Override

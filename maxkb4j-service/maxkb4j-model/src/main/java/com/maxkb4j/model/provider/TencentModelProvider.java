@@ -18,8 +18,8 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.TENCENT, name = "腾讯混元", icon = Provider.ICON_TENCENT)
 public class TencentModelProvider extends OpenAiModelProvider {
 
-    private static final String BASE_URL = BaseUrl.TENCENT;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
+            new ModelInfo(ModelName.HY4, "", ModelType.LLM),
             new ModelInfo(ModelName.HY3, "", ModelType.LLM),
             new ModelInfo(ModelName.HUNYUAN_PRO, "", ModelType.LLM),
             new ModelInfo(ModelName.HUNYUAN_STANDARD, "", ModelType.LLM),
@@ -40,6 +40,6 @@ public class TencentModelProvider extends OpenAiModelProvider {
 
     @Override
     public String getDefaultBaseUrl() {
-        return BASE_URL;
+        return BaseUrl.TENCENT;
     }
 }

@@ -25,8 +25,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.ANTHROPIC, name = "Anthropic", icon = Provider.ICON_ANTHROPIC)
 public class AnthropicProvider extends AbsModelProvider {
 
-    private static final String BASE_URL = BaseUrl.ANTHROPIC;
-
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(ModelName.CLAUDE_3_OPUS, "", ModelType.LLM),
             new ModelInfo(ModelName.CLAUDE_3_SONNET, "", ModelType.LLM),
@@ -44,7 +42,7 @@ public class AnthropicProvider extends AbsModelProvider {
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, BASE_URL);
+        return new ModelCredentialForm(true, BaseUrl.ANTHROPIC);
     }
 
     @Override

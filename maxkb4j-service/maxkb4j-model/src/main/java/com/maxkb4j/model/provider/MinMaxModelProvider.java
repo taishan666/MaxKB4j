@@ -14,8 +14,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.MIN_MAX, name = "MinMax", icon = Provider.ICON_MIN_MAX)
 public class MinMaxModelProvider extends OpenAiModelProvider {
 
-
-    private static final String BASE_URL = BaseUrl.MIN_MAX;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(ModelName.MINI_MAX_M2_7, "", ModelType.LLM),
             new ModelInfo(ModelName.MINI_MAX_M2_7_HIGHSPEED, "", ModelType.LLM),
@@ -25,7 +23,7 @@ public class MinMaxModelProvider extends OpenAiModelProvider {
 
     @Override
     public String getDefaultBaseUrl() {
-        return BASE_URL;
+        return BaseUrl.MIN_MAX;
     }
 
     @Override

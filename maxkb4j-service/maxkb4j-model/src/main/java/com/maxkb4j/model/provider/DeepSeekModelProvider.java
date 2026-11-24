@@ -22,7 +22,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.DEEP_SEEK, name = "DeepSeek", icon = Provider.ICON_DEEP_SEEK)
 public class DeepSeekModelProvider extends OpenAiModelProvider {
 
-    private static final String BASE_URL = BaseUrl.DEEP_SEEK;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(ModelName.DEEPSEEK_V4_FLASH_VISION, "", ModelType.LLM),
             new ModelInfo(ModelName.DEEPSEEK_V4_FLASH_VISION, "", ModelType.VISION),
@@ -34,7 +33,7 @@ public class DeepSeekModelProvider extends OpenAiModelProvider {
 
     @Override
     public String getDefaultBaseUrl() {
-        return BASE_URL;
+        return BaseUrl.DEEP_SEEK;
     }
 
     @Override

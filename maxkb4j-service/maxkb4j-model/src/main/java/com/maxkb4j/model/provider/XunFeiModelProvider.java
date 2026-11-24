@@ -18,7 +18,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.XUN_FEI, name = "讯飞星火", icon = Provider.ICON_XUN_FEI)
 public class XunFeiModelProvider extends OpenAiModelProvider {
 
-    private static final String BASE_URL = BaseUrl.XUN_FEI;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(ModelName.XUNFEI_ULTRA_4_0, "", ModelType.LLM),
             new ModelInfo(ModelName.XUNFEI_MAX_32K, "", ModelType.LLM),
@@ -34,6 +33,6 @@ public class XunFeiModelProvider extends OpenAiModelProvider {
 
     @Override
     public String getDefaultBaseUrl() {
-        return BASE_URL;
+        return BaseUrl.XUN_FEI;
     }
 }

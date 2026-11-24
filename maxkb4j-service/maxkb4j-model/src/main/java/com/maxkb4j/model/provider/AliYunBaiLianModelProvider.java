@@ -28,8 +28,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.ALI_YUN_BAI_LIAN, name = "阿里百练", icon = Provider.ICON_ALI_YUN_BAI_LIAN)
 public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
 
-    private static final String BASE_URL = BaseUrl.ALI_YUN_BAI_LIAN;
-
     /**
      * OpenAI 兼容模式地址后缀，需要转换为 DashScope 原生地址后缀
      */
@@ -65,7 +63,7 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
 
     @Override
     public String getDefaultBaseUrl() {
-        return BASE_URL;
+        return BaseUrl.ALI_YUN_BAI_LIAN;
     }
 
     /**

@@ -1,6 +1,8 @@
 package com.maxkb4j.model.provider;
 
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.maxkb4j.model.annotation.ModelProviderType;
+import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSONObject;
@@ -40,6 +42,11 @@ public class AzureModelProvider extends AbsModelProvider {
             new ModelInfo(ModelName.DALLE_3, "", ModelType.TTI)
     );
 
+    @Override
+    public ModelCredentialForm getModelCredential() {
+        return new ModelCredentialForm(true, BaseUrl.AZURE);
+    }
+
 
     @Override
     public List<ModelInfo> getModelList() {
@@ -50,7 +57,7 @@ public class AzureModelProvider extends AbsModelProvider {
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return AzureOpenAiChatModel.builder()
                 .apiKey(credential.getApiKey())
-                .endpoint(credential.getBaseUrl())
+                .endpoint(getEndpoint(credential.getBaseUrl()))
                 .deploymentName(modelName)
                 .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
                 .maxTokens(getIntParam(params, ParamKey.MAX_TOKENS))
@@ -61,7 +68,7 @@ public class AzureModelProvider extends AbsModelProvider {
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return AzureOpenAiStreamingChatModel.builder()
                 .apiKey(credential.getApiKey())
-                .endpoint(credential.getBaseUrl())
+                .endpoint(getEndpoint(credential.getBaseUrl()))
                 .deploymentName(modelName)
                 .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
                 .maxTokens(getIntParam(params, ParamKey.MAX_TOKENS))
@@ -72,7 +79,7 @@ public class AzureModelProvider extends AbsModelProvider {
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return AzureOpenAiEmbeddingModel.builder()
                 .apiKey(credential.getApiKey())
-                .endpoint(credential.getBaseUrl())
+                .endpoint(getEndpoint(credential.getBaseUrl()))
                 .deploymentName(modelName)
                 .build();
     }
@@ -81,8 +88,12 @@ public class AzureModelProvider extends AbsModelProvider {
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
         return AzureOpenAiImageModel.builder()
                 .apiKey(credential.getApiKey())
-                .endpoint(credential.getBaseUrl())
+                .endpoint(getEndpoint(credential.getBaseUrl()))
                 .deploymentName(modelName)
                 .build();
+    }
+
+    public String getEndpoint(String baseUrl) {
+        return StringUtils.isNotBlank(baseUrl) ? baseUrl : BaseUrl.AZURE;
     }
 }

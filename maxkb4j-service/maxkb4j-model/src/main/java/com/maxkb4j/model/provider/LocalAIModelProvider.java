@@ -20,9 +20,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
  */
 public class LocalAIModelProvider extends AbsModelProvider {
 
-    private static final String BASE_URL = BaseUrl.LOCAL_AI;
-
-
     @Override
     public List<ModelInfo> getModelList() {
         return List.of();
@@ -30,7 +27,7 @@ public class LocalAIModelProvider extends AbsModelProvider {
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, BASE_URL);
+        return new ModelCredentialForm(true, BaseUrl.LOCAL_AI);
     }
 
     @Override

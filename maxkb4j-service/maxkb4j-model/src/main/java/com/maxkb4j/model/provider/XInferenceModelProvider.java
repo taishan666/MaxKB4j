@@ -30,7 +30,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.X_INFERENCE, name = "Xorbits Inference", icon = Provider.ICON_X_INFERENCE)
 public class XInferenceModelProvider extends AbsModelProvider {
 
-    private static final String BASE_URL = BaseUrl.X_INFERENCE;
     private static final List<ModelInfo> MODEL_INFOS = List.of(
             new ModelInfo(ModelName.QWEN3_8B, "", ModelType.LLM),
             new ModelInfo(ModelName.BGE_M3, "", ModelType.EMBEDDING),
@@ -49,7 +48,7 @@ public class XInferenceModelProvider extends AbsModelProvider {
 
     @Override
     public ModelCredentialForm getModelCredential() {
-        return new ModelCredentialForm(true, BASE_URL);
+        return new ModelCredentialForm(true, BaseUrl.X_INFERENCE);
     }
 
     @Override
