@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpInterface;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.maxkb4j.common.constant.Operate;
+import com.maxkb4j.common.constant.ResourceGroup;
 import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.entity.UserResourcePermissionEntity;
@@ -41,16 +42,23 @@ public class StpInterfaceImpl implements StpInterface {
         return new ArrayList<>(permissions);
     }
 
-    private Set<String> getWorkspaceDefaultPermission(){
-        return Arrays.stream(PermissionEnum.values()).filter(e-> Operate.CREATE.equals(e.getOperate())||Operate.READ.equals(e.getOperate())).map(PermissionEnum::getResourcePerm).collect(Collectors.toSet());
+    private List<String> baseResourceGroup(){
+        return List.of(ResourceGroup.APPLICATION,ResourceGroup.KNOWLEDGE,ResourceGroup.TOOL,ResourceGroup.MODEL);
     }
+
+    private Set<String> getWorkspaceDefaultPermission(){
+        return Arrays.stream(PermissionEnum.values())
+                .filter(e-> baseResourceGroup().contains(e.getResourceGroup())&&(Operate.CREATE.equals(e.getOperate())||Operate.READ.equals(e.getOperate())))
+                .map(PermissionEnum::getResourcePerm).collect(Collectors.toSet());
+    }
+
     private Set<String> getWorkspaceResourcePermission(UserResourcePermissionEntity userResourcePermission){
         List<PermissionEnum> resourcePermissionEnums = PermissionEnum.getPermissions(
                 userResourcePermission.getAuthTargetType(), userResourcePermission.getPermissionList());
-        return resourcePermissionEnums.stream().map(e-> {
-            String targetId=userResourcePermission.getTargetId();
-            return e.getResourcePerm(targetId);
-        }).collect(Collectors.toSet());
+        String targetId=userResourcePermission.getTargetId();
+        return resourcePermissionEnums.stream()
+                .filter(e -> !(baseResourceGroup().contains(e.getResourceGroup()) && Operate.CREATE.equals(e.getOperate())))
+                .map(e-> e.getResourcePerm(targetId)).collect(Collectors.toSet());
     }
 
     /**
