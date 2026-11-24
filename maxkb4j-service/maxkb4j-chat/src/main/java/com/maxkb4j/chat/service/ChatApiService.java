@@ -17,6 +17,7 @@ import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.util.ClientIpResolver;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,7 @@ public class ChatApiService {
     private final IApplicationChatService chatService;
     private final IApplicationChatRecordService chatRecordService;
     private final ChatTokenService chatTokenService;
+    private final ClientIpResolver clientIpResolver;
 
 
     public String authToken(JSONObject params) {
@@ -49,7 +51,7 @@ public class ChatApiService {
         }
         List<String> whiteList = accessTokenEntity.getWhiteList();
         if (Boolean.TRUE.equals(accessTokenEntity.getWhiteActive())
-                && (whiteList == null || !whiteList.contains(WebUtil.getIP()))) {
+                && (whiteList == null || !whiteList.contains(clientIpResolver.getIp()))) {
             throw new ApiException("application.access.white.list.required");
         }
         String chatUserId = IdWorker.get32UUID();

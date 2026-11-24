@@ -9,7 +9,7 @@ import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.service.ApplicationChatUserStatsService;
 import com.maxkb4j.application.service.IApplicationChatRecordInternalService;
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.ChatInfoStore;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
@@ -42,6 +42,7 @@ public class ChatPostHandler implements PostResponseHandler {
     private final ApplicationChatUserStatsService chatUserStatsService;
     private final ApplicationChatMapper chatMapper;
     private final IApplicationChatRecordInternalService chatRecordService;
+    private final ChatInfoStore chatInfoStore;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -51,12 +52,12 @@ public class ChatPostHandler implements PostResponseHandler {
         float runTime = (System.currentTimeMillis() - startTime) / 1000F;
 
         // 1. 构建对话记录
-        ChatInfo existing = ChatCache.get(chatId);
+        ChatInfo existing = chatInfoStore.get(chatId);
         final ChatInfo chatInfo;
         if (existing == null) {
             // 缓存缺失：立即放入空容器供并发请求共享；记录本身待事务提交后再写入
             chatInfo = new ChatInfo(chatId, chatState.getAppId());
-            ChatCache.put(chatId, chatInfo);
+            chatInfoStore.put(chatId, chatInfo);
         } else {
             chatInfo = existing;
         }

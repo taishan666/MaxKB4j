@@ -9,7 +9,7 @@ import com.maxkb4j.workflow.handler.node.AbsNodeHandler;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.node.AbsNode;
-import com.maxkb4j.workflow.node.impl.DocumentSpiltNode;
+import com.maxkb4j.workflow.node.impl.DocumentSplitNode;
 import com.maxkb4j.workflow.util.ContextValueUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,13 +25,13 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 @Component
 @NodeHandlerType(NodeType.DOCUMENT_SPLIT)
 @RequiredArgsConstructor
-public class DocumentSpiltHandler extends AbsNodeHandler {
+public class DocumentSplitHandler extends AbsNodeHandler {
 
-    private final IDocumentSplitService documentSpiltService;
+    private final IDocumentSplitService documentSplitService;
 
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
-        DocumentSpiltNode.NodeParams params = parseParams(node, DocumentSpiltNode.NodeParams.class);
+        DocumentSplitNode.NodeParams params = parseParams(node, DocumentSplitNode.NodeParams.class);
         List<String> fileIds = params.getDocumentList();
         // 引用值可能来自恢复的上下文（JSONArray，元素 JSONObject），需安全重建为 DocumentSimple
         List<DocumentSimple> documentList = ContextValueUtil.toList(
@@ -75,7 +75,7 @@ public class DocumentSpiltHandler extends AbsNodeHandler {
 
     private void defaultSplit(DocumentSimple document, String[] patterns, int chunkSize, boolean withFilter) {
         String content = document.getContent();
-        List<ParagraphSimple> paragraphs = documentSpiltService.split(content, patterns, chunkSize, withFilter);
+        List<ParagraphSimple> paragraphs = documentSplitService.split(content, patterns, chunkSize, withFilter);
         document.setParagraphs(paragraphs);
     }
 

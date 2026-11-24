@@ -11,7 +11,8 @@ import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.CaffeineChatInfoStore;
+import com.maxkb4j.common.cache.ChatInfoStore;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.knowledge.dto.ParagraphDTO;
 import com.maxkb4j.knowledge.service.IDocumentService;
@@ -54,6 +55,7 @@ class ApplicationChatRecordServiceImplSecurityTest {
     @Mock
     private IResourceMappingService resourceMappingService;
 
+    private ChatInfoStore chatInfoStore;
     private ApplicationChatRecordServiceImpl recordService;
 
     @BeforeAll
@@ -70,10 +72,9 @@ class ApplicationChatRecordServiceImplSecurityTest {
 
     @BeforeEach
     void setUp() {
-        // ChatCache 为静态缓存，重置以保证测试隔离
-        ChatCache.reset();
+        chatInfoStore = new CaffeineChatInfoStore();
         recordService = new ApplicationChatRecordServiceImpl(
-                paragraphService, chatMapper, documentService, resourceMappingService);
+                paragraphService, chatMapper, documentService, resourceMappingService, chatInfoStore);
         ReflectionTestUtils.setField(recordService, "baseMapper", recordMapper);
     }
 
@@ -107,7 +108,7 @@ class ApplicationChatRecordServiceImplSecurityTest {
     @Test
     void getChatRecordInfo_cachedForeignChat_rejectsWithoutQueryingRecords() {
         ChatInfo foreignChat = new ChatInfo(CHAT_ID, "app-other", "user-1");
-        ChatCache.put(CHAT_ID, foreignChat);
+        chatInfoStore.put(CHAT_ID, foreignChat);
 
         assertNull(recordService.getChatRecordInfo(APP_ID, CHAT_ID, RECORD_ID));
 

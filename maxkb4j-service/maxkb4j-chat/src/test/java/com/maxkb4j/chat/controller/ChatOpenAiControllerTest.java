@@ -6,6 +6,8 @@ import com.maxkb4j.application.dto.ChatResponse;
 import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.application.service.IApplicationApiKeyService;
 import com.maxkb4j.application.service.IApplicationChatService;
+import com.maxkb4j.common.cache.ChatInfoStore;
+import com.maxkb4j.common.util.ClientIpResolver;
 import com.maxkb4j.chat.filter.ChatCompletionsStreamRoutingFilter;
 import com.maxkb4j.common.domain.vo.Answer;
 import com.maxkb4j.common.domain.vo.ChatMessageVO;
@@ -53,6 +55,8 @@ class ChatOpenAiControllerTest {
     private MockMvc mvc;
     private IApplicationChatService chatService;
     private IApplicationApiKeyService apiKeyService;
+    private ChatInfoStore chatInfoStore;
+    private ClientIpResolver clientIpResolver;
 
     private static ApplicationApiKeyDTO validApiKey() {
         ApplicationApiKeyDTO apiKey = new ApplicationApiKeyDTO();
@@ -77,10 +81,12 @@ class ChatOpenAiControllerTest {
     void setUp() {
         chatService = mock(IApplicationChatService.class);
         apiKeyService = mock(IApplicationApiKeyService.class);
+        chatInfoStore = mock(ChatInfoStore.class);
+        clientIpResolver = mock(ClientIpResolver.class);
         when(apiKeyService.getBySecretKey(any())).thenReturn(validApiKey());
         when(chatService.chatOpen(anyString(), anyBoolean())).thenReturn("chat-1");
         mvc = MockMvcBuilders
-                .standaloneSetup(new ChatOpenAiController(chatService, apiKeyService))
+                .standaloneSetup(new ChatOpenAiController(chatService, apiKeyService, chatInfoStore, clientIpResolver))
                 .addFilters(new ChatCompletionsStreamRoutingFilter())
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();

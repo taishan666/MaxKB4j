@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.maxkb4j.common.cache.SystemCache;
+import com.maxkb4j.common.cache.SystemSettingStore;
 import com.maxkb4j.common.cache.UserTokenRevokeCache;
 import com.maxkb4j.common.constant.RoleConst;
 import com.maxkb4j.common.context.UserContext;
@@ -66,12 +66,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     private final EmailService emailService;
     private final StpInterface stpInterface;
     private final SystemProperties systemProperties;
+    private final ClientIpResolver clientIpResolver;
     private final UserContext userContext;
     private final PasswordService passwordService;
     private final LoginAttemptLimiter loginAttemptLimiter;
     private final AuthCodeCache authCodeCache;
     private final IUserResourcePermissionInternalService userResourcePermissionService;
     private final UserTokenRevokeCache tokenRevokeCache;
+    private final SystemSettingStore systemSettingStore;
 
     @Override
     public IPage<UserVO> selectUserPage(int page, int size, UserQuery dto) {
@@ -142,7 +144,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         if (StringUtils.isNotBlank(dto.getEncryptedData())) {
             try {
                 String encryptedData = dto.getEncryptedData();
-                String text = RSAUtil.rsaLongDecrypt(encryptedData, SystemCache.getPrivateKey());
+                String text = RSAUtil.rsaLongDecrypt(encryptedData, systemSettingStore.getPrivateKey());
                 dto = JSON.parseObject(text, UserLoginDTO.class);
             } catch (Exception e) {
                 throw new LoginException("login.password.decrypt.error");
@@ -197,7 +199,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
      * 构建登录限流键：用户名 + 来源 IP，避免单一维度误伤。
      */
     private String buildLimiterKey(String username) {
-        return StringUtils.defaultString(username) + "|" + WebUtil.getIP();
+        return StringUtils.defaultString(username) + "|" + clientIpResolver.getIp();
     }
 
     @Transactional(rollbackFor = Exception.class)

@@ -1,7 +1,7 @@
 package com.maxkb4j.tool.handler;
 
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.entity.ToolEntity;
 import com.maxkb4j.tool.exception.ToolValidationException;
@@ -31,10 +31,10 @@ public class ToolValidationHandler {
             if (jsonStr == null || jsonStr.trim().isEmpty()) {
                 return false;
             }
-            if (!JSONUtil.isTypeJSONObject(jsonStr)) {
+            if (!JSON.isValidObject(jsonStr)) {
                 throw new ToolValidationException("MCP服务器配置解析失败");
             }
-            JSONObject root = JSONUtil.parseObj(jsonStr);
+            JSONObject root = JSON.parseObject(jsonStr);
             for (String fieldName : root.keySet()) {
                 Object valueObj = root.get(fieldName);
                 // 每个值必须是 JSONObject (对应原代码的 isObject())

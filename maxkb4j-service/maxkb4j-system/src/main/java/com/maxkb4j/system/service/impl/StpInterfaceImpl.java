@@ -34,7 +34,7 @@ public class StpInterfaceImpl implements StpInterface {
         if (getActiveUser(loginId) == null) {
             return List.of();
         }
-        Set<String> permissions = new LinkedHashSet<>(getWorkspaceDefaultPermission());
+        Set<String> permissions = new LinkedHashSet<>();
         List<UserResourcePermissionEntity> userResourcePermissions = userResourcePermissionService.getByUserId(String.valueOf(loginId));
         for (UserResourcePermissionEntity userResourcePermission : userResourcePermissions) {
             permissions.addAll(getWorkspaceResourcePermission(userResourcePermission));
@@ -57,8 +57,14 @@ public class StpInterfaceImpl implements StpInterface {
                 userResourcePermission.getAuthTargetType(), userResourcePermission.getPermissionList());
         String targetId=userResourcePermission.getTargetId();
         return resourcePermissionEnums.stream()
-                .filter(e -> !(baseResourceGroup().contains(e.getResourceGroup()) && Operate.CREATE.equals(e.getOperate())))
-                .map(e-> e.getResourcePerm(targetId)).collect(Collectors.toSet());
+                .map(e -> {
+                    if (baseResourceGroup().contains(e.getResourceGroup()) && Operate.CREATE.equals(e.getOperate())) {
+                        // CREATE 操作不绑定授权目标，生成全局权限码
+                        return e.getResourcePerm();
+                    }
+                    return e.getResourcePerm(targetId);
+                })
+                .collect(Collectors.toSet());
     }
 
     /**

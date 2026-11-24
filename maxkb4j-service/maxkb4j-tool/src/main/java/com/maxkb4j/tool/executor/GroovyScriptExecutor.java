@@ -55,15 +55,31 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
     });
     private final String code;
     private final Map<String, Object> initParams;
+    private final Map<String, Object> contextBindings;
     private final long executionTimeoutMillis;
 
     public GroovyScriptExecutor(String code, Map<String, Object> initParams) {
-        this(code, initParams, TimeUnit.SECONDS.toMillis(EXECUTION_TIMEOUT_SECONDS));
+        this(code, initParams, Map.of());
+    }
+
+    /**
+     * 构造执行器，并将 Spring 注入的 Bean 以绑定变量形式提供给脚本，
+     * 替代脚本内通过静态工具类从容器拉取 Bean（服务定位器反模式）。
+     *
+     * @param contextBindings 暴露给脚本的 Bean 绑定（绑定变量名 -> 实例）
+     */
+    public GroovyScriptExecutor(String code, Map<String, Object> initParams, Map<String, Object> contextBindings) {
+        this(code, initParams, contextBindings, TimeUnit.SECONDS.toMillis(EXECUTION_TIMEOUT_SECONDS));
     }
 
     GroovyScriptExecutor(String code, Map<String, Object> initParams, long executionTimeoutMillis) {
+        this(code, initParams, Map.of(), executionTimeoutMillis);
+    }
+
+    GroovyScriptExecutor(String code, Map<String, Object> initParams, Map<String, Object> contextBindings, long executionTimeoutMillis) {
         this.code = code;
         this.initParams = initParams;
+        this.contextBindings = contextBindings;
         this.executionTimeoutMillis = executionTimeoutMillis;
     }
 
@@ -99,8 +115,12 @@ public class GroovyScriptExecutor extends AbsToolExecutor {
             throw new SecurityException(I18nUtil.get("tool.groovy.script.dangerous.call", dangerousToken));
         }
 
-        // 不直接修改调用方传入的 map：合并到新 map，initParams 保持原有覆盖语义
+        // 不直接修改调用方传入的 map：合并到新 map，initParams 保持原有覆盖语义。
+        // Bean 绑定作为最低优先级并入，脚本变量与 initParams 仍可覆盖同名绑定
         Map<String, Object> mergedParams = new LinkedHashMap<>();
+        if (contextBindings != null) {
+            mergedParams.putAll(contextBindings);
+        }
         if (inputParams != null) {
             mergedParams.putAll(inputParams);
         }

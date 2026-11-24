@@ -217,8 +217,8 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     }
 
     /**
-     * 浠?褰撳墠鐧诲綍鑰呭繀椤绘槸妯″瀷鎷ユ湁鑰?涓哄墠鎻愬彇鍑烘ā鍨嬶紝鍐嶇敱 mapper 鍐冲畾杩斿洖鍐呭銆?
-     * 闈炴嫢鏈夎€呮垨妯″瀷涓嶅瓨鍦ㄦ椂杩斿洖 null銆?
+     * 以当前登录者必须是模型拥有者为前提取出模型，再由 mapper 决定返回内容。
+     * 非拥有者或模型不存在时返回 null。
      */
     private <T> T getOwnedModel(String id, Function<ModelEntity, T> mapper) {
         ModelEntity model = this.getById(id);

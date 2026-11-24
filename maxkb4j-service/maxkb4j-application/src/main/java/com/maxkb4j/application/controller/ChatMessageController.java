@@ -14,7 +14,7 @@ import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.enums.PermissionEnum;
-import com.maxkb4j.common.util.WebUtil;
+import com.maxkb4j.common.util.ClientIpResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +32,7 @@ public class ChatMessageController {
 
     private final IApplicationChatInternalService chatService;
     private final UserContext userContext;
+    private final ClientIpResolver clientIpResolver;
 
     @SaCheckPerm(PermissionEnum.APPLICATION_READ)
     @GetMapping("/workspace/default/application/{id}/open")
@@ -47,7 +48,7 @@ public class ChatMessageController {
                 .chatUserId(userContext.getUserId())
                 .chatUserType(ChatUserType.PLATFORM_USER)
                 .source(ChatSource.ONLINE)
-                .ipAddress(WebUtil.getIP())
+                .ipAddress(clientIpResolver.getIp())
                 .debug(true)
                 .build();
         return Flux.create(sink -> {

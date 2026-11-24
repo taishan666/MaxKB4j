@@ -118,7 +118,6 @@ public final class GroovySandboxPolicy {
             "io.github.mymonstercat.Model",
             "com.benjaminwan.ocrlibrary.OcrResult",
             "com.maxkb4j.oss.service.IOssService",
-            "com.maxkb4j.common.util.SpringUtil",
             // ===== 数学表达式求值引擎（内置工具「数学公式执行」） =====
             "net.objecthunter.exp4j.Expression",
             "net.objecthunter.exp4j.ExpressionBuilder",
@@ -469,7 +468,6 @@ public final class GroovySandboxPolicy {
                     "toJSONString", "toJSONBytes",
                     "isValid", "isValidArray", "isValidObject")),
             Map.entry("io.github.mymonstercat.ocr.InferenceEngine", Set.of("getInstance")),
-            Map.entry("com.maxkb4j.common.util.SpringUtil", Set.of("getBean", "getBeansOfType")),
             // 文件操作（java.nio.file 白名单入口）：读取、元数据检查与变更方法均仅放行
             // 真实目标位于系统临时目录内的调用，运行期由 validateFilesAccess 校验路径边界
             // （内置 Rapid-OCR 工具落盘临时图片依赖此受限能力）；createDirectories 等
@@ -1085,8 +1083,7 @@ public final class GroovySandboxPolicy {
             return;
         }
         if (value instanceof Class<?> classValue) {
-            // Class 字面量（如 SpringUtil.getBean(IOssService.class) 的参数）：
-            // 仅当指向白名单类时放行，避免 Class 对象携带任意类型穿透沙箱
+            // Class 字面量：仅当指向白名单类时放行，避免 Class 对象携带任意类型穿透沙箱
             if (!isAllowedClassReference(classValue)) {
                 throw new SecurityException("不允许使用危险类型: " + classValue.getName());
             }

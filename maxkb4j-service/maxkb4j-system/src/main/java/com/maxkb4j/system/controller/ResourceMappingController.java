@@ -1,11 +1,10 @@
 package com.maxkb4j.system.controller;
 
-import cn.dev33.satoken.annotation.SaCheckRole;
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
-import com.maxkb4j.common.constant.RoleConst;
 import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.core.support.permission.DataPermissionScope;
 import com.maxkb4j.core.support.permission.DataPermissionSupport;
@@ -28,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ResourceMappingController {
 
     private final IResourceMappingInternalService resourceMappingService;
+    private final DataPermissionSupport dataPermissionSupport;
 
     /**
      * 获取资源依赖关联的资源
@@ -41,9 +41,10 @@ public class ResourceMappingController {
      * @param sourceType
      * @return
      */
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
+    @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/mapping_resource/{resourceType}/{resourceId}/{current}/{size}")
     public R<IPage<ResourceUseVO>> mappingResourcePage(@PathVariable String resourceType, @PathVariable String resourceId, @PathVariable int current, @PathVariable int size, String resourceName, String userName, String[] sourceType) {
+        checkResourcePermission(resourceType, resourceId);
         return R.data(resourceMappingService.selectDependOnPage(resourceType, resourceId, current, size, resourceName, userName, sourceType));
     }
 
@@ -60,10 +61,24 @@ public class ResourceMappingController {
      * @param sourceType
      * @return
      */
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
+    @SaCheckLogin(type = LoginType.ADMIN)
     @GetMapping("/resource_mapping/{resourceType}/{resourceId}/{current}/{size}")
     public R<IPage<ResourceUseVO>> resourceMappingPage(@PathVariable String resourceType, @PathVariable String resourceId, @PathVariable int current, @PathVariable int size, String resourceName, String userName, String[] sourceType) {
+        checkResourcePermission(resourceType, resourceId);
         return R.data(resourceMappingService.selectBeDependedOnPage(resourceType, resourceId, current, size, resourceName, userName, sourceType));
+    }
+
+    /**
+     * 校验当前用户对指定资源的访问权限
+     */
+    private void checkResourcePermission(String resourceType, String resourceId) {
+        DataPermissionScope scope = dataPermissionSupport.resolve(resourceType);
+        if (scope.isAdmin()) {
+            return;
+        }
+        if (scope.isEmptyResult() || !scope.getTargetIds().contains(resourceId)) {
+            throw new ApiException("无权限访问该资源");
+        }
     }
 
 }

@@ -2,9 +2,11 @@ package com.maxkb4j.tool.executor;
 
 import com.maxkb4j.tool.sandbox.GroovySandboxInterceptor;
 import cn.hutool.json.JSONUtil;
+import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.sandbox.GroovySandboxPolicy;
 import com.maxkb4j.tool.sandbox.GroovyScriptCache;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.List;
@@ -978,18 +980,17 @@ class GroovyScriptExecutorTest {
     }
 
     @Test
-    void execute_springUtilGetBeanWithClassLiteral_passesSandbox() {
-        // SpringUtil.getBean(IOssService.class)：白名单静态调用 + 指向白名单类的 Class 字面量参数均应放行。
-        // 单测无 Spring 容器，getBean 内部抛 NPE 并被包装为 RuntimeException；
-        // 只要不是 SecurityException，即说明沙箱未拦截该调用模式
-        String code = """
-                import com.maxkb4j.common.util.SpringUtil
-                import com.maxkb4j.oss.service.IOssService
-                return SpringUtil.getBean(IOssService.class)
-                """;
-        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null);
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> executor.execute(params()));
-        assertFalse(exception instanceof SecurityException, "沙箱不应拦截白名单类 Class 字面量参数: " + exception);
+    void execute_ossServiceBeanBinding_callable() {
+        // 脚本内不再通过 SpringUtil.getBean 拉取 Bean，改由执行器将 Spring 注入的 IOssService
+        // 以绑定变量形式提供给脚本；白名单类 IOssService 上的白名单方法 getBytes 应放行，
+        // 返回的 byte[] 属于安全数组类型，不应触发 SecurityException
+        IOssService ossService = Mockito.mock(IOssService.class);
+        Mockito.when(ossService.getBytes("f1")).thenReturn(new byte[]{1, 2, 3});
+        String code = "return ossService.getBytes('f1')";
+        GroovyScriptExecutor executor = new GroovyScriptExecutor(code, null, Map.of("ossService", ossService));
+        Object result = executor.execute(params());
+        assertTrue(result instanceof byte[] bytes && bytes.length == 3 && bytes[0] == 1,
+                "脚本应能调用绑定 Bean 的白名单方法并返回 byte[]: " + result);
     }
 
     @Test
@@ -2064,7 +2065,7 @@ class GroovyScriptExecutorTest {
      * 内置「Rapid-OCR图片识别」模板脚本必须通过文本预检与沙箱编译期校验：
      * 该工具依赖 Files.createTempFile/Files.write/Files.deleteIfExists 将 OSS 图片字节
      * 落盘到系统临时目录（OCR 引擎只支持文件路径），文件白名单的「临时目录受限写」能力
-     * 正是为此保留；InferenceEngine/Model/OcrResult/SpringUtil/IOssService 类引用、
+     * 正是为此保留；InferenceEngine/Model/OcrResult 类引用、
      * String.join、闭包内 try/finally 均应放行。仅编译不执行：执行需 OCR 原生库与 OSS 凭证。
      */
     @Test

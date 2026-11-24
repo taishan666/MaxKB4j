@@ -5,8 +5,8 @@ import com.maxkb4j.application.dto.ApplicationAccessTokenDTO;
 import com.maxkb4j.application.service.IApplicationAccessTokenService;
 import com.maxkb4j.chat.query.EmbedQuery;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.util.ClientIpResolver;
 import com.maxkb4j.common.util.IoUtil;
-import com.maxkb4j.common.util.WebUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +37,7 @@ public class ChatEmbedService {
     private static final Pattern SAFE_HOST = Pattern.compile("^[A-Za-z0-9.\\-]+(:\\d{1,5})?$|^\\[[0-9A-Fa-f:.]+\\](:\\d{1,5})?$");
 
     private final IApplicationAccessTokenService accessTokenService;
+    private final ClientIpResolver clientIpResolver;
 
     public String embed(String protocol, String host, String token, Map<String, Object> params) {
         // 移除固定参数，剩下的就是不固定参数
@@ -52,7 +53,7 @@ public class ChatEmbedService {
             throw new ApiException("application.token.invalid.or.disabled");
         }
         List<String> whiteList = token.getWhiteList();
-        if (Boolean.TRUE.equals(token.getWhiteActive()) && (whiteList == null || !whiteList.contains(WebUtil.getIP()))) {
+        if (Boolean.TRUE.equals(token.getWhiteActive()) && (whiteList == null || !whiteList.contains(clientIpResolver.getIp()))) {
             throw new ApiException("application.access.white.list.required");
         }
         // 嵌入脚本模板中的值会进入 JS 字符串字面量与 iframe src，

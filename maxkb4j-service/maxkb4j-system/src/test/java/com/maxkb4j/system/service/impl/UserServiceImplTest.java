@@ -70,12 +70,14 @@ class UserServiceImplTest {
                 emailService,
                 mock(cn.dev33.satoken.stp.StpInterface.class),
                 new SystemProperties(),
+                mock(com.maxkb4j.common.util.ClientIpResolver.class),
                 mock(com.maxkb4j.common.context.UserContext.class),
                 passwordService,
                 mock(LoginAttemptLimiter.class),
                 mock(AuthCodeCache.class),
                 userResourcePermissionService,
-                tokenRevokeCache);
+                tokenRevokeCache,
+                mock(com.maxkb4j.common.cache.SystemSettingStore.class));
         ReflectionTestUtils.setField(userService, "baseMapper", userMapper);
         // IRepository.lambdaQuery() 经 getEntityClass() 解析实体类型时依赖真实 MybatisMapperProxy，
         // Mockito mock mapper 走不通该反射路径，预置实体类型短路掉

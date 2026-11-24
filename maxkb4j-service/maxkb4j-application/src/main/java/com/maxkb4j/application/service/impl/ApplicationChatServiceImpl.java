@@ -24,7 +24,7 @@ import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.application.vo.ApplicationVO;
 import com.maxkb4j.application.vo.ChatRecordDetailVO;
 import com.maxkb4j.application.vo.ShareChatVO;
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.ChatInfoStore;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
@@ -65,6 +65,8 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
     private final PostResponseHandler postResponseHandler;
     private final TaskExecutor chatTaskExecutor;
     private final ApplicationChatShareLinkMapper chatShareLinkMapper;
+    private final ChatInfoStore chatInfoStore;
+    private final ChatServiceBuilder chatServiceBuilder;
 
 
     public IPage<ApplicationChatEntity> chatLogs(String appId, int page, int size, ChatQueryDTO query) {
@@ -84,7 +86,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
             }
         }
         ChatInfo chatInfo = new ChatInfo(IdWorker.get32UUID(), appId, chatUserId);
-        ChatCache.put(chatInfo.getChatId(), chatInfo);
+        chatInfoStore.put(chatInfo.getChatId(), chatInfo);
         return chatInfo.getChatId();
     }
 
@@ -96,7 +98,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
             return chatInfo;
         }
         chatInfo = new ChatInfo(chatId, appId, chatUserId);
-        ChatCache.put(chatId, chatInfo);
+        chatInfoStore.put(chatId, chatInfo);
         return chatInfo;
     }
 
@@ -113,7 +115,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
      * 不存在时返回 null，命中但应用/用户归属不匹配时抛出异常。
      */
     private ChatInfo lookupChatInfo(String chatId, String appId, String chatUserId) {
-        ChatInfo chatInfo = ChatCache.get(chatId);
+        ChatInfo chatInfo = chatInfoStore.get(chatId);
         if (chatInfo != null) {
             boolean appMismatch = StringUtils.isNotBlank(appId) && !Objects.equals(appId, chatInfo.getAppId());
             boolean userMismatch = StringUtils.isNotBlank(chatUserId) && chatInfo.getChatUserId() != null
@@ -142,7 +144,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         // ChatInfo.chatRecordList 设计为 CopyOnWriteArrayList 供多线程共享，
         // 必须包装回并发容器，避免被普通 ArrayList 覆盖后并发写导致记录丢失/越界
         chatInfo.setChatRecordList(new CopyOnWriteArrayList<>(chatRecordService.getChatRecords(chatId)));
-        ChatCache.put(chatInfo.getChatId(), chatInfo);
+        chatInfoStore.put(chatInfo.getChatId(), chatInfo);
         return chatInfo;
     }
 
@@ -167,7 +169,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
         } else {
             chatParams.setChatRecordId(IdWorker.get32UUID());
         }
-        IChatService chatService = ChatServiceBuilder.getChatService(application.getType());
+        IChatService chatService = chatServiceBuilder.getChatService(application.getType());
         ChatResponse chatResponse = chatService.chatMessage(application, chatParams, chatState, safeCallback);
         postResponseHandler.handler(chatParams, chatState, chatResponse, startTime);
         safeCallback.onEvent(new ChatMessageVO(chatParams.getChatId(), chatParams.getChatRecordId(), true));
@@ -257,7 +259,7 @@ public class ApplicationChatServiceImpl extends ServiceImpl<ApplicationChatMappe
     @Transactional(rollbackFor = Exception.class)
     public Boolean deleteById(String chatId) {
         chatRecordService.lambdaUpdate().eq(ApplicationChatRecordEntity::getChatId, chatId).remove();
-        ChatCache.remove(chatId);
+        chatInfoStore.remove(chatId);
         return this.removeById(chatId);
     }
 

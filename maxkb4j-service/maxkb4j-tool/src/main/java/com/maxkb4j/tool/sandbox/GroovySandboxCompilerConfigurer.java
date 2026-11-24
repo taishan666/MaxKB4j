@@ -178,7 +178,6 @@ public final class GroovySandboxCompilerConfigurer {
         allowedConstants.add(java.nio.file.Path.class);
         allowedConstants.add(io.github.mymonstercat.ocr.InferenceEngine.class);
         allowedConstants.add(com.maxkb4j.oss.service.IOssService.class);
-        allowedConstants.add(com.maxkb4j.common.util.SpringUtil.class);
         allowedConstants.add(io.github.mymonstercat.Model.class);
         allowedConstants.add(com.benjaminwan.ocrlibrary.OcrResult.class);
         // 数学表达式求值引擎（内置工具「数学公式执行」）：允许作为脚本变量类型

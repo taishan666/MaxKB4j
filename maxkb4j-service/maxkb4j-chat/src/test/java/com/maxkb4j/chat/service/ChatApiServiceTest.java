@@ -19,6 +19,7 @@ import com.maxkb4j.common.domain.vo.Answer;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.util.ClientIpResolver;
 import com.maxkb4j.common.util.StpKit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,7 @@ class ChatApiServiceTest {
     private IApplicationAccessTokenService accessTokenService;
     private IApplicationChatService chatService;
     private ChatTokenService chatTokenService;
+    private ClientIpResolver clientIpResolver;
     private ChatApiService chatApiService;
     private MockHttpServletRequest request;
     private String originalJwtSecretKey;
@@ -65,12 +67,15 @@ class ChatApiServiceTest {
         accessTokenService = mock(IApplicationAccessTokenService.class);
         chatTokenService = mock(ChatTokenService.class);
         chatService = mock(IApplicationChatService.class);
+        clientIpResolver = mock(ClientIpResolver.class);
+        when(clientIpResolver.getIp()).thenReturn(CLIENT_IP);
         chatApiService = new ChatApiService(
                 accessTokenService,
                 mock(IApplicationService.class),
                 chatService,
                 mock(IApplicationChatRecordService.class),
-                chatTokenService);
+                chatTokenService,
+                clientIpResolver);
         request = new MockHttpServletRequest();
         request.setRemoteAddr(CLIENT_IP);
         RequestContextHolder.setRequestAttributes(

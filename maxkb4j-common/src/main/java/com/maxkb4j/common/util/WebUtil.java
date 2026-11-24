@@ -1,7 +1,6 @@
 package com.maxkb4j.common.util;
 
 import cn.hutool.json.JSONUtil;
-import com.maxkb4j.common.props.SystemProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -89,23 +88,19 @@ public class WebUtil extends WebUtils {
 
     }
 
-    public static String getIP() {
-        return getIP(getRequest());
-    }
-
     @Nullable
-    public static String getIP(@Nullable HttpServletRequest request) {
+    public static String getIP(@Nullable HttpServletRequest request, List<String> trustedProxies) {
         if (request == null) {
             return "";
         }
         String remoteAddr = request.getRemoteAddr();
         // X-Forwarded-For / X-Real-IP 可由任意客户端填充，只有当 TCP 对端是可信代理
-        // （回环地址或 system.trusted-proxies 配置项）时才允许采信转发头，
+        // （回环地址或调用方传入的可信代理列表）时才允许采信转发头，
         // 否则一律以 remoteAddr 为准，防止伪造请求头绕过 IP 白名单、限流与验证码绑定
-        if (!isTrustedProxy(StringUtils.defaultString(remoteAddr))) {
+        if (!isTrustedProxy(StringUtils.defaultString(remoteAddr), trustedProxies)) {
             return StringUtils.isBlank(remoteAddr) ? null : remoteAddr.trim();
         }
-        String clientIp = pickClientIpBehindTrustedProxy(request);
+        String clientIp = pickClientIpBehindTrustedProxy(request, trustedProxies);
         return StringUtils.isBlank(clientIp) ? (StringUtils.isBlank(remoteAddr) ? null : remoteAddr.trim()) : clientIp;
     }
 
@@ -114,13 +109,13 @@ public class WebUtil extends WebUtils {
      * <p>X-Forwarded-For 是追加式头部：客户端伪造值恒在链首，每经过一层代理在链尾追加一个它观测到的地址，
      * 因此从链右侧（可信代理追加的一侧）回溯，跳过可信代理地址，取第一个非可信地址。</p>
      */
-    private static String pickClientIpBehindTrustedProxy(HttpServletRequest request) {
+    private static String pickClientIpBehindTrustedProxy(HttpServletRequest request, List<String> trustedProxies) {
         String chain = joinHeaderValues(request, XFF_HEADER);
         if (!IP_PREDICATE.test(chain)) {
             String[] hops = splitTrim(chain, ",");
             for (int i = hops.length - 1; i >= 0; i--) {
                 String hop = hops[i].trim();
-                if (!IP_PREDICATE.test(hop) && isValidIp(hop) && !isTrustedProxy(hop)) {
+                if (!IP_PREDICATE.test(hop) && isValidIp(hop) && !isTrustedProxy(hop, trustedProxies)) {
                     return hop;
                 }
             }
@@ -129,7 +124,7 @@ public class WebUtil extends WebUtils {
         String realIp = request.getHeader(X_REAL_IP_HEADER);
         if (!IP_PREDICATE.test(realIp)) {
             realIp = realIp.trim();
-            if (isValidIp(realIp) && !isTrustedProxy(realIp)) {
+            if (isValidIp(realIp) && !isTrustedProxy(realIp, trustedProxies)) {
                 return realIp;
             }
         }
@@ -146,12 +141,8 @@ public class WebUtil extends WebUtils {
     }
 
     /**
-     * 是否可信反向代理：回环地址，或 system.trusted-proxies 配置的精确 IP / IPv4 CIDR。
+     * 是否可信反向代理：回环地址，或传入可信代理列表中的精确 IP / IPv4 CIDR。
      */
-    static boolean isTrustedProxy(String ip) {
-        return isTrustedProxy(ip, trustedProxyConfig());
-    }
-
     static boolean isTrustedProxy(String ip, List<String> trustedProxies) {
         if (StringUtils.isBlank(ip)) {
             return false;
@@ -175,18 +166,6 @@ public class WebUtil extends WebUtils {
             }
         }
         return false;
-    }
-
-    private static List<String> trustedProxyConfig() {
-        try {
-            SystemProperties props = SpringUtil.getBean(SystemProperties.class);
-            if (props != null && props.getTrustedProxies() != null) {
-                return props.getTrustedProxies();
-            }
-        } catch (Exception ignored) {
-            // 非 Spring 环境或上下文未就绪：退回默认（仅回环可信）
-        }
-        return List.of();
     }
 
     static boolean isValidIp(String ip) {

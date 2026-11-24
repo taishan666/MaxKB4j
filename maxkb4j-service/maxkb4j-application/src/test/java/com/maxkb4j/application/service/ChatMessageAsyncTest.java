@@ -3,11 +3,10 @@ package com.maxkb4j.application.service;
 import com.maxkb4j.application.handler.PostResponseHandler;
 import com.maxkb4j.application.mapper.ApplicationChatShareLinkMapper;
 import com.maxkb4j.application.service.impl.ApplicationChatServiceImpl;
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.CaffeineChatInfoStore;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.vo.ChatMessageVO;
-import org.junit.jupiter.api.AfterEach;
 import reactor.core.publisher.Sinks;
 
 import java.util.concurrent.CountDownLatch;
@@ -58,11 +57,6 @@ class ChatMessageAsyncTest {
         return errorRef.get();
     }
 
-    @AfterEach
-    void tearDown() {
-        ChatCache.remove(CHAT_ID);
-    }
-
     private ApplicationChatServiceImpl newChatService(ApplicationChatUserStatsService statsServiceMock,
                                                       IApplicationInternalService applicationService) {
         return new ApplicationChatServiceImpl(
@@ -73,7 +67,9 @@ class ChatMessageAsyncTest {
                 mock(ApplicationVersionService.class),
                 mock(PostResponseHandler.class),
                 Runnable::run,
-                mock(ApplicationChatShareLinkMapper.class));
+                mock(ApplicationChatShareLinkMapper.class),
+                new CaffeineChatInfoStore(),
+                mock(com.maxkb4j.application.builder.ChatServiceBuilder.class));
     }
 
 

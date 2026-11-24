@@ -6,6 +6,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxkb4j.trigger.model.TriggerSetting;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
+import com.maxkb4j.common.util.ClientIpResolver;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.WebUtil;
 import com.maxkb4j.trigger.entity.EventTriggerEntity;
@@ -34,6 +35,7 @@ public class WebhookTriggerController {
 
     private final IEventTriggerService eventTriggerService;
     private final TriggerTaskExecutor triggerTaskExecutor;
+    private final ClientIpResolver clientIpResolver;
 
     /**
      * Webhook 访问频率限制缓存（窗口 key -> 计数器）。
@@ -55,15 +57,17 @@ public class WebhookTriggerController {
      */
     private static final int RATE_LIMIT_PER_MINUTE = 60;
 
-    public WebhookTriggerController(IEventTriggerService eventTriggerService, TriggerTaskExecutor triggerTaskExecutor) {
+    public WebhookTriggerController(IEventTriggerService eventTriggerService, TriggerTaskExecutor triggerTaskExecutor,
+                                    ClientIpResolver clientIpResolver) {
         this.eventTriggerService = eventTriggerService;
         this.triggerTaskExecutor = triggerTaskExecutor;
+        this.clientIpResolver = clientIpResolver;
     }
 
     @PostMapping("/trigger/v1/webhook/{id}")
     public R<Boolean> webhook(@PathVariable String id, @RequestBody JSONObject data) {
         // 访问频率限制，防止滥用：固定窗口计数，窗口 key 随时间滚动
-        String clientIp = WebUtil.getIP();
+        String clientIp = clientIpResolver.getIp();
         if (clientIp == null || clientIp.isEmpty()) {
             clientIp = "unknown";
         }

@@ -1,6 +1,6 @@
 package com.maxkb4j.workflow.handler.node.impl;
 
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.ChatInfoStore;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
 import com.maxkb4j.workflow.enums.NodeType;
@@ -10,6 +10,7 @@ import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
 import com.maxkb4j.workflow.node.impl.VariableAssignNode;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -21,7 +22,10 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.VARIABLE_ASSIGN)
 @Component
+@RequiredArgsConstructor
 public class VariableAssignNodeHandler extends AbsNodeHandler {
+
+    private final ChatInfoStore chatInfoStore;
 
 
     @SuppressWarnings("unchecked")
@@ -48,7 +52,7 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
                 resultList.add(getGlobalHandleResult(workflow, variable, fields));
             }
             if (Scope.CHAT.equals(scope)) {
-                // getChatHandleResult 内部已写 workflow.getChatContext() 并同步 ChatCache，
+                // getChatHandleResult 内部已写 workflow.getChatContext() 并同步 ChatInfoStore，
                 // 返回的 {name,input_value,output_value} 仅用于节点详情展示，不可 putAll 进会话变量
                 resultList.add(getChatHandleResult(workflow, variable, fields));
             }
@@ -96,7 +100,7 @@ public class VariableAssignNodeHandler extends AbsNodeHandler {
         // Update chat variables
         String chatId = (String) workflow.getGlobalContext().get(ChatField.CHAT_ID);
         if (chatId != null) {
-            ChatInfo chatInfo = ChatCache.get(chatId);
+            ChatInfo chatInfo = chatInfoStore.get(chatId);
             if (chatInfo != null && chatInfo.getChatVariables() != null) {
                 chatInfo.getChatVariables().put(varName, value);
             }

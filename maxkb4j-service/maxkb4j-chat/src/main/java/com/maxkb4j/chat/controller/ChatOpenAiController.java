@@ -9,7 +9,7 @@ import com.maxkb4j.application.service.IApplicationChatService;
 import com.maxkb4j.chat.dto.OpenAIChatCompletionRequest;
 import com.maxkb4j.chat.dto.OpenAIChatCompletionResponse;
 import com.maxkb4j.chat.dto.OpenAIMessage;
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.ChatInfoStore;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.vo.ChatMessageVO;
@@ -19,6 +19,7 @@ import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.util.ClientIpResolver;
 import com.maxkb4j.common.util.WebUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -66,6 +67,9 @@ public class ChatOpenAiController {
     private final IApplicationChatService chatService;
 
     private final IApplicationApiKeyService apiKeyService;
+
+    private final ChatInfoStore chatInfoStore;
+    private final ClientIpResolver clientIpResolver;
 
     /**
      * 取 messages 中最后一个 user 消息之前的 user/assistant 轮次，转换为内部聊天记录；
@@ -156,7 +160,7 @@ public class ChatOpenAiController {
                 .chatUserId(apiKey.getId())
                 .chatUserType(ChatUserType.APPLICATION_API_KEY)
                 .source(ChatSource.API_CALL)
-                .ipAddress(WebUtil.getIP())
+                .ipAddress(clientIpResolver.getIp())
                 .debug(false)
                 .build();
         return new PreparedChat(params, chatState);
@@ -267,7 +271,7 @@ public class ChatOpenAiController {
         if (history.isEmpty()) {
             return;
         }
-        ChatInfo chatInfo = ChatCache.get(chatId);
+        ChatInfo chatInfo = chatInfoStore.get(chatId);
         if (chatInfo == null) {
             log.warn("会话缓存未命中，丢弃请求携带的历史消息 chatId={}", chatId);
             return;

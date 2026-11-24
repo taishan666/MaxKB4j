@@ -11,13 +11,13 @@ import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.mapper.ApplicationChatShareLinkMapper;
 import com.maxkb4j.application.service.*;
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.CaffeineChatInfoStore;
+import com.maxkb4j.common.cache.ChatInfoStore;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
 import com.maxkb4j.common.exception.ApiException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +57,7 @@ class ApplicationChatServiceImplSecurityTest {
     @Mock
     private ApplicationChatShareLinkMapper shareLinkMapper;
 
+    private ChatInfoStore chatInfoStore;
     private ApplicationChatServiceImpl chatService;
 
     @BeforeAll
@@ -70,6 +71,7 @@ class ApplicationChatServiceImplSecurityTest {
 
     @BeforeEach
     void setUp() {
+        chatInfoStore = new CaffeineChatInfoStore();
         chatService = new ApplicationChatServiceImpl(
                 chatRecordService,
                 applicationService,
@@ -78,16 +80,13 @@ class ApplicationChatServiceImplSecurityTest {
                 versionService,
                 mock(PostResponseHandler.class),
                 Runnable::run,
-                shareLinkMapper);
+                shareLinkMapper,
+                chatInfoStore,
+                mock(com.maxkb4j.application.builder.ChatServiceBuilder.class));
         ReflectionTestUtils.setField(chatService, "baseMapper", chatMapper);
         // IRepository.lambdaQuery() 经 getEntityClass() 解析实体类型时依赖真实 MybatisMapperProxy，
         // Mockito mock mapper 走不通该反射路径，预置实体类型短路掉
         ReflectionTestUtils.setField(chatService, "entityClass", ApplicationChatEntity.class);
-    }
-
-    @AfterEach
-    void tearDown() {
-        ChatCache.remove(CHAT_ID);
     }
 
     // ============ shareChat 拒绝不属于当前应用的会话 ============
@@ -115,7 +114,7 @@ class ApplicationChatServiceImplSecurityTest {
     @Test
     void getOrCreateChatInfo_cacheHit_returnsCachedWithoutDbQuery() {
         ChatInfo cached = new ChatInfo(CHAT_ID, APP_ID, USER_ID);
-        ChatCache.put(CHAT_ID, cached);
+        chatInfoStore.put(CHAT_ID, cached);
 
         ChatInfo result = chatService.getOrCreateChatInfo(CHAT_ID, APP_ID, USER_ID);
 
@@ -137,7 +136,7 @@ class ApplicationChatServiceImplSecurityTest {
         assertEquals(APP_ID, result.getAppId());
         assertEquals(USER_ID, result.getChatUserId());
         // 回填缓存，后续请求直接走缓存
-        assertSame(result, ChatCache.get(CHAT_ID));
+        assertSame(result, chatInfoStore.get(CHAT_ID));
     }
 
     @Test
@@ -149,12 +148,12 @@ class ApplicationChatServiceImplSecurityTest {
         assertEquals(CHAT_ID, result.getChatId());
         assertEquals(APP_ID, result.getAppId());
         assertEquals(USER_ID, result.getChatUserId());
-        assertSame(result, ChatCache.get(CHAT_ID));
+        assertSame(result, chatInfoStore.get(CHAT_ID));
     }
 
     @Test
     void getOrCreateChatInfo_appMismatch_throws() {
-        ChatCache.put(CHAT_ID, new ChatInfo(CHAT_ID, "other-app", USER_ID));
+        chatInfoStore.put(CHAT_ID, new ChatInfo(CHAT_ID, "other-app", USER_ID));
 
         assertThrows(ApiException.class,
                 () -> chatService.getOrCreateChatInfo(CHAT_ID, APP_ID, USER_ID));

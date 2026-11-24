@@ -20,7 +20,7 @@ import com.maxkb4j.application.mapper.ApplicationChatRecordMapper;
 import com.maxkb4j.application.service.IApplicationChatRecordInternalService;
 import com.maxkb4j.application.vo.ApplicationChatRecordVO;
 import com.maxkb4j.application.vo.ParagraphRecordVO;
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.ChatInfoStore;
 import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
@@ -54,6 +54,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
     private final ApplicationChatMapper chatMapper;
     private final IDocumentService documentService;
     private final IResourceMappingService resourceMappingService;
+    private final ChatInfoStore chatInfoStore;
 
     private boolean chatBelongsToApp(String appId, String chatId) {
         return chatMapper.selectCount(Wrappers.<ApplicationChatEntity>lambdaQuery()
@@ -105,7 +106,7 @@ public class ApplicationChatRecordServiceImpl extends ServiceImpl<ApplicationCha
 
     @Override
     public ChatRecordDTO getChatRecord(String appId, String chatId, String chatRecordId) {
-        ChatInfo chatInfo = ChatCache.get(chatId);
+        ChatInfo chatInfo = chatInfoStore.get(chatId);
         if (Objects.nonNull(chatInfo)) {
             // 缓存命中：校验会话归属，防止跨应用越权读取
             if (!Objects.equals(appId, chatInfo.getAppId())) {

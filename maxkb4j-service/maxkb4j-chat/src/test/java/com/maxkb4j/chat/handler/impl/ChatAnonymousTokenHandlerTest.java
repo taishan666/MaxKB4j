@@ -5,6 +5,7 @@ import cn.dev33.satoken.context.SaTokenContext;
 import cn.dev33.satoken.spring.SaTokenContextForSpringInJakartaServlet;
 import com.maxkb4j.application.dto.ApplicationAccessTokenDTO;
 import com.maxkb4j.application.service.IApplicationAccessTokenService;
+import com.maxkb4j.common.util.ClientIpResolver;
 import com.maxkb4j.common.util.StpKit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,7 @@ class ChatAnonymousTokenHandlerTest {
     private static final String ACCESS_TOKEN = "access-token";
 
     private IApplicationAccessTokenService accessTokenService;
+    private ClientIpResolver clientIpResolver;
     private ChatAnonymousTokenHandler handler;
     private String originalJwtSecretKey;
     private SaTokenContext originalSaTokenContext;
@@ -39,7 +41,9 @@ class ChatAnonymousTokenHandlerTest {
         SaManager.getConfig().setJwtSecretKey("test-jwt-secret-key");
         SaManager.setSaTokenContext(new SaTokenContextForSpringInJakartaServlet());
         accessTokenService = mock(IApplicationAccessTokenService.class);
-        handler = new ChatAnonymousTokenHandler(accessTokenService);
+        clientIpResolver = mock(ClientIpResolver.class);
+        when(clientIpResolver.getIp()).thenReturn(CLIENT_IP);
+        handler = new ChatAnonymousTokenHandler(accessTokenService, clientIpResolver);
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRemoteAddr(CLIENT_IP);
         RequestContextHolder.setRequestAttributes(

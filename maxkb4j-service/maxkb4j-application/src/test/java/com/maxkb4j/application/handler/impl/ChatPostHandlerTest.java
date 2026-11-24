@@ -7,7 +7,8 @@ import com.maxkb4j.application.entity.ApplicationChatRecordEntity;
 import com.maxkb4j.application.mapper.ApplicationChatMapper;
 import com.maxkb4j.application.service.ApplicationChatUserStatsService;
 import com.maxkb4j.application.service.IApplicationChatRecordInternalService;
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.CaffeineChatInfoStore;
+import com.maxkb4j.common.cache.ChatInfoStore;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.common.domain.dto.ChatRecordDTO;
@@ -49,6 +50,7 @@ class ChatPostHandlerTest {
     private ApplicationChatMapper chatMapper;
     private ApplicationChatUserStatsService statsService;
     private IApplicationChatRecordInternalService chatRecordService;
+    private ChatInfoStore chatInfoStore;
     private ChatPostHandler handler;
 
     @BeforeEach
@@ -56,12 +58,12 @@ class ChatPostHandlerTest {
         chatMapper = mock(ApplicationChatMapper.class);
         statsService = mock(ApplicationChatUserStatsService.class);
         chatRecordService = mock(IApplicationChatRecordInternalService.class);
-        handler = new ChatPostHandler(statsService, chatMapper, chatRecordService);
+        chatInfoStore = new CaffeineChatInfoStore();
+        handler = new ChatPostHandler(statsService, chatMapper, chatRecordService, chatInfoStore);
     }
 
     @AfterEach
     void tearDown() {
-        ChatCache.remove(CHAT_ID);
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.clearSynchronization();
         }
@@ -98,7 +100,7 @@ class ChatPostHandlerTest {
         assertThrows(RuntimeException.class,
                 () -> handler.handler(chatParams(), chatState().build(), chatResponse(), 0L));
 
-        ChatInfo chatInfo = ChatCache.get(CHAT_ID);
+        ChatInfo chatInfo = chatInfoStore.get(CHAT_ID);
         assertTrue(chatInfo == null || chatInfo.getChatRecordList().isEmpty(), "回滚后缓存不应留下未持久化的对话记录");
         assertTrue(TransactionSynchronizationManager.getSynchronizations().isEmpty(), "持久化失败时不应注册提交后回调");
     }
@@ -109,12 +111,12 @@ class ChatPostHandlerTest {
 
         handler.handler(chatParams(), chatState().build(), chatResponse(), 0L);
 
-        ChatInfo chatInfo = ChatCache.get(CHAT_ID);
+        ChatInfo chatInfo = chatInfoStore.get(CHAT_ID);
         assertTrue(chatInfo != null && chatInfo.getChatRecordList().isEmpty(), "提交前缓存不应包含对话记录");
         // 模拟事务提交，触发 afterCommit 回调
         TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
 
-        List<ChatRecordDTO> records = ChatCache.get(CHAT_ID).getChatRecordList();
+        List<ChatRecordDTO> records = chatInfoStore.get(CHAT_ID).getChatRecordList();
         assertEquals(1, records.size(), "提交后缓存应包含本轮对话记录");
         assertEquals(CHAT_RECORD_ID, records.get(0).getId());
     }
@@ -124,7 +126,7 @@ class ChatPostHandlerTest {
         // 直调（无事务代理）场景：立即写缓存，等价于提交后的最终状态
         handler.handler(chatParams(), chatState().build(), chatResponse(), 0L);
 
-        List<ChatRecordDTO> records = ChatCache.get(CHAT_ID).getChatRecordList();
+        List<ChatRecordDTO> records = chatInfoStore.get(CHAT_ID).getChatRecordList();
         assertEquals(1, records.size(), "无事务上下文时应立即写入缓存");
         assertEquals(CHAT_RECORD_ID, records.get(0).getId());
     }
@@ -156,7 +158,7 @@ class ChatPostHandlerTest {
 
         verify(chatMapper, times(2)).insertOrIncrementRecordCount(any(ApplicationChatEntity.class));
         verifyNoMoreInteractions(chatMapper);
-        assertEquals(2, ChatCache.get(CHAT_ID).getChatRecordList().size(), "同会话两轮对话均应在提交后进入缓存");
+        assertEquals(2, chatInfoStore.get(CHAT_ID).getChatRecordList().size(), "同会话两轮对话均应在提交后进入缓存");
     }
 
     // ==================== 补充/覆盖已有记录与调试模式 ====================
@@ -181,7 +183,7 @@ class ChatPostHandlerTest {
         handler.handler(chatParams(), chatState().debug(true).build(), chatResponse(), 0L);
 
         verifyNoInteractions(chatMapper, chatRecordService, statsService);
-        List<ChatRecordDTO> records = ChatCache.get(CHAT_ID).getChatRecordList();
+        List<ChatRecordDTO> records = chatInfoStore.get(CHAT_ID).getChatRecordList();
         assertEquals(1, records.size(), "调试模式下记录仅进缓存不落库");
         assertNotNull(records.get(0).getId(), "缓存中的记录 id 不应为 null");
     }

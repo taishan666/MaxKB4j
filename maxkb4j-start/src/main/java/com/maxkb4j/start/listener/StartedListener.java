@@ -1,7 +1,7 @@
 package com.maxkb4j.start.listener;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.cache.SystemCache;
+import com.maxkb4j.common.cache.SystemSettingStore;
 import com.maxkb4j.common.cache.SystemKeySetting;
 import com.maxkb4j.common.enums.SettingType;
 import com.maxkb4j.common.util.RSAUtil;
@@ -37,6 +37,7 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
     private final SystemSettingService systemSettingService;
     private final UserServiceImpl userService;
     private final JwtSecretInitializer jwtSecretInitializer;
+    private final SystemSettingStore systemSettingStore;
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationStartedEvent event) {
@@ -54,13 +55,13 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
                 String encryptPrivateKeyPem = RSAUtil.encryptPrivateKeyPem(privateKey);
                 JSONObject meta = new SystemKeySetting(publicKeyPem, encryptPrivateKeyPem).toMetaJson();
                 systemSettingService.saveOrUpdate(meta, SettingType.KEY);
-                SystemCache.put(SettingType.KEY.getType(), meta);
+                systemSettingStore.put(SettingType.KEY.getType(), meta);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
         for (SystemSettingEntity systemSetting : systemSettings) {
-            SystemCache.put(systemSetting.getType(), systemSetting.getMeta());
+            systemSettingStore.put(systemSetting.getType(), systemSetting.getMeta());
         }
         jwtSecretInitializer.initialize();
         printStartInfo(event);

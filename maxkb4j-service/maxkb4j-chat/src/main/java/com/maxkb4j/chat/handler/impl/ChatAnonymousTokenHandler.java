@@ -5,6 +5,7 @@ import com.maxkb4j.application.service.IApplicationAccessTokenService;
 import com.maxkb4j.chat.handler.AuthHandler;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.chat.util.ResponseProvider;
+import com.maxkb4j.common.util.ClientIpResolver;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +22,7 @@ import java.util.Objects;
 public class ChatAnonymousTokenHandler implements AuthHandler {
 
     private final IApplicationAccessTokenService accessTokenService;
+    private final ClientIpResolver clientIpResolver;
 
     @Override
     public boolean handle(HttpServletResponse response) {
@@ -32,7 +34,7 @@ public class ChatAnonymousTokenHandler implements AuthHandler {
             return false;
         }
         if (Boolean.TRUE.equals(token.getWhiteActive())
-                && (token.getWhiteList() == null || !token.getWhiteList().contains(WebUtil.getIP()))) {
+                && (token.getWhiteList() == null || !token.getWhiteList().contains(clientIpResolver.getIp()))) {
             log.warn("当前IP不在应用访问白名单中");
             ResponseProvider.write(response);
             return false;

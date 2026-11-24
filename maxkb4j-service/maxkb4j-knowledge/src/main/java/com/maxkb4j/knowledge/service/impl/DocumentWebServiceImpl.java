@@ -46,7 +46,7 @@ public class DocumentWebServiceImpl implements IDocumentWebService {
      */
     private static final String MD_OUTPUT_DIR = "logs/web_md";
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
-    private final IDocumentSplitService documentSpiltService;
+    private final IDocumentSplitService documentSplitService;
     private final IDocumentParseService documentParseService;
 
     public List<DocumentSimple> getDocumentList(String sourceUrl, String selector, boolean isRecursive) {
@@ -73,7 +73,7 @@ public class DocumentWebServiceImpl implements IDocumentWebService {
         List<DocumentSimple> docs = getDocumentList(sourceUrl, selector, isRecursive);
         for (DocumentSimple doc : docs) {
             String content = doc.getContent();
-            List<ParagraphSimple> paragraphs = documentSpiltService.smartSplit(content);
+            List<ParagraphSimple> paragraphs = documentSplitService.smartSplit(content);
             doc.setParagraphs(paragraphs);
         }
         return docs;

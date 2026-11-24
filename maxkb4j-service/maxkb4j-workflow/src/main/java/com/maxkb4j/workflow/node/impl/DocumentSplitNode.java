@@ -10,8 +10,8 @@ import lombok.Data;
 import java.util.List;
 
 @NodeCreatorType(NodeType.DOCUMENT_SPLIT)
-public class DocumentSpiltNode extends AbsNode {
-    public DocumentSpiltNode(String id, JSONObject properties) {
+public class DocumentSplitNode extends AbsNode {
+    public DocumentSplitNode(String id, JSONObject properties) {
         super(id, properties);
     }
 

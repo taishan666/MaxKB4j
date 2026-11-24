@@ -20,6 +20,7 @@ import com.maxkb4j.common.domain.vo.ResultCallback;
 import com.maxkb4j.common.enums.ChatSource;
 import com.maxkb4j.common.enums.ChatUserType;
 import com.maxkb4j.common.exception.ApiException;
+import com.maxkb4j.common.util.ClientIpResolver;
 import com.maxkb4j.common.util.I18nUtil;
 import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.common.util.WebUtil;
@@ -54,6 +55,7 @@ public class ChatApiController {
     private final IApplicationChatRecordService chatRecordService;
     private final ChatApiService chatApiService;
     private final IApplicationApiKeyService apiKeyService;
+    private final ClientIpResolver clientIpResolver;
 
 
     @Hidden
@@ -106,7 +108,7 @@ public class ChatApiController {
                 .chatUserId(userId)
                 .chatUserType(ChatUserType.ANONYMOUS_USER)
                 .source(ChatSource.ONLINE)
-                .ipAddress(WebUtil.getIP())
+                .ipAddress(clientIpResolver.getIp())
                 .debug(false)
                 .build();
         if (Boolean.TRUE.equals(params.getStream())) {

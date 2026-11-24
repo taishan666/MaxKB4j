@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.maxkb4j.common.mp.base.BaseEntity;
 import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.common.typehandler.JSONBTypeHandler;
-import com.maxkb4j.model.typehandler.ModelCredentialTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -28,7 +27,6 @@ public class ModelEntity extends BaseEntity {
 
     private String provider;
 
-    @TableField(typeHandler = ModelCredentialTypeHandler.class)
     private ModelCredential credential;
 
     private String userId;

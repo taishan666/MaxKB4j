@@ -4,9 +4,9 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxkb4j.common.annotation.RateLimit;
 import com.maxkb4j.common.exception.RateLimitExceededException;
+import com.maxkb4j.common.util.ClientIpResolver;
 import com.maxkb4j.common.util.StpKit;
-import com.maxkb4j.common.util.WebUtil;
-import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -34,7 +34,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 @Aspect
 @Component
+@RequiredArgsConstructor
 public class RateLimitAspect {
+
+    private final ClientIpResolver clientIpResolver;
 
     /**
      * 计数器缓存，TTL 设为 2 小时（覆盖最大合理窗口），最多缓存 10 万个 key
@@ -85,8 +88,7 @@ public class RateLimitAspect {
      * 获取客户端真实 IP（支持反向代理）
      */
     private String resolveClientIp() {
-        HttpServletRequest request = WebUtil.getRequest();
-        String ip = WebUtil.getIP(request);
+        String ip = clientIpResolver.getIp();
         return (ip != null && !ip.isEmpty()) ? ip : "unknown";
     }
 

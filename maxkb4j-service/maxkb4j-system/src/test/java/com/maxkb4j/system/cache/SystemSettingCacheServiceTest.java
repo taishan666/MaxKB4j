@@ -1,54 +1,52 @@
 package com.maxkb4j.system.cache;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.cache.SystemCache;
 import com.maxkb4j.common.cache.SystemKeySetting;
+import com.maxkb4j.common.cache.SystemSettingStore;
 import com.maxkb4j.common.enums.SettingType;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 系统设置缓存 Bean + 静态门面行为测试（第 3 期组件化）。
+ * 系统设置缓存 Bean 行为测试。
  */
 class SystemSettingCacheServiceTest {
 
-    @AfterEach
-    void tearDown() {
-        SystemCache.reset();
+    private SystemSettingStore store;
+
+    @BeforeEach
+    void setUp() {
+        store = new SystemSettingCacheService();
     }
 
     @Test
-    void construct_registersBeanIntoFacade() {
-        SystemSettingCacheService service = new SystemSettingCacheService();
+    void putGet_roundTrip() {
         JSONObject meta = new JSONObject();
         meta.put("k", "v");
 
-        SystemCache.put(SettingType.Email.getType(), meta);
+        store.put(SettingType.Email.getType(), meta);
 
-        assertThat(service.get(SettingType.Email.getType())).isSameAs(meta);
-        assertThat(SystemCache.get(SettingType.Email.getType())).isSameAs(meta);
+        assertThat(store.get(SettingType.Email.getType())).isSameAs(meta);
     }
 
     @Test
-    void keySetting_helpersReadThroughFacade() {
-        new SystemSettingCacheService();
+    void keySetting_helpersReadThroughStore() {
         JSONObject meta = new JSONObject();
         meta.put(SystemKeySetting.FIELD_PUBLIC_KEY, "pub-pem");
         meta.put(SystemKeySetting.FIELD_ENCRYPTED_PRIVATE_KEY, "enc-priv-pem");
-        SystemCache.put(SettingType.KEY.getType(), meta);
+        store.put(SettingType.KEY.getType(), meta);
 
-        assertThat(SystemCache.getPublicKey()).isEqualTo("pub-pem");
-        assertThat(SystemCache.getPrivateKey()).isEqualTo("enc-priv-pem");
-        assertThat(SystemCache.getKeySetting()).isNotNull();
+        assertThat(store.getPublicKey()).isEqualTo("pub-pem");
+        assertThat(store.getPrivateKey()).isEqualTo("enc-priv-pem");
+        assertThat(store.getKeySetting()).isNotNull();
     }
 
     @Test
-    void facadeDefaultStore_worksWithoutBeanRegistration() {
-        SystemCache.reset();
-        JSONObject meta = new JSONObject();
-        SystemCache.put(SettingType.DISPLAY.getType(), meta);
-        assertThat(SystemCache.get(SettingType.DISPLAY.getType())).isSameAs(meta);
+    void keySetting_absent_returnsNull() {
+        assertThat(store.getPublicKey()).isNull();
+        assertThat(store.getPrivateKey()).isNull();
+        assertThat(store.getKeySetting()).isNull();
     }
 }

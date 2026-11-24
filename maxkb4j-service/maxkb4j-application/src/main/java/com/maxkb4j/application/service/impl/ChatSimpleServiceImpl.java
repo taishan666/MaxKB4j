@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Objects;
 
 @RequiredArgsConstructor
-@Component
+@Component("SIMPLE")
 public class ChatSimpleServiceImpl implements IChatService {
 
     private final AbsResetProblemStep resetProblemStep;

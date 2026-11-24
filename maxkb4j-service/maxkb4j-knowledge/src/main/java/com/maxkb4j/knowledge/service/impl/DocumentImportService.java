@@ -52,7 +52,7 @@ public class DocumentImportService {
 
     private final IDocumentInternalService documentService;
     private final IDocumentParseService documentParseService;
-    private final IDocumentSplitService documentSpiltService;
+    private final IDocumentSplitService documentSplitService;
     private final IOssService ossService;
     private final IDocumentWebService documentWebService;
     private final DocumentWriteService documentWriteService;
@@ -192,7 +192,7 @@ public class DocumentImportService {
             vo.setName(fs.getName());
             String fileId = ossService.storeFile(fs.getBytes(), fs.getName(), fs.getContentType());
             String text = documentParseService.extractText(fs.getName(), new ByteArrayInputStream(fs.getBytes()));
-            vo.setContent(documentSpiltService.split(text, patterns, limit, withFilter));
+            vo.setContent(documentSplitService.split(text, patterns, limit, withFilter));
             vo.setSourceFileId(fileId);
             result.add(vo);
         }

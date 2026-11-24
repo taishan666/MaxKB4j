@@ -2,7 +2,7 @@ package com.maxkb4j.workflow.handler.node.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.common.cache.ChatCache;
+import com.maxkb4j.common.cache.ChatInfoStore;
 import com.maxkb4j.common.domain.dto.ChatInfo;
 import com.maxkb4j.common.domain.dto.ChatParams;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
@@ -12,6 +12,7 @@ import com.maxkb4j.workflow.model.IChatWorkflow;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.NodeResult;
 import com.maxkb4j.workflow.node.AbsNode;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -23,7 +24,10 @@ import static com.maxkb4j.workflow.consts.WorkflowConstants.*;
 
 @NodeHandlerType(NodeType.START)
 @Component
+@RequiredArgsConstructor
 public class StartNodeHandler extends AbsNodeHandler {
+
+    private final ChatInfoStore chatInfoStore;
 
     @Override
     protected NodeResult doExecute(IWorkflow workflow, AbsNode node) throws Exception {
@@ -86,7 +90,7 @@ public class StartNodeHandler extends AbsNodeHandler {
 
     public Map<String, Object> getChatVariable(AbsNode node, String chatId) {
         Map<String, Object> resultMap = new HashMap<>();
-        ChatInfo chatInfo = ChatCache.get(chatId);
+        ChatInfo chatInfo = chatInfoStore.get(chatId);
         if (chatInfo == null) {
             return resultMap;
         }

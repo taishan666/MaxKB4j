@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @RequiredArgsConstructor
-@Component
+@Component("WORK_FLOW")
 public class ChatFlowServiceImpl implements IChatService {
 
     private final IWorkFlowActuator workFlowActuator;

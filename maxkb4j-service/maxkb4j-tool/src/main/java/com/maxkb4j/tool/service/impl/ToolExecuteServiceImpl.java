@@ -5,10 +5,12 @@ import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.tool.consts.ToolConstants;
 import com.maxkb4j.tool.dto.ToolInputField;
+import com.maxkb4j.oss.service.IOssService;
 import com.maxkb4j.tool.executor.GroovyScriptExecutor;
 import com.maxkb4j.tool.executor.HttpRequestExecutor;
 import com.maxkb4j.tool.executor.McpClientExecutor;
 import com.maxkb4j.tool.service.IToolExecuteService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -27,7 +29,10 @@ import java.util.Map;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ToolExecuteServiceImpl implements IToolExecuteService {
+
+    private final IOssService ossService;
 
 
     @Override
@@ -100,7 +105,7 @@ public class ToolExecuteServiceImpl implements IToolExecuteService {
 
     @Override
     public Object customExecute(String code, Map<String, Object> initParams, Map<String, Object> parameter) throws IOException {
-        GroovyScriptExecutor scriptExecutor = new GroovyScriptExecutor(code, initParams);
+        GroovyScriptExecutor scriptExecutor = new GroovyScriptExecutor(code, initParams, Map.of("ossService", ossService));
         return scriptExecutor.execute(parameter);
     }
 

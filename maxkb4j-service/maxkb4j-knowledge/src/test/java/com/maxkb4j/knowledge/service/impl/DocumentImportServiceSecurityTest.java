@@ -38,7 +38,7 @@ class DocumentImportServiceSecurityTest {
     @Mock
     private IDocumentParseService documentParseService;
     @Mock
-    private IDocumentSplitService documentSpiltService;
+    private IDocumentSplitService documentSplitService;
     @Mock
     private IOssService ossService;
     @Mock
