@@ -89,12 +89,14 @@ public class OpenAiModelProvider extends AbsModelProvider {
         JSONObject effectiveParams = params != null ? new JSONObject(params) : new JSONObject();
         effectiveParams.put(ParamKey.THINKING, Map.of(ParamKey.TYPE, flag));
         return OpenAiChatModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
+                .httpClientBuilder(getSpringRestBuilder())
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
                 .customParameters(effectiveParams)
+                //下次对话时候将聊天记录中思考内容带上发送
                 .sendThinking(true)
+                //返回思考内容（false时会把原始思考响应内容过滤掉）
                 .returnThinking(true)
                 .build();
     }
@@ -102,7 +104,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiStreamingChatModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
+                .httpClientBuilder(getSpringRestBuilder())
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -116,7 +118,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiMultiModalEmbeddingModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
+                .httpClientBuilder(getSpringRestBuilder())
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
@@ -127,7 +129,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
     @Override
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
         return OpenAiImageModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
+                .httpClientBuilder(getSpringRestBuilder())
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)

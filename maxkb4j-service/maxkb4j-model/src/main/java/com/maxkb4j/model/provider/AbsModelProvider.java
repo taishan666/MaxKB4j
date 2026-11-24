@@ -1,18 +1,21 @@
 package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.model.form.BaseField;
-import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.core.assistant.Assistant;
+import com.maxkb4j.model.base.STTModel;
+import com.maxkb4j.model.base.TTSModel;
+import com.maxkb4j.model.consts.ModelConstants;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.params.ImageModelParams;
 import com.maxkb4j.model.custom.params.OpenAiChatModelParams;
+import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.base.STTModel;
-import com.maxkb4j.model.base.TTSModel;
-import com.maxkb4j.model.vo.ModelInfo;
+import com.maxkb4j.model.form.BaseField;
 import com.maxkb4j.model.props.ModelHttpProperties;
+import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.http.client.HttpClientBuilder;
+import dev.langchain4j.http.client.jdk.JdkHttpClient;
+import dev.langchain4j.http.client.jdk.JdkHttpClientBuilder;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
 import dev.langchain4j.http.client.spring.restclient.SpringRestClientBuilder;
 import dev.langchain4j.model.ModelDisabledException;
@@ -28,11 +31,14 @@ import dev.langchain4j.model.scoring.ScoringModel;
 import dev.langchain4j.service.AiServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.VirtualThreadTaskExecutor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import reactor.core.publisher.Flux;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,6 +55,7 @@ public abstract class AbsModelProvider {
     private ModelHttpProperties modelHttpProperties;
 
     private SpringRestClientBuilder springRestClientBuilder;
+    private JdkHttpClientBuilder jdkHttpClientBuilder;
 
     /**
      * 构建带超时配置的请求工厂。
@@ -72,15 +79,30 @@ public abstract class AbsModelProvider {
         return requestFactory;
     }
 
-    protected synchronized HttpClientBuilder getHttpClientBuilder() {
+    protected synchronized HttpClientBuilder getSpringRestBuilder() {
         if (springRestClientBuilder == null) {
             RestClient.Builder restClientBuilder = RestClient.builder()
-                    .requestFactory(createRequestFactory());
+                    .requestFactory(createRequestFactory())
+                    .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE + ModelConstants.Http.CHARSET_UTF_8)
+                    .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
             this.springRestClientBuilder = SpringRestClient.builder()
                     .restClientBuilder(restClientBuilder)
                     .streamingRequestExecutor(new VirtualThreadTaskExecutor());
         }
         return springRestClientBuilder;
+    }
+
+    protected synchronized HttpClientBuilder getJdkHttpClientBuilder() {
+        if (jdkHttpClientBuilder == null) {
+            long connectTimeout = modelHttpProperties != null
+                    ? modelHttpProperties.getConnectTimeout() : DEFAULT_CONNECT_TIMEOUT;
+            long readTimeout = modelHttpProperties != null
+                    ? modelHttpProperties.getReadTimeout() : DEFAULT_READ_TIMEOUT;
+            this.jdkHttpClientBuilder = JdkHttpClient.builder()
+                    .connectTimeout(Duration.ofSeconds(connectTimeout))
+                    .readTimeout(Duration.ofSeconds(readTimeout));
+        }
+        return jdkHttpClientBuilder;
     }
 
 

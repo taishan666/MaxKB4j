@@ -1,18 +1,14 @@
 package com.maxkb4j.model.provider;
 
-import com.maxkb4j.model.annotation.ModelProviderType;
-import org.springframework.stereotype.Component;
-
 import com.alibaba.fastjson.JSONObject;
-import com.maxkb4j.model.form.BaseField;
-import com.maxkb4j.model.entity.ModelCredential;
+import com.maxkb4j.model.annotation.ModelProviderType;
 import com.maxkb4j.model.custom.credential.ModelCredentialForm;
 import com.maxkb4j.model.custom.params.OLlamaChatModelParams;
 import com.maxkb4j.model.custom.params.OllamaImageModelParams;
+import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.model.enums.ModelType;
+import com.maxkb4j.model.form.BaseField;
 import com.maxkb4j.model.vo.ModelInfo;
-import dev.langchain4j.http.client.HttpClientBuilder;
-import dev.langchain4j.http.client.spring.restclient.SpringRestClient;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -21,9 +17,7 @@ import dev.langchain4j.model.ollama.OllamaChatModel;
 import dev.langchain4j.model.ollama.OllamaEmbeddingModel;
 import dev.langchain4j.model.ollama.OllamaImageModel;
 import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.web.client.RestClient;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -46,20 +40,6 @@ public class OLlamaModelProvider extends AbsModelProvider {
             new ModelInfo(ModelName.X_Z_IMAGE_TURBO, "", ModelType.TTI)
     );
 
-    /**
-     * 重写父类方法，为 Ollama 提供 UTF-8 编码支持的 HTTP 客户端，
-     * 并复用统一的超时配置（model.http.*）
-     */
-    @Override
-    protected HttpClientBuilder getHttpClientBuilder() {
-        RestClient.Builder restClientBuilder = RestClient.builder()
-                .requestFactory(createRequestFactory())
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE + Http.CHARSET_UTF_8)
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
-
-        return SpringRestClient.builder()
-                .restClientBuilder(restClientBuilder);
-    }
 
     @Override
     public List<BaseField> getChatModelParamsForm() {
@@ -84,7 +64,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
     @Override
     public ChatModel buildChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OllamaChatModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
+                .httpClientBuilder(getSpringRestBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
@@ -96,7 +76,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
         return OllamaStreamingChatModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
+                .httpClientBuilder(getSpringRestBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .temperature(getDoubleParam(params, ParamKey.TEMPERATURE))
@@ -108,7 +88,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
     @Override
     public EmbeddingModel buildEmbeddingModel(String modelName, ModelCredential credential, JSONObject params) {
         return OllamaEmbeddingModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
+                .httpClientBuilder(getSpringRestBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .build();
@@ -117,7 +97,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
     @Override
     public ImageModel buildImageModel(String modelName, ModelCredential credential, JSONObject params) {
         return OllamaImageModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
+                .httpClientBuilder(getSpringRestBuilder())
                 .baseUrl(credential.getBaseUrl())
                 .modelName(modelName)
                 .width(1024)

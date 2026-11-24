@@ -1,14 +1,13 @@
 package com.maxkb4j.model.provider;
 
-import com.maxkb4j.model.annotation.ModelProviderType;
-import org.springframework.stereotype.Component;
-
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.model.annotation.ModelProviderType;
 import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
@@ -48,7 +47,7 @@ public class DeepSeekModelProvider extends OpenAiModelProvider {
         params.remove(ParamKey.ENABLE_THINKING);
         params.put(ParamKey.THINKING, Map.of(ParamKey.TYPE, flag));
         return OpenAiStreamingChatModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
+                .httpClientBuilder(getJdkHttpClientBuilder())
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)

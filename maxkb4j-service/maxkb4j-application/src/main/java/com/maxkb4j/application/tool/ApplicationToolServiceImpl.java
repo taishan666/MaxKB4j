@@ -12,7 +12,7 @@ import dev.langchain4j.service.tool.AiServiceTool;
 import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.service.tool.ToolProviderResult;
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -24,14 +24,23 @@ import java.util.List;
  * <p>本类实现 tool-api 中的 {@link IAgentToolService} SPI，由 tool 模块的
  * {@code ToolProviderServiceImpl} 在运行期注入，从而避免 tool 模块反向编译依赖 application。
  *
+ * <p>注入的 {@code chatService} 带 {@link Lazy}：应用作为工具执行时会回调聊天服务，
+ * 与「聊天服务 → ChatServiceBuilder → 聊天管线 → 工具」构成构造期循环依赖；
+ * 该依赖仅在工具执行期使用，延迟到首次调用时解析即可打破闭环。
+ *
  * @author tarzan
  */
 @Service
-@RequiredArgsConstructor
 public class ApplicationToolServiceImpl implements IAgentToolService {
 
     private final IApplicationInternalService applicationService;
     private final IApplicationChatService chatService;
+
+    public ApplicationToolServiceImpl(IApplicationInternalService applicationService,
+                                      @Lazy IApplicationChatService chatService) {
+        this.applicationService = applicationService;
+        this.chatService = chatService;
+    }
 
     /**
      * 根据应用 ID 列表构建 AiServiceTool 列表

@@ -41,7 +41,7 @@ public class VolcanicEngineModelProvider extends OpenAiModelProvider {
         params.remove(ParamKey.ENABLE_THINKING);
         params.put(ParamKey.THINKING, Map.of(ParamKey.TYPE, flag));
         return OpenAiStreamingChatModel.builder()
-                .httpClientBuilder(getHttpClientBuilder())
+                .httpClientBuilder(getSpringRestBuilder())
                 .baseUrl(getBaseUrl(credential.getBaseUrl()))
                 .apiKey(credential.getApiKey())
                 .modelName(modelName)
