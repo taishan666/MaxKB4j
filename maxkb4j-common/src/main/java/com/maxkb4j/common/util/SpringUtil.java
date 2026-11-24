@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -28,7 +29,15 @@ public class SpringUtil implements ApplicationContextAware {
     }
 
     public static DefaultListableBeanFactory getBeanFactory() {
-        return (DefaultListableBeanFactory) context.getBeanFactory();
+        if (context == null) {
+            throw new IllegalStateException("ApplicationContext尚未注入，无法获取BeanFactory");
+        }
+        ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
+        if (beanFactory instanceof DefaultListableBeanFactory defaultListableBeanFactory) {
+            return defaultListableBeanFactory;
+        }
+        throw new IllegalStateException("当前上下文的BeanFactory类型不支持该操作: "
+                + (beanFactory != null ? beanFactory.getClass().getName() : "null"));
     }
 
     public static <T> T getBean(Class<T> clazz) {

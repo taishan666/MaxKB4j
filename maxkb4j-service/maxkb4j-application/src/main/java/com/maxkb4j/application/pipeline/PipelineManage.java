@@ -81,7 +81,8 @@ public class PipelineManage {
     }
 
     public List<ChatMessage> getHistoryMessages(int dialogueNumber) {
-        return MessageConverter.toHistoryMessages(chatState.getHistoryChatRecords(), dialogueNumber);
+        // chatState 仅在 run() 中赋值，此前调用时可能为 null；toHistoryMessages 对 null 记录返回空列表
+        return MessageConverter.toHistoryMessages(chatState != null ? chatState.getHistoryChatRecords() : null, dialogueNumber);
     }
 
     public JSONArray formatHistoryMessages(List<ChatMessage> historyMessages) {

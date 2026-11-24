@@ -3,6 +3,7 @@ package com.maxkb4j.workflow.handler.node;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.maxkb4j.common.domain.dto.OssFile;
+import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.workflow.enums.NodeStatus;
 import com.maxkb4j.workflow.model.IWorkflow;
 import com.maxkb4j.workflow.model.ModelAwareParams;
@@ -66,17 +67,19 @@ public abstract class AbsNodeHandler implements INodeHandler {
      *
      * @param node        the node instance
      * @param paramsClass the params class
-     * @return the parsed params, or null when the class or node data is missing
+     * @return the parsed params, never null
+     * @throws IllegalArgumentException when paramsClass is null (programming error)
+     * @throws ApiException             when the node data is missing or empty,
+     *                                  so handlers get a readable node error instead of a downstream NPE
      */
     protected <P> P parseParams(AbsNode node, Class<P> paramsClass) {
-        JSONObject nodeData = node.getNodeData();
         if (paramsClass == null) {
-            log.warn("Cannot parse params: paramsClass is null for handler {}", this.getClass().getSimpleName());
-            return null;
+            throw new IllegalArgumentException(
+                    "paramsClass must not be null for handler " + this.getClass().getSimpleName());
         }
+        JSONObject nodeData = node.getNodeData();
         if (nodeData == null || nodeData.isEmpty()) {
-            log.warn("Cannot parse params: nodeData is empty for node {}", node.getId());
-            return null;
+            throw new ApiException(MessageCode.NODE_DATA_MISSING, node.getId());
         }
         return nodeData.toJavaObject(paramsClass);
     }

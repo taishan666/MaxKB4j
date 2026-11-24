@@ -210,6 +210,10 @@ public class DatabaseUtil {
     }
 
     public static String cleanSql(String sqlQuery) {
+        // LLM 输出可能为空（如内容被过滤），null 透传，由 toReadOnlySelectSql 统一报错
+        if (sqlQuery == null) {
+            return null;
+        }
         int start = 0;
         int end = sqlQuery.length();
         if (sqlQuery.contains("```sql")) {

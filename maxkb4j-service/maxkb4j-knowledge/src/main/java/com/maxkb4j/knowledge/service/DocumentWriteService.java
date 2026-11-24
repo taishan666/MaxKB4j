@@ -69,6 +69,7 @@ public class DocumentWriteService extends ServiceImpl<DocumentMapper, DocumentEn
                     docCharLength.addAndGet(content.length());
                     if (!CollectionUtils.isEmpty(p.getProblemList())) {
                         for (String problem : p.getProblemList()) {
+                            if (problem == null) continue;
                             problem = problem.trim();
                             if (problem.isEmpty()) continue;
                             String problemId = IdWorker.get32UUID();

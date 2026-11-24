@@ -96,7 +96,8 @@ public final class ResourcePermissionQuerySupport {
      * <ul>
      *   <li>过滤为空或同时包含正权限与 NOT_AUTH：不限制，返回全部；</li>
      *   <li>仅正权限：包含命中 ID，命中为空时返回空结果；</li>
-     *   <li>仅 NOT_AUTH：排除所有已授权（VIEW/MANAGE）的 ID。</li>
+     *   <li>仅 NOT_AUTH：排除所有已授权 ID，解析值非明确 NOT_AUTH（VIEW/MANAGE 或 ROLE/null 等未识别值）
+     *       时一律视为已授权，避免把已授权记录误判为未授权。</li>
      * </ul>
      */
     public static PermissionIdFilter buildPermissionIdFilter(Map<String, String> permissionMap, Set<String> filter) {
@@ -118,9 +119,10 @@ public final class ResourcePermissionQuerySupport {
                     .collect(Collectors.toSet());
             return matchIds.isEmpty() ? PermissionIdFilter.empty() : new PermissionIdFilter(false, matchIds, Set.of());
         }
-        // 仅 NOT_AUTH：排除所有已授权 ID（含权限列表为空但存在记录的项）
+        // 仅 NOT_AUTH：排除所有已授权 ID。非明确 NOT_AUTH 的解析值（VIEW/MANAGE/ROLE/null 等）一律按已授权处理，
+        // 避免未识别权限值被误判为未授权而混入未授权结果
         Set<String> permittedIds = permissionMap.entrySet().stream()
-                .filter(e -> Permission.VIEW.equals(e.getValue()) || Permission.MANAGE.equals(e.getValue()))
+                .filter(e -> !Permission.NOT_AUTH.equals(e.getValue()))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
         return new PermissionIdFilter(false, Set.of(), permittedIds);

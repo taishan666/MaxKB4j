@@ -27,6 +27,9 @@ public class ChatRecordDTO {
 
 
     public JSONObject getNodeDetailsByRuntimeNodeId(String runtimeNodeId) {
+        if (details == null) {
+            return null;
+        }
         return details.getJSONObject(runtimeNodeId);
     }
 }

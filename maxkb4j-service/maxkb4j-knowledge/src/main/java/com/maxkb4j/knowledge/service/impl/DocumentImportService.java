@@ -220,16 +220,16 @@ public class DocumentImportService {
     }
 
     private boolean checkFileLimit(String id, MultipartFile[] files) {
+        // 检查文件数量
+        if (files == null || files.length == 0) {
+            return false;
+        }
         KnowledgeEntity knowledge = knowledgeMapper.selectById(id);
         if (Objects.isNull(knowledge)) {
             return false;
         }
         int fileSizeLimit = knowledge.getFileSizeLimit();
         int fileCountLimit = knowledge.getFileCountLimit();
-        // 检查文件数量
-        if (files == null || files.length == 0) {
-            return false;
-        }
         if (files.length > fileCountLimit) {
             return true;
         }

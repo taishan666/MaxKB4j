@@ -60,7 +60,7 @@ public enum NodeType {
 
     VARIABLE_AGGREGATE("variable-aggregation-node", "变量聚合"),
 
-    VARIABLE_SPLITTING("variable-splitting-node", "变量赋值"),
+    VARIABLE_SPLITTING("variable-splitting-node", "变量拆分"),
 
     TOOL("tool-node", "自定义函数节点"),
 

@@ -9,6 +9,10 @@ public class AssistantErrorListener implements AiServiceErrorListener {
     @Override
     public void onEvent(AiServiceErrorEvent event) {
         Throwable error = event.error();
-        log.error(error.getMessage());
+        if (error == null) {
+            log.error("AiService error event received without a cause");
+            return;
+        }
+        log.error("AiService error: {}", error.getMessage(), error);
     }
 }

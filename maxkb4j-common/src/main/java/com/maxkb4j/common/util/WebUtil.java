@@ -22,7 +22,6 @@ import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -251,9 +250,10 @@ public class WebUtil extends WebUtils {
     }
 
 
+    @Nullable
     public static String getHeader(String name) {
         HttpServletRequest request = getRequest();
-        return Objects.requireNonNull(request).getHeader(name);
+        return request == null ? null : request.getHeader(name);
     }
 
     public static String getTokenValue() {
@@ -268,19 +268,22 @@ public class WebUtil extends WebUtils {
         return authorization.substring(7);
     }
 
+    @Nullable
     public static Enumeration<String> getHeaders(String name) {
         HttpServletRequest request = getRequest();
-        return Objects.requireNonNull(request).getHeaders(name);
+        return request == null ? null : request.getHeaders(name);
     }
 
+    @Nullable
     public static Enumeration<String> getHeaderNames() {
         HttpServletRequest request = getRequest();
-        return Objects.requireNonNull(request).getHeaderNames();
+        return request == null ? null : request.getHeaderNames();
     }
 
+    @Nullable
     public static String getParameter(String name) {
         HttpServletRequest request = getRequest();
-        return Objects.requireNonNull(request).getParameter(name);
+        return request == null ? null : request.getParameter(name);
     }
 
 

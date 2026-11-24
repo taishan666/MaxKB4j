@@ -301,7 +301,7 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
     }
 
     @Override
-    public List<EventTriggerEntity> listBySource(String sourceType, String sourceId) {
+    public List<EventTriggerVO> listBySource(String sourceType, String sourceId) {
         if (StringUtils.isBlank(sourceId)) {
             return List.of();
         }
@@ -313,7 +313,8 @@ public class EventTriggerServiceImpl extends ServiceImpl<EventTriggerMapper, Eve
             return List.of();
         }
         List<String> triggerIds = allTasks.stream().map(EventTriggerTaskEntity::getTriggerId).distinct().toList();
-        return this.lambdaQuery().in(EventTriggerEntity::getId, triggerIds).eq(EventTriggerEntity::getIsActive, true).list();
+        List<EventTriggerEntity> entityList= this.lambdaQuery().in(EventTriggerEntity::getId, triggerIds).eq(EventTriggerEntity::getIsActive, true).list();
+        return BeanUtil.copyList(entityList,EventTriggerVO.class);
     }
 
     private Optional<EventTriggerTaskEntity> findSourceTask(String id, String sourceType, String sourceId) {

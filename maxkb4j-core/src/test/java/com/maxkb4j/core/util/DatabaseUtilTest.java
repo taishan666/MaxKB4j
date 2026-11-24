@@ -3,11 +3,13 @@ package com.maxkb4j.core.util;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * {@link DatabaseUtil#toReadOnlySelectSql(String)} 只读校验测试。
  * 覆盖两类历史绕过：多语句注入与 SELECT INTO（含 WITH / UNION 内嵌变体）。
+ * 另覆盖 {@link DatabaseUtil#cleanSql(String)} 的围栏剥离与 null 透传。
  */
 class DatabaseUtilTest {
 
@@ -130,5 +132,31 @@ class DatabaseUtilTest {
     void blocksBlankSql() {
         assertThrows(IllegalArgumentException.class, () -> normalize("   "));
         assertThrows(IllegalArgumentException.class, () -> normalize(null));
+    }
+
+    // ---- cleanSql：围栏剥离与 null 透传 ----
+
+    @Test
+    void cleanSqlPassesThroughNull() {
+        // LLM 返回空内容时不应 NPE，null 透传给 toReadOnlySelectSql 统一报错
+        assertNull(DatabaseUtil.cleanSql(null));
+    }
+
+    @Test
+    void cleanSqlStripsSqlFence() {
+        assertEquals("select id from users",
+                DatabaseUtil.cleanSql("```sql\nselect id from users\n```"));
+    }
+
+    @Test
+    void cleanSqlStripsPlainFence() {
+        assertEquals("select id from users",
+                DatabaseUtil.cleanSql("```\nselect id from users\n```"));
+    }
+
+    @Test
+    void cleanSqlTrimsPlainSql() {
+        assertEquals("select id from users",
+                DatabaseUtil.cleanSql("  select id from users  "));
     }
 }

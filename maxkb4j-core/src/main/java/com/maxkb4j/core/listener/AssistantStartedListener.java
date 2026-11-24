@@ -15,6 +15,8 @@ public class AssistantStartedListener implements AiServiceStartedListener {
         Optional<SystemMessage> systemMessage = event.systemMessage();
         UserMessage userMessage = event.userMessage();
         systemMessage.ifPresent(message -> log.info(message.toString()));
-        log.info(userMessage.toString());
+        if (userMessage != null) {
+            log.info(userMessage.toString());
+        }
     }
 }

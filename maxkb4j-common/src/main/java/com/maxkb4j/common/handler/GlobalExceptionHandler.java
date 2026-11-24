@@ -2,6 +2,8 @@ package com.maxkb4j.common.handler;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotPermissionException;
+import cn.dev33.satoken.exception.NotRoleException;
+import cn.dev33.satoken.exception.SaTokenException;
 import cn.dev33.satoken.jwt.error.SaJwtErrorCode;
 import cn.dev33.satoken.jwt.exception.SaJwtException;
 import com.maxkb4j.common.api.R;
@@ -82,10 +84,14 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(NotPermissionException.class)
+    /**
+     * NotPermissionException 与 NotRoleException 在 sa-token 中是兄弟类型（均直接继承 SaTokenException），
+     * 参数必须声明为公共父类才能同时绑定两种异常，否则 Spring 报 "No suitable resolver" 导致降级为 500
+     */
+    @ExceptionHandler(value = {NotPermissionException.class, NotRoleException.class})
     @ResponseBody
-    public R<String> handleException(NotPermissionException e, HttpServletResponse response) {
-        log.error("无此权限异常: {}", e.getMessage(), e);
+    public R<String> handleException(SaTokenException e, HttpServletResponse response) {
+        log.error("无权限或无角色异常: {}", e.getMessage(), e);
         response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 设置HTTP状态码为403
         return R.fail(403, "auth.permission.denied");
     }

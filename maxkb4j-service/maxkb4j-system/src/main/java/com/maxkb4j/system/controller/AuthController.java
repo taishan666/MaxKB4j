@@ -11,11 +11,11 @@ import com.maxkb4j.common.util.StpKit;
 import com.maxkb4j.system.dto.ResetPasswordDTO;
 import com.maxkb4j.system.dto.UserLoginDTO;
 import com.maxkb4j.system.entity.UserEntity;
+import com.maxkb4j.system.security.CaptchaSessionStore;
 import com.maxkb4j.system.security.PasswordService;
 import com.maxkb4j.system.service.IUserInternalService;
 import com.wf.captcha.SpecCaptcha;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -46,9 +46,8 @@ public class AuthController {
     public R<Map<String, String>> captcha(HttpServletRequest request) {
         SpecCaptcha specCaptcha = new SpecCaptcha(130, 48, 4);
         String verCode = specCaptcha.text().toLowerCase();
-        //  将验证码存入 session
-        HttpSession session = request.getSession();
-        session.setAttribute("captcha", verCode);
+        //  将验证码存入 session（多标签页共存，后取不覆盖先取）
+        CaptchaSessionStore.store(request.getSession(), verCode);
         // 将key和base64返回给前端
         return R.data(Map.of("captcha", specCaptcha.toBase64()));
     }

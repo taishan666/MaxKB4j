@@ -8,9 +8,7 @@ import com.maxkb4j.common.domain.dto.ChatState;
 import com.maxkb4j.common.domain.dto.OssFile;
 import com.maxkb4j.common.domain.vo.ChatMessageVO;
 import com.maxkb4j.common.domain.vo.ResultCallback;
-import com.maxkb4j.common.exception.ApiException;
 import com.maxkb4j.workflow.annotation.NodeHandlerType;
-import com.maxkb4j.workflow.consts.WorkflowConstants;
 import com.maxkb4j.workflow.enums.NodeType;
 import com.maxkb4j.workflow.handler.node.StreamNodeHandler;
 import com.maxkb4j.workflow.model.IChatWorkflow;
@@ -50,10 +48,6 @@ public class ApplicationNodeHandler extends StreamNodeHandler {
             return CompletableFuture.completedFuture(new NodeResult(Map.of(NodeField.RESULT, "")));
         }
         ApplicationNode.NodeParams params = parseParams(node, ApplicationNode.NodeParams.class);
-        if (params == null) {
-            // node_data 缺失时给出可读错误而非 NPE
-            throw new ApiException(WorkflowConstants.MessageCode.NODE_DATA_MISSING, node.getId());
-        }
         List<String> questionFields = params.getQuestionReferenceAddress();
         String question = getReferenceFieldAsString(workflow, questionFields);
         ChatParams chatParams = chatWorkflow.getChatParams();

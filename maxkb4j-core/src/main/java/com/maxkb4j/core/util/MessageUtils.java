@@ -53,7 +53,9 @@ public class MessageUtils {
         if (message instanceof UserMessage userMessage) {
             return "User: " + userMessage.singleText();
         } else if (message instanceof AiMessage aiMessage) {
-            return aiMessage.hasToolExecutionRequests() ? null : "AI: " + aiMessage.text();
+            // text() 在 AiMessage 只含工具调用或空响应时为 null，直接拼接会得到 "AI: null" 污染上下文
+            String text = aiMessage.text();
+            return aiMessage.hasToolExecutionRequests() || text == null || text.isBlank() ? null : "AI: " + text;
         } else {
             return null;
         }

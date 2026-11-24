@@ -27,7 +27,11 @@ public class JarUtil {
             throw new IllegalStateException("无法解析 JAR 内资源路径: " + url);
         } else {
             // 文件系统路径
-            return new File(resource.getURI()).getParentFile().getName();
+            File parentFile = new File(resource.getURI()).getParentFile();
+            if (parentFile == null) {
+                throw new IllegalStateException("资源无父目录: " + url);
+            }
+            return parentFile.getName();
         }
     }
 

@@ -93,8 +93,11 @@ public abstract class AbsChatStep extends AbsStep {
         if (Objects.nonNull(app) && !CollectionUtils.isEmpty(app.getKnowledgeIds())) {
             KnowledgeSetting knowledgeSetting = Optional.ofNullable(app.getKnowledgeSetting())
                     .orElseGet(KnowledgeSetting::new);
-            if (Boolean.TRUE.equals(knowledgeSetting.getFallbackEnable()) && !CollectionUtils.isEmpty(paragraphList)) {
-                return AnswerResult.ofText(knowledgeSetting.getFallbackResponse());
+            if (Boolean.TRUE.equals(knowledgeSetting.getFallbackEnable()) && CollectionUtils.isEmpty(paragraphList)) {
+                String fallbackResponse = knowledgeSetting.getFallbackResponse();
+                if (StringUtils.isNotBlank(fallbackResponse)) {
+                    return AnswerResult.ofText(fallbackResponse);
+                }
             }
         }
         return null;

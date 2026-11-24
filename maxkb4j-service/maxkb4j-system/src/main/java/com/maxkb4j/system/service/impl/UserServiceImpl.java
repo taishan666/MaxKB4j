@@ -21,6 +21,7 @@ import com.maxkb4j.system.constant.UserLanguage;
 import com.maxkb4j.system.dto.UserLoginDTO;
 import com.maxkb4j.system.entity.UserEntity;
 import com.maxkb4j.system.mapper.UserMapper;
+import com.maxkb4j.system.security.CaptchaSessionStore;
 import com.maxkb4j.system.security.LoginAttemptLimiter;
 import com.maxkb4j.system.security.PasswordService;
 import com.maxkb4j.system.service.EmailService;
@@ -151,13 +152,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             throw new LoginException("user.password.empty");
         }
         HttpSession session = request.getSession();
-        String sessionCaptcha = (String) session.getAttribute("captcha");
-        //清除验证码
-        session.removeAttribute("captcha");
-        if (StringUtils.isBlank(sessionCaptcha)) {
+        // 多标签页可共存多个待验证验证码，任一次登录尝试都全部消费（一次性使用）
+        List<String> sessionCaptchas = CaptchaSessionStore.drain(session);
+        if (sessionCaptchas.isEmpty()) {
             throw new LoginException("login.captcha.expired");
         }
-        if (StringUtils.isBlank(dto.getCaptcha()) || !sessionCaptcha.equalsIgnoreCase(dto.getCaptcha())) {
+        String submittedCaptcha = dto.getCaptcha();
+        boolean captchaMatched = StringUtils.isNotBlank(submittedCaptcha)
+                && sessionCaptchas.stream().anyMatch(c -> c.equalsIgnoreCase(submittedCaptcha));
+        if (!captchaMatched) {
             throw new LoginException("login.captcha.error");
         }
         String limiterKey = buildLimiterKey(dto.getUsername());

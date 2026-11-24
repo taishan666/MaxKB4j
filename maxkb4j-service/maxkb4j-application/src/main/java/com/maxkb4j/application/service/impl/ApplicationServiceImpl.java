@@ -247,7 +247,7 @@ public class ApplicationServiceImpl extends ServiceImpl<ApplicationMapper, Appli
         applicationResourceMappingService.saveResourceMappings(appDTO);
         publishedApplicationCache.invalidate(appDTO.getId());
         ApplicationEntity entity = BeanUtil.copy(appDTO, ApplicationEntity.class);
-        // applicationModelService.normalizeAppModels(entity);
+        applicationModelService.normalizeAppModels(entity);
         return this.updateById(entity);
     }
 

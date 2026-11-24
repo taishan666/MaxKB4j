@@ -180,6 +180,10 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
     public ModelEntity getInfo(String id) {
         return getOwnedModel(id, model -> {
             ModelCredential credential = model.getCredential();
+            // 存量/导入数据 credential 列可能为 NULL，无密钥可脱敏，直接原样返回
+            if (credential == null) {
+                return model;
+            }
             credential.setApiKey(DataMaskUtil.maskApiKey(credential.getApiKey()));
             return model;
         });
@@ -245,6 +249,8 @@ public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> impl
         modelEntity.setId(id);
         modelEntity.setModelParamsForm(paramsForm);
         this.updateById(modelEntity);
+        // 当前缓存投影不含 modelParamsForm，但失效与 updateModel 保持一致，避免投影扩列后读到旧值
+        evictCache(id);
     }
 
     private String getLastModelId(ModelType modelType) {

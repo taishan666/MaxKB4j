@@ -29,7 +29,7 @@ public interface IEventTriggerService extends IService<EventTriggerEntity> {
 
     EventTriggerVO getDetailById(String id);
 
-    List<EventTriggerEntity> listBySource(String sourceType, String sourceId);
+    List<EventTriggerVO> listBySource(String sourceType, String sourceId);
 
     SourceEventTriggerVO getDetailBySourceId(String id, String sourceType, String sourceId);
 

@@ -2,11 +2,13 @@ package com.maxkb4j.trigger.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.maxkb4j.common.annotation.SaCheckPerm;
 import com.maxkb4j.common.api.R;
 import com.maxkb4j.common.constant.AppConst;
 import com.maxkb4j.common.constant.LoginType;
+import com.maxkb4j.common.constant.ResourceType;
 import com.maxkb4j.common.constant.RoleConst;
-import com.maxkb4j.common.util.BeanUtil;
+import com.maxkb4j.common.enums.PermissionEnum;
 import com.maxkb4j.trigger.dto.EventQuery;
 import com.maxkb4j.trigger.dto.EventTriggerDTO;
 import com.maxkb4j.trigger.service.IEventTriggerService;
@@ -100,38 +102,118 @@ public class TriggerController {
         return R.status(eventTriggerService.batchActivate(dto.getIdList(), dto.getIsActive()));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
-    @PostMapping("/{sourceType}/{sourceId}/trigger")
-    public R<EventTriggerDTO> addTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @Valid @RequestBody EventTriggerDTO dto) {
+    /**
+     * 为工具新增触发器（需对该工具具备管理权限）
+     */
+    @SaCheckPerm(PermissionEnum.TOOL_TRIGGER_CREATE)
+    @PostMapping("/TOOL/{id}/trigger")
+    public R<EventTriggerDTO> addToolTrigger(@PathVariable String id, @Valid @RequestBody EventTriggerDTO dto) {
+        return addSourceTrigger(ResourceType.TOOL, id, dto);
+    }
+
+    /**
+     * 为应用新增触发器（需对该应用具备管理权限）
+     */
+    @SaCheckPerm(PermissionEnum.APPLICATION_TRIGGER_CREATE)
+    @PostMapping("/APPLICATION/{id}/trigger")
+    public R<EventTriggerDTO> addApplicationTrigger(@PathVariable String id, @Valid @RequestBody EventTriggerDTO dto) {
+        return addSourceTrigger(ResourceType.APPLICATION, id, dto);
+    }
+
+    /**
+     * 获取工具触发器详情（需对该工具具备管理权限）
+     */
+    @SaCheckPerm(PermissionEnum.TOOL_TRIGGER_READ)
+    @GetMapping("/TOOL/{id}/trigger/{triggerId}")
+    public R<SourceEventTriggerVO> getToolTrigger(@PathVariable String id, @PathVariable String triggerId) {
+        return getSourceTrigger(ResourceType.TOOL, id, triggerId);
+    }
+
+    /**
+     * 获取应用触发器详情（需对该应用具备管理权限）
+     */
+    @SaCheckPerm(PermissionEnum.APPLICATION_TRIGGER_READ)
+    @GetMapping("/APPLICATION/{id}/trigger/{triggerId}")
+    public R<SourceEventTriggerVO> getApplicationTrigger(@PathVariable String id, @PathVariable String triggerId) {
+        return getSourceTrigger(ResourceType.APPLICATION, id, triggerId);
+    }
+
+    /**
+     * 编辑工具触发器（需对该工具具备管理权限）
+     */
+    @SaCheckPerm(PermissionEnum.TOOL_TRIGGER_EDIT)
+    @PutMapping("/TOOL/{id}/trigger/{triggerId}")
+    public R<EventTriggerDTO> updateToolTrigger(@PathVariable String id, @PathVariable String triggerId, @Valid @RequestBody EventTriggerDTO dto) {
+        return updateSourceTrigger(ResourceType.TOOL, id, triggerId, dto);
+    }
+
+    /**
+     * 编辑应用触发器（需对该应用具备管理权限）
+     */
+    @SaCheckPerm(PermissionEnum.APPLICATION_TRIGGER_EDIT)
+    @PutMapping("/APPLICATION/{id}/trigger/{triggerId}")
+    public R<EventTriggerDTO> updateApplicationTrigger(@PathVariable String id, @PathVariable String triggerId, @Valid @RequestBody EventTriggerDTO dto) {
+        return updateSourceTrigger(ResourceType.APPLICATION, id, triggerId, dto);
+    }
+
+    /**
+     * 查询工具关联的触发器列表（需对该工具具备管理权限）
+     */
+    @SaCheckPerm(PermissionEnum.TOOL_TRIGGER_READ)
+    @GetMapping("/TOOL/{id}/trigger")
+    public R<List<EventTriggerVO>> listToolTriggers(@PathVariable String id) {
+        return listSourceTriggers(ResourceType.TOOL, id);
+    }
+
+    /**
+     * 查询应用关联的触发器列表（需对该应用具备管理权限）
+     */
+    @SaCheckPerm(PermissionEnum.APPLICATION_TRIGGER_READ)
+    @GetMapping("/APPLICATION/{id}/trigger")
+    public R<List<EventTriggerVO>> listApplicationTriggers(@PathVariable String id) {
+        return listSourceTriggers(ResourceType.APPLICATION, id);
+    }
+
+    /**
+     * 删除工具触发器（需对该工具具备管理权限）
+     */
+    @SaCheckPerm(PermissionEnum.TOOL_TRIGGER_DELETE)
+    @DeleteMapping("/TOOL/{id}/trigger/{triggerId}")
+    public R<Boolean> deleteToolTrigger(@PathVariable String id, @PathVariable String triggerId) {
+        return R.status(eventTriggerService.deleteTriggerBySource(triggerId, ResourceType.TOOL, id));
+    }
+
+    /**
+     * 删除应用触发器（需对该应用具备管理权限）
+     */
+    @SaCheckPerm(PermissionEnum.APPLICATION_TRIGGER_DELETE)
+    @DeleteMapping("/APPLICATION/{id}/trigger/{triggerId}")
+    public R<Boolean> deleteApplicationTrigger(@PathVariable String id, @PathVariable String triggerId) {
+        return R.status(eventTriggerService.deleteTriggerBySource(triggerId, ResourceType.APPLICATION, id));
+    }
+
+    /**
+     * 资源维度触发器接口的公共逻辑。路径变量固定用 {id} 承载资源 ID，
+     * 以便 {@code SaCheckPermAspect} 从路径变量中解析出资源级权限串
+     */
+    private R<EventTriggerDTO> addSourceTrigger(String sourceType, String sourceId, EventTriggerDTO dto) {
         dto.setIsActive(true);
         eventTriggerService.saveTriggerBySource(dto, false, sourceType, sourceId);
         return R.data(dto);
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
-    @GetMapping("/{sourceType}/{sourceId}/trigger/{id}")
-    public R<SourceEventTriggerVO> getTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @PathVariable String id) {
-        return R.data(eventTriggerService.getDetailBySourceId(id, sourceType, sourceId));
+    private R<SourceEventTriggerVO> getSourceTrigger(String sourceType, String sourceId, String triggerId) {
+        return R.data(eventTriggerService.getDetailBySourceId(triggerId, sourceType, sourceId));
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
-    @PutMapping("/{sourceType}/{sourceId}/trigger/{id}")
-    public R<EventTriggerDTO> updateTriggerBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @PathVariable String id, @Valid @RequestBody EventTriggerDTO dto) {
-        dto.setId(id);
+    private R<EventTriggerDTO> updateSourceTrigger(String sourceType, String sourceId, String triggerId, EventTriggerDTO dto) {
+        dto.setId(triggerId);
         eventTriggerService.saveTriggerBySource(dto, true, sourceType, sourceId);
         return R.data(dto);
     }
 
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
-    @GetMapping("/{sourceType}/{sourceId}/trigger")
-    public R<List<EventTriggerVO>> listBySourceId(@PathVariable String sourceType, @PathVariable String sourceId) {
-        return R.data(BeanUtil.copyList(eventTriggerService.listBySource(sourceType, sourceId), EventTriggerVO.class));
-    }
-
-    @SaCheckRole(type = LoginType.ADMIN, value = RoleConst.ADMIN)
-    @DeleteMapping("/{sourceType}/{sourceId}/trigger/{id}")
-    public R<Boolean> deleteBySourceId(@PathVariable String sourceType, @PathVariable String sourceId, @PathVariable String id) {
-        return R.status(eventTriggerService.deleteTriggerBySource(id, sourceType, sourceId));
+    private R<List<EventTriggerVO>> listSourceTriggers(String sourceType, String sourceId) {
+        return R.data(eventTriggerService.listBySource(sourceType, sourceId));
     }
 
 }
