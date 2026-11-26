@@ -2,7 +2,7 @@ package com.maxkb4j.model.provider;
 
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.maxkb4j.model.annotation.ModelProviderType;
-import com.maxkb4j.model.custom.credential.ModelCredentialForm;
+import com.maxkb4j.model.integration.credential.ModelCredentialForm;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSONObject;

@@ -5,10 +5,10 @@ import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.entity.ModelCredential;
-import com.maxkb4j.model.custom.credential.ModelCredentialForm;
-import com.maxkb4j.model.custom.model.OpenAiSTTModel;
-import com.maxkb4j.model.custom.model.OpenAiTTSModel;
 import com.maxkb4j.model.enums.ModelType;
+import com.maxkb4j.model.integration.audio.OpenAiSTTModel;
+import com.maxkb4j.model.integration.audio.OpenAiTTSModel;
+import com.maxkb4j.model.integration.credential.ModelCredentialForm;
 import com.maxkb4j.model.base.STTModel;
 import com.maxkb4j.model.base.TTSModel;
 import com.maxkb4j.model.vo.ModelInfo;

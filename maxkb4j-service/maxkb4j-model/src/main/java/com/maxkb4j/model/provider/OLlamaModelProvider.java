@@ -2,9 +2,9 @@ package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.annotation.ModelProviderType;
-import com.maxkb4j.model.custom.credential.ModelCredentialForm;
-import com.maxkb4j.model.custom.params.OLlamaChatModelParams;
-import com.maxkb4j.model.custom.params.OllamaImageModelParams;
+import com.maxkb4j.model.integration.chat.OllamaChatModelParams;
+import com.maxkb4j.model.integration.credential.ModelCredentialForm;
+import com.maxkb4j.model.integration.image.OllamaImageModelParams;
 import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.form.BaseField;
@@ -43,7 +43,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
 
     @Override
     public List<BaseField> getChatModelParamsForm() {
-        return new OLlamaChatModelParams().toForm();
+        return new OllamaChatModelParams().toForm();
     }
 
     @Override

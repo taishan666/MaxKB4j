@@ -4,9 +4,20 @@ import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.annotation.ModelProviderType;
 import com.maxkb4j.model.base.STTModel;
 import com.maxkb4j.model.base.TTSModel;
-import com.maxkb4j.model.custom.model.*;
-import com.maxkb4j.model.custom.params.*;
 import com.maxkb4j.model.entity.ModelCredential;
+import com.maxkb4j.model.integration.audio.BaiLianSTTModel;
+import com.maxkb4j.model.integration.audio.BaiLianTTSModel;
+import com.maxkb4j.model.integration.audio.CosyVoiceV1TTSParams;
+import com.maxkb4j.model.integration.audio.CosyVoiceV2TTSParams;
+import com.maxkb4j.model.integration.audio.GummySTTParams;
+import com.maxkb4j.model.integration.audio.QwenTTSParams;
+import com.maxkb4j.model.integration.audio.SamBertTTSParams;
+import com.maxkb4j.model.integration.embedding.EmbeddingModelParams;
+import com.maxkb4j.model.integration.embedding.QwenMultiModalEmbeddingModel;
+import com.maxkb4j.model.integration.image.BaiLianImageModel;
+import com.maxkb4j.model.integration.image.QwenImageModelParams;
+import com.maxkb4j.model.integration.image.WanXImageModelParams;
+import com.maxkb4j.model.integration.rerank.BaiLianReranker;
 import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.form.BaseField;
 import com.maxkb4j.model.vo.ModelInfo;
@@ -48,8 +59,8 @@ public class AliYunBaiLianModelProvider extends OpenAiModelProvider {
             new ModelInfo(ModelName.COSYVOICE_V1, "", ModelType.TTS, new CosyVoiceV1TTSParams()),
             new ModelInfo(ModelName.COSYVOICE_V2, "", ModelType.TTS, new CosyVoiceV2TTSParams()),
             new ModelInfo(ModelName.SAMBERT_V1, "", ModelType.TTS, new SamBertTTSParams()),
-            new ModelInfo(ModelName.QWEN3_TTS_FLASH, "", ModelType.TTS, new QWenTTSParams()),
-            new ModelInfo(ModelName.QWEN_TTS, "", ModelType.TTS, new QWenTTSParams()),
+            new ModelInfo(ModelName.QWEN3_TTS_FLASH, "", ModelType.TTS, new QwenTTSParams()),
+            new ModelInfo(ModelName.QWEN_TTS, "", ModelType.TTS, new QwenTTSParams()),
             new ModelInfo(ModelName.QWEN_3_6_PLUS, "", ModelType.VISION),
             new ModelInfo(ModelName.QWEN_3_5_PLUS, "", ModelType.VISION),
             new ModelInfo(QwenModelName.QWEN_VL_PLUS, "", ModelType.VISION),

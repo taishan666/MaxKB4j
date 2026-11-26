@@ -1,6 +1,6 @@
 package com.maxkb4j.model.provider;
 
-import com.maxkb4j.model.custom.credential.ModelCredentialForm;
+import com.maxkb4j.model.integration.credential.ModelCredentialForm;
 import com.maxkb4j.model.vo.ModelInfo;
 
 import java.util.List;
