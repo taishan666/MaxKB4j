@@ -60,6 +60,16 @@ class WebUtilTest {
     }
 
     @Test
+    void getIP_normalizesIpv6LoopbackToIpv4() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("0:0:0:0:0:0:0:1");
+        assertThat(WebUtil.getIP(request, List.of())).isEqualTo("127.0.0.1");
+
+        request.setRemoteAddr("::1");
+        assertThat(WebUtil.getIP(request, List.of())).isEqualTo("127.0.0.1");
+    }
+
+    @Test
     void configuredTrustedProxies_skipTrustedHopsAndNoiseFromRight() {
         List<String> trustedProxies = List.of("172.16.0.0/12", "10.0.0.2");
         MockHttpServletRequest request = new MockHttpServletRequest();

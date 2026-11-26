@@ -98,10 +98,26 @@ public class WebUtil extends WebUtils {
         // （回环地址或调用方传入的可信代理列表）时才允许采信转发头，
         // 否则一律以 remoteAddr 为准，防止伪造请求头绕过 IP 白名单、限流与验证码绑定
         if (!isTrustedProxy(StringUtils.defaultString(remoteAddr), trustedProxies)) {
-            return StringUtils.isBlank(remoteAddr) ? null : remoteAddr.trim();
+            return normalizeLoopbackIp(StringUtils.isBlank(remoteAddr) ? null : remoteAddr);
         }
         String clientIp = pickClientIpBehindTrustedProxy(request, trustedProxies);
-        return StringUtils.isBlank(clientIp) ? (StringUtils.isBlank(remoteAddr) ? null : remoteAddr.trim()) : clientIp;
+        return normalizeLoopbackIp(StringUtils.isBlank(clientIp)
+                ? (StringUtils.isBlank(remoteAddr) ? null : remoteAddr)
+                : clientIp);
+    }
+
+    /**
+     * 将 IPv6 回环地址归一化为 IPv4 形式，便于展示与下游白名单匹配；其余地址去除首尾空白后原样返回。
+     */
+    @Nullable
+    static String normalizeLoopbackIp(@Nullable String ip) {
+        if (ip == null) {
+            return null;
+        }
+        String candidate = ip.trim();
+        return "::1".equalsIgnoreCase(candidate) || "0:0:0:0:0:0:0:1".equals(candidate)
+                ? "127.0.0.1"
+                : candidate;
     }
 
     /**
