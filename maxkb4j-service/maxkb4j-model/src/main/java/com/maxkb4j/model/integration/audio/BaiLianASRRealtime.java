@@ -1,0 +1,116 @@
+package com.maxkb4j.model.integration.audio;
+
+import com.alibaba.dashscope.audio.asr.recognition.Recognition;
+import com.alibaba.dashscope.audio.asr.recognition.RecognitionParam;
+import com.alibaba.dashscope.audio.asr.recognition.RecognitionResult;
+import com.alibaba.dashscope.common.ResultCallback;
+import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.model.entity.ModelCredential;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
+
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static com.maxkb4j.model.consts.ModelConstants.*;
+
+@EqualsAndHashCode(callSuper = true)
+@Slf4j
+@Data
+public class BaiLianASRRealtime extends AbsSTTModel {
+
+
+    private static final List<String> SUPPORT_MODELS = List.of(ModelName.FUN_ASR_REALTIME, ModelName.PARAFORMER_REALTIME_V2, ModelName.GUMMY_REALTIME_V1);
+    private RecognitionParam param;
+    private String modelName;
+    private ModelCredential credential;
+
+    public BaiLianASRRealtime(String modelName, ModelCredential credential, JSONObject params) {
+        this.modelName = modelName;
+        this.credential = credential;
+        this.param = buildParam();
+    }
+
+    private RecognitionParam buildParam() {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put(ParamKey.LANGUAGE_HINTS, new String[]{Value.ZH, Value.EN});
+        if (ModelName.FUN_ASR_REALTIME.equals(modelName)) {
+            parameters.put(ParamKey.DISFLUENCY_REMOVAL_ENABLED, false);
+            parameters.put(ParamKey.SHOW_PUNCTUATION, true);
+            parameters.put(ParamKey.INVERSE_TEXT_NORMALIZATION, true);
+        } else if (ModelName.PARAFORMER_REALTIME_V2.equals(modelName)) {
+            parameters.put(ParamKey.DISFLUENCY_REMOVAL_ENABLED, false);
+        }
+        return RecognitionParam.builder()
+                .apiKey(credential.getApiKey())
+                .model(modelName)
+                .parameters(parameters)
+                .sampleRate(16000)
+                .format(Value.MP3)
+                .build();
+    }
+
+    @Override
+    public String speechToText(byte[] audioBytes, String suffix) {
+        log.info("========== 语音识别开始 ==========");
+        log.info("使用模型: {}", modelName);
+        log.info("音频数据大小: {} bytes", audioBytes.length);
+        log.info("文件后缀: {}", suffix);
+        int sampleRate = getSampleRate(audioBytes, suffix);
+        this.param.setSampleRate(sampleRate);
+        String format = normalizeFormat(suffix);
+        this.param.setFormat(format);
+        log.info("使用格式: {}, 采样率: {}", format, sampleRate);
+        AtomicReference<String> resultText = new AtomicReference<>("");
+        ResultCallback<RecognitionResult> callback = new ResultCallback<>() {
+            @Override
+            public void onEvent(RecognitionResult message) {
+                if (message.isSentenceEnd()) {
+                    resultText.set(message.getSentence().getText());
+                }
+            }
+
+            @Override
+            public void onComplete() {
+            }
+
+            @Override
+            public void onError(Exception e) {
+                log.error(e.getMessage());
+            }
+        };
+
+        Recognition recognizer = new Recognition();
+        try {
+            recognizer.call(param, callback);
+            int sendFrameLength = 3200;
+            for (int i = 0; i * sendFrameLength < audioBytes.length; i++) {
+                int start = i * sendFrameLength;
+                int end = Math.min(start + sendFrameLength, audioBytes.length);
+                ByteBuffer byteBuffer = ByteBuffer.wrap(audioBytes, start, end - start);
+                recognizer.sendAudioFrame(byteBuffer);
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException(e);
+                }
+            }
+        } finally {
+            // 无论正常结束还是异常/中断，都要停止识别器，释放 WebSocket 连接
+            try {
+                recognizer.stop();
+            } catch (Exception e) {
+                log.warn("停止语音识别器失败", e);
+            }
+        }
+        log.info("最终识别文本: [{}]", resultText.get());
+        log.info("========== 语音识别结束 ==========");
+        return resultText.get();
+    }
+
+}
