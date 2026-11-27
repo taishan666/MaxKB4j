@@ -1,342 +1,305 @@
 # MaxKB4j 代码设计评审报告
 
-> 评审日期：2026-11-24
-> 扫描范围：全部后端 Java 代码（约 220 个源文件，排除前端代码）
+> 首次评审：2026-11-24 · 本次复审：2026-11-27
+> 扫描范围：全部后端 Java 代码（**863 个主源文件 + 117 个测试文件**，排除前端代码）
 > 模块：common / core / service-api / application / chat / knowledge / model / oss / system / tool / trigger / workflow / start
+>
+> **复审说明**：首次评审后的 7 次提交完成了模型集成包重构（`integration/{audio,chat,credential,embedding,image,rerank}` 按功能分包、`ProviderModels` 常量类、统一 HTTP 客户端构建）与依赖注入治理。本次复审逐项核对了首评结论与当前代码，状态图例：
+>
+> | 图例 | 含义 |
+> |:---:|:---|
+> | ✅ 已修复 | 问题已消除，附当前实现位置 |
+> | ⚠️ 部分缓解 | 有改善但未彻底解决，或属于有记录的有意妥协 |
+> | ❌ 仍存在 | 与首评描述一致，结论继续有效 |
+> | 🔄 结论修正 | 首评描述已过时或当时不准确，本文修正 |
 
 ---
 
 ## 目录
 
-1. [🔴 严重：静态缓存与服务定位器反模式](#1-严重静态缓存与服务定位器反模式)
-2. [🔴 严重：ApplicationContextAware 静态工具类](#2-严重applicationcontextaware-静态工具类)
-3. [🟡 中：BaseEntity 使用过时 java.util.Date](#3-中baseentity-使用过时-javautildate)
-4. [🟡 中：JSON 库碎片化（fastjson + hutool 混用）](#4-中json-库碎片化fastjson--hutool-混用)
-5. [🟡 中：Service 层与 MyBatis-Plus ServiceImpl 强耦合](#5-中service-层与-mybatis-plus-serviceimpl-强耦合)
-6. [🟡 中：API 响应体与异常处理设计缺陷](#6-中api-响应体与异常处理设计缺陷)
-7. [🟡 中：工作流模块设计问题](#7-中工作流模块设计问题)
-8. [🟡 中：配置与架构问题](#8-中配置与架构问题)
+1. [✅ 已修复：静态缓存与服务定位器反模式（原 §1 / §2，两项 P0）](#1-已修复静态缓存与服务定位器反模式)
+2. [❌ 仍存在：BaseEntity 使用过时 java.util.Date](#2-仍存在baseentity-使用过时-javautildate)
+3. [🔄 结论修正：JSON 库碎片化与 fastjson 安全性](#3-结论修正json-库碎片化与-fastjson-安全性)
+4. [❌ 仍存在：Service 层与 MyBatis-Plus ServiceImpl 强耦合](#4-仍存在service-层与-mybatis-plus-serviceimpl-强耦合)
+5. [❌ 仍存在：API 响应体与异常处理设计缺陷](#5-仍存在api-响应体与异常处理设计缺陷)
+6. [⚠️ 部分缓解：工作流模块设计问题](#6-部分缓解工作流模块设计问题)
+7. [❌ 仍存在：配置与架构问题](#7-仍存在配置与架构问题)
+8. [🆕 新增发现：常量接口反模式](#8-新增发现常量接口反模式)
 9. [🟢 良：值得肯定的设计模式](#9-良值得肯定的设计模式)
-10. [🟡 中：其他杂项问题](#10-中其他杂项问题)
+10. [⚠️ 部分缓解：其他杂项问题](#10-部分缓解其他杂项问题)
 11. [优先修复矩阵](#优先修复矩阵)
 
 ---
 
-## 1. 🔴 严重：静态缓存与服务定位器反模式
+## 1. ✅ 已修复：静态缓存与服务定位器反模式
 
-### 1.1 ChatCache（`maxkb4j-common/.../cache/ChatCache.java`）
+首评的两项 🔴 P0（静态缓存 + 服务定位器）**已全部修复**，修复方式与首评建议一致：
 
-**问题描述：** 一个 `final` 类，包含 `private static volatile ChatInfoStore` 字段 + 全部静态 API。默认实现是私有内部类 `CaffeineChatInfoStore`。各处业务代码直接调用 `ChatCache.put()` / `ChatCache.get()`。
+### 1.1 ChatCache → ChatInfoStore（DI Bean）✅
 
-**具体缺陷：**
+`maxkb4j-common/src/main/java/com/maxkb4j/common/cache/ChatInfoStore.java` 现为纯接口，默认实现 `CaffeineChatInfoStore` 标注 `@Component`，各模块通过构造函数注入使用；有独立单测 `CaffeineChatInfoStoreTest`。`reset()` / `init()` 静态机制已删除。
+
+### 1.2 SystemCache → SystemSettingStore（DI Bean）✅
+
+`SystemSettingStore` 接口由 system 模块的 `SystemSettingCacheService` Bean 实现，Javadoc 明确「各消费方通过构造函数注入使用」。类型安全的 `getKeySetting()` / `getPrivateKey()` 以 default 方法提供，并配套 `SystemKeySetting` record。
+
+### 1.3 ChatServiceBuilder → 构造器注入 ✅
+
+`maxkb4j-service/maxkb4j-application/src/main/java/com/maxkb4j/application/builder/ChatServiceBuilder.java:16-26`：静态初始化块 + `SpringUtil.getBean()` 按名查找已改为构造器注入（`@Qualifier`）+ `Map.of` 不可变路由表，Javadoc 明确记录了这次迁移。
+
+### 1.4 SpringUtil 已删除 ✅
+
+全项目不再存在 `ApplicationContextAware` 静态持有的 `SpringUtil`，无残留引用。
+
+### 1.5 I18nUtil → ⚠️ 有记录的折中
+
+`maxkb4j-common/src/main/java/com/maxkb4j/common/util/I18nUtil.java`：现为 `@Component`，`MessageSource` 构造器注入；因 `R`、`ApiException` 等非 Spring 管理类仍需静态调用，保留了静态门面（`static volatile MessageSource`），并通过 `setMessageSource()` 暴露测试替换入口。**这是文档化的有意妥协**（类 Javadoc 有完整说明），风险可控，归为部分缓解而非问题；后续若 `R`/`ApiException` 消除对 i18n 的静态依赖，可彻底关闭。
+
+**连带修复**（原 §8.4 / §8.5 / §8.6）：
+
+| 原问题 | 现状 |
+|:---|:---|
+| `ModelServiceImpl` 乱码注释 | ✅ 已修复，无残留乱码 |
+| `DocumentSpiltHandler` 拼写错误 | ✅ 类已随模型包重构移除 |
+| `SaTokenConfigure` 的 `@Primary` | ✅ 已移除，并附 fail-fast 说明注释（`SaTokenConfigure.java:15-17`） |
+
+---
+
+## 2. ❌ 仍存在：BaseEntity 使用过时 java.util.Date
+
+**文件：** `maxkb4j-common/src/main/java/com/maxkb4j/common/mp/base/BaseEntity.java`
 
 ```java
-// 每次调用前必须 reset()，不同测试类在同一个 JVM 中相互干扰
-public static void reset() { store = new CaffeineChatInfoStore(); }
-
-// Spring 启动时手动注册实现，绕过了 DI 容器
-public static void init(ChatInfoStore newStore) { store = newStore; }
-```
-
-- 静态可变状态导致测试困难且不可隔离
-- `init()` 手工注册是服务定位器模式，容错性差
-- 私有内部默认实现在包外无法独立测试
-
-**改进建议：** 将 `ChatInfoStore` 改为 Spring `@Component`，通过构造函数注入。需要多实现时用 `@Primary` / `@Qualifier`。
-
-### 1.2 SystemCache（`maxkb4j-common/.../cache/SystemCache.java`）
-
-**问题描述：** 与 ChatCache 完全相同的静态缓存 + 私有默认实现模式。
-
-```java
-private static volatile SystemSettingStore store = new InMemoryStore();
-```
-
-Javadoc 明确写道「调用方暂继续使用静态 API，后续迁移为直接注入 Bean」—— 说明作者已知道这是过渡设计，但至今未完成迁移。
-
-**改进建议：** 完成迁移，彻底移除 `init()` / `reset()` 静态机制。
-
-### 1.3 ChatServiceBuilder（`application/.../builder/ChatServiceBuilder.java`）
-
-**问题描述：** 静态初始化块中通过 `SpringUtil.getBean()` 按名称查找 Bean：
-
-```java
-static {
-    ACTUATOR_POOL.put(AppType.SIMPLE.name(), SpringUtil.getBean("chatSimpleServiceImpl", IChatService.class));
-    ACTUATOR_POOL.put(AppType.WORK_FLOW.name(), SpringUtil.getBean("chatFlowServiceImpl", IChatService.class));
+@Data
+public class BaseEntity implements Serializable {
+    @TableId(type = IdType.ASSIGN_UUID)
+    private String id;
+    @TableField(fill = FieldFill.INSERT)
+    private Date createTime;
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Date updateTime;
 }
 ```
 
-- 按字符串名称查找 Bean，运行时才能发现拼写错误
-- 静态初始化在 Spring 容器完全就绪前执行，依赖时序
-- 构造函数注入即可解决，无需静态定位器
+与首评一致，三点未变：
 
-**改进建议：** 改用 `@Autowired Map<String, IChatService>` 注入所有 `IChatService` 实现。
+- `java.util.Date` 可变、线程不安全，API 已弃用；目标 JDK 21 应使用 `java.time.LocalDateTime`（注意同步调整 MyBatis-Plus 的 `MetaObjectHandler` 填充器与既有数据库列类型）
+- `@Data` 为 `id` 生成公共 setter，破坏 `ASSIGN_UUID` 主键的不变性
+- 影响面覆盖全部继承此基类的 Entity
+
+**改进建议不变：** 基类改 `LocalDateTime` + `@Getter` + 受限 setter。属机械性大范围改动，建议单独一个 PR 一次完成。
 
 ---
 
-## 2. 🔴 严重：ApplicationContextAware 静态工具类
+## 3. 🔄 结论修正：JSON 库碎片化与 fastjson 安全性
 
-### SpringUtil（`maxkb4j-common/.../util/SpringUtil.java`）
+### 3.1 fastjson 安全性结论修正
 
-**问题描述：** 实现 `ApplicationContextAware` 并把上下文存入 `static` 字段，暴露 `getBeanFactory()` 方法并强制转换为 `DefaultListableBeanFactory`。
+首评称「fastjson 1.x 有已知 CVE（如 CVE-2022-25845）」。**复核 `pom.xml`：实际依赖为 `com.alibaba:fastjson:2.0.64`** —— 这是跑在 fastjson2 引擎上的 1.x API 兼容层，CVE-2022-25845（autoType 反序列化 RCE，影响 < 1.2.83）**不适用于 2.x**。原 CVE 结论过时，撤回。
 
-- 静态持有 ApplicationContext 是典型反模式，隐藏了依赖关系
-- `getBeanFactory()` 的 `ConfigurableListableBeanFactory → DefaultListableBeanFactory` 强制转换在非默认容器中会失败
-- 整个项目中仅 `ChatServiceBuilder` 和少数地方使用它
+剩余建议（由"安全"降级为"工程一致性"）：
 
-**改进建议：** 消灭 SpringUtil，所有消费者改为常规 DI。
+- 兼容层终归是过渡产物，建议规划迁移到 `com.alibaba.fastjson2` 原生 API 或 Jackson（Spring Boot 内置、与 Web 序列化统一），消除双 JSON 栈的边界转换成本
 
-### I18nUtil（`maxkb4j-common/.../util/I18nUtil.java`）
+### 3.2 hutool JSON 混用仍存在 ❌
 
-**问题描述：** 同样方案：`static MessageSource` 字段 + `ApplicationContextAware`。
+`cn.hutool.json` 仍与 fastjson 混用，当前 7 处：
 
-```java
-private static MessageSource MESSAGE_SOURCE;
+```
+maxkb4j-common/.../api/ResultCode.java
+maxkb4j-common/.../cache/UserTokenRevokeCache.java
+maxkb4j-common/.../util/WebUtil.java
+maxkb4j-service/.../application/service/ApplicationExportService.java
+maxkb4j-service/.../chat/util/ResponseProvider.java
+maxkb4j-service/.../tool/service/impl/ToolExecuteServiceImpl.java
+maxkb4j-service/.../tool/executor/GroovyScriptExecutorTest.java（测试）
 ```
 
-- 静态字段在启动早期可能为 null，调用时静默返回原 key
-- 无法在测试中轻松替换 Mock
-
-**改进建议：** 注入 `MessageSource` 作为普通 Bean。
+**改进建议：** 同 3.1——统一 JSON 栈后此项自然消除。
 
 ---
 
-## 3. 🟡 中：BaseEntity 使用过时 java.util.Date
+## 4. ❌ 仍存在：Service 层与 MyBatis-Plus ServiceImpl 强耦合
 
-**文件：** `maxkb4j-common/.../mp/base/BaseEntity.java`
-
-```java
-private Date createTime;
-private Date updateTime;
-```
-
-**问题：**
-- `java.util.Date` 是可变类型，有线程安全问题
-- 项目目标 JDK 21，应使用 `java.time.Instant` / `java.time.LocalDateTime`
-- `Date` 的 API（如 `getYear()`、`getMonth()`）已被弃用
-
-**连锁影响：** 所有 Entity 都继承此基类，影响面覆盖全部模块。
-
-**额外问题：** `@Data`（Lombok）在 `BaseEntity` 上生成公共 `setId()`，但 `@TableId(type = IdType.ASSIGN_UUID)` 意味着 ID 创建后不应再被修改。
-
-**改进建议：**
-- 基类改用 `java.time.LocalDateTime`
-- 用 `@Getter` + 受限 setter 替代 `@Data`，保护 ID 不变性
-
----
-
-## 4. 🟡 中：JSON 库碎片化（fastjson + hutool 混用）
-
-**问题：** 项目绝大部分使用 `com.alibaba.fastjson`（fastjson 1.x，非 fastjson2），但 `ToolValidationHandler` 使用 `cn.hutool.json`：
+**规模复核：** `extends ServiceImpl<` 的服务实现当前共 **29 个**，模式未变：
 
 ```java
-// ToolValidationHandler.java
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
-
-// 其余 200+ 文件
-import com.alibaba.fastjson.JSONObject;
-```
-
-- fastjson 1.x 有已知 CVE（如 CVE-2022-25845 自动反序列化 RCE）
-- 混合 JSON 库增加攻击面、包体积和维护成本
-- `RagContentInjector` 使用的 `new JSONObject(true)`（有序构造）是 fastjson 特有 API
-
-**改进建议：** 全部统一到 Jackson（Spring Boot 内置）或 fastjson2。推荐 Jackson。
-
----
-
-## 5. 🟡 中：Service 层与 MyBatis-Plus ServiceImpl 强耦合
-
-**影响文件：** `ModelServiceImpl`、`ToolServiceImpl`、`DocumentServiceImpl`、`ResourceMappingServiceImpl` 等全部 Service 实现。
-
-```java
-// 几乎每个 Service 都采取此模式
-public class ModelServiceImpl extends ServiceImpl<ModelMapper, ModelEntity> implements IModelInternalService {
-    // 直接调用框架方法
-    this.save(model);
-    this.getById(id);
-    this.lambdaQuery().eq(...);
+public class XxxServiceImpl extends ServiceImpl<XxxMapper, XxxEntity> implements IXxxService {
+    this.save(...); this.getById(...); this.lambdaQuery().eq(...);
 }
 ```
 
-**缺陷：**
-- 业务逻辑与持久化框架捆绑，无法脱离 MyBatis 测试业务逻辑
-- `baseMapper` 由超类暴露为 `protected`，子类可直接访问原始 Mapper
-- 混用 `baseMapper.xxx()` 和 `this.xxx()` 风格不统一
-- `ServiceImpl` 超类的方法签名与业务接口耦合
+缺陷判断与首评一致（业务与持久化框架捆绑、`baseMapper` 裸露、风格混用）。
 
-**改进建议：** 引入 Repository 接口层，Service 只依赖 Repository 接口（而非继承框架基类）。这是一个较大重构，可渐进进行。
+**改进建议不变：** 引入 Repository 接口层，渐进重构。此项工作量大、短期收益低于待办中的安全与一致性问题，维持 P2。
 
 ---
 
-## 6. 🟡 中：API 响应体与异常处理设计缺陷
+## 5. ❌ 仍存在：API 响应体与异常处理设计缺陷
 
-### 6.1 R.java（`maxkb4j-common/.../api/R.java`）
+### 5.1 R.java（`maxkb4j-common/src/main/java/com/maxkb4j/common/api/R.java`）
+
+三个问题点原样保留（行号复核）：
 
 ```java
-// 方法 65 — 隐藏泛型参数 T，令人困惑
-public static <T> R<T> success(String data) {
-    return new R(ResultCode.SUCCESS, data, I18nUtil.get("common.success"));
-}
+// 第 50 行：无参构造器未初始化字段
+public R() { ... }
 
-// 方法 63 — data 为 null 时自动替换 message 为 "暂无数据"
-public static <T> R<T> data(int code, T data, String message) {
-    return new R(code, data, data == null ? I18nUtil.get("common.no.data") : message);
-}
+// 第 62 行：data() 中 data 为 null 时静默改写 message 为「暂无数据」
+return new R(code, data, data == null ? I18nUtil.get("common.no.data") : message);
+
+// 第 65 行：success(String data) 隐藏泛型参数 T
+public static <T> R<T> success(String data) { ... }
 ```
 
-- `success(String data)` 中 `T` 被擦除，调用 `R.success("hello")` 返回 `R<String>` 但泛型推断可能不符合预期
-- `data()` 中 data 为 null 时静默改写 message 是意外行为，调用方可能不需要这个语义
-- `R()` 无参构造器（第 51 行）未初始化 `@Schema` 字段，序列化时可能出现意外值
+`success(String)` 的调用方若期望 `R<Object>` 以外的类型，编译期无法发现错误。**改进建议：** 删除 `success(String)` 或改名为 `successMessage(String)`；`data()` 的 null 改写行为改为显式参数控制。
 
-### 6.2 GlobalExceptionHandler（`maxkb4j-common/.../handler/GlobalExceptionHandler.java`）
+### 5.2 GlobalExceptionHandler
 
-- 多个方法同名 `handleException` 且参数模式相似（`NotPermissionException` vs `NotRoleException` 各自的方法），可读性差
-- `NotRoleException` 处理器捕获 `SaTokenException`（第 98 行）—— 类型范围过宽，可能吞下其他 `SaTokenException` 子类型
-- 设置 HTTP 状态码方式不一致：有的用 `response.setStatus()`，有的用 `@ResponseStatus` 注解
+`handleException(SaTokenException e, ...)`（第 98 行）仍挂在 `@ExceptionHandler(NotRoleException.class)`（第 96 行）下——**注解声明的异常类型与方法参数类型不匹配**，虽可运行（参数是超类），但该方法实际上也能被声明给其他 `SaTokenException` 子类复用，当前写法掩盖了这一意图。同名 `handleException` 多方法、状态码设置方式不一致的问题同首评。
+
+**改进建议：** 方法名对齐异常类型（`handleNotRole`）；统一用 `@ResponseStatus` 或统一用 `HttpServletResponse`。
 
 ---
 
-## 7. 🟡 中：工作流模块设计问题
+## 6. ⚠️ 部分缓解：工作流模块设计问题
 
-### 7.1 WorkflowContext（`workflow/.../engine/WorkflowContext.java`）
+### 6.1 WorkflowContext（`workflow/.../engine/WorkflowContext.java`）
 
-```java
-@Data  // 在既有 final 又有非 final 字段的类上使用 @Data
-public class WorkflowContext implements IWorkflowContext {
-    private final Map<String, Object> globalContext;     // final → 只生成 getter
-    private final Map<String, Object> chatContext;       // final → 只生成 getter
-    private VariableResolver variableResolver;           // 非 final → 生成 getter+setter
-    private TemplateRenderer templateRenderer;           // 非 final → 生成 getter+setter
-}
-```
+**首评后的改善：** 四个集合字段已全部 `final` 且改为并发容器（`ConcurrentHashMap` / `CopyOnWriteArrayList`），并新增拷贝构造函数（`WorkflowContext(WorkflowContext parent)`）支持子上下文派生——首评指出的「并发场景下可变集合的线程安全问题」已解决。
 
-- `@Data` 对 final 字段只生成 getter，对非 final 字段生成 getter+setter —— 这个类的变异程度出乎意料
-- `variableResolver` 和 `templateRenderer` 在并发场景下可变，存在线程安全问题
+**残留小问题：** 类上仍是 `@Data`，`variableResolver` / `templateRenderer` 两个 `protected` 非 final 字段（第 40-41 行）会被 Lombok 生成公共 setter，执行中途替换解析器/渲染器的风险仍在（低概率、高隐蔽）。
 
-### 7.2 ChatServiceBuilder（已在 1.3 节讨论）
+**改进建议：** 两字段改 `final`（构造函数已完整初始化它们），或改用 `@Getter`。
 
-### 7.3 缺少统一的工作流执行追踪
+### 6.2 缺少统一的工作流执行追踪
 
-`ExecutionTracker`、`HistoryManager`、`NodeStateLoader` 等拆得很细，但缺少一个统一的聚合接口 —— 调用方需要了解多个内部组件才能理解工作流生命周期。
+`ExecutionTracker`、`HistoryManager`、`NodeStateLoader` 拆分现状未变，仍缺一个面向调用方的聚合生命周期接口。维持原判断（P3 观察项）。
 
 ---
 
-## 8. 🟡 中：配置与架构问题
+## 7. ❌ 仍存在：配置与架构问题
 
-### 8.1 CORS 配置（`WebConfig.java` 第 86 行）
+### 7.1 CORS 配置（`maxkb4j-start/.../config/WebConfig.java:86-88`）
 
 ```java
 .allowedOriginPatterns("*")
 .allowCredentials(true)
 ```
 
-- `allowCredentials(true)` + `allowedOriginPatterns("*")` 在生产环境中不安全且现代浏览器会拒绝（`Access-Control-Allow-Origin` 不能同时为 `*` 和携带凭据）
-- 应当在生产配置中指定具体源
+未变。生产环境凭据 + 通配源是真实安全风险（浏览器虽会拒绝 `*` + 凭据组合，但 `allowedOriginPatterns("*")` 会回显任意 Origin，等于放行任意跨域携带 Cookie 的请求）。**这是当前待办中唯一的"生产安全"级问题，建议最优先处理**：默认收紧为配置项指定源列表，开发环境经 profile 放开。
 
-### 8.2 @Value 字段注入（`SearchOrchestrator.java` 第 48 行）
+### 7.2 @Value 字段注入（`knowledge/.../retriever/SearchOrchestrator.java:48`）
 
 ```java
 @Value("${knowledge.search.recall-multiplier:3}")
 private int recallMultiplier = 3;
 ```
 
-- 同时使用了 `:3`（属性表达式默认值）和 `= 3`（Java 字段默认值）—— 重复定义，其中之一永远不会生效
-- `@Value` 在字段上阻止了构造期注入，Spring 外无法构造
+`:3` 与 `= 3` 双默认值冗余、字段注入阻止构造期注入——未变。
 
-### 8.3 BeanUtil.toMap() 使用反射（`maxkb4j-common/.../util/BeanUtil.java` 第 105-136 行）
+### 7.3 BeanUtil.toMap() 反射（`maxkb4j-common/.../util/BeanUtil.java:112-117`）
 
-```java
-Field[] fields = clazz.getDeclaredFields();
-// 仅获取直接声明的字段，不包含父类字段
-field.setAccessible(true);  // Java 17+ 模块系统下可能抛 InaccessibleObjectException
-```
+`getDeclaredFields()`（不含父类字段）+ `setAccessible(true)` 未变。**改进建议：** 至少沿继承链收集字段；长期改用 `BeanUtil`（hutool）或 MapStruct。
 
-### 8.4 ModelServiceImpl 乱码注释（第 220 行）
+---
 
-```
-// 浠?褰撳墠鐧诲綍鑰呭繀椤绘槸妯″瀷鎷ユ湁鑰?涓哄墠鎻愬彇鍑烘ā鍨嬶紝鍐嶇敱 mapper 鍐冲畾杩斿洖鍐呭銆?
-```
+## 8. 🆕 新增发现：常量接口反模式
 
-编码损坏的注释，应修复为：`// 以当前登录者必须是模型拥有者为前提取出模型，再由 mapper 决定返回内容。`
+**文件：** `maxkb4j-service/maxkb4j-model/src/main/java/com/maxkb4j/model/consts/ProviderModels.java`、`ModelConstants.java`
 
-### 8.5 `DocumentSpiltHandler` 拼写错误
+模型包重构新引入的两个常量类均以 `interface` 承载常量（`public interface ProviderModels { List<ModelInfo> ALI_YUN_BAI_LIAN = List.of(...); ... }`）。
 
-文件名和类名 `Spilt` → 应为 `Split`，影响可搜索性和代码整洁度。
+- 常量接口是《Effective Java》Item 22 明确反对的反模式：接口应表达类型（行为契约），实现接口仅为获得常量会污染类型层次
+- `ProviderModels` 内含 20+ 模型清单常量，任何一个实现该接口的类都会带上全部静态成员
 
-### 8.6 `SaTokenConfigure` 单一 @Primary Bean
+**说明：** 集中化模型清单本身是**好重构**（消除了各 Provider 重复定义模型列表，且 `List.of` 不可变、配套 `ModelType` 枚举分类清晰），此处仅是实现载体问题，属轻微整洁度问题。
 
-`StpLogic` Bean 标注为 `@Primary`，如果有第二个 `StpLogic` 实现会产生冲突，考虑更精确的限定注入。
+**改进建议：** 改为 `final class` + `private` 构造器，或直接挂在各 `AbsModelProvider` 实现内的静态工厂方法上。项目内如有其他 `*Constants` 接口一并治理。
 
 ---
 
 ## 9. 🟢 良：值得肯定的设计模式
 
+首评肯定的设计全部复核仍在，并新增四项：
+
 | 模式 | 文件 | 优点 |
 |------|------|------|
-| **策略 + 注册表** | `ModelProviderRegistry` + `AbsModelProvider` | 可插拔供应商架构，注释驱动的自动注册，清晰的 SPI 扩展点 |
-| **规格模式** | `WorkflowFactory.create(WorkflowSpec)` | 「构建什么」与「如何构建」分离，新增变体只需扩展 `WorkflowSpec.Kind` |
-| **模板方法** | `AbsNodeHandler` | `execute()` 声明为 `final`，子类覆盖 `doExecute` / `doExecuteAsync`，行为一致 |
-| **工厂方法** | `DataPermissionScope.admin()` / `.limited()` / `.empty()` | 自描述创建，防止无效状态组合（无管理权限但有空列表等） |
-| **Record 数据载体** | `SystemKeySetting` | 使用 Java `record`：简洁、不可变、基于值的相等性 |
-| **责任链** | `AuthHandler` 接口 | 清晰的可插拔认证处理器链 |
-| **事件驱动** | Knowledge 模块的 `DocumentIndexEvent` 等 Spring Event | 解耦文档处理和请求线程 |
-| **异步执行模板** | `AbsNodeHandler` 的 `CompletableFuture` | 良好封装的异步模型 |
-| **RRF 融合算法** | `CompositeStoreImpl.mergeByRrf()` | 文档完善的 RRF 实现，清晰解释了为何放弃 max-score 融合方案 |
-| **数据权限范围设计** | `DataPermissionScope` + `IDataPermissionScopeResolver` | 职责清晰，管理员/普通用户/空结果三态明确 |
-| **工具 Handler 拆分** | `ToolServiceImpl` → ToolValidation/ImportExport/Connection/Permission/Skill/Assemble Handler | 单一职责，一个 Service 不会膨胀到数百行 |
+| **策略 + 注册表** | `model/registry/ModelProviderRegistry` + `@ModelProviderType` 注解 | 注解驱动自动注册（`register(provider, annotation)`），可插拔供应商，SPI 扩展点清晰 |
+| **规格模式** | `workflow-api/.../WorkflowFactory.create(WorkflowSpec)` | 「构建什么」与「如何构建」分离，新增变体只需扩展 `WorkflowSpec.Kind` |
+| **模板方法** | `workflow/handler/node/AbsNodeHandler` | `execute()` 声明为 `final`（第 60 行）封装异步模板，子类实现 `doExecute`（第 44 行）或覆写 `doExecuteAsync`，36 个节点 handler 行为一致 |
+| **工厂方法** | `DataPermissionScope.admin() / .limited() / .empty()` | 自描述创建，杜绝无效状态组合 |
+| **Record 数据载体** | `SystemKeySetting` 等 | 不可变、基于值的相等性 |
+| **责任链** | `AuthHandler` 接口 | 可插拔认证链 |
+| **事件驱动** | knowledge 模块 Spring Event | 解耦文档处理与请求线程 |
+| **RRF 融合** | `CompositeStoreImpl.mergeByRrf()`（第 132 行） | 文档完善的 RRF 实现，向量/全文两路 `Future` 并行召回后名次融合 |
+| **工具 Handler 拆分** | `tool/handler/` 下 6 个 Handler + `ToolHandlerAutoRegistrar` | 单一职责；注解自动注册 |
+| 🆕 **缓存 Bean 化** | `ChatInfoStore` / `SystemSettingStore` | 本轮修复落地，静态门面反模式清零（见 §1） |
+| 🆕 **模型包按功能分包** | `model/integration/{audio,chat,credential,embedding,image,rerank,common}` | chat/embedding/image/rerank 各司其职，`credential/ModelCredentialForm` 统一凭据表单，与 `ProviderModels` 常量配合消除重复 |
+| 🆕 **上下文并发安全** | `WorkflowContext` 全 final 字段 + 并发容器 + 拷贝构造 | 虚拟线程高并发下的正确性基础（见 §6.1） |
+| 🆕 **测试资产** | 117 个测试文件；CI（GitHub Actions）在 master/dev 双分支跑 `mvn verify` | 首评未充分记录；缓存重构即配套了单测，是重构质量的直接保障 |
 
 ---
 
-## 10. 🟡 中：其他杂项问题
+## 10. ⚠️ 部分缓解：其他杂项问题
 
-### CompositeStoreImpl 串行写操作（`knowledge/.../store/impl/CompositeStoreImpl.java`）
+### CompositeStoreImpl 串行写操作
 
-```java
-private void dualWrite(String op, Consumer<IDataStore> action) {
-    action.accept(vectorStore);     // 向量库写入成功
-    action.accept(fullTextStore);  // 全文库写入失败 → vectorStore 写入无法回滚
-}
-```
+`dualWrite`（第 22 行注释、第 46-62 行调用）现状：已补充统一日志/异常包装，但「向量库写入成功、全文库写入失败 → 无法回滚」的一致性问题未变，仍缺事务性发件箱或补偿机制。维持 P1。
 
-- 向量库写入成功但全文库写入失败时产生数据不一致
-- 缺少事务性发件箱（Transactional Outbox）模式
+### RateLimitAspect SpEL 解析
 
-### SearchOrchestrator 排除段落 ID 解析（第 85-96 行）
-
-在第 57 行的 `search()` 中，`resolveExcludeParagraphIds` 三次数据库查询后再进 Store 搜索，考虑了这种非必选过滤的开销。
-
-### RateLimitAspect SpEL 解析（第 108-126 行）
-
-CUSTOM 模式下使用 `SpelExpressionParser` 解析方法参数，每次切面都新建 `StandardEvaluationContext`，可考虑缓存表达式 AST。
-
-### PyVector 与 MongoDB 双写不一致风险
-
-`CompositeStoreImpl` 同时写 PostgreSQL 向量和全文索引，但没有分布式事务或补偿机制。
+**改善：** `SpelExpressionParser` 已提为字段复用（第 50 行），不再每次切面新建。
+**残留：** `StandardEvaluationContext` 仍每次新建（第 116 行），解析后的表达式 AST 无缓存，高频限流注解下有重复解析开销。降为 P3。
 
 ---
 
 ## 优先修复矩阵
 
-| 优先级 | 问题 | 影响 | 工作量 |
-|--------|------|------|--------|
-| 🔴 P0 | 静态缓存（ChatCache / SystemCache） | 可测试性、DI 一致性、维护成本 | 中等 |
-| 🔴 P0 | 服务定位器（ChatServiceBuilder + SpringUtil） | 耦合、可测试性、隐藏依赖 | 中等 |
-| 🔴 P0 | ApplicationContextAware 静态工具类 | 测试困难、依赖不可见 | 低-中 |
-| 🟡 P1 | JSON 库碎片化（fastjson + hutool） | 安全（fastjson 1.x CVE）、一致性 | 低 |
-| 🟡 P1 | BaseEntity 使用 Date → LocalDateTime | 现代化、线程安全 | 低 |
-| 🟡 P1 | CORS 生产配置 | 生产安全 | 极小 |
-| 🟡 P1 | CompositeStoreImpl 串行写入无回滚 | 数据一致性 | 中 |
-| 🟡 P2 | ServiceImpl 继承耦合 | 可测试性、架构整洁 | 较大 |
-| 🟡 P2 | @Value 字段注入散布 | 可测试性 | 低 |
-| 🟡 P2 | ExceptionHandler 模式不一致 | 健壮性 | 低 |
-| 🟢 P3 | 拼写错误（Spilt → Split） | 代码整洁 | 极小 |
-| 🟢 P3 | 乱码注释 | 可读性 | 极小 |
+| 优先级 | 问题 | 状态 | 影响 | 工作量 |
+|--------|------|------|------|--------|
+| ~~🔴 P0~~ | ~~静态缓存（ChatCache / SystemCache）~~ | ✅ 已修复 | — | — |
+| ~~🔴 P0~~ | ~~服务定位器（ChatServiceBuilder + SpringUtil）~~ | ✅ 已修复 | — | — |
+| 🔴 **P0** | CORS `allowedOriginPatterns("*")` + `allowCredentials(true)` | ❌ 仍存在 | **生产安全** | 极小 |
+| 🟡 P1 | CompositeStoreImpl 双写无回滚 | ❌ 仍存在 | 数据一致性 | 中 |
+| 🟡 P1 | BaseEntity Date → LocalDateTime | ❌ 仍存在 | 现代化、线程安全 | 低（机械） |
+| 🟡 P1 | R.success(String) 泛型陷阱 / data() null 语义 | ❌ 仍存在 | API 正确性 | 低 |
+| 🟡 P1 | GlobalExceptionHandler 注解与参数类型不匹配 | ❌ 仍存在 | 健壮性 | 低 |
+| 🟡 P2 | JSON 栈统一（fastjson 兼容层 + hutool 7 处） | 🔄 结论已修正 | 一致性、长期维护 | 中 |
+| 🟡 P2 | WorkflowContext 残留两个可变依赖字段 | ⚠️ 部分缓解 | 并发正确性 | 极小 |
+| 🟡 P2 | ServiceImpl 继承耦合（29 处） | ❌ 仍存在 | 可测试性、架构 | 较大 |
+| 🟢 P3 | 常量接口反模式（ProviderModels / ModelConstants） | 🆕 新增 | 整洁度 | 极小 |
+| 🟢 P3 | @Value 双默认值、BeanUtil 反射、SpEL AST 缓存 | ❌/⚠️ | 微优化 | 低 |
 
 ---
 
 ## 总结
 
-MaxKB4j 整体架构方向正确：模块拆分清晰（service-api 契约层 + service 实现层），核心领域抽象设计良好（供应商注册表、工作流节点处理链、检索编排器、数据权限范围）。**最急迫的改进**是消除静态缓存和服务定位器反模式（ChatCache / SystemCache / SpringUtil / ChatServiceBuilder），这些改动影响面可控但收益显著，可直接提升可测试性和代码可维护性。其次是**安全相关问题**（fastjson 1.x CVE、CORS 配置）和**数据一致性**（CompositeStore 串行写入）。架构级重构（Service 层与 MyBatis-Plus 解耦）可列为中远期优化目标。
+首评最急迫的两项 🔴 P0（静态缓存 + 服务定位器）**已在近期重构中全部落地修复**，且修复质量高于预期：配套了独立单测、Javadoc 记录了迁移决策、`SaTokenConfigure` 的 `@Primary` 移除还附带了 fail-fast 理由说明——这是一次教科书式的技术债清偿。同期完成的模型集成包按功能分包与 `ProviderModels` 清单集中化，显著降低了新增模型供应商的成本。
+
+**当前最高优先级**转移为三项：
+1. **CORS 生产配置**（§7.1）——工作量极小、风险真实，建议立即处理；
+2. **数据一致性**（§10 dualWrite）——RAG 双库写入的回滚缺口，影响生产可信度；
+3. **API 语义正确性**（§5 R.java 与异常处理器）——面向二次开发者的公共 API，是"Java 团队可自主维护"这一核心卖点的门面。
+
+架构级重构（ServiceImpl 解耦、JSON 栈统一）维持中远期节奏不变。整体判断：**代码库设计纪律在持续向好，首轮评审的反馈闭环已验证有效，建议保持"评审 → 修复 → 复审"的节奏推进。**
+
+---
+
+### 复审变更记录（2026-11-27）
+
+| 首评条目 | 复审结果 |
+|:---|:---|
+| §1.1 ChatCache / §1.2 SystemCache | ✅ 重构为 DI Bean（`ChatInfoStore` / `SystemSettingStore`） |
+| §1.3 ChatServiceBuilder | ✅ 构造器注入 + `Map.of` 不可变路由 |
+| §2 SpringUtil | ✅ 已删除 |
+| §2 I18nUtil | ⚠️ Bean 化 + 文档化静态门面（有意折中） |
+| §3 BaseEntity | ❌ 未变 |
+| §4 fastjson CVE | 🔄 修正：实际为 fastjson 2.0.64 兼容层，CVE 不适用；hutool 混用 7 处仍在 |
+| §5 ServiceImpl 耦合 | ❌ 未变（29 处） |
+| §6 R.java / GlobalExceptionHandler | ❌ 未变 |
+| §7.1 WorkflowContext | ⚠️ 并发容器化，剩两个可变字段 |
+| §8.1 CORS / §8.2 @Value / §8.3 BeanUtil | ❌ 未变 |
+| §8.4 乱码注释 / §8.5 Spilt 拼写 / §8.6 @Primary | ✅ 均已修复 |
+| §10 dualWrite / RateLimitAspect | ⚠️ 补充了日志包装 / Parser 已复用，核心缺口未变 |
+| （新增）常量接口反模式 | 🆕 ProviderModels / ModelConstants |
