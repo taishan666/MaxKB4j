@@ -40,9 +40,9 @@ public class SiliconFlowImageModel implements ImageModel {
     }
 
     /**
-     * 包级构造器：允许注入已构建好的请求，便于测试与替换传输实现
+     * 允许注入已构建好的请求，便于测试与替换传输实现
      */
-    SiliconFlowImageModel(HttpRequest request, String modelName, JSONObject modelParams) {
+    public SiliconFlowImageModel(HttpRequest request, String modelName, JSONObject modelParams) {
         this.request = request;
         this.modelName = modelName;
         this.modelParams = modelParams;
@@ -58,7 +58,7 @@ public class SiliconFlowImageModel implements ImageModel {
     /**
      * 从响应体解析图像 URL 列表（纯函数，便于单元测试）
      */
-    static List<Image> parseImages(String responseBody) {
+    public static List<Image> parseImages(String responseBody) {
         JSONObject body = JSONObject.parseObject(responseBody);
         if (body == null) {
             return List.of();
