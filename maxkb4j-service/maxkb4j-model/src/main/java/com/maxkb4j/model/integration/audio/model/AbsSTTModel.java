@@ -1,4 +1,4 @@
-package com.maxkb4j.model.integration.audio;
+package com.maxkb4j.model.integration.audio.model;
 
 import com.maxkb4j.model.base.STTModel;
 import lombok.Data;

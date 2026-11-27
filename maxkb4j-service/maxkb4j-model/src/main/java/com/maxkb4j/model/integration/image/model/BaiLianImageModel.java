@@ -1,4 +1,4 @@
-package com.maxkb4j.model.integration.image;
+package com.maxkb4j.model.integration.image.model;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.entity.ModelCredential;

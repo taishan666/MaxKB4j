@@ -1,4 +1,4 @@
-package com.maxkb4j.model.integration.embedding;
+package com.maxkb4j.model.integration.embedding.model;
 
 import com.volcengine.ark.runtime.model.multimodalembeddings.MultimodalEmbedding;
 import com.volcengine.ark.runtime.model.multimodalembeddings.MultimodalEmbeddingInput;

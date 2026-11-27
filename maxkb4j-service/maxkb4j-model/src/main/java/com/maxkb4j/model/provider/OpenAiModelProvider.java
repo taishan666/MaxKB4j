@@ -5,15 +5,15 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.maxkb4j.model.annotation.ModelProviderType;
 import com.maxkb4j.model.base.STTModel;
 import com.maxkb4j.model.base.TTSModel;
-import com.maxkb4j.model.integration.audio.OpenAiSTTModel;
-import com.maxkb4j.model.integration.audio.OpenAiTTSModel;
+import com.maxkb4j.model.consts.ProviderModels;
+import com.maxkb4j.model.entity.ModelCredential;
+import com.maxkb4j.model.form.BaseField;
+import com.maxkb4j.model.integration.audio.model.OpenAiSTTModel;
+import com.maxkb4j.model.integration.audio.model.OpenAiTTSModel;
 import com.maxkb4j.model.integration.chat.OpenAiChatModelParams;
 import com.maxkb4j.model.integration.credential.ModelCredentialForm;
-import com.maxkb4j.model.integration.embedding.OpenAiMultiModalEmbeddingModel;
+import com.maxkb4j.model.integration.embedding.model.OpenAiMultiModalEmbeddingModel;
 import com.maxkb4j.model.integration.image.OpenAiImageModelParams;
-import com.maxkb4j.model.entity.ModelCredential;
-import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.form.BaseField;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -37,21 +37,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.OPENAI, name = "OpenAI", icon = Provider.ICON_OPENAI)
 public class OpenAiModelProvider extends AbsModelProvider {
 
-    private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo(ModelName.GPT_3_5_TURBO, "GPT-3.5 Turbo", ModelType.LLM),
-            new ModelInfo(ModelName.GPT_4, "GPT-4", ModelType.LLM),
-            new ModelInfo(ModelName.GPT_4O, "GPT-4 Omni", ModelType.LLM),
-            new ModelInfo(ModelName.GPT_4O_MINI, "GPT-4 Omni Mini", ModelType.LLM),
-            new ModelInfo(ModelName.GPT_4_TURBO, "GPT-4 Turbo", ModelType.LLM),
-            new ModelInfo(ModelName.GPT_4_TURBO_PREVIEW, "GPT-4 Turbo Preview", ModelType.LLM),
-            new ModelInfo(ModelName.TEXT_EMBEDDING_ADA_002, "Text Embedding Ada v2", ModelType.EMBEDDING),
-            new ModelInfo(ModelName.WHISPER_1, "Whisper Speech-to-Text", ModelType.STT),
-            new ModelInfo(ModelName.TTS_1, "Text-to-Speech", ModelType.TTS),
-            new ModelInfo(ModelName.GPT_4O, "GPT-4 Vision", ModelType.VISION),
-            new ModelInfo(ModelName.DALLE_2, "DALL·E 2", ModelType.TTI)
-    );
-
-
     public String getDefaultBaseUrl() {
         return BaseUrl.OPENAI;
     }
@@ -72,7 +57,7 @@ public class OpenAiModelProvider extends AbsModelProvider {
 
     @Override
     public List<ModelInfo> getModelList() {
-        return MODEL_INFOS;
+        return ProviderModels.OPENAI;
     }
 
 

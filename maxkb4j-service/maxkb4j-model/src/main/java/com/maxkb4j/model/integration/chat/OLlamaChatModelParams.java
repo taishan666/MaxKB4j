@@ -11,7 +11,7 @@ import java.util.List;
 import static com.maxkb4j.model.consts.ModelConstants.*;
 
 @Data
-public class OllamaChatModelParams implements IModelParams {
+public class OLlamaChatModelParams implements IModelParams {
 
     @Override
     public List<BaseField> toForm() {

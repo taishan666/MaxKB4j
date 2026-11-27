@@ -4,6 +4,7 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.http.Method;
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.model.integration.image.model.SiliconFlowImageModel;
 import com.sun.net.httpserver.HttpServer;
 import dev.langchain4j.data.image.Image;
 import dev.langchain4j.model.output.Response;

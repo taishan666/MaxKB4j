@@ -1,4 +1,4 @@
-package com.maxkb4j.model.integration.audio;
+package com.maxkb4j.model.integration.audio.model;
 
 import com.alibaba.dashscope.aigc.multimodalconversation.AudioParameters;
 import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversation;

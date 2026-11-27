@@ -1,5 +1,6 @@
 package com.maxkb4j.model.provider;
 
+import com.maxkb4j.model.consts.ProviderModels;
 import com.maxkb4j.model.integration.credential.ModelCredentialForm;
 import com.maxkb4j.model.vo.ModelInfo;
 
@@ -10,12 +11,9 @@ import java.util.List;
  */
 public class LocalModelProvider extends AbsModelProvider {
 
-    private static final List<ModelInfo> MODEL_INFOS = List.of();
-
-
     @Override
     public List<ModelInfo> getModelList() {
-        return MODEL_INFOS;
+        return ProviderModels.LOCAL;
     }
 
     @Override

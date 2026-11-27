@@ -1,17 +1,16 @@
 package com.maxkb4j.model.provider;
 
-import com.maxkb4j.model.annotation.ModelProviderType;
-import org.springframework.stereotype.Component;
-
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import com.maxkb4j.model.consts.ProviderModels;
 import com.maxkb4j.model.entity.ModelCredential;
 import com.maxkb4j.model.integration.credential.ModelCredentialForm;
-import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.model.anthropic.AnthropicChatModel;
 import dev.langchain4j.model.anthropic.AnthropicStreamingChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
@@ -25,19 +24,9 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.ANTHROPIC, name = "Anthropic", icon = Provider.ICON_ANTHROPIC)
 public class AnthropicProvider extends AbsModelProvider {
 
-    private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo(ModelName.CLAUDE_3_OPUS, "", ModelType.LLM),
-            new ModelInfo(ModelName.CLAUDE_3_SONNET, "", ModelType.LLM),
-            new ModelInfo(ModelName.CLAUDE_3_HAIKU, "", ModelType.LLM),
-            new ModelInfo(ModelName.CLAUDE_3_5_SONNET, "", ModelType.LLM),
-            new ModelInfo(ModelName.CLAUDE_3_5_HAIKU, "", ModelType.LLM),
-            new ModelInfo(ModelName.CLAUDE_3_5_SONNET, "", ModelType.VISION)
-    );
-
-
     @Override
     public List<ModelInfo> getModelList() {
-        return MODEL_INFOS;
+        return ProviderModels.ANTHROPIC;
     }
 
     @Override

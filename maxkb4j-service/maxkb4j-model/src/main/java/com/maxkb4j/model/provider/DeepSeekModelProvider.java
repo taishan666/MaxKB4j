@@ -2,8 +2,8 @@ package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.annotation.ModelProviderType;
+import com.maxkb4j.model.consts.ProviderModels;
 import com.maxkb4j.model.entity.ModelCredential;
-import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
@@ -21,15 +21,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.DEEP_SEEK, name = "DeepSeek", icon = Provider.ICON_DEEP_SEEK)
 public class DeepSeekModelProvider extends OpenAiModelProvider {
 
-    private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo(ModelName.DEEPSEEK_V4_FLASH_VISION, "", ModelType.LLM),
-            new ModelInfo(ModelName.DEEPSEEK_V4_FLASH_VISION, "", ModelType.VISION),
-            new ModelInfo(ModelName.DEEPSEEK_V4_FLASH, "", ModelType.LLM),
-            new ModelInfo(ModelName.DEEPSEEK_V4_PRO, "", ModelType.LLM),
-            new ModelInfo(ModelName.DEEPSEEK_CHAT, "", ModelType.LLM),
-            new ModelInfo(ModelName.DEEPSEEK_REASONER, "", ModelType.LLM)
-    );
-
     @Override
     public String getDefaultBaseUrl() {
         return BaseUrl.DEEP_SEEK;
@@ -37,7 +28,7 @@ public class DeepSeekModelProvider extends OpenAiModelProvider {
 
     @Override
     public List<ModelInfo> getModelList() {
-        return MODEL_INFOS;
+        return ProviderModels.DEEP_SEEK;
     }
 
     @Override

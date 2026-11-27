@@ -1,11 +1,9 @@
 package com.maxkb4j.model.provider;
 
-import com.maxkb4j.model.annotation.ModelProviderType;
-import org.springframework.stereotype.Component;
-
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import com.maxkb4j.model.consts.ProviderModels;
 import com.maxkb4j.model.entity.ModelCredential;
-import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -14,10 +12,12 @@ import dev.langchain4j.model.googleai.GeminiThinkingConfig;
 import dev.langchain4j.model.googleai.GoogleAiEmbeddingModel;
 import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
 import dev.langchain4j.model.googleai.GoogleAiGeminiStreamingChatModel;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.maxkb4j.model.consts.ModelConstants.*;
+import static com.maxkb4j.model.consts.ModelConstants.ParamKey;
+import static com.maxkb4j.model.consts.ModelConstants.Provider;
 
 /**
  * Google Gemini Model Provider
@@ -26,18 +26,9 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.GEMINI, name = "Google Gemini", icon = Provider.ICON_GEMINI)
 public class GeminiModelProvider extends AbsModelProvider {
 
-    private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo(ModelName.GEMINI_1_0_PRO, "", ModelType.LLM),
-            new ModelInfo(ModelName.GEMINI_1_0_PRO_VISIO, "", ModelType.LLM),
-            new ModelInfo(ModelName.GEMINI_EMBEDDING_001, "", ModelType.EMBEDDING),
-            new ModelInfo(ModelName.GEMINI_1_5_FLASH, "", ModelType.VISION),
-            new ModelInfo(ModelName.GEMINI_1_5_PRO, "", ModelType.VISION)
-    );
-
-
     @Override
     public List<ModelInfo> getModelList() {
-        return MODEL_INFOS;
+        return ProviderModels.GEMINI;
     }
 
     @Override

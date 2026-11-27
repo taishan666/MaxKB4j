@@ -1,4 +1,4 @@
-package com.maxkb4j.model.integration.audio;
+package com.maxkb4j.model.integration.audio.model;
 
 import com.alibaba.dashscope.audio.asr.translation.TranslationRecognizerParam;
 import com.alibaba.dashscope.audio.asr.translation.TranslationRecognizerRealtime;

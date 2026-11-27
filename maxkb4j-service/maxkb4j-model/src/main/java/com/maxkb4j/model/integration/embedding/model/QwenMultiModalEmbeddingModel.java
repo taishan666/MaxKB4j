@@ -1,4 +1,4 @@
-package com.maxkb4j.model.integration.embedding;
+package com.maxkb4j.model.integration.embedding.model;
 
 import com.alibaba.dashscope.embeddings.*;
 import com.alibaba.dashscope.exception.NoApiKeyException;

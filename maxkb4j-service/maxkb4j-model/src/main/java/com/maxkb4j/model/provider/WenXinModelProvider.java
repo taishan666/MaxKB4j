@@ -1,11 +1,9 @@
 package com.maxkb4j.model.provider;
 
-import com.maxkb4j.model.annotation.ModelProviderType;
-import org.springframework.stereotype.Component;
-
 import com.alibaba.fastjson.JSONObject;
+import com.maxkb4j.model.annotation.ModelProviderType;
+import com.maxkb4j.model.consts.ProviderModels;
 import com.maxkb4j.model.entity.ModelCredential;
-import com.maxkb4j.model.enums.ModelType;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.community.model.qianfan.QianfanChatModel;
 import dev.langchain4j.community.model.qianfan.QianfanEmbeddingModel;
@@ -13,10 +11,12 @@ import dev.langchain4j.community.model.qianfan.QianfanStreamingChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.maxkb4j.model.consts.ModelConstants.*;
+import static com.maxkb4j.model.consts.ModelConstants.ParamKey;
+import static com.maxkb4j.model.consts.ModelConstants.Provider;
 
 /**
  * WenXin (Baidu Qianfan) Model Provider
@@ -25,16 +25,9 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.WEN_XIN, name = "文心一言", icon = Provider.ICON_WEN_XIN)
 public class WenXinModelProvider extends AbsModelProvider {
 
-    private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo(ModelName.ERNIE_BOT_4, "", ModelType.LLM),
-            new ModelInfo(ModelName.ERNIE_BOT, "", ModelType.LLM),
-            new ModelInfo(ModelName.ERNIE_BOT_TURBO, "", ModelType.LLM),
-            new ModelInfo(ModelName.EMBEDDING_V1, "", ModelType.EMBEDDING)
-    );
-
     @Override
     public List<ModelInfo> getModelList() {
-        return MODEL_INFOS;
+        return ProviderModels.WEN_XIN;
     }
 
     @Override

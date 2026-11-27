@@ -2,14 +2,12 @@ package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.annotation.ModelProviderType;
+import com.maxkb4j.model.consts.ProviderModels;
 import com.maxkb4j.model.entity.ModelCredential;
+import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import org.springframework.stereotype.Component;
-
-
-import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.vo.ModelInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -22,17 +20,6 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @Component
 @ModelProviderType(provider = Provider.VOLCANIC_ENGINE, name = "火山引擎", icon = Provider.ICON_VOLCANIC_ENGINE)
 public class VolcanicEngineModelProvider extends OpenAiModelProvider {
-
-    private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo(ModelName.DOUBAO_1_5_PRO_32K, "", ModelType.LLM),
-            new ModelInfo(ModelName.DOUBAO_SEED_1_6, "", ModelType.LLM),
-            new ModelInfo(ModelName.DOUBAO_SEED_1_6_FLASH, "", ModelType.LLM),
-            new ModelInfo(ModelName.DOUBAO_SEED_1_6_THINKING, "", ModelType.LLM),
-            new ModelInfo(ModelName.DOUBAO_SEED_1_6_VISION, "", ModelType.VISION),
-            new ModelInfo(ModelName.DOUBAO_SEEDREAM_4_0, "", ModelType.TTI),
-            new ModelInfo(ModelName.DOUBAO_SEEDREAM_4_5, "", ModelType.TTI),
-            new ModelInfo(ModelName.DOUBAO_EMBEDDING_TEXT, "", ModelType.EMBEDDING)
-    );
 
     @Override
     public StreamingChatModel buildStreamingChatModel(String modelName, ModelCredential credential, JSONObject params) {
@@ -54,7 +41,7 @@ public class VolcanicEngineModelProvider extends OpenAiModelProvider {
 
     @Override
     public List<ModelInfo> getModelList() {
-        return MODEL_INFOS;
+        return ProviderModels.VOLCANIC_ENGINE;
     }
 
     @Override

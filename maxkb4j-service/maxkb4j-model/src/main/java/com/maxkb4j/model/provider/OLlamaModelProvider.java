@@ -2,12 +2,12 @@ package com.maxkb4j.model.provider;
 
 import com.alibaba.fastjson.JSONObject;
 import com.maxkb4j.model.annotation.ModelProviderType;
-import com.maxkb4j.model.integration.chat.OllamaChatModelParams;
+import com.maxkb4j.model.consts.ProviderModels;
+import com.maxkb4j.model.entity.ModelCredential;
+import com.maxkb4j.model.form.BaseField;
+import com.maxkb4j.model.integration.chat.OLlamaChatModelParams;
 import com.maxkb4j.model.integration.credential.ModelCredentialForm;
 import com.maxkb4j.model.integration.image.OllamaImageModelParams;
-import com.maxkb4j.model.entity.ModelCredential;
-import com.maxkb4j.model.enums.ModelType;
-import com.maxkb4j.model.form.BaseField;
 import com.maxkb4j.model.vo.ModelInfo;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -30,20 +30,9 @@ import static com.maxkb4j.model.consts.ModelConstants.*;
 @ModelProviderType(provider = Provider.OLLAMA, name = "OLlama", icon = Provider.ICON_OLLAMA)
 public class OLlamaModelProvider extends AbsModelProvider {
 
-    private static final List<ModelInfo> MODEL_INFOS = List.of(
-            new ModelInfo(ModelName.QWEN_7B, "", ModelType.LLM),
-            new ModelInfo(ModelName.LLAMA3_8B, "", ModelType.LLM),
-            new ModelInfo(ModelName.DEEPSEEK_R1_8B, "", ModelType.LLM),
-            new ModelInfo(ModelName.NOMIC_EMBED_TEXT, "", ModelType.EMBEDDING),
-            new ModelInfo(ModelName.LLAVA_7B, "", ModelType.VISION),
-            new ModelInfo(ModelName.LLAVA_13B, "", ModelType.VISION),
-            new ModelInfo(ModelName.X_Z_IMAGE_TURBO, "", ModelType.TTI)
-    );
-
-
     @Override
     public List<BaseField> getChatModelParamsForm() {
-        return new OllamaChatModelParams().toForm();
+        return new OLlamaChatModelParams().toForm();
     }
 
     @Override
@@ -58,7 +47,7 @@ public class OLlamaModelProvider extends AbsModelProvider {
 
     @Override
     public List<ModelInfo> getModelList() {
-        return MODEL_INFOS;
+        return ProviderModels.OLLAMA;
     }
 
     @Override

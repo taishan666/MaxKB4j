@@ -1,4 +1,4 @@
-package com.maxkb4j.model.integration.image;
+package com.maxkb4j.model.integration.image.model;
 
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;

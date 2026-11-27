@@ -1,4 +1,4 @@
-package com.maxkb4j.model.integration.embedding;
+package com.maxkb4j.model.integration.embedding.model;
 
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.image.Image;
