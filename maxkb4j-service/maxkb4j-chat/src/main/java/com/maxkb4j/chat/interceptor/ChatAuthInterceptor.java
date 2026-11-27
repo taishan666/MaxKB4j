@@ -21,6 +21,10 @@ public class ChatAuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) {
+        // 浏览器预检请求不会携带 Authorization，直接放行由 Spring MVC 的 CORS 处理返回
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
         AuthHandler authHandler = getAuthHandler(request);
         if (authHandler != null) {
             return authHandler.handle(response);

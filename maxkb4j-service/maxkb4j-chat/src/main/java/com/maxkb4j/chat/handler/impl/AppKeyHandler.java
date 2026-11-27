@@ -47,14 +47,13 @@ public class AppKeyHandler implements AuthHandler {
         loginModel.setExtra("chatUserType", ChatUserType.APPLICATION_API_KEY.name());
         String secretKeyId = secretKey.replace(AppConst.APP_KEY_PREFIX, "");
         StpKit.USER.login(secretKeyId, loginModel);
-        if (apiKey.getAllowCrossDomain() && CollUtil.isNotEmpty(apiKey.getCrossDomainList())) {
-            // 设置跨域
-            String domains = String.join(",", apiKey.getCrossDomainList());
-            response.setHeader("Access-Control-Allow-Origin", domains);
-            response.setHeader("Access-Control-Allow-Methods", "POST,GET,PUT,DELETE");
-            response.setHeader("Access-Control-Max-Age", "3600");
-            response.setHeader("Access-Control-Allow-Headers", "*");
-            response.setHeader("Access-Control-Allow-Credentials", "true");
+        if (Boolean.TRUE.equals(apiKey.getAllowCrossDomain()) && CollUtil.isNotEmpty(apiKey.getCrossDomainList())) {
+            // ACAO 只能回显单个 Origin；多值逗号拼接会被浏览器直接判定跨域失败
+            String origin = WebUtil.getHeader("Origin");
+            if (StrUtil.isNotBlank(origin) && apiKey.getCrossDomainList().contains(origin)) {
+                response.setHeader("Access-Control-Allow-Origin", origin);
+                response.setHeader("Vary", "Origin");
+            }
         }
         return true;
     }

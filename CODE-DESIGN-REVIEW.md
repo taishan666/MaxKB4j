@@ -139,20 +139,21 @@ public class XxxServiceImpl extends ServiceImpl<XxxMapper, XxxEntity> implements
 
 ### 5.1 R.java（`maxkb4j-common/src/main/java/com/maxkb4j/common/api/R.java`）
 
-三个问题点原样保留（行号复核）：
+无参构造器未初始化字段的问题仍保留；其余两项已修复：
 
 ```java
-// 第 50 行：无参构造器未初始化字段
-public R() { ... }
+// data 为 null 时的「暂无数据」回退只发生在未显式传入 message 的入口
+public static <T> R<T> data(T data) {
+    return data(data, I18nUtil.get(data == null ? "common.no.data" : "common.success"));
+}
 
-// 第 62 行：data() 中 data 为 null 时静默改写 message 为「暂无数据」
-return new R(code, data, data == null ? I18nUtil.get("common.no.data") : message);
-
-// 第 65 行：success(String data) 隐藏泛型参数 T
-public static <T> R<T> success(String data) { ... }
+// success(String) 将泛型绑定为 String，调用方不能再把它赋给任意 R<T>
+public static R<String> success(String data) {
+    return data(data);
+}
 ```
 
-`success(String)` 的调用方若期望 `R<Object>` 以外的类型，编译期无法发现错误。**改进建议：** 删除 `success(String)` 或改名为 `successMessage(String)`；`data()` 的 null 改写行为改为显式参数控制。
+`status(boolean)` 同步改为返回 `R<Boolean>`，成功分支承载真实布尔值而非消息字符串。显式传入的 `message` 不会再因 `data == null` 被静默改写。
 
 ### 5.2 GlobalExceptionHandler
 
@@ -178,16 +179,23 @@ public static <T> R<T> success(String data) { ... }
 
 ---
 
-## 7. ❌ 仍存在：配置与架构问题
+## 7. ⚠️ 仍存在：配置与架构问题
 
-### 7.1 CORS 配置（`maxkb4j-start/.../config/WebConfig.java:86-88`）
+### 7.1 CORS 配置 —— ✅ 已修复（`maxkb4j-start/.../config/WebConfig.java:86-113`）
 
 ```java
-.allowedOriginPatterns("*")
-.allowCredentials(true)
+registration.allowedOriginPatterns(allowedOrigins.toArray(String[]::new))
+        .allowCredentials(!wildcard);
 ```
 
-未变。生产环境凭据 + 通配源是真实安全风险（浏览器虽会拒绝 `*` + 凭据组合，但 `allowedOriginPatterns("*")` 会回显任意 Origin，等于放行任意跨域携带 Cookie 的请求）。**这是当前待办中唯一的"生产安全"级问题，建议最优先处理**：默认收紧为配置项指定源列表，开发环境经 profile 放开。
+原 `allowedOriginPatterns("*") + allowCredentials(true)`（回显任意 Origin，等于放行任意跨域携带 Cookie 的请求）已移除。现改为：
+
+- 来源由 `maxkb4j.cors.allowed-origins` 配置；为空时不注册 CORS 映射，生产默认不启用跨域。
+- 仅本地 `dev` profile 预置 `localhost:3000`、`localhost:5173`；如需临时放开为 `["*"]`，会自动关闭 `Access-Control-Allow-Credentials`。
+- `ChatAuthInterceptor` 放行 `OPTIONS` 预检，避免浏览器预检因缺少 `Authorization` 被返回 401。
+- `AppKeyHandler` 不再把多个域名用逗号拼进 `Access-Control-Allow-Origin`，改为仅当请求 Origin 命中 API Key 白名单时回显单个 Origin，并补充 `Vary: Origin`。
+
+生产安全级问题已清零；本项保留在文档中作为修复记录。
 
 ### 7.2 @Value 字段注入（`knowledge/.../retriever/SearchOrchestrator.java:48`）
 
@@ -260,10 +268,10 @@ private int recallMultiplier = 3;
 |--------|------|------|------|--------|
 | ~~🔴 P0~~ | ~~静态缓存（ChatCache / SystemCache）~~ | ✅ 已修复 | — | — |
 | ~~🔴 P0~~ | ~~服务定位器（ChatServiceBuilder + SpringUtil）~~ | ✅ 已修复 | — | — |
-| 🔴 **P0** | CORS `allowedOriginPatterns("*")` + `allowCredentials(true)` | ❌ 仍存在 | **生产安全** | 极小 |
+| ~~🔴 P0~~ | ~~CORS `allowedOriginPatterns("*")` + `allowCredentials(true)`~~ | ✅ 已修复（见 §7.1） | — | — |
 | 🟡 P1 | CompositeStoreImpl 双写无回滚 | ❌ 仍存在 | 数据一致性 | 中 |
 | 🟡 P1 | BaseEntity Date → LocalDateTime | ❌ 仍存在 | 现代化、线程安全 | 低（机械） |
-| 🟡 P1 | R.success(String) 泛型陷阱 / data() null 语义 | ❌ 仍存在 | API 正确性 | 低 |
+| ~~🟡 P1~~ | ~~R.success(String) 泛型陷阱 / data() null 语义~~ | ✅ 已修复 | — | — |
 | 🟡 P1 | GlobalExceptionHandler 注解与参数类型不匹配 | ❌ 仍存在 | 健壮性 | 低 |
 | 🟡 P2 | JSON 栈统一（fastjson 兼容层 + hutool 7 处） | 🔄 结论已修正 | 一致性、长期维护 | 中 |
 | 🟡 P2 | WorkflowContext 残留两个可变依赖字段 | ⚠️ 部分缓解 | 并发正确性 | 极小 |
@@ -275,12 +283,11 @@ private int recallMultiplier = 3;
 
 ## 总结
 
-首评最急迫的两项 🔴 P0（静态缓存 + 服务定位器）**已在近期重构中全部落地修复**，且修复质量高于预期：配套了独立单测、Javadoc 记录了迁移决策、`SaTokenConfigure` 的 `@Primary` 移除还附带了 fail-fast 理由说明——这是一次教科书式的技术债清偿。同期完成的模型集成包按功能分包与 `ProviderModels` 清单集中化，显著降低了新增模型供应商的成本。
+首评最急迫的两项 🔴 P0（静态缓存 + 服务定位器）**已在近期重构中全部落地修复**，且修复质量高于预期：配套了独立单测、Javadoc 记录了迁移决策、`SaTokenConfigure` 的 `@Primary` 移除还附带了 fail-fast 理由说明——这是一次教科书式的技术债清偿。同期完成的模型集成包按功能分包与 `ProviderModels` 清单集中化，显著降低了新增模型供应商的成本。复审中唯一的"生产安全"级问题 CORS 通配源 + 凭据（§7.1）也已完成修复，生产默认不再启用跨域。
 
-**当前最高优先级**转移为三项：
-1. **CORS 生产配置**（§7.1）——工作量极小、风险真实，建议立即处理；
-2. **数据一致性**（§10 dualWrite）——RAG 双库写入的回滚缺口，影响生产可信度；
-3. **API 语义正确性**（§5 R.java 与异常处理器）——面向二次开发者的公共 API，是"Java 团队可自主维护"这一核心卖点的门面。
+**当前最高优先级**转移为两项：
+1. **数据一致性**（§10 dualWrite）——RAG 双库写入的回滚缺口，影响生产可信度；
+2. **API 语义正确性**（§5 R.java 与异常处理器）——面向二次开发者的公共 API，是"Java 团队可自主维护"这一核心卖点的门面。
 
 架构级重构（ServiceImpl 解耦、JSON 栈统一）维持中远期节奏不变。整体判断：**代码库设计纪律在持续向好，首轮评审的反馈闭环已验证有效，建议保持"评审 → 修复 → 复审"的节奏推进。**
 
@@ -297,9 +304,12 @@ private int recallMultiplier = 3;
 | §3 BaseEntity | ❌ 未变 |
 | §4 fastjson CVE | 🔄 修正：实际为 fastjson 2.0.64 兼容层，CVE 不适用；hutool 混用 7 处仍在 |
 | §5 ServiceImpl 耦合 | ❌ 未变（29 处） |
-| §6 R.java / GlobalExceptionHandler | ❌ 未变 |
+| §6 R.java / GlobalExceptionHandler | ⚠️ R.java 两项已修复，无参构造器问题仍在；GlobalExceptionHandler 未变 |
 | §7.1 WorkflowContext | ⚠️ 并发容器化，剩两个可变字段 |
-| §8.1 CORS / §8.2 @Value / §8.3 BeanUtil | ❌ 未变 |
+| §8.1 CORS | ✅ 已修复：来源白名单可配置、通配符关闭凭据、预检放行、API Key 回显单 Origin（见 §7.1） |
+| §8.2 @Value / §8.3 BeanUtil | ❌ 未变 |
 | §8.4 乱码注释 / §8.5 Spilt 拼写 / §8.6 @Primary | ✅ 均已修复 |
 | §10 dualWrite / RateLimitAspect | ⚠️ 补充了日志包装 / Parser 已复用，核心缺口未变 |
 | （新增）常量接口反模式 | 🆕 ProviderModels / ModelConstants |
+
+> 2026-11-27 补记：CORS 生产安全问题在同日后续修复中完成闭合，编译验证通过；上表已同步更新。

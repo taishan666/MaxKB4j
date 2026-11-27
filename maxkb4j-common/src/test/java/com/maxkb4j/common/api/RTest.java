@@ -58,6 +58,22 @@ class RTest {
     }
 
     @Test
+    void data_nullKeepsExplicitMessage() {
+        R<Object> r = R.data(null, "自定义");
+        assertThat(r.getCode()).isEqualTo(200);
+        assertThat(r.getData()).isNull();
+        assertThat(r.getMessage()).isEqualTo("自定义");
+    }
+
+    @Test
+    void data_withCodeAndNullKeepsExplicitMessage() {
+        R<Object> r = R.data(201, null, "已创建");
+        assertThat(r.getCode()).isEqualTo(201);
+        assertThat(r.getData()).isNull();
+        assertThat(r.getMessage()).isEqualTo("已创建");
+    }
+
+    @Test
     void fail_byMessageUsesFailureCode() {
         R<Object> r = R.fail("出错了");
         assertThat(r.getCode()).isEqualTo(400);
@@ -81,8 +97,10 @@ class RTest {
     @Test
     void status_trueIsSuccess_falseIsFailure() {
         assertThat(R.status(true).getCode()).isEqualTo(200);
+        assertThat(R.status(true).getData()).isTrue();
         assertThat(R.status(true).getMessage()).isEqualTo("common.success");
         assertThat(R.status(false).getCode()).isEqualTo(400);
+        assertThat(R.status(false).getData()).isNull();
         assertThat(R.status(false).getMessage()).isEqualTo("common.fail");
     }
 

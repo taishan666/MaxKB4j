@@ -3,7 +3,6 @@ package com.maxkb4j.common.handler;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.exception.NotRoleException;
-import cn.dev33.satoken.exception.SaTokenException;
 import cn.dev33.satoken.jwt.error.SaJwtErrorCode;
 import cn.dev33.satoken.jwt.exception.SaJwtException;
 import com.maxkb4j.common.api.R;
@@ -95,7 +94,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotRoleException.class)
     @ResponseBody
-    public R<String> handleException(SaTokenException e, HttpServletResponse response) {
+    public R<String> handleException(NotRoleException e, HttpServletResponse response) {
         log.error("角色权限异常: {}", e.getMessage(), e);
         response.setStatus(HttpServletResponse.SC_FORBIDDEN); // 设置HTTP状态码为403
         return R.fail(403, "auth.permission.denied");

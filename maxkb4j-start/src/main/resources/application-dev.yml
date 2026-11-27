@@ -1,3 +1,9 @@
+maxkb4j:
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:5173
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/MaxKB4J_v2?client_encoding=UTF8

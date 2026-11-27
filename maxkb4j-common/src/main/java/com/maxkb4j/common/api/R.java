@@ -51,7 +51,7 @@ public class R<T> implements Serializable {
     }
 
     public static <T> R<T> data(T data) {
-        return data(data, I18nUtil.get("common.success"));
+        return data(data, I18nUtil.get(data == null ? "common.no.data" : "common.success"));
     }
 
     public static <T> R<T> data(T data, String message) {
@@ -59,27 +59,27 @@ public class R<T> implements Serializable {
     }
 
     public static <T> R<T> data(int code, T data, String message) {
-        return new R(code, data, data == null ? I18nUtil.get("common.no.data") : message);
+        return new R<>(code, data, message);
     }
 
-    public static <T> R<T> success(String data) {
-        return new R(ResultCode.SUCCESS, data, I18nUtil.get("common.success"));
+    public static R<String> success(String data) {
+        return data(data);
     }
 
     public static <T> R<T> success() {
-        return new R(ResultCode.SUCCESS, I18nUtil.get("common.success"));
+        return data(null, I18nUtil.get("common.success"));
     }
 
     public static <T> R<T> success(IResultCode resultCode) {
-        return new R(resultCode);
+        return new R<>(resultCode);
     }
 
     public static <T> R<T> success(IResultCode resultCode, String message) {
-        return new R(resultCode, message);
+        return new R<>(resultCode, null, message);
     }
 
     public static <T> R<T> fail(String message) {
-        return new R(ResultCode.FAILURE, message);
+        return new R<>(ResultCode.FAILURE, null, message);
     }
 
     public static <T> R<T> fail(int code, String message) {
@@ -87,22 +87,24 @@ public class R<T> implements Serializable {
     }
 
     public static <T> R<T> fail(IResultCode resultCode) {
-        return new R(resultCode);
+        return new R<>(resultCode);
     }
 
     public static <T> R<T> fail(IResultCode resultCode, String message) {
-        return new R(resultCode, message);
+        return new R<>(resultCode, null, message);
     }
 
-    public static <T> R<T> status(boolean flag) {
-        return flag ? success(I18nUtil.get("common.success")) : fail(I18nUtil.get("common.fail"));
+    public static R<Boolean> status(boolean flag) {
+        return flag
+                ? data(true, I18nUtil.get("common.success"))
+                : fail(ResultCode.FAILURE, I18nUtil.get("common.fail"));
     }
 
     public static <T> R<T> pkIsNull() {
-        return new R(ResultCode.FAILURE, I18nUtil.get("common.pk.empty"));
+        return new R<>(ResultCode.FAILURE, null, I18nUtil.get("common.pk.empty"));
     }
 
     public static <T> R<T> notExists() {
-        return new R(ResultCode.FAILURE, I18nUtil.get("common.record.not.exists"));
+        return new R<>(ResultCode.FAILURE, null, I18nUtil.get("common.record.not.exists"));
     }
 }

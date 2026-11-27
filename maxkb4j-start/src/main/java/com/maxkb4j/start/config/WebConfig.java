@@ -5,19 +5,24 @@ import com.maxkb4j.chat.interceptor.ChatAuthInterceptor;
 import com.maxkb4j.system.interceptor.LocaleInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.web.servlet.config.annotation.*;
 
+import java.util.List;
 
 
 @RequiredArgsConstructor
 @Configuration
+@EnableConfigurationProperties(WebConfig.CorsProperties.class)
 public class WebConfig implements WebMvcConfigurer {
 
     private final ChatAuthInterceptor chatAuthInterceptor;
     private final LocaleInterceptor localeInterceptor;
     private final SystemAuthInterceptor systemAuthInterceptor;
+    private final CorsProperties corsProperties;
 
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
@@ -79,22 +84,31 @@ public class WebConfig implements WebMvcConfigurer {
      */
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        // 添加映射路径
-        registry.addMapping("/**")
-                // 放行哪些原始域
-                .allowedOriginPatterns("*")
-                // 是否发送 Cookie 信息
-                .allowCredentials(true)
-                // 放行哪些原始域 (请求方式)
-                .allowedMethods("*")
-                // 放行哪些原始域 (头部信息)
+    public void addCorsMappings(@NotNull CorsRegistry registry) {
+        List<String> allowedOrigins = corsProperties.allowedOrigins() == null
+                ? List.of()
+                : corsProperties.allowedOrigins().stream()
+                        .filter(origin -> origin != null && !origin.isBlank())
+                        .map(String::trim)
+                        .toList();
+        // 未配置白名单时不启用跨域，避免凭据 + 通配源回显任意 Origin
+        if (allowedOrigins.isEmpty()) {
+            return;
+        }
+
+        CorsRegistration registration = registry.addMapping("/**")
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                // 暴露哪些头部信息（因为跨域访问默认不能获取全部头部信息）
-                .exposedHeaders("access-control-allow-headers",
-                        "access-control-allow-methods",
-                        "access-control-allow-origin",
-                        "access-control-max-age",
-                        "X-Frame-Options").maxAge(300);
+                .exposedHeaders("Content-Disposition")
+                .maxAge(300);
+
+        // 通配符仅用于开发调试：此时不允许携带凭据；生产应配置精确来源列表
+        boolean wildcard = allowedOrigins.contains("*");
+        registration.allowedOriginPatterns(allowedOrigins.toArray(String[]::new))
+                .allowCredentials(!wildcard);
+    }
+
+    @ConfigurationProperties(prefix = "maxkb4j.cors")
+    public record CorsProperties(List<String> allowedOrigins) {
     }
 }

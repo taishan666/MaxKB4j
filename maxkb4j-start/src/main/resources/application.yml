@@ -88,6 +88,12 @@ model:
     # 思考/推理类模型生成前可能长时间无数据返回，超时过小会导致 Read timed out 中断流式输出
     read-timeout: ${MODEL_READ_TIMEOUT:1800000}
 
+# 跨域来源白名单（精确 Origin，如 https://admin.example.com）；为空表示不启用跨域。
+# 仅本地调试可配置为 ["*"]，此时不会发送 Access-Control-Allow-Credentials。
+maxkb4j:
+  cors:
+    allowed-origins: []
+
 system:
   default-username: admin
   # 默认管理员口令：未配置时首次启动自动生成随机口令并打印到日志（见 UserServiceImpl.createDefaultAdminUser）
